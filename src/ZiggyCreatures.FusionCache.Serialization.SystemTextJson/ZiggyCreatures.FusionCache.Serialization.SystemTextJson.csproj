@@ -19,7 +19,11 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DocumentationFile>C:\Users\Jody\source\repos\ZiggyCreatures.FusionCache\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
+		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -34,7 +38,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
 </Project>

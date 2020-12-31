@@ -19,7 +19,11 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <DocumentationFile>C:\Users\Jody\source\repos\ZiggyCreatures.FusionCache\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.xml</DocumentationFile>
+		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
