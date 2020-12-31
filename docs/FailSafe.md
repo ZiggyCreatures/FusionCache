@@ -1,4 +1,4 @@
-<div style="text-align:center;">
+<div align="center">
 
 ![FusionCache logo](logo-128x128.png)
 

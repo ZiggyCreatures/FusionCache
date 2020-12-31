@@ -1,11 +1,11 @@
-﻿<div style="text-align:center;">
+﻿<div align="center">
 
 ![FusionCache logo](docs/logo-256x256.png)
 
 </div>
 
 # FusionCache
-<div style="text-align:center;">
+<div align="center">
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
