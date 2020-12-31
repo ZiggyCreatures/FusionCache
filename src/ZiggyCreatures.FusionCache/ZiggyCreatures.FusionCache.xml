@@ -1,0 +1,1178 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZiggyCreatures.FusionCache</name>
+    </assembly>
+    <members>
+        <member name="T:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache">
+            <summary>
+            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.#ctor(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
+            <summary>
+            The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.
+            </summary>
+            <param name="innerCache"></param>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.ChaosThrowProbability">
+            <summary>
+            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.ChaosMinDelay">
+            <summary>
+            The minimum amount of randomized delay.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.ChaosMaxDelay">
+            <summary>
+            The maximum amount of randomized delay.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetNeverThrow">
+            <summary>
+            Force chaos exceptions to never be thrown.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetAlwaysThrow">
+            <summary>
+            Force chaos exceptions to always be thrown.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetNeverDelay">
+            <summary>
+            Force chaos delays to never happen.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetAlwaysDelayExactly(System.TimeSpan)">
+            <summary>
+            Force chaos delays to always be of exactly this amount.
+            </summary>
+            <param name="delay"></param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetNeverChaos">
+            <summary>
+            Force chaos exceptions and delays to never happen.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetAlwaysChaos(System.TimeSpan)">
+            <summary>
+            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
+            </summary>
+            <param name="delay"></param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.Get(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.GetAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.Refresh(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.RefreshAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.Remove(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.RemoveAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.Set(System.String,System.Byte[],Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosDistributedCache.SetAsync(System.String,System.Byte[],Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException">
+            <summary>
+            The exception that is thrown when a method call should fail because of a randomized chaos event.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosException.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> class.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosException.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> class with a specified error message.</summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosException.#ctor(System.String,System.Exception)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.ChaosException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> class with serialized data.</summary>
+            <param name="info">The object that holds the serialized object data.</param>
+            <param name="context">The contextual information about the source or destination.</param>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils">
+            <summary>
+            Various utils to work with randomized controllable chaos.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.ShouldCreateChaos(System.Single)">
+            <summary>
+            Determines if an exception should be thrown.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <returns>True if an exception should be thrown, false otherwise.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.MaybeThrow(System.Single)">
+            <summary>
+            Maybe throw a <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.RandomizeDelay(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>.
+            </summary>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+            <returns>The randomized delay.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.MaybeDelay(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            </summary>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.MaybeDelayAsync(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            </summary>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.MaybeChaos(System.TimeSpan,System.TimeSpan,System.Single)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Chaos.FusioCacheChaosUtils.MaybeChaosAsync(System.TimeSpan,System.TimeSpan,System.Single)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.FusionCaching.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.FusionCache">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.FusionCaching.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.FusionCaching.FusionCache},ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.FusionCaching.FusionCache"/> instance.
+            </summary>
+            <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="T:ZiggyCreatures.FusionCaching.FusionCache"/>.</param>
+            <param name="memoryCache">The <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
+            <param name="reactor">The <see cref="T:ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCache.DefaultEntryOptions">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.RemoveDistributedCache">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Nullable{System.TimeSpan},System.Boolean)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.GetOrSetAsync``1(System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.TryGetAsync``1(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.TryGet``1(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.GetOrDefaultAsync``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.GetOrDefault``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.SetAsync``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.Set``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.RemoveAsync(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.Remove(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.Dispose(System.Boolean)">
+            <summary>
+            Release all resources managed by FusionCache.
+            </summary>
+            <param name="disposing">Indicates if the disposing is happening.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCache.Dispose">
+            <summary>
+            Release all resources managed by FusionCache.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.FusionCacheEntry`1">
+            <summary>
+            An entry in a <see cref="T:ZiggyCreatures.FusionCaching.FusionCache"/> .
+            </summary>
+            <typeparam name="TValue">The type of the entry's value</typeparam>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.#ctor(`0,System.DateTimeOffset,Microsoft.Extensions.Caching.Memory.CacheItemPriority,System.Boolean)">
+            <summary>
+            Creates a new instance.
+            </summary>
+            <param name="value">The actual value.</param>
+            <param name="logicalExpiration">THe logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
+            <param name="priority">The <see cref="T:Microsoft.Extensions.Caching.Memory.CacheItemPriority"/> of the entry (mainly used in the memory cache).</param>
+            <param name="isFromFailSafe">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.#ctor">
+            <summary>
+            Creates a new instance.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.Value">
+            <summary>
+            The value to be cached.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.LogicalExpiration">
+            <summary>
+            The intended expiration of the entry as requested from the caller
+            <br/>
+            When fail-safe is enabled the entry is cached with a higher duration (<see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.Priority">
+            <summary>
+            The <see cref="T:Microsoft.Extensions.Caching.Memory.CacheItemPriority"/> of the entry (mainly used in the memory cache).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.IsFromFailSafe">
+            <summary>
+            Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.IsLogicallyExpired">
+            <summary>
+            Checks if the entry is logically expired.
+            </summary>
+            <returns>A <see cref="T:System.Boolean"/> indicating the logical expiration status.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntry`1.CreateFromOptions(`0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntry`1"/> instance from a value and some options.
+            </summary>
+            <param name="value">The value to be cached.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object to configure the entry.</param>
+            <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
+            <returns>The newly created entry.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions">
+            <summary>
+            Represents all the options available for a single <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> entry.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.#ctor(System.Nullable{System.TimeSpan})">
+            <summary>
+            Creates a new instance of a <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object.
+            </summary>
+            <param name="duration">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> property. If null, <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsDuration"/> will be used.</param>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration">
+            <summary>
+            The amount of time after which a cache entry is considered expired.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.LockTimeout">
+            <summary>
+            The timeout to apply when trying to acquire a lock during a factory execution.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.JitterMaxDuration">
+            <summary>
+            The maximum amount of extra duration to add to the normal <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> to allow for more variable expirations.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Size">
+            <summary>
+            The size of the cache entry (typically used as a value of <see cref="P:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions.Size"/>).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Priority">
+            <summary>
+            The <see cref="T:Microsoft.Extensions.Caching.Memory.CacheItemPriority"/> of the entry in the memory cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.MemoryOptionsModifier">
+            <summary>
+            A function to apply when creating a <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> object from this <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, to allow for extra customizations.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedOptionsModifier">
+            <summary>
+            A function to apply when creating a <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> object from this <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, to allow for extra customizations.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.IsFailSafeEnabled">
+            <summary>
+            Enable the fail-safe mechanism, which will be activated if and when something goes wrong while calling a factory or getting data from a distributed cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeMaxDuration">
+            <summary>
+            When fail-safe is enabled an entry will expire normally nonetheless, but it will also be kept around for this (usually long) duration, so it may be used as a fallback value in case of errors.
+            <br/><br/>
+            TL/DR: the maximum amount of time an expired cache entry can still be used in case of problems.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeThrottleDuration">
+            <summary>
+            If fail-safe is enabled, something goes wrong while getting data (from the distributed cache or while calling the factory) and there is an expired entry to be used as a fallback value, the fail-safe mechanism will actually be activated.
+            In that case the fallback value will not only be returned to the caller but also put in the cache for this duration (usually small) to avoid excessive load on the distributed cache and/or the factory getting called continuously.
+            <br/><br/>
+            TL/DR: the amount of time an expired cache entry is temporarily considered non-expired before checking the source (calling the factory) again.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FactorySoftTimeout">
+            <summary>
+            The maximum execution time allowed for the factory, applied only if fail-safe is enabled and there is a fallback value to return.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FactoryHardTimeout">
+            <summary>
+            The maximum execution time allowed for the factory in any case, even if there is not a stale value to fallback to.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion">
+            <summary>
+            It enables a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedCacheSoftTimeout">
+            <summary>
+            The maximum execution time allowed for each operation on the distributed cache, applied only if fail-safe is enabled and there is a fallback value to return.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedCacheHardTimeout">
+            <summary>
+            The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations">
+            <summary>
+            Even if the distributed cache is a secondary layer, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
+            <br/>
+            This is to avoid rare edge cases like saving a value in the cache and immediately cheking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
+            <br/>
+            Setting this flag to true will execute most of these operations in the background, resulting in a performance boost.
+            <para>TL/DR: set this flag to true for a perf boost, but watch out for rare side effects.</para>
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.ToString">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.GetJitterDurationMs">
+            <summary>
+            If <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.JitterMaxDuration"/> is greater than <see cref="F:System.TimeSpan.Zero"/>, this method returns a randomized duration (in ms) between 0 and <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.JitterMaxDuration"/> that will be added to the entry's specified <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> .
+            This is done to avoid a variation of the so called <a href="https://en.wikipedia.org/wiki/Thundering_herd_problem">thundering herd problem</a> that may happen when the entry for the same key expires on multiple nodes at the same time, because of high synchronization.
+            </summary>
+            <returns>An additional cache duration (in ms) to slightly vary the entry duration</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetDuration(System.TimeSpan)">
+            <summary>
+            Set the duration to the specified <see cref="T:System.TimeSpan"/> value.
+            </summary>
+            <param name="duration">The duration to set.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetDurationMs(System.Int32)">
+            <summary>
+            Set the duration to the specified number of milliseconds.
+            </summary>
+            <param name="durationMs">The duration to set, in milliseconds.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetDurationSec(System.Int32)">
+            <summary>
+            Set the duration to the specified number of seconds.
+            </summary>
+            <param name="durationSec">The duration to set, in seconds.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetDurationMin(System.Int32)">
+            <summary>
+            Set the duration to the specified number of minutes.
+            </summary>
+            <param name="durationMin">The duration to set, in minutes.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetSize(System.Int64)">
+            <summary>
+            Set the 
+            </summary>
+            <param name="size">The (unitless) size value to set.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetPriority(Microsoft.Extensions.Caching.Memory.CacheItemPriority)">
+            <summary>
+            Set the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Priority"/>.
+            </summary>
+            <param name="priority">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Priority"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetFailSafe(System.Boolean,System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan})">
+            <summary>
+            Set various options related to the fail-safe mechanism.
+            </summary>
+            <param name="isEnabled">Enable or disable the fail-safe mechanism.</param>
+            <param name="maxDuration">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeMaxDuration"/> property.</param>
+            <param name="throttleDuration">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeThrottleDuration"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetFactoryTimeouts(System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Nullable{System.Boolean})">
+            <summary>
+            Set various options related to the factory timeouts handling.
+            </summary>
+            <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FactorySoftTimeout"/> property.</param>
+            <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FactoryHardTimeout"/> property.</param>
+            <param name="keepTimedOutFactoryResult">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.SetDistributedCacheTimeouts(System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Nullable{System.Boolean})">
+            <summary>
+            Set various options related to the factory timeouts handling.
+            </summary>
+            <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/> property.</param>
+            <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedCacheHardTimeout"/> property.</param>
+            <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.ToMemoryCacheEntryOptions">
+            <summary>
+            Creates a new <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> instance.
+            </summary>
+            <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.ToDistributedCacheEntryOptions">
+            <summary>
+            Creates a new <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> instance.
+            </summary>
+            <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duplicate(System.Nullable{System.TimeSpan},System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
+            </summary>
+            <param name="duration">A custom <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> that, if specified, will overwrite the current one.</param>
+            <param name="includeOptionsModifiers">If false, the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.MemoryOptionsModifier"/> and <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedOptionsModifier"/> will not be duplicated.</param>
+            <returns>The newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.FusionCacheExtMethods">
+            <summary>
+            A set of extension methods that add some commonl used overloads to any instance of a <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> object.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="factory">The function which will be called if the value is not found in the cache.</param>
+            <param name="duration">The value for the newly created <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.GetOrSet``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,``0},System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="factory">The function which will be called if the value is not found in the cache.</param>
+            <param name="duration">The value for the newly created <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="factory">The function which will be called if the value is not found in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.GetOrSet``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,``0},System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="factory">The function which will be called if the value is not found in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.GetOrDefaultAsync``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},``0,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.GetOrDefault``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},``0,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.TryGetAsync``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance containing a <see cref="T:System.Boolean"/> indicating if the value was there or not and either the value or a default one.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.TryGet``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance containing a <see cref="T:System.Boolean"/> indicating if the value was there or not and either the value or a default one.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.SetAsync``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,``0,System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="duration"/>. If a value is already there it will be overwritten.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">The value to put in the cache.</param>
+            <param name="duration">The value for the newly created <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.Set``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,``0,System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="duration"/>. If a value is already there it will be overwritten.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">The value to put in the cache.</param>
+            <param name="duration">The value for the newly created <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.SetAsync``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,``0,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda. If a value is already there it will be overwritten.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">The value to put in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.Set``1(ZiggyCreatures.FusionCaching.IFusionCache,System.String,``0,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda. If a value is already there it will be overwritten.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">The value to put in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.RemoveAsync(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Removes the value in the cache for the specified <paramref name="key"/>.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheExtMethods.Remove(ZiggyCreatures.FusionCaching.IFusionCache,System.String,System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Removes the value in the cache for the specified <paramref name="key"/>.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults">
+            <summary>
+            Contains the default values used globally.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsDuration">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsLockTimeout">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.LockTimeout"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsJitterMaxDuration">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.JitterMaxDuration"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsSize">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Size"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsPriority">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Priority"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsFactorySoftTimeout">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FactorySoftTimeout"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsFactoryHardTimeout">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FactoryHardTimeout"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsAllowTimedOutFactoryBackgroundCompletion">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheHardTimeout">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.DistributedCacheHardTimeout"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.IsFailSafeEnabled"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeMaxDuration"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.FailSafeThrottleDuration"/>.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.FusionCacheOptions">
+            <summary>
+            Represents all the options available for the entire <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.FusionCacheOptions.#ctor">
+            <summary>
+            Creates a new instance of a <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheOptions"/> object.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DefaultEntryOptions">
+            <summary>
+            The default <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DistributedCacheCircuitBreakerDuration">
+            <summary>
+            The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="F:System.TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.CacheKeyPrefix">
+            <summary>
+            An optional <see cref="T:System.String"/> prefix to prepend to any cache key passed to the cache methods.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.SerializationErrorsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DistributedCacheSyntheticTimeoutsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a synthetic timeout occurs during a distributed cache operation.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.DistributedCacheErrorsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when any error (except for a synthetic timeout) occurs during a distributed cache operation.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.FactorySyntheticTimeoutsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a synthetic timeout occurs during a factory execution.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.FactoryErrorsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when any error (except for a synthetic timeout) occurs during a factory execution.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.FusionCacheOptions.FailSafeActivationLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a fail-safe activation occurs.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.IFusionCache">
+            <summary>
+            Represents an instance of a FusionCache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions">
+            <summary>
+            The default set of options that will be used either when none are provided or as a starting point for creating a new one with the fluent api.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer)">
+            <summary>
+            Sets a secondary caching layer, by providing a <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and a <see cref="T:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+            </summary>
+            <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
+            <param name="serializer">The <see cref="T:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.RemoveDistributedCache">
+            <summary>
+            Removes the secondary caching layer.
+            </summary>
+            <returns>The same <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.FusionCaching.FusionCacheEntryOptions},System.Nullable{System.TimeSpan},System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> instance by duplicating the <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> and optionally applying a setup action.
+            </summary>
+            <param name="setupAction">An optional setup action to further configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> instance.</param>
+            <param name="duration">An optional duration to directly change the <see cref="P:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions.Duration"/> of the newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/> instance.</param>
+            <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
+            <returns>The newly created <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheEntryOptions"/>.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.GetOrSetAsync``1(System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="factory">The function which will be called if the value is not found in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="factory">The function which will be called if the value is not found in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.GetOrDefaultAsync``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.GetOrDefault``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.TryGetAsync``1(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance containing a <see cref="T:System.Boolean"/> indicating if the value was there or not and either the value or a default one.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.TryGet``1(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance containing a <see cref="T:System.Boolean"/> indicating if the value was there or not and either the value or a default one.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.SetAsync``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">The value to put in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.Set``1(System.String,``0,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">The value to put in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.RemoveAsync(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Removes the value in the cache for the specified <paramref name="key"/>.
+            </summary>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.IFusionCache.Remove(System.String,ZiggyCreatures.FusionCaching.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Removes the value in the cache for the specified <paramref name="key"/>.
+            </summary>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils">
+            <summary>
+            A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Run an async function asynchronously with a timeout and some additional ooptions.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="asyncFunc">The async function to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run an async action asynchronously with a timeout and some additional ooptions.
+            </summary>
+            <param name="asyncAction">The async action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunAsyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Run an async function synchoronously with a timeout and some additional ooptions.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="asyncFunc">The async function to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value returned from the async function</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunAsyncActionWithTimeout(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run an async action synchoronously with a timeout and some additional ooptions.
+            </summary>
+            <param name="asyncAction">The async action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunSyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,``0},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Run a sync function synchoronously with a timeout and some additional ooptions.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="syncFunc">The sync function to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value returned from the sync function</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunSyncActionWithTimeout(System.Action{System.Threading.CancellationToken},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run a sync action synchoronously with a timeout and some additional ooptions.
+            </summary>
+            <param name="syncAction">The sync action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunAsyncActionAdvancedAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Boolean,System.Action{System.Exception},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Run an async function with the ability to optionally set a timeout, await its completion (or run in a fire-and-forget way), process the eventually thrown exception or re-throw it.
+            </summary>
+            <param name="asyncAction">The async action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="awaitCompletion">Indicates if the function's completion should be awaited or if the execution should be made in a fire-and-forget way.</param>
+            <param name="exceptionProcessor">An exception processor for the exception that may be thrown.</param>
+            <param name="reThrow">Indicates if, in case an exception is intercepted, it should be re-thrown.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils.RunSyncActionAdvanced(System.Action{System.Threading.CancellationToken},System.TimeSpan,System.Boolean,System.Boolean,System.Action{System.Exception},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Run a sync action with the ability to optionally set a timeout, await its completion (or run in a fire-and-forget way), process the eventually thrown exception or re-throw it.
+            </summary>
+            <param name="syncAction">The sync action to execute.</param>
+            <param name="timeout">The timeout to apply. Defaults to <see cref="F:System.Threading.Timeout.Infinite"/>.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="awaitCompletion">Indicates if the action's completion should be awaited or if the execution should be made in a fire-and-forget way.</param>
+            <param name="exceptionProcessor">An exception processor for the exception that may be thrown.</param>
+            <param name="reThrow">Indicates if, in case an exception is intercepted, it should be re-thrown.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor">
+            <summary>
+            Represents one of the core pieces of an instance of an <see cref="T:ZiggyCreatures.FusionCaching.FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor.AcquireLockAsync(System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <summary>
+            Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
+            </summary>
+            <param name="key">The key for which to obtain a lock.</param>
+            <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="timeout">The optional timeout for the lock acquisition.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The acquired genericlock object, later released when the crytical section is over.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor.AcquireLock(System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
+            </summary>
+            <param name="key">The key for which to obtain a lock.</param>
+            <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="timeout">The optional timeout for the lock acquisition.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+            <returns>The acquired genericlock object, later released when the crytical section is over.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor.ReleaseLock(System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Release the generic lock object.
+            </summary>
+            <param name="key">The key for which to obtain a lock.</param>
+            <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="lockObj">The generic lock object to release.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.Reactors.IFusionCacheReactor.Collisions">
+            <summary>
+            Exposes the eventual amount ofcollisions happened inside the reactor, for diagnostics purposes.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer">
+            <summary>
+            A generic serializer that converts any object instance to and from byte[], used along the <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> .
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer.Serialize``1(``0)">
+            <summary>
+            Serialized the specified <paramref name="obj"/> into a byte[].
+            </summary>
+            <typeparam name="T">The type of the <paramref name="obj"/> parameter.</typeparam>
+            <param name="obj"></param>
+            <returns>The byte[] which represents the serialized <paramref name="obj"/>.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer.Deserialize``1(System.Byte[])">
+            <summary>
+            Deserialized the specified byte[] <paramref name="data"/> into an object of type <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">The type of the object to be returned.</typeparam>
+            <param name="data"></param>
+            <returns>The deserialized object.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer.SerializeAsync``1(``0)">
+            <summary>
+            Serialized the specified <paramref name="obj"/> into a byte[].
+            </summary>
+            <typeparam name="T">The type of the <paramref name="obj"/> parameter.</typeparam>
+            <param name="obj"></param>
+            <returns>The byte[] which represents the serialized <paramref name="obj"/>.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer.DeserializeAsync``1(System.Byte[])">
+            <summary>
+            Deserialized the specified byte[] <paramref name="data"/> into an object of type <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">The type of the object to be returned.</typeparam>
+            <param name="data"></param>
+            <returns>The deserialized object.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.SyntheticTimeoutException">
+            <summary>
+            The exception that is thrown when the time allotted for a process or operation has expired.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.SyntheticTimeoutException.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.SyntheticTimeoutException"/> class.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.SyntheticTimeoutException.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.SyntheticTimeoutException"/> class with the specified error message.</summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.SyntheticTimeoutException.#ctor(System.String,System.Exception)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.SyntheticTimeoutException"/> class with the specified error message and inner exception.</summary>
+            <param name="message">The message that describes the error.</param>
+            <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not null, the current exception is raised in a catch block that handles the inner exception.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.SyntheticTimeoutException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.FusionCaching.SyntheticTimeoutException"/> class with serialized data.</summary>
+            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> object that contains serialized object data about the exception being thrown.</param>
+            <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> object that contains contextual information about the source or destination. The context parameter is reserved for future use, and can be specified as null.</param>
+            <exception cref="T:System.ArgumentNullException">The <paramref name="info">info</paramref> parameter is null.</exception>
+            <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is null, or <see cref="P:System.Exception.HResult"/> is zero (0).</exception>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCaching.TryGetResult`1">
+            <summary>
+            Represents the result of a TryGet[Async] operation: it contains a <see cref="T:System.Boolean"/> indicating if the value has been found, and either the found value or a default value instead.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+        </member>
+        <member name="F:ZiggyCreatures.FusionCaching.TryGetResult`1.NoSuccess">
+            <summary>
+            Represents a reusable result to be used when no value has been found in the cache. Using this saves memory allocations.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.TryGetResult`1.Success">
+            <summary>
+            Indicates if the value was in the cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCaching.TryGetResult`1.Value">
+            <summary>
+            Is either the value found in the cache or the default value for the <typeparamref name="TValue"/> specified.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.TryGetResult`1.op_Implicit(ZiggyCreatures.FusionCaching.TryGetResult{`0})~System.Boolean">
+            <summary>
+            Implements an implicit conversion between a <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance and a <see cref="T:System.Boolean"/>, to be easily used in boolean-based statements, like an if or a while.
+            </summary>
+            <param name="res">The <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance to convert.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.TryGetResult`1.CreateSuccess(`0)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance for a successful case by providing the <paramref name="value"/>.
+            </summary>
+            <param name="value">The value of type <typeparamref name="TValue"/> to use.</param>
+            <returns>THe newly created <see cref="T:ZiggyCreatures.FusionCaching.TryGetResult`1"/> instance.</returns>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions">
+            <summary>
+            Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.FusionCaching.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.FusionCaching.IFusionCache})">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="setupOptionsAction">The <see cref="T:System.Action`1"/> to configure the provided <see cref="T:ZiggyCreatures.FusionCaching.FusionCacheOptions"/>.</param>
+            <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
+            <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
+            <param name="setupCacheAction">The <see cref="T:System.Action`2"/> to configure the newly created <see cref="T:ZiggyCreatures.FusionCaching.IFusionCache"/> instance.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+    </members>
+</doc>

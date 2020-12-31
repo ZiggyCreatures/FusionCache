@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</name>
+    </assembly>
+    <members>
+        <member name="T:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer">
+            <summary>
+            An implementation of <see cref="T:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer"/> which uses the System.Text.Json serializer.
+            </summary>
+        </member>
+        <member name="M:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer.#ctor(System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Create a new instance of a <see cref="T:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer"/> object.
+            </summary>
+            <param name="options">The optional <see cref="T:System.Text.Json.JsonSerializerOptions"/> object to use.</param>
+        </member>
+        <member name="M:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer.Serialize``1(``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer.Deserialize``1(System.Byte[])">
+            <inheritdoc />
+        </member>
+        <member name="M:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer.SerializeAsync``1(``0)">
+            <inheritdoc />
+        </member>
+        <member name="M:FusionCaching.Serialization.SystemTextJson.FusionCacheSystemTextJsonSerializer.DeserializeAsync``1(System.Byte[])">
+            <inheritdoc />
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheSystemTextJsonSerializerServiceCollectionExtensions">
+            <summary>
+            Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheSystemTextJsonSerializerServiceCollectionExtensions.AddFusionCacheSystemTextJsonSerializer(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Adds an implementation of <see cref="T:ZiggyCreatures.FusionCaching.Serialization.IFusionCacheSerializer"/> based on the System.Text.Json one.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="options">The <see cref="T:System.Text.Json.JsonSerializerOptions"/> to use.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+    </members>
+</doc>

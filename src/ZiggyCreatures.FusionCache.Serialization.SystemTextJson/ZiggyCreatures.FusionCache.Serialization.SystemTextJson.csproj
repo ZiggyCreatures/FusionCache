@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>8.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<Version>0.1.0</Version>
+		<Authors>Jody Donetti</Authors>
+		<Company>Jody Donetti</Company>
+		<Product>FusionCache</Product>
+		<PackageId>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</PackageId>
+		<Copyright />
+		<PackageIcon>logo-128x128.png</PackageIcon>
+		<Description>FusionCache serializer based on System.Text.Json</Description>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<RootNamespace>ZiggyCreatures.FusionCaching.Serialization.SystemTextJson</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DocumentationFile>C:\Users\Jody\source\repos\ZiggyCreatures.FusionCache\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="System.Text.Json" Version="4.7.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+</Project>
