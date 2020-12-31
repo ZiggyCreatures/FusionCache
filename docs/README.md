@@ -6,7 +6,7 @@
 
 # :book: Documentation
 
-Some arguments can be explained a little bit more:
+Some topics can be explained a little bit more:
 
 - [**:unicorn: A Gentle Introduction**](AGentleIntroduction.md): what you need to know first
 - [**:bomb: Fail-Safe**](FailSafe.md): an explanation of how the fail-safe mechanism works
