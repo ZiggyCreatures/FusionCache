@@ -31,7 +31,7 @@ If you want to get yourself **comfortable with the overall concepts** there's [:
 
 If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:trophy: Step By Step ](docs/StepByStep.md) guide.
 
-If instead you want to start using it **immediately** there's a [:rocket: Quick Start](#quick-start) for you.
+If instead you want to start using it **immediately** there's a [:star: Quick Start](#quick-start) for you.
 
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:
@@ -55,7 +55,7 @@ Also, FusionCache has some other nice **additional features**:
 - **Code comments**: every property and method is fully documented in code, with useful informations provided via IntelliSense or similar technologies
 - **Fully annotated for nullability**: every usage of nullable references has been annotated for a better flow analysis by the compiler
 
-## :rocket: Quick Start
+## :star: Quick Start
 
 FusionCache can be installed via the nuget UI (search for the `ZiggyCreatures.FusionCache` package) or via the nuget package manager console:
 
