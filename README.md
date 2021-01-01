@@ -55,6 +55,16 @@ Also, FusionCache has some other nice **additional features**:
 - **Code comments**: every property and method is fully documented in code, with useful informations provided via IntelliSense or similar technologies
 - **Fully annotated for nullability**: every usage of nullable references has been annotated for a better flow analysis by the compiler
 
+## :package: Distribution
+
+Available packages on Nuget:
+
+| Package Name                   | Release (NuGet) |
+|--------------------------------|-----------------|
+| `ZiggyCreatures.FusionCache`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) |
+| `ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson/) |
+| `ZiggyCreatures.FusionCache.Serialization.SystemTextJson`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.SystemTextJson/) |
+
 ## :star: Quick Start
 
 FusionCache can be installed via the nuget UI (search for the `ZiggyCreatures.FusionCache` package) or via the nuget package manager console:
