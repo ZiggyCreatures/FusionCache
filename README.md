@@ -202,6 +202,10 @@ FusionCache targets .NET Standard 2.0, so any compatible .NET implementation is 
 
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
 
+## :framed_picture: Logo
+
+The logo is an [original creation](https://dribbble.com/shots/14854206-FusionCache-logo) and is a [sloth](https://en.wikipedia.org/wiki/Sloth) because, you know, speed is very important in a cache.
+
 ## :moneybag: Funding / Support
 
 Nothing to do here.
