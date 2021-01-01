@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ZiggyCreatures.FusionCaching.Internals;
 
 namespace ZiggyCreatures.FusionCaching.Chaos
 {
@@ -10,8 +11,6 @@ namespace ZiggyCreatures.FusionCaching.Chaos
 	/// </summary>
 	public static class FusioCacheChaosUtils
 	{
-		private static Random _rng = new Random();
-
 		/// <summary>
 		/// Determines if an exception should be thrown.
 		/// </summary>
@@ -25,7 +24,7 @@ namespace ZiggyCreatures.FusionCaching.Chaos
 			if (throwProbability >= 1f)
 				return true;
 
-			return _rng.NextDouble() < throwProbability;
+			return ConcurrentRandom.NextDouble() < throwProbability;
 		}
 
 		/// <summary>
@@ -52,7 +51,7 @@ namespace ZiggyCreatures.FusionCaching.Chaos
 			if (minDelay >= maxDelay)
 				return minDelay;
 
-			return minDelay + TimeSpan.FromMilliseconds(_rng.NextDouble() * (maxDelay - minDelay).TotalMilliseconds);
+			return minDelay + TimeSpan.FromMilliseconds(ConcurrentRandom.NextDouble() * (maxDelay - minDelay).TotalMilliseconds);
 		}
 
 		/// <summary>

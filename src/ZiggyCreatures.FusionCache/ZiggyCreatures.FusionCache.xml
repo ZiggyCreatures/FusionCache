@@ -924,6 +924,42 @@
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.FusionCaching.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
+        <member name="T:ZiggyCreatures.FusionCaching.Internals.ConcurrentRandom">
+            <summary>
+            A thread-safe version of the Random class.
+            <br/>
+            Inspired by Ben Adam's ConcurrentRandom (see <a href="https://github.com/benaadams/Ben.Http/blob/main/src/Ben.Http/Random.cs">here</a>).
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.ConcurrentRandom.Next">
+            <summary>
+            Returns a non-negative random integer that is greater than or equal to 0 and less than <see cref="F:System.Int32.MaxValue"/>.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.ConcurrentRandom.Next(System.Int32)">
+            <summary>
+            Returns a non-negative random integer that is less than the specified maximum.
+            </summary>
+            <param name="maxValue">The exclusive upper bound of the random number to be generated: must be greater than or equal to 0.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.ConcurrentRandom.Next(System.Int32,System.Int32)">
+            <summary>
+            Returns a random integer that is within a specified range.
+            </summary>
+            <param name="minValue">The inclusive lower bound of the random number returned.</param>
+            <param name="maxValue">The exclusive upper bound of the random number returned: <paramref name="maxValue"/> must be greater than or equal to <paramref name="minValue"/>.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.ConcurrentRandom.NextBytes(System.Byte[])">
+            <summary>
+            Fills the elements of a specified array of bytes with random numbers.
+            </summary>
+            <param name="buffer">The array to be filled with random numbers.</param>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCaching.Internals.ConcurrentRandom.NextDouble">
+            <summary>
+            Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.FusionCaching.Internals.FusionCacheExecutionUtils">
             <summary>
             A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.

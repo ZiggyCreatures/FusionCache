@@ -145,7 +145,7 @@ namespace ZiggyCreatures.FusionCaching
 			if (JitterMaxDuration <= TimeSpan.Zero)
 				return 0d;
 
-			return FusionCacheInternalUtils.RNG.NextDouble() * JitterMaxDuration.TotalMilliseconds;
+			return ConcurrentRandom.NextDouble() * JitterMaxDuration.TotalMilliseconds;
 		}
 
 		/// <summary>

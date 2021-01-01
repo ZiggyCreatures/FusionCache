@@ -10,8 +10,6 @@ namespace ZiggyCreatures.FusionCaching.Internals
 	internal static class FusionCacheInternalUtils
 	{
 
-		public static Random RNG = new Random();
-
 		public static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
 
 		public static string GetCurrentMemberName([CallerMemberName] string name = "")
