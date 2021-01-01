@@ -113,7 +113,7 @@ namespace ZiggyCreatures.FusionCaching.LoggingVisualTester
 				await Task.Delay(2_500);
 				Console.WriteLine();
 
-				var tmp3 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Banana"); }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				var tmp3 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Sloths are cool"); }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 				Console.WriteLine($"tmp3: {tmp3}");
 				await Task.Delay(2_500);

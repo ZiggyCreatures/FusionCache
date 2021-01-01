@@ -124,7 +124,7 @@ namespace FusionCaching.Tests
 					memoryCache.Remove("foo");
 					await Assert.ThrowsAsync<Exception>(async () =>
 					{
-						var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Banana"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+						var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
 					});
 				}
 			}
@@ -148,7 +148,7 @@ namespace FusionCaching.Tests
 					memoryCache.Remove("foo");
 					Assert.Throws<Exception>(() =>
 					{
-						_ = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Banana"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+						_ = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
 					});
 				}
 			}
@@ -170,7 +170,7 @@ namespace FusionCaching.Tests
 					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 					var sw = Stopwatch.StartNew();
-					var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Banana"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+					var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
 					sw.Stop();
 
 					Assert.Equal(42, res);
@@ -196,7 +196,7 @@ namespace FusionCaching.Tests
 					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					Thread.Sleep(TimeSpan.FromSeconds(1));
 					var sw = Stopwatch.StartNew();
-					var res = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Banana"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+					var res = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
 					sw.Stop();
 
 					Assert.Equal(42, res);
