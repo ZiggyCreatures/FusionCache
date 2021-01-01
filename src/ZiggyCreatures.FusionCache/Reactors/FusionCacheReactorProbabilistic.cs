@@ -14,7 +14,7 @@ namespace ZiggyCreatures.FusionCaching.Reactors
 		private int _lockPoolSize;
 		private SemaphoreSlim[] _lockPool;
 		private string?[] _lockPoolKeys;
-		private int _lockPoolCollisions = 0;
+		private int _lockPoolCollisions;
 
 		public FusionCacheReactorProbabilistic(int reactorSize = 8_440)
 		{
