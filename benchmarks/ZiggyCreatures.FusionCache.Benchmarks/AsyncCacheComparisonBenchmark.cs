@@ -2,9 +2,6 @@
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using CacheManager.Core;
-using CacheTower;
-using CacheTower.Extensions;
-using CacheTower.Providers.Memory;
 using EasyCaching.Core;
 using LazyCache;
 using LazyCache.Providers;
@@ -127,45 +124,6 @@ namespace ZiggyCreatures.FusionCaching.Benchmarks
 				}
 
 				cache.Compact(1);
-			}
-		}
-
-		//[Benchmark]
-		public async Task CacheTowerCache()
-		{
-			var cacheSettings = new CacheSettings(CacheDuration);
-			await using (var cache = new CacheStack<int>(() => 0, new[] { new MemoryCacheLayer() }, new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) }))
-			{
-				for (int i = 0; i < Rounds; i++)
-				{
-					var tasks = new ConcurrentBag<Task>();
-					FactoryCallsCount = 0;
-
-					// FULL PARALLEL
-					Parallel.ForEach(Keys, key =>
-					{
-						Parallel.For(0, Accessors, _ =>
-						{
-							var t = cache.GetOrSetAsync<long>(
-								key,
-								async _ =>
-								{
-									Interlocked.Increment(ref FactoryCallsCount);
-									await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-									return DateTimeOffset.UtcNow.Ticks;
-								},
-								cacheSettings
-							).AsTask();
-							tasks.Add(t);
-						});
-					});
-
-					await Task.WhenAll(tasks).ConfigureAwait(false);
-
-					UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
-				}
-
-				await cache.CleanupAsync().ConfigureAwait(false);
 			}
 		}
 
