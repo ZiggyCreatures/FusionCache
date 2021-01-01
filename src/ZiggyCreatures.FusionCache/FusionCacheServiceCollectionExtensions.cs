@@ -35,12 +35,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			services.TryAdd(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
 			{
-				var _logger = serviceProvider.GetService<ILogger<FusionCache>>();
+				var logger = serviceProvider.GetService<ILogger<FusionCache>>();
 
 				var cache = new FusionCache(
 					serviceProvider.GetRequiredService<IOptions<FusionCacheOptions>>(),
 					serviceProvider.GetService<IMemoryCache>(),
-					logger: _logger
+					logger: logger
 				);
 
 				if (useDistributedCacheIfAvailable)
@@ -58,8 +58,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
 						if (serializer is null)
 						{
-							if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-								_logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
+							if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+								logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
 						}
 						else
 						{

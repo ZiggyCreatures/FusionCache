@@ -75,10 +75,10 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			if (_breakDurationTicks == 0)
 				return true;
 
-			long _gatewayTicksLocal = Interlocked.Read(ref _gatewayTicks);
+			long gatewayTicksLocal = Interlocked.Read(ref _gatewayTicks);
 
 			// NOT ENOUGH TIME IS PASSED
-			if (DateTimeOffset.UtcNow.Ticks < _gatewayTicksLocal)
+			if (DateTimeOffset.UtcNow.Ticks < gatewayTicksLocal)
 				return false;
 
 			if (_circuitState == CircuitStateOpen)
@@ -284,29 +284,29 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 			try
 			{
-				var _entry = await Serializer!.DeserializeAsync<FusionCacheEntry<TValue>>(data).ConfigureAwait(false);
-				var _isValid = false;
-				if (_entry is null)
+				var entry = await Serializer!.DeserializeAsync<FusionCacheEntry<TValue>>(data).ConfigureAwait(false);
+				var isValid = false;
+				if (entry is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry not found", key, operationId);
 				}
 				else
 				{
-					if (_entry.IsLogicallyExpired())
+					if (entry.IsLogicallyExpired())
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found (expired) {Entry}", key, operationId, _entry.ToLogString());
+							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found (expired) {Entry}", key, operationId, entry.ToLogString());
 					}
 					else
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found {Entry}", key, operationId, _entry.ToLogString());
+							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found {Entry}", key, operationId, entry.ToLogString());
 
-						_isValid = true;
+						isValid = true;
 					}
 				}
-				return (_entry, _isValid);
+				return (entry, isValid);
 			}
 			catch (Exception exc)
 			{
@@ -342,29 +342,29 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 			try
 			{
-				var _entry = Serializer!.Deserialize<FusionCacheEntry<TValue>>(data);
-				var _isValid = false;
-				if (_entry is null)
+				var entry = Serializer!.Deserialize<FusionCacheEntry<TValue>>(data);
+				var isValid = false;
+				if (entry is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry not found", key, operationId);
 				}
 				else
 				{
-					if (_entry.IsLogicallyExpired())
+					if (entry.IsLogicallyExpired())
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found (expired) {Entry}", key, operationId, _entry.ToLogString());
+							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found (expired) {Entry}", key, operationId, entry.ToLogString());
 					}
 					else
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found {Entry}", key, operationId, _entry.ToLogString());
+							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found {Entry}", key, operationId, entry.ToLogString());
 
-						_isValid = true;
+						isValid = true;
 					}
 				}
-				return (_entry, _isValid);
+				return (entry, isValid);
 			}
 			catch (Exception exc)
 			{

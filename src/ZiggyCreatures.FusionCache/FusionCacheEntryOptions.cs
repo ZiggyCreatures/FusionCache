@@ -314,19 +314,19 @@ namespace ZiggyCreatures.FusionCaching
 			if (FactorySoftTimeout == Timeout.InfiniteTimeSpan && FactoryHardTimeout == Timeout.InfiniteTimeSpan)
 				return Timeout.InfiniteTimeSpan;
 
-			var _res = Timeout.InfiniteTimeSpan;
+			var res = Timeout.InfiniteTimeSpan;
 
 			// 1ST: CHECK SOFT TIMEOUT, IF APPLICABLE
 			if (FactorySoftTimeout > Timeout.InfiniteTimeSpan && IsFailSafeEnabled && hasFallbackValue)
 			{
-				_res = FactorySoftTimeout;
+				res = FactorySoftTimeout;
 			}
 
 			// 2ND: CHECK HARD TIMEOUT, IF LOWER
-			if (FactoryHardTimeout > Timeout.InfiniteTimeSpan && (_res <= Timeout.InfiniteTimeSpan || _res > FactoryHardTimeout))
-				_res = FactoryHardTimeout;
+			if (FactoryHardTimeout > Timeout.InfiniteTimeSpan && (res <= Timeout.InfiniteTimeSpan || res > FactoryHardTimeout))
+				res = FactoryHardTimeout;
 
-			return _res;
+			return res;
 		}
 
 		internal TimeSpan GetAppropriateDistributedCacheTimeout(bool hasFallbackValue)
@@ -335,19 +335,19 @@ namespace ZiggyCreatures.FusionCaching
 			if (DistributedCacheSoftTimeout == Timeout.InfiniteTimeSpan && DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan)
 				return Timeout.InfiniteTimeSpan;
 
-			var _res = Timeout.InfiniteTimeSpan;
+			var res = Timeout.InfiniteTimeSpan;
 
 			// 1ST: CHECK SOFT TIMEOUT, IF APPLICABLE
 			if (DistributedCacheSoftTimeout > Timeout.InfiniteTimeSpan && IsFailSafeEnabled && hasFallbackValue)
 			{
-				_res = DistributedCacheSoftTimeout;
+				res = DistributedCacheSoftTimeout;
 			}
 
 			// 2ND: CHECK HARD TIMEOUT, IF LOWER
-			if (DistributedCacheHardTimeout > Timeout.InfiniteTimeSpan && (_res <= Timeout.InfiniteTimeSpan || _res > DistributedCacheHardTimeout))
-				_res = DistributedCacheHardTimeout;
+			if (DistributedCacheHardTimeout > Timeout.InfiniteTimeSpan && (res <= Timeout.InfiniteTimeSpan || res > DistributedCacheHardTimeout))
+				res = DistributedCacheHardTimeout;
 
-			return _res;
+			return res;
 		}
 
 		/// <summary>
