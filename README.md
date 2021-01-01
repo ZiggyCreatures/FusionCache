@@ -204,7 +204,7 @@ FusionCache targets .NET Standard 2.0, so any compatible .NET implementation is 
 
 ## :framed_picture: Logo
 
-The logo is an [original creation](https://dribbble.com/shots/14854206-FusionCache-logo) and is a [sloth](https://en.wikipedia.org/wiki/Sloth) because, you know, speed is very important in a cache.
+The logo is an [original creation](https://dribbble.com/shots/14854206-FusionCache-logo) and is a [sloth](https://en.wikipedia.org/wiki/Sloth) because, you know, speed is very important in a cache :smirk: .
 
 ## :moneybag: Funding / Support
 
