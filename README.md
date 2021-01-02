@@ -18,14 +18,13 @@ It was born after years of dealing with all sorts of different types of caches: 
 
 It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
 
-FusionCache also includes some advanced features like a **fail-safe** mechanism, concurrent **factory calls optimization** for the same cache key, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
-
-
 <div style="text-align:center;">
 
 ![FusionCache diagram](docs/images/diagram.png)
 
 </div>
+
+FusionCache also includes some advanced features like a **fail-safe** mechanism, concurrent **factory calls optimization** for the same cache key, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
 If you want to get yourself **comfortable with the overall concepts** there's [:unicorn: A Gentle Introduction](docs/AGentleIntroduction.md) available.
 
