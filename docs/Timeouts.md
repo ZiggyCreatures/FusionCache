@@ -64,9 +64,9 @@ The end result is this:
 
 ![Timeline With Timeouts](images/timeouts-timeline-background.png)
 
-Now after `100 ms`, FusionCache will give us back the expired value, let's say in around `150 ms` total.
+Now after `100 ms` the factory will timeout and FusionCache will temporarily give us back the expired value, in a total of about `200 ms` total.
 
-Also, it will complete the factory execution in the background and, as soon as it will complete, the cached value will be updated so that any new request will have the fresh value ready to be used.
+Also, it will complete the factory execution in the background: as soon as it will complete, the cached value will be updated so that any new request will have the fresh value ready to be used.
 
 
 ## Distributed Cache Timeouts
