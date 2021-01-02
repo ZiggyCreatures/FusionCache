@@ -19,13 +19,13 @@ Enter **soft/hard timeouts**.
 
 You can specify:
 
-- **Soft Timeout**: to be used if there's an expired cache entry to use as a fallback
+- `FactorySoftTimeout`: to be used if there's an expired cache entry to use as a fallback
 
-- **Hard Timeout**: to be used in any case, no matter what. In this last case an exception will be thrown and you will have to handle it yourself, but in some cases that would be more preferable than a very slow response
+- `FactoryHardTimeout`: to be used in any case, no matter what. In this last case an exception will be thrown and you will have to handle it yourself, but in some cases that would be more preferable than a very slow response
 
 You can specify them both (the **soft** should be lower than the **hard**, of course) and the appropriate one will be used based on the presence of an expired entry to be eventually used as a fallback.
 
-In both cases it is possible (and enabled *by default*, so you don't have to do anything) to let the timed-out factory keep running in the background and update the cached value as soon as it finishes, so you get the best of both worlds: a **fast response** and **fresh data** as soon as possible.
+In both cases it is possible to set the bool flag `AllowTimedOutFactoryBackgroundCompletion`: it is enabled *by default*, so you don't have to do anything, and it lets the timed-out factory keep running in the background and update the cached value as soon as it finishes. This will give you the best of both worlds: a **fast response** and **fresh data** as soon as possible.
 
 ### :bulb: Example
 As an example let's say we have a piece of code like this:
@@ -73,4 +73,34 @@ Also, it will complete the factory execution in the background and, as soon as i
 
 When using a distributed cache it is also possible to observe some slowdowns in case of network congestions or something else.
 
-In this case it may be useful to also set soft/hard timeouts for the distributed cache for the operations that must be waited (like getting a value from it), whereas the non critical ones (like saving a value into it) can simply run in the background, so a timeout is less important.
+In this case it may be useful to also set soft/hard timeouts for the distributed cache (`DistributedCacheSoftTimeout` and `DistributedCacheHardTimeout`) for the operations that must be waited (like getting a value from it), whereas the non critical ones - like saving a value into it - can simply run in the background, so a timeout is less important.
+
+One last flag available in this space is `AllowBackgroundDistributedCacheOperations`: this will execute most operations on the distributed cache in the background like in a *fire-and-forget* way, so you will get most likely a perf boost.
+
+Usually you can enable this without problems, but **remember** that if you somehow bypass FusionCache and directly check the distributed cache right after the method call is completed, maybe the distributed cache may not be updated yet.
+
+Here's an example of such a particular scenario:
+
+```csharp
+// INSTANTIATE REDIS AS A DISTRIBUTED CACHE
+var redis = new RedisCache(new RedisCacheOptions() { Configuration = "YOUR CONNECTION STRING HERE" });
+
+// INSTANTIATE THE FUSION CACHE SERIALIZER
+var serializer = new FusionCacheNewtonsoftJsonSerializer();
+
+// INSTANTIATE FUSION CACHE
+var cache = new FusionCache(new FusionCacheOptions());
+
+// SETUP THE DISTRIBUTED 2ND LAYER
+cache.SetupDistributedCache(redis, serializer);
+
+// SET A VALUE IN THE CACHE VIA FUSION CACHE, WITH BACKGROUND DISTRIBUTED OPERATIONS
+cache.Set<string>(
+    "foo",
+    "Sloths, sloths everywhere",
+    new FusionCacheEntryOptions { AllowBackgroundDistributedCacheOperations = true }
+);
+
+// HERE foo MAY BE NULL, BECAUSE THE DISTRIBUTED CACHE MAY STILL BE SAVING THE VALUE IN THE BACKGROUND
+var foo = redis.GetString("foo");
+```
