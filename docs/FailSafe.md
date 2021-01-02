@@ -24,7 +24,7 @@ Wouldn't it be nice to have a way to kepp using a stale value for a little longe
 
 This is exactly what the **Fail-Safe** mechanism does.
 
-It allows us to specify for how long each entry should be kept around in case of problems, while at the same time let them *logically* expire at the right time.
+It allows us to specify for how long each entry should be kept around in case of problems, while at the same time let them *logically* expire at the right time, all while letting us re-use them in case of an unexpected problem that would normally result in an exception.
 
 To do that we have to simply set 3 things on a `FusionCacheEntryOptions` object:
 
@@ -69,3 +69,6 @@ From now on everything will repeat in the same way, without throwing exceptions,
 2) a total `2` hours is passed (`FailSafeMaxDuration`): the value is actually deleted from the cache, like, **for real**
 
 :bulb: Setting a `FailSafeMaxDuration` is useful to avoid using a stale value for too long: you can set this for as long as you want, even a month or a year.
+
+## A Beautiful Movie
+The name is also an homage to a somewhat forgotten [beautiful movie](https://en.wikipedia.org/wiki/Fail_Safe_(1964_film)), directed by the great Sidney Lumet and with a stellar cast. It's from a different era, so expect black and white and a different acting style, but give it a chance: it's remarkable.
