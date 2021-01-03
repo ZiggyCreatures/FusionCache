@@ -9,13 +9,16 @@
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson</PackageId>
-		<Copyright />
+		<Copyright>Copyright © Jody Donetti 2020</Copyright>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<RootNamespace>ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson</RootNamespace>
+		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
