@@ -18,7 +18,7 @@ These are the **key features** of FusionCache:
 - **🕶 Background factory completion**: when you specify a factory timeout and it actually occurs, the timed-out factory can keep running in the background and, if and when it successfully complete, the cache will be immediately updated with the new value to be used right away
 - **⚡ High performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - **💫 Natively sync/async**: full native support for both the synchronous and asynchronous programming model, without the problematic “sync over async” or “async over sync” approach
-- **📃 Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
+- **📃 Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
 
 Also, FusionCache has some other nice **additional features**:
 
