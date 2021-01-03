@@ -1,6 +1,6 @@
 ﻿<div align="center">
 
-![FusionCache logo](logo-256x256.png)
+![FusionCache logo](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/logo-256x256.png)
 
 </div>
 
@@ -14,26 +14,26 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 <div style="text-align:center;">
 
-![FusionCache diagram](images/diagram.png)
+![FusionCache diagram](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/images/diagram.png)
 
 </div>
 
 FusionCache also includes some advanced features like a **fail-safe** mechanism, concurrent **factory calls optimization** for the same cache key, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
-If you want to get yourself **comfortable with the overall concepts** there's [:unicorn: A Gentle Introduction](docs/AGentleIntroduction.md) available.
+If you want to get yourself **comfortable with the overall concepts** there's [:unicorn: A Gentle Introduction](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/AGentleIntroduction.md) available.
 
-If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:trophy: Step By Step ](docs/StepByStep.md) guide.
+If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:trophy: Step By Step ](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/StepByStep.md) guide.
 
-If instead you want to start using it **immediately** there's a [:star: Quick Start](#star-quick-start) for you.
+If instead you want to start using it **immediately** there's a [:star: Quick Start](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/README.md#star-quick-start) for you.
 
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:
 
 - **:rocket: Optimized factory calls**: using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 factory will be called at the same time for the same key (this avoids overloading the data source when no data is in the cache or when a cache entry expires)
 - **:twisted_rightwards_arrows: Optional 2nd level**: FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported (eg: Redis, MongoDB, SqlServer, etc)
-- **:bomb: Fail-Safe**: enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required ([read more](docs/FailSafe.md))
-- **:stopwatch: Soft/Hard timeouts**: advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache. This is done to avoid that such slow calls would hang your application. It is possible to specify both *soft* and *hard* timeouts that will be used depending on whether there's a fallback value to use for the specific call or not ([read more](docs/Timeouts.md))
-- **:dark_sunglasses: Background factory completion**: when you specify a factory timeout and it actually occurs, the timed-out factory can keep running in the background and, if and when it successfully complete, the cache will be immediately updated with the new value to be used right away ([read more](docs/Timeouts.md))
+- **:bomb: Fail-Safe**: enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required ([read more](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/FailSafe.md))
+- **:stopwatch: Soft/Hard timeouts**: advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache. This is done to avoid that such slow calls would hang your application. It is possible to specify both *soft* and *hard* timeouts that will be used depending on whether there's a fallback value to use for the specific call or not ([read more](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/Timeouts.md))
+- **:dark_sunglasses: Background factory completion**: when you specify a factory timeout and it actually occurs, the timed-out factory can keep running in the background and, if and when it successfully complete, the cache will be immediately updated with the new value to be used right away ([read more](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/Timeouts.md))
 - **:zap: High performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - **:dizzy: Natively sync/async**: full native support for both the synchronous and asynchronous programming model, without the problematic “sync over async” or “async over sync” approach
 - **:page_with_curl: Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
