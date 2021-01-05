@@ -20,7 +20,7 @@ In these cases what happens is your service will be down or super slow, like thi
 
 Typically in these situations we would be out of luck because the expired value **is already gone for good**, even though we would have preferred to use it for a little bit longer (after all, we are using a cache because we are ok with using slightly stale data, that's the whole point), instead of having to most probably surface the error to our users.
 
-Wouldn't it be nice to have a way to kepp using a stale value for a little longer?
+Wouldn't it be nice to have a way to keep using a stale value for a little longer?
 
 This is exactly what the **Fail-Safe** mechanism does.
 
@@ -54,7 +54,7 @@ product = cache.GetOrSet<Product>(
 );
 ```
 
-The value is not inthe cache, so the factory (`GetProductFromDb(123)`) is called and the product is put into the cache with the options specified and returned.
+The value is not in the cache, so the factory (`GetProductFromDb(123)`) is called and the product is put into the cache with the options specified and returned.
 
 Everything is fine.
 
