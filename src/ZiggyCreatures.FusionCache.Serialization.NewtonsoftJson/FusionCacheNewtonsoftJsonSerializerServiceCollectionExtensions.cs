@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using System;
-using ZiggyCreatures.FusionCaching.Serialization;
-using ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

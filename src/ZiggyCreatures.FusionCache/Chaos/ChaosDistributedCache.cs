@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Chaos
+namespace ZiggyCreatures.Caching.Fusion.Chaos
 {
 	/// <summary>
 	/// An implementation of <see cref="IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Serialization
+namespace ZiggyCreatures.Caching.Fusion.Serialization
 {
 
 	/// <summary>

@@ -14,7 +14,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Benchmarks
+namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]

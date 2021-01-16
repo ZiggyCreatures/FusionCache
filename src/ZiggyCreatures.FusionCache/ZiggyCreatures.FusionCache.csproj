@@ -4,12 +4,12 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.0</Version>
+		<Version>0.1.1</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
-		<Copyright>Copyright © Jody Donetti 2020</Copyright>
+		<Copyright>Copyright © Jody Donetti 2021</Copyright>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -21,11 +21,7 @@
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+	<PropertyGroup>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 	</PropertyGroup>
 

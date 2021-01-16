@@ -4,8 +4,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using ZiggyCreatures.FusionCaching;
-using ZiggyCreatures.FusionCaching.Serialization;
+using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

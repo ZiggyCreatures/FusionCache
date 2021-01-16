@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ZiggyCreatures.FusionCaching.Internals
+namespace ZiggyCreatures.Caching.Fusion.Internals
 {
 	/// <summary>
 	/// A thread-safe version of the Random class.

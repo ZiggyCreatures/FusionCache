@@ -1,8 +1,8 @@
-﻿using FusionCaching.Serialization.SystemTextJson;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Text.Json;
-using ZiggyCreatures.FusionCaching.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

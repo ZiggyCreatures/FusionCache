@@ -2,7 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson
+namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson
 {
 	/// <summary>
 	/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the Newtonsoft Json.NET serializer.

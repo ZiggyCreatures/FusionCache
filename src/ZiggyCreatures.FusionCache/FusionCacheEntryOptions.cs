@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Threading;
-using ZiggyCreatures.FusionCaching.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
-namespace ZiggyCreatures.FusionCaching
+namespace ZiggyCreatures.Caching.Fusion
 {
 	/// <summary>
 	/// Represents all the options available for a single <see cref="IFusionCache"/> entry.

@@ -4,9 +4,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using ZiggyCreatures.FusionCaching;
 
-namespace FusionCaching.Tests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 
 	public static class ExtMethods
@@ -20,6 +19,37 @@ namespace FusionCaching.Tests
 			if (keepTimedOutFactoryResult is object)
 				options.AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
 			return options;
+		}
+	}
+
+	public class ComplexObjectAddress
+	{
+		public string Country { get; set; }
+		public string City { get; set; }
+		public string Street { get; set; }
+	}
+
+	public class ComplexObject
+	{
+		public int Id { get; set; }
+		public string FirstName { get; set; }
+		public string LastName { get; set; }
+		public ComplexObjectAddress Address { get; set; }
+
+		public static ComplexObject CreateRandom()
+		{
+			return new ComplexObject
+			{
+				Id = DateTimeOffset.UtcNow.Second,
+				FirstName = "John",
+				LastName = $"Doe_{DateTimeOffset.UtcNow.Millisecond}",
+				Address = new ComplexObjectAddress
+				{
+					Country = $"Country_{DateTimeOffset.UtcNow.Millisecond}",
+					City = $"City_{DateTimeOffset.UtcNow.Millisecond}",
+					Street = $"Street_Whatever_{DateTimeOffset.UtcNow.Millisecond}"
+				}
+			};
 		}
 	}
 
@@ -461,13 +491,14 @@ namespace FusionCaching.Tests
 				await Assert.ThrowsAsync<OperationCanceledException>(async () =>
 				{
 					var cts = new CancellationTokenSource(outerCancelDelayMs);
-					await cache.GetOrSetAsync<int>("foo", async ct => { await Task.Delay(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
+					res = await cache.GetOrSetAsync<int>("foo", async ct => { await Task.Delay(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
 				});
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs);
-				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs);
+				// TODO: MAYBE DON'T RELY OF ELAPSED TIME
+				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is lower or equal than outer cancel");
+				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is greater or equal than factory delay");
 			}
 		}
 
@@ -483,13 +514,62 @@ namespace FusionCaching.Tests
 				Assert.Throws<OperationCanceledException>(() =>
 				{
 					var cts = new CancellationTokenSource(outerCancelDelayMs);
-					cache.GetOrSet<int>("foo", ct => { Thread.Sleep(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
+					res = cache.GetOrSet<int>("foo", ct => { Thread.Sleep(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
 				});
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs);
-				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs);
+				// TODO: MAYBE DON'T RELY OF ELAPSED TIME
+				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is lower or equal than outer cancel");
+				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is greater or equal than factory delay");
+			}
+		}
+
+		[Fact]
+		public async Task HandlesFlexibleSimpleTypeConversionsAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var initialValue = (object)42;
+				await cache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
+				var newValue = await cache.GetOrDefaultAsync<int>("foo");
+				Assert.Equal(initialValue, newValue);
+			}
+		}
+
+		[Fact]
+		public void HandlesFlexibleSimpleTypeConversions()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var initialValue = (object)42;
+				cache.Set("foo", initialValue, TimeSpan.FromHours(24));
+				var newValue = cache.GetOrDefault<int>("foo");
+				Assert.Equal(initialValue, newValue);
+			}
+		}
+
+		[Fact]
+		public async Task HandlesFlexibleComplexTypeConversionsAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var initialValue = (object)ComplexObject.CreateRandom();
+				await cache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
+				var newValue = await cache.GetOrDefaultAsync<ComplexObject>("foo");
+				Assert.NotNull(newValue);
+			}
+		}
+
+		[Fact]
+		public void HandlesFlexibleComplexTypeConversions()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var initialValue = (object)ComplexObject.CreateRandom();
+				cache.Set("foo", initialValue, TimeSpan.FromHours(24));
+				var newValue = cache.GetOrDefault<ComplexObject>("foo");
+				Assert.NotNull(newValue);
 			}
 		}
 

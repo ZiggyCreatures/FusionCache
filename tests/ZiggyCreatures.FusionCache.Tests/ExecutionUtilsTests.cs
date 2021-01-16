@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using ZiggyCreatures.FusionCaching.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
-namespace FusionCaching.Tests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class ExecutionUtilsTests
 	{

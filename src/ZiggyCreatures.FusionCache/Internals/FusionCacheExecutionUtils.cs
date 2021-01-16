@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Internals
+namespace ZiggyCreatures.Caching.Fusion.Internals
 {
 	/// <summary>
 	/// A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.

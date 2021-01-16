@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace ZiggyCreatures.FusionCaching
+namespace ZiggyCreatures.Caching.Fusion
 {
 
 	/// <summary>

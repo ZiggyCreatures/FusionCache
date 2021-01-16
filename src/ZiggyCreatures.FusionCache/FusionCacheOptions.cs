@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using System;
 
-namespace ZiggyCreatures.FusionCaching
+namespace ZiggyCreatures.Caching.Fusion
 {
 	/// <summary>
 	/// Represents all the options available for the entire <see cref="IFusionCache"/> instance.

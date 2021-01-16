@@ -3,12 +3,26 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
-namespace ZiggyCreatures.FusionCaching.Internals
+namespace ZiggyCreatures.Caching.Fusion.Internals
 {
 
 	internal static class FusionCacheInternalUtils
 	{
+
+		/// <summary>
+		/// Checks if the entry is logically expired.
+		/// </summary>
+		/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
+		public static bool IsLogicallyExpired(this IFusionCacheEntry? entry)
+		{
+			if (entry?.Metadata is null)
+				return false;
+
+			return entry.Metadata.IsLogicallyExpired();
+		}
 
 		public static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
 
@@ -45,7 +59,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			if (delta.TotalHours > -1 && delta.TotalHours < 1)
 				return delta.TotalMinutes.ToString("0") + "m";
 
-			return dt.ToString();
+			return dt.ToString("o");
 		}
 
 		public static string? ToLogString(this MemoryCacheEntryOptions? options)
@@ -61,7 +75,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			if (options is null)
 				return null;
 
-			return $"DEO[CEXP={options.AbsoluteExpiration?.ToLogString_Expiration()}s]";
+			return $"DEO[CEXP={options.AbsoluteExpiration?.ToLogString_Expiration()}]";
 		}
 
 		public static string? ToLogString(this FusionCacheEntryOptions? options)
@@ -72,7 +86,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			return "FEO" + options.ToString();
 		}
 
-		public static string? ToLogString<TValue>(this FusionCacheEntry<TValue>? entry)
+		public static string? ToLogString(this IFusionCacheEntry? entry)
 		{
 			if (entry is null)
 				return null;
@@ -121,6 +135,22 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 			// FALLBACK
 			return Enum.GetName(CacheItemPriorityType, priority);
+		}
+
+		public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry)
+		{
+			if (entry is FusionCacheDistributedEntry<TValue>)
+				return (FusionCacheDistributedEntry<TValue>)entry;
+
+			return new FusionCacheDistributedEntry<TValue>(entry.GetValue<TValue>(), entry.Metadata);
+		}
+
+		public static FusionCacheMemoryEntry AsMemoryEntry(this IFusionCacheEntry entry)
+		{
+			if (entry is FusionCacheMemoryEntry)
+				return (FusionCacheMemoryEntry)entry;
+
+			return new FusionCacheMemoryEntry(entry.GetValue<object>(), entry.Metadata);
 		}
 	}
 

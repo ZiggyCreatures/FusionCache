@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ZiggyCreatures.FusionCaching.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
-namespace ZiggyCreatures.FusionCaching.Chaos
+namespace ZiggyCreatures.Caching.Fusion.Chaos
 {
 
 	/// <summary>

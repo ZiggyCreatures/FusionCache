@@ -1,9 +1,8 @@
 ﻿using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using ZiggyCreatures.FusionCaching.Serialization;
 
-namespace FusionCaching.Serialization.SystemTextJson
+namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson
 {
 	/// <summary>
 	/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the System.Text.Json serializer.

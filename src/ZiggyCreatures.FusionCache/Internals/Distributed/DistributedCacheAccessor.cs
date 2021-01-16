@@ -4,9 +4,9 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using ZiggyCreatures.FusionCaching.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
-namespace ZiggyCreatures.FusionCaching.Internals
+namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 {
 
 	internal class DistributedCacheAccessor
@@ -14,11 +14,18 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 		private const int CircuitStateClosed = 0;
 		private const int CircuitStateOpen = 1;
+		private const string WireFormatVersionPrefix = "v1:";
 
-		public DistributedCacheAccessor(IDistributedCache? distributedCache, IFusionCacheSerializer? serializer, FusionCacheOptions options, ILogger? logger)
+		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger)
 		{
-			Cache = distributedCache;
-			Serializer = serializer;
+			if (distributedCache == null)
+				throw new ArgumentNullException(nameof(distributedCache));
+
+			if (serializer == null)
+				throw new ArgumentNullException(nameof(serializer));
+
+			_cache = distributedCache;
+			_serializer = serializer;
 
 			_options = options;
 			_breakDuration = distributedCache is null ? TimeSpan.Zero : options.DistributedCacheCircuitBreakerDuration;
@@ -26,11 +33,6 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			_gatewayTicks = DateTimeOffset.MinValue.Ticks;
 
 			_logger = logger;
-		}
-
-		private DistributedCacheAccessor()
-			: this(null, null, new FusionCacheOptions(), null)
-		{
 		}
 
 		private readonly FusionCacheOptions _options;
@@ -41,13 +43,13 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 		private readonly ILogger? _logger;
 
-		public IDistributedCache? Cache { get; }
-		public IFusionCacheSerializer? Serializer { get; }
+		private IDistributedCache _cache;
+		private IFusionCacheSerializer _serializer;
 
-		public void UpdateLastError(string key, string operationId)
+		private void UpdateLastError(string key, string operationId)
 		{
 			// NO DISTRIBUTEC CACHE
-			if (Cache is null)
+			if (_cache is null)
 				return;
 
 			// NO CIRCUIT-BREAKER DURATION
@@ -68,7 +70,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 		public bool IsCurrentlyUsable()
 		{
 			// NO DISTRIBUTEC CACHE
-			if (Cache is null)
+			if (_cache is null)
 				return false;
 
 			// NO CIRCUIT-BREAKER DURATION
@@ -95,7 +97,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ProcessDistributedCacheError(string operationId, string key, Exception exc, string actionDescription)
+		private void ProcessCacheError(string operationId, string key, Exception exc, string actionDescription)
 		{
 			if (exc is SyntheticTimeoutException)
 			{
@@ -112,8 +114,8 @@ namespace ZiggyCreatures.FusionCaching.Internals
 				_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while " + actionDescription, key, operationId);
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public async Task ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
+		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private async Task ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return;
@@ -131,7 +133,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 					options.DistributedCacheHardTimeout,
 					false,
 					options.AllowBackgroundDistributedCacheOperations == false,
-					exc => ProcessDistributedCacheError(operationId, key, exc, actionDescriptionInner),
+					exc => ProcessCacheError(operationId, key, exc, actionDescriptionInner),
 					false,
 					token
 				)
@@ -139,8 +141,8 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			;
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
+		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private void ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return;
@@ -157,13 +159,13 @@ namespace ZiggyCreatures.FusionCaching.Internals
 				options.DistributedCacheHardTimeout,
 				false,
 				options.AllowBackgroundDistributedCacheOperations == false,
-				exc => ProcessDistributedCacheError(operationId, key, exc, actionDescriptionInner),
+				exc => ProcessCacheError(operationId, key, exc, actionDescriptionInner),
 				false,
 				token
 			);
 		}
 
-		public async Task SetDistributedEntryAsync<TValue>(string operationId, string key, FusionCacheEntry<TValue> entry, FusionCacheEntryOptions options, CancellationToken token)
+		public async Task SetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return;
@@ -171,25 +173,27 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			token.ThrowIfCancellationRequested();
 
 			var distributedOptions = options.ToDistributedCacheEntryOptions();
-			options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.Value);
+			options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
 
 			await ExecuteOperationAsync(
 				operationId,
 				key,
 				async ct =>
 				{
+					var distributedEntry = entry.AsDistributedEntry<TValue>();
+
 					byte[]? data;
 					try
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): serializing the entry {Entry}", key, operationId, entry.ToLogString());
+							_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): serializing the entry {Entry}", key, operationId, distributedEntry.ToLogString());
 
-						data = await Serializer!.SerializeAsync(entry).ConfigureAwait(false);
+						data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
 					}
 					catch (Exception exc)
 					{
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, entry.ToLogString());
+							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, distributedEntry.ToLogString());
 
 						data = null;
 					}
@@ -200,9 +204,9 @@ namespace ZiggyCreatures.FusionCaching.Internals
 					ct.ThrowIfCancellationRequested();
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
 
-					await Cache!.SetAsync(key, data, distributedOptions, token).ConfigureAwait(false);
+					await _cache.SetAsync(WireFormatVersionPrefix + key, data, distributedOptions, token).ConfigureAwait(false);
 				},
 				"saving entry in distributed",
 				options,
@@ -211,7 +215,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			).ConfigureAwait(false);
 		}
 
-		public void SetDistributedEntry<TValue>(string operationId, string key, FusionCacheEntry<TValue> entry, FusionCacheEntryOptions options, CancellationToken token = default)
+		public void SetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token = default)
 		{
 			if (IsCurrentlyUsable() == false)
 				return;
@@ -219,25 +223,27 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			token.ThrowIfCancellationRequested();
 
 			var distributedOptions = options.ToDistributedCacheEntryOptions();
-			options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.Value);
+			options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
 
 			ExecuteOperation(
 				operationId,
 				key,
 				ct =>
 				{
+					var distributedEntry = entry.AsDistributedEntry<TValue>();
+
 					byte[]? data;
 					try
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): serializing the entry {Entry}", key, operationId, entry.ToLogString());
+							_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): serializing the entry {Entry}", key, operationId, distributedEntry.ToLogString());
 
-						data = Serializer!.Serialize(entry);
+						data = _serializer.Serialize(distributedEntry);
 					}
 					catch (Exception exc)
 					{
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, entry.ToLogString());
+							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, distributedEntry.ToLogString());
 
 						data = null;
 					}
@@ -248,9 +254,9 @@ namespace ZiggyCreatures.FusionCaching.Internals
 					ct.ThrowIfCancellationRequested();
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
 
-					Cache!.Set(key, data, distributedOptions);
+					_cache.Set(WireFormatVersionPrefix + key, data, distributedOptions);
 				},
 				"saving entry in distributed",
 				options,
@@ -259,7 +265,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			);
 		}
 
-		public async Task<(FusionCacheEntry<TValue>? entry, bool isValid)> TryGetDistributedEntryAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
+		public async Task<(FusionCacheDistributedEntry<TValue>? entry, bool isValid)> TryGetEntryAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return (null, false);
@@ -271,11 +277,11 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			try
 			{
 				var timeout = options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-				data = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(async ct => await Cache!.GetAsync(key, ct).ConfigureAwait(false), timeout, true, token: token).ConfigureAwait(false);
+				data = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(async ct => await _cache.GetAsync(WireFormatVersionPrefix + key, ct).ConfigureAwait(false), timeout, true, token: token).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
-				ProcessDistributedCacheError(operationId, key, exc, "getting entry from distributed");
+				ProcessCacheError(operationId, key, exc, "getting entry from distributed");
 				data = null;
 			}
 
@@ -284,7 +290,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 			try
 			{
-				var entry = await Serializer!.DeserializeAsync<FusionCacheEntry<TValue>>(data).ConfigureAwait(false);
+				var entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data).ConfigureAwait(false);
 				var isValid = false;
 				if (entry is null)
 				{
@@ -317,7 +323,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			return (null, false);
 		}
 
-		public (FusionCacheEntry<TValue>? entry, bool isValid) TryGetDistributedEntry<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
+		public (FusionCacheDistributedEntry<TValue>? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return (null, false);
@@ -329,11 +335,11 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			try
 			{
 				var timeout = options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-				data = FusionCacheExecutionUtils.RunSyncFuncWithTimeout<byte[]?>(ct => Cache!.Get(key), timeout, true, token: token);
+				data = FusionCacheExecutionUtils.RunSyncFuncWithTimeout<byte[]?>(ct => _cache.Get(WireFormatVersionPrefix + key), timeout, true, token: token);
 			}
 			catch (Exception exc)
 			{
-				ProcessDistributedCacheError(operationId, key, exc, "getting entry from distributed");
+				ProcessCacheError(operationId, key, exc, "getting entry from distributed");
 				data = null;
 			}
 
@@ -342,7 +348,7 @@ namespace ZiggyCreatures.FusionCaching.Internals
 
 			try
 			{
-				var entry = Serializer!.Deserialize<FusionCacheEntry<TValue>>(data);
+				var entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data);
 				var isValid = false;
 				if (entry is null)
 				{
@@ -375,14 +381,14 @@ namespace ZiggyCreatures.FusionCaching.Internals
 			return (null, false);
 		}
 
-		public async Task RemoveDistributedEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+		public Task RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			await ExecuteOperationAsync(operationId, key, ct => Cache!.RemoveAsync(key, ct), "removing entry from distributed", options, null, token).ConfigureAwait(false);
+			return ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(WireFormatVersionPrefix + key, ct), "removing entry from distributed", options, null, token);
 		}
 
-		public void RemoveDistributedEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+		public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			ExecuteOperation(operationId, key, _ => Cache!.Remove(key), "removing entry from distributed", options, null, token);
+			ExecuteOperation(operationId, key, _ => _cache.Remove(WireFormatVersionPrefix + key), "removing entry from distributed", options, null, token);
 		}
 
 	}

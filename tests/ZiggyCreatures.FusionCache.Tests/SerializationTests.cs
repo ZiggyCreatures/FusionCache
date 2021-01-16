@@ -1,10 +1,10 @@
-using FusionCaching.Serialization.SystemTextJson;
 using System.Threading.Tasks;
 using Xunit;
-using ZiggyCreatures.FusionCaching.Serialization;
-using ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
-namespace FusionCaching.Tests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class SerializationTests
 	{

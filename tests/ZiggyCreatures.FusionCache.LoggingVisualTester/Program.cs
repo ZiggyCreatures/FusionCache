@@ -8,9 +8,9 @@ using Serilog.Events;
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
-namespace ZiggyCreatures.FusionCaching.LoggingVisualTester
+namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 {
 
 	public static class ExtMethods
@@ -74,11 +74,14 @@ namespace ZiggyCreatures.FusionCaching.LoggingVisualTester
 				DefaultEntryOptions = new FusionCacheEntryOptions
 				{
 					Duration = TimeSpan.FromSeconds(cacheDurationSec),
+					Priority = CacheItemPriority.NeverRemove,
+
+					IsFailSafeEnabled = useFailSafe,
 					FailSafeMaxDuration = TimeSpan.FromSeconds(failSafeMaxDurationSec),
 					FailSafeThrottleDuration = TimeSpan.FromSeconds(failSafeThrottleDurationSec),
-					Priority = CacheItemPriority.NeverRemove,
-					IsFailSafeEnabled = useFailSafe,
+
 					FactorySoftTimeout = TimeSpan.FromMilliseconds(factoryTimeoutMs),
+
 					AllowBackgroundDistributedCacheOperations = true
 				},
 			};
@@ -95,53 +98,57 @@ namespace ZiggyCreatures.FusionCaching.LoggingVisualTester
 					Console.WriteLine();
 				}
 
-				await fusionCache.SetAsync<int>("foo", 42, options => options.SetDurationSec(1).SetFailSafe(true, TimeSpan.FromMinutes(1)));
+				var tmp0 = await fusionCache.GetOrDefaultAsync<int>("foo", 123);
+				Console.WriteLine();
+				Console.WriteLine($"pre-initial: {tmp0}");
+
+				await fusionCache.SetAsync<int>("foo", 42, options => options.SetDurationSec(1).SetFailSafe(useFailSafe, TimeSpan.FromMinutes(1)));
 				Console.WriteLine();
 				Console.WriteLine($"initial: {fusionCache.GetOrDefault<int>("foo")}");
 				await Task.Delay(1_500);
 				Console.WriteLine();
 
-				var tmp1 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 21; }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				var tmp1 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 21; }, options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 				Console.WriteLine($"tmp1: {tmp1}");
 				await Task.Delay(2_500);
 				Console.WriteLine();
 
-				var tmp2 = await fusionCache.GetOrDefaultAsync<int>("foo", options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				var tmp2 = await fusionCache.GetOrDefaultAsync<int>("foo", options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 				Console.WriteLine($"tmp2: {tmp2}");
 				await Task.Delay(2_500);
 				Console.WriteLine();
 
-				var tmp3 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Sloths are cool"); }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				var tmp3 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Sloths are cool"); }, options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 				Console.WriteLine($"tmp3: {tmp3}");
 				await Task.Delay(2_500);
 				Console.WriteLine();
 
-				var tmp4 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 666; }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000, keepTimedOutFactoryResult: false));
+				var tmp4 = await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 666; }, options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000, keepTimedOutFactoryResult: false));
 				Console.WriteLine();
 				Console.WriteLine($"tmp4: {tmp4}");
 				await Task.Delay(2_500);
 				Console.WriteLine();
 
-				var tmp5 = await fusionCache.GetOrDefaultAsync<int>("foo", options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				var tmp5 = await fusionCache.GetOrDefaultAsync<int>("foo", options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 				Console.WriteLine($"tmp5: {tmp5}");
 				Console.WriteLine();
 
-				await fusionCache.SetAsync("foo", 123, fusionCache.CreateEntryOptions(entry => entry.SetDurationSec(1).SetFailSafe(true)));
+				await fusionCache.SetAsync("foo", 123, fusionCache.CreateEntryOptions(entry => entry.SetDurationSec(1).SetFailSafe(useFailSafe)));
 				await Task.Delay(1_500);
 				Console.WriteLine();
 
-				await fusionCache.GetOrSetAsync<int>("foo", _ => { throw new Exception("Foo"); }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				await fusionCache.GetOrSetAsync<int>("foo", _ => { throw new Exception("Foo"); }, options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 
-				await fusionCache.SetAsync("foo", 123, options => options.SetDurationSec(1).SetFailSafe(true));
+				await fusionCache.SetAsync("foo", 123, options => options.SetDurationSec(1).SetFailSafe(useFailSafe));
 				await Task.Delay(1_500);
 				Console.WriteLine();
 
-				await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Foo"); }, options => options.SetDurationSec(1).SetFailSafe(true).SetFactoryTimeouts(1_000));
+				await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Foo"); }, options => options.SetDurationSec(1).SetFailSafe(useFailSafe).SetFactoryTimeouts(1_000));
 				Console.WriteLine();
 				await Task.Delay(2_500);
 

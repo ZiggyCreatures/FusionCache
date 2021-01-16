@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Benchmarks
+namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	class Program
 	{

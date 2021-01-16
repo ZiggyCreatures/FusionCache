@@ -1,4 +1,4 @@
-﻿namespace ZiggyCreatures.FusionCaching
+﻿namespace ZiggyCreatures.Caching.Fusion
 {
 
 	/// <summary>

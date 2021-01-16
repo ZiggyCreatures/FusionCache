@@ -6,11 +6,11 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using ZiggyCreatures.FusionCaching;
-using ZiggyCreatures.FusionCaching.Chaos;
-using ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Chaos;
+using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
-namespace FusionCaching.Tests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class MultiLevelTests
 	{
@@ -98,7 +98,7 @@ namespace FusionCaching.Tests
 					Assert.Equal(42, value);
 
 					// MEMORY CACHE HAS BEEN UPDATED
-					Assert.Equal(42, memoryCache.Get<FusionCacheEntry<int>>("foo").Value);
+					Assert.Equal(42, memoryCache.Get<IFusionCacheEntry>("foo").GetValue<int>());
 
 					// DISTRIBUTED CACHE HAS -NOT- BEEN UPDATED
 					Assert.Null(distributedCache.GetString("foo"));
@@ -258,6 +258,74 @@ namespace FusionCaching.Tests
 					var res = fusionCache.GetOrDefault<int>("foo", -1);
 
 					Assert.Equal(1, res);
+				}
+			}
+		}
+
+		[Fact]
+		public async Task HandlesFlexibleSimpleTypeConversionsAsync()
+		{
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+			{
+				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				{
+					var initialValue = (object)42;
+					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
+					memoryCache.Remove("foo");
+					var newValue = await fusionCache.GetOrDefaultAsync<int>("foo");
+					Assert.Equal(initialValue, newValue);
+				}
+			}
+		}
+
+		[Fact]
+		public void HandlesFlexibleSimpleTypeConversions()
+		{
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+			{
+				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				{
+					var initialValue = (object)42;
+					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
+					memoryCache.Remove("foo");
+					var newValue = fusionCache.GetOrDefault<int>("foo");
+					Assert.Equal(initialValue, newValue);
+				}
+			}
+		}
+
+		[Fact]
+		public async Task HandlesFlexibleComplexTypeConversionsAsync()
+		{
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+			{
+				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				{
+					var initialValue = (object)ComplexObject.CreateRandom();
+					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
+					memoryCache.Remove("foo");
+					var newValue = await fusionCache.GetOrDefaultAsync<ComplexObject>("foo");
+					Assert.NotNull(newValue);
+				}
+			}
+		}
+
+		[Fact]
+		public void HandlesFlexibleComplexTypeConversions()
+		{
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+			{
+				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				{
+					var initialValue = (object)ComplexObject.CreateRandom();
+					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
+					memoryCache.Remove("foo");
+					var newValue = fusionCache.GetOrDefault<ComplexObject>("foo");
+					Assert.NotNull(newValue);
 				}
 			}
 		}

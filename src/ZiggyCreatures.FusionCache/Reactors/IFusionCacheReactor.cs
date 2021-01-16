@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Reactors
+namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
 
 	/// <summary>

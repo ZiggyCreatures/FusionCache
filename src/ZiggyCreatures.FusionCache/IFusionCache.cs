@@ -2,9 +2,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ZiggyCreatures.FusionCaching.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
-namespace ZiggyCreatures.FusionCaching
+namespace ZiggyCreatures.Caching.Fusion
 {
 	/// <summary>
 	/// Represents an instance of a FusionCache.

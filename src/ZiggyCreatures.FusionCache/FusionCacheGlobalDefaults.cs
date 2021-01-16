@@ -2,7 +2,7 @@
 using System;
 using System.Threading;
 
-namespace ZiggyCreatures.FusionCaching
+namespace ZiggyCreatures.Caching.Fusion
 {
 
 	/// <summary>

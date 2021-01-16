@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.FusionCaching.Reactors
+namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
 
 	internal class FusionCacheReactorStandard
