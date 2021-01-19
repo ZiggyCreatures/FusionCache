@@ -89,7 +89,7 @@ var id = 42;
 
 cache.GetOrSet<Product>(
 	$"product:{id}",
-	key => GetProductFromDb(id),
+	_ => GetProductFromDb(id),
 	TimeSpan.FromSeconds(30)
 );
 ```

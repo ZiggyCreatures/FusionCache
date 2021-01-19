@@ -123,7 +123,7 @@ var id = 42;
 
 cache.GetOrSet<Product>(
 	$"product:{id}",
-	key => GetProductFromDb(id),
+	_ => GetProductFromDb(id),
 	TimeSpan.FromSeconds(30)
 );
 ```
@@ -143,7 +143,7 @@ To do all of that we simply have to change the last line (reformatted for better
 ```csharp
 cache.GetOrSet<Product>(
 	$"product:{id}",
-	key => GetProductFromDb(id),
+	_ => GetProductFromDb(id),
 	// THIS IS WHERE THE MAGIC HAPPENS
 	options => options
 		.SetDuration(TimeSpan.FromSeconds(30))
@@ -178,7 +178,7 @@ var id = 42;
 
 cache.GetOrSet<Product>(
 	$"product:{id}",
-	key => GetProductFromDb(id),
+	_ => GetProductFromDb(id),
 	options => options.SetDuration(TimeSpan.FromSeconds(30))
 );
 ```
