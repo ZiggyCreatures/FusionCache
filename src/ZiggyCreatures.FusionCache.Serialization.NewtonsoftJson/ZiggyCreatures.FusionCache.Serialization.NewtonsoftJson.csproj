@@ -23,6 +23,7 @@
 
 	<PropertyGroup>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.xml</DocumentationFile>
+		<PackageReleaseNotes>Better cpu/memory perf + big refactoring with one (last!) namespace change</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
