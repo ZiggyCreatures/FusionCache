@@ -28,54 +28,10 @@ These are:
 
 Everything is handled transparently for you.
 
-Any implementation of the standard `IDistributedCache` interface will work, and you also need to specify a *serializer* by providing an implementation of the `IFusionCacheSerializer` interface.
-
-You can create your own serializer or pick one of the existing (eg: based on `Newtonsoft Json.NET` or `System.Text.Json`, available in various packages on nuget).
-
-For example to use FusionCache with [Redis](https://redis.io/) as a distributed cache and [Newtonsoft Json.NET](https://www.newtonsoft.com/json) as the serializer you should add the related packages:
-
-```PowerShell
-PM> Install-Package ZiggyCreatures.FusionCache
-PM> Install-Package ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson
-PM> Install-Package Microsoft.Extensions.Caching.StackExchangeRedis
-```
-
-Then, to create and setup the cache manually, do this:
-
-```csharp
-// INSTANTIATE REDIS AS A DISTRIBUTED CACHE
-var redis = new RedisCache(new RedisCacheOptions() { Configuration = "YOUR CONNECTION STRING HERE" });
-
-// INSTANTIATE THE FUSION CACHE SERIALIZER
-var serializer = new FusionCacheNewtonsoftJsonSerializer();
-
-// INSTANTIATE FUSION CACHE
-var cache = new FusionCache(new FusionCacheOptions());
-
-// SETUP THE DISTRIBUTED 2ND LAYER
-cache.SetupDistributedCache(redis, serializer);
-```
-
-If instead you prefer a **DI (Dependency Injection)** approach you can do this:
-
-```csharp
-// REGISTER REDIS AS A DISTRIBUTED CACHE
-services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "YOUR CONNECTION STRING HERE";
-});
-
-// REGISTER THE FUSION CACHE SERIALIZER
-services.AddFusionCacheNewtonsoftJsonSerializer();
-
-// REGISTER FUSION CACHE
-services.AddFusionCache();
-```
-
-and FusionCache will automatically discover the registered `IDistributedCache` implementation and, if there's also a valid implementation of `IFusionCacheSerializer`, it picks up both and starts using them.
-
+You can read more [**here**](CacheLevels.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 ## :house_with_garden: Feels Like Home
 
-FusionCache tries to feel like a native part of .NET by adhering to the naming conventions of the standard *memory* and *distributed* cache components:
+FusionCache tries to feel like a native part of .NET by adhering to the naming conventions of the standard **memory** and **distributed** cache components:
 
 |                               | Memory Cache                | Distributed Cache              | Fusion Cache              |
 | ---:                          | :---:                       | :---:                          | :---:                     |
@@ -88,7 +44,7 @@ If you've ever used one of those you'll feel at home with FusionCache.
 
 ## :rocket: Factory
 
-A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **what to do to get a value** when it is not in the cache.
+A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
 
 Here's an example:
 
@@ -102,11 +58,9 @@ var product = cache.GetOrSet<Product>(
 );
 ```
 
-FusionCache will search for the value in the cache (*memory* and maybe *distributed*) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
+FusionCache will search for the value in the cache (*memory* and *distributed*, if available) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
 
-Special care is put into calling just one factory per key, concurrently: this means that if 10 concurrent requests for the same key arrive at the same time and the data is not there, **only one factory** will be called, and the result will be stored and shared with all callers right away.
-
-This ensures that the data source (let's say a database) will not be overloaded with multiple requests for the same piece of data at the same time.
+Special care has been put into ensuring that only 1 factory per-key will be execute concurrently: you can read more [**here**](FactoryOptimization.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
 ## :bomb: Fail-Safe
 
