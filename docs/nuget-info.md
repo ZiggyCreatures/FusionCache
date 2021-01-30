@@ -13,11 +13,11 @@ These are the **key features** of FusionCache:
 
 - **🚀 Optimized factory calls**: using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 factory will be called at the same time for the same key (this avoids overloading the data source when no data is in the cache or when a cache entry expires)
 - **🔀 Optional 2nd level**: FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported (eg: Redis, MongoDB, SqlServer, etc)
-- **💣Fail-Safe**: enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
+- **💣 Fail-Safe**: enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
 - **⏱ Soft/Hard timeouts**: advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache. This is done to avoid that such slow calls would hang your application. It is possible to specify both *soft* and *hard* timeouts that will be used depending on whether there's a fallback value to use for the specific call or not
 - **🕶 Background factory completion**: when you specify a factory timeout and it actually occurs, the timed-out factory can keep running in the background and, if and when it successfully complete, the cache will be immediately updated with the new value to be used right away
 - **⚡ High performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
-- **💫 Natively sync/async**: full native support for both the synchronous and asynchronous programming model, without the problematic “sync over async” or “async over sync” approach
+- **💫 Natively sync/async**: full native support for both the synchronous and asynchronous programming model, with sync/async methods working togheter harmoniously
 - **📃 Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
 
 Also, FusionCache has some other nice **additional features**:
