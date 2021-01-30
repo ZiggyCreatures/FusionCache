@@ -32,9 +32,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			if (timeout == TimeSpan.Zero || timeout < Timeout.InfiniteTimeSpan)
 			{
+				var exc = new SyntheticTimeoutException();
 				if (cancelIfTimeout == false)
-					timedOutTaskProcessor?.Invoke(asyncFunc(token));
-				throw new SyntheticTimeoutException();
+					timedOutTaskProcessor?.Invoke(Task.FromException<TResult>(exc));
+				throw exc;
 			}
 
 			if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
@@ -51,13 +52,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				using (var ctsDelay = CancellationTokenSource.CreateLinkedTokenSource(token))
 				{
 					var funcTask = asyncFunc(ctsFunc?.Token ?? token);
-					var delayTask = Task.Delay(timeout, ctsDelay.Token);
-
-					await Task.WhenAny(funcTask, delayTask).ConfigureAwait(false);
-
-					if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
+					using (var delayTask = Task.Delay(timeout, ctsDelay.Token))
 					{
-						ctsDelay.Cancel();
+						await Task.WhenAny(funcTask, delayTask).ConfigureAwait(false);
+
+						if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
+						{
+							ctsDelay.Cancel();
+						}
 					}
 
 					if (funcTask.IsCompleted == false && funcTask.IsFaulted == false)
@@ -99,9 +101,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			if (timeout == TimeSpan.Zero || timeout < Timeout.InfiniteTimeSpan)
 			{
+				var exc = new SyntheticTimeoutException();
 				if (cancelIfTimeout == false)
-					timedOutTaskProcessor?.Invoke(asyncAction(token));
-				throw new SyntheticTimeoutException();
+					timedOutTaskProcessor?.Invoke(Task.FromException(exc));
+				throw exc;
 			}
 
 			if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
@@ -119,13 +122,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				using (var ctsDelay = CancellationTokenSource.CreateLinkedTokenSource(token))
 				{
 					var actionTask = asyncAction(ctsFunc?.Token ?? token);
-					var delayTask = Task.Delay(timeout, ctsDelay.Token);
-
-					await Task.WhenAny(actionTask, delayTask).ConfigureAwait(false);
-
-					if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
+					using (var delayTask = Task.Delay(timeout, ctsDelay.Token))
 					{
-						ctsDelay.Cancel();
+						await Task.WhenAny(actionTask, delayTask).ConfigureAwait(false);
+
+						if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
+						{
+							ctsDelay.Cancel();
+						}
 					}
 
 					if (actionTask.IsCompleted == false && actionTask.IsFaulted == false)
@@ -169,9 +173,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			if (timeout == TimeSpan.Zero || timeout < Timeout.InfiniteTimeSpan)
 			{
+				var exc = new SyntheticTimeoutException();
 				if (cancelIfTimeout == false)
-					timedOutTaskProcessor?.Invoke(asyncFunc(token));
-				throw new SyntheticTimeoutException();
+					timedOutTaskProcessor?.Invoke(Task.FromException<TResult>(exc));
+				throw exc;
 			}
 
 			Task<TResult> task;
@@ -198,11 +203,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		public static void RunAsyncActionWithTimeout(Func<CancellationToken, Task> asyncAction, TimeSpan timeout, bool cancelIfTimeout = true, Action<Task>? timedOutTaskProcessor = null, CancellationToken token = default)
 		{
+			token.ThrowIfCancellationRequested();
+
 			if (timeout == TimeSpan.Zero || timeout < Timeout.InfiniteTimeSpan)
 			{
+				var exc = new SyntheticTimeoutException();
 				if (cancelIfTimeout == false)
-					timedOutTaskProcessor?.Invoke(asyncAction(token));
-				throw new SyntheticTimeoutException();
+					timedOutTaskProcessor?.Invoke(Task.FromException(exc));
+				throw exc;
 			}
 
 			Task task;
@@ -231,11 +239,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// <returns>The value returned from the sync function</returns>
 		public static TResult RunSyncFuncWithTimeout<TResult>(Func<CancellationToken, TResult> syncFunc, TimeSpan timeout, bool cancelIfTimeout = true, Action<Task<TResult>>? timedOutTaskProcessor = null, CancellationToken token = default)
 		{
+			token.ThrowIfCancellationRequested();
+
 			if (timeout == TimeSpan.Zero || timeout < Timeout.InfiniteTimeSpan)
 			{
+				var exc = new SyntheticTimeoutException();
 				if (cancelIfTimeout == false)
-					timedOutTaskProcessor?.Invoke(_taskFactory.StartNew(() => syncFunc(token), token));
-				throw new SyntheticTimeoutException();
+					timedOutTaskProcessor?.Invoke(Task.FromException<TResult>(exc));
+				throw exc;
 			}
 
 			Task<TResult> task;
@@ -263,11 +274,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		public static void RunSyncActionWithTimeout(Action<CancellationToken> syncAction, TimeSpan timeout, bool cancelIfTimeout = true, Action<Task>? timedOutTaskProcessor = null, CancellationToken token = default)
 		{
+			token.ThrowIfCancellationRequested();
+
 			if (timeout == TimeSpan.Zero || timeout < Timeout.InfiniteTimeSpan)
 			{
+				var exc = new SyntheticTimeoutException();
 				if (cancelIfTimeout == false)
-					timedOutTaskProcessor?.Invoke(_taskFactory.StartNew(() => syncAction(token), token));
-				throw new SyntheticTimeoutException();
+					timedOutTaskProcessor?.Invoke(Task.FromException(exc));
+				throw exc;
 			}
 
 			Task task;
@@ -301,6 +315,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		{
 			try
 			{
+				token.ThrowIfCancellationRequested();
+
 				Task task;
 				if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 				{
@@ -351,6 +367,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		{
 			try
 			{
+				token.ThrowIfCancellationRequested();
+
 				if (awaitCompletion)
 				{
 					if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)

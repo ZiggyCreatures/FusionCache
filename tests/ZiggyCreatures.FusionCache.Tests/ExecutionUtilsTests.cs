@@ -9,6 +9,53 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class ExecutionUtilsTests
 	{
+		[Fact]
+		public async Task ZeroTimeoutDoesNotStartAsyncFuncAsync()
+		{
+			bool _hasRun = false;
+
+			await Assert.ThrowsAsync<SyntheticTimeoutException>(async () =>
+			{
+				await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
+			});
+			Assert.False(_hasRun);
+		}
+
+		[Fact]
+		public void ZeroTimeoutDoesNotStartAsyncFunc()
+		{
+			bool _hasRun = false;
+
+			Assert.Throws<SyntheticTimeoutException>(() =>
+			{
+				FusionCacheExecutionUtils.RunAsyncFuncWithTimeout(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
+			});
+			Assert.False(_hasRun);
+		}
+
+		[Fact]
+		public async Task ZeroTimeoutDoesNotStartAsyncActionAsync()
+		{
+			bool _hasRun = false;
+
+			await Assert.ThrowsAsync<SyntheticTimeoutException>(async () =>
+			{
+				await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
+			});
+			Assert.False(_hasRun);
+		}
+
+		[Fact]
+		public void ZeroTimeoutDoesNotStartAsyncAction()
+		{
+			bool _hasRun = false;
+
+			Assert.Throws<SyntheticTimeoutException>(() =>
+			{
+				FusionCacheExecutionUtils.RunAsyncActionWithTimeout(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
+			});
+			Assert.False(_hasRun);
+		}
 
 		[Fact]
 		public async Task CancelingAsyncFuncActuallyCancelsItAsync()
