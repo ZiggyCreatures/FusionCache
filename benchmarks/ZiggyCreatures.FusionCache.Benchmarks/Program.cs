@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Running;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks
@@ -7,23 +8,23 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 	class Program
 	{
 
-		static void RunAsyncCacheComparisonBenchmark()
+		static void ExcessiveFactoryCallsSummary(Dictionary<string, List<string>> data)
 		{
-			_ = BenchmarkRunner.Run<AsyncCacheComparisonBenchmark>();
-
 			// EXCESSIVE FACTORY CALLS
 			Console.WriteLine();
 			Console.WriteLine();
+			Console.WriteLine("#######################");
 			Console.WriteLine("EXCESSIVE FACTORY CALLS");
+			Console.WriteLine("#######################");
 			Console.WriteLine();
 
-			if (AsyncCacheComparisonBenchmark.ExcessiveFactoryCalls.Count == 0)
+			if (data.Count == 0)
 			{
 				Console.WriteLine("- NONE");
 			}
 			else
 			{
-				foreach (var kvp in AsyncCacheComparisonBenchmark.ExcessiveFactoryCalls)
+				foreach (var kvp in data)
 				{
 					Console.WriteLine($"- {kvp.Key}:");
 					foreach (var stat in kvp.Value)
@@ -34,31 +35,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
+		static void RunAsyncCacheComparisonBenchmark()
+		{
+			_ = BenchmarkRunner.Run<AsyncCacheComparisonBenchmark>();
+			ExcessiveFactoryCallsSummary(AsyncCacheComparisonBenchmark.ExcessiveFactoryCalls);
+		}
+
 		static void RunSyncCacheComparisonBenchmark()
 		{
 			_ = BenchmarkRunner.Run<SyncCacheComparisonBenchmark>();
-
-			// EXCESSIVE FACTORY CALLS
-			Console.WriteLine();
-			Console.WriteLine();
-			Console.WriteLine("EXCESSIVE FACTORY CALLS");
-			Console.WriteLine();
-
-			if (SyncCacheComparisonBenchmark.ExcessiveFactoryCalls.Count == 0)
-			{
-				Console.WriteLine("- NONE");
-			}
-			else
-			{
-				foreach (var kvp in SyncCacheComparisonBenchmark.ExcessiveFactoryCalls)
-				{
-					Console.WriteLine($"- {kvp.Key}:");
-					foreach (var stat in kvp.Value)
-					{
-						Console.WriteLine($" - {stat}:");
-					}
-				}
-			}
+			ExcessiveFactoryCallsSummary(SyncCacheComparisonBenchmark.ExcessiveFactoryCalls);
 		}
 
 		public static async Task Main(string[] args)

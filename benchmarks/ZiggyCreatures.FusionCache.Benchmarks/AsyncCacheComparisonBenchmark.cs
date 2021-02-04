@@ -2,6 +2,9 @@
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using CacheManager.Core;
+using CacheTower;
+using CacheTower.Extensions;
+using CacheTower.Providers.Memory;
 using EasyCaching.Core;
 using LazyCache;
 using LazyCache.Providers;
@@ -105,13 +108,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 						{
-							var t = appcache.GetOrAddAsync<long>(
+							var t = appcache.GetOrAddAsync<SamplePayload>(
 								key,
 								async () =>
 								{
 									Interlocked.Increment(ref FactoryCallsCount);
 									await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-									return DateTimeOffset.UtcNow.Ticks;
+									return new SamplePayload();
 								}
 							);
 							tasks.Add(t);
@@ -130,11 +133,10 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public async Task CacheManagerCache()
 		{
-			using (var cache = CacheFactory.Build<long>(p => p.WithMicrosoftMemoryCacheHandle()))
+			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
 			{
 				for (int i = 0; i < Rounds; i++)
 				{
-					//var tasks = new ConcurrentBag<Task>();
 					FactoryCallsCount = 0;
 
 					// FULL PARALLEL
@@ -148,37 +150,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 								{
 									Interlocked.Increment(ref FactoryCallsCount);
 									Thread.Sleep(FactoryDurationMs);
-									return new CacheItem<long>(
+									return new CacheItem<SamplePayload>(
 										key,
-										DateTimeOffset.UtcNow.Ticks,
+										new SamplePayload(),
 										CacheManager.Core.ExpirationMode.Absolute,
 										CacheDuration
 									);
 								}
 							);
-
-							//var t = Task.Run(() =>
-							//{
-							//	cache.GetOrAdd(
-							//		key,
-							//		_ =>
-							//		{
-							//			Interlocked.Increment(ref FactoryCallsCount);
-							//			Thread.Sleep(FactoryDurationMs);
-							//			return new CacheItem<long>(
-							//				key,
-							//				DateTimeOffset.UtcNow.Ticks,
-							//				CacheManager.Core.ExpirationMode.Absolute,
-							//				CacheDuration
-							//			);
-							//		}
-							//	);
-							//});
-							//tasks.Add(t);
 						});
 					});
-
-					//await Task.WhenAll(tasks).ConfigureAwait(false);
 
 					UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
 				}
@@ -201,13 +182,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				{
 					Parallel.For(0, Accessors, _ =>
 					{
-						var t = cache.GetAsync<long>(
+						var t = cache.GetAsync<SamplePayload>(
 							key,
 							async () =>
 							{
 								Interlocked.Increment(ref FactoryCallsCount);
 								await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-								return DateTimeOffset.UtcNow.Ticks;
+								return new SamplePayload();
 							},
 							CacheDuration
 						);
@@ -221,6 +202,47 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 
 			await cache.FlushAsync();
+		}
+
+		// DISABLED BECAUSE DURING EXECUTION IT HANGS INDEFINITELY (MAYBE A DEADLOCK?)
+		//[Benchmark]
+		public async Task CacheTowerCache()
+		{
+			await using (var cache = new CacheStack(new[] { new MemoryCacheLayer() }, new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) }))
+			{
+				var cacheSettings = new CacheSettings(CacheDuration);
+
+				for (int i = 0; i < Rounds; i++)
+				{
+					var tasks = new ConcurrentBag<Task>();
+					FactoryCallsCount = 0;
+
+					// FULL PARALLEL
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+						{
+							var t = cache.GetOrSetAsync<SamplePayload>(
+								key,
+								async (old) =>
+								{
+									Interlocked.Increment(ref FactoryCallsCount);
+									await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+									return new SamplePayload();
+								},
+								cacheSettings
+							).AsTask();
+							tasks.Add(t);
+						});
+					});
+
+					await Task.WhenAll(tasks).ConfigureAwait(false);
+
+					UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
+				}
+
+				await cache.FlushAsync();
+			}
 		}
 
 		[Benchmark]
@@ -238,13 +260,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 						{
-							var t = cache.GetOrSetAsync<long>(
+							var t = cache.GetOrSetAsync<SamplePayload>(
 								key,
 								async ct =>
 								{
 									Interlocked.Increment(ref FactoryCallsCount);
 									await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-									return DateTimeOffset.UtcNow.Ticks;
+									return new SamplePayload();
 								}
 							);
 							tasks.Add(t);

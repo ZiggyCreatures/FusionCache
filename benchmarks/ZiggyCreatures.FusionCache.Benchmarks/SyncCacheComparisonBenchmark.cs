@@ -105,13 +105,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 						{
-							appcache.GetOrAdd<long>(
+							appcache.GetOrAdd<SamplePayload>(
 								key,
 								() =>
 								{
 									Interlocked.Increment(ref FactoryCallsCount);
 									Thread.Sleep(FactoryDurationMs);
-									return DateTimeOffset.UtcNow.Ticks;
+									return new SamplePayload();
 								}
 							);
 						});
@@ -127,7 +127,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public void CacheManagerCache()
 		{
-			using (var cache = CacheFactory.Build<long>(p => p.WithMicrosoftMemoryCacheHandle()))
+			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
 			{
 				for (int i = 0; i < Rounds; i++)
 				{
@@ -144,9 +144,9 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 								{
 									Interlocked.Increment(ref FactoryCallsCount);
 									Thread.Sleep(FactoryDurationMs);
-									return new CacheItem<long>(
+									return new CacheItem<SamplePayload>(
 										key,
-										DateTimeOffset.UtcNow.Ticks,
+										new SamplePayload(),
 										CacheManager.Core.ExpirationMode.Absolute,
 										CacheDuration
 									);
@@ -177,13 +177,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				{
 					Parallel.For(0, Accessors, _ =>
 					{
-						cache.Get<long>(
+						cache.Get<SamplePayload>(
 							key,
 							() =>
 							{
 								Interlocked.Increment(ref FactoryCallsCount);
 								Thread.Sleep(FactoryDurationMs);
-								return DateTimeOffset.UtcNow.Ticks;
+								return new SamplePayload();
 							},
 							CacheDuration
 						);
@@ -210,13 +210,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 						{
-							cache.GetOrSet<long>(
+							cache.GetOrSet<SamplePayload>(
 								key,
 								ct =>
 								{
 									Interlocked.Increment(ref FactoryCallsCount);
 									Thread.Sleep(FactoryDurationMs);
-									return DateTimeOffset.UtcNow.Ticks;
+									return new SamplePayload();
 								}
 							);
 						});
