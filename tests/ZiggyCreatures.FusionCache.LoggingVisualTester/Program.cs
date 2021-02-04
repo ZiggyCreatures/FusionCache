@@ -48,12 +48,13 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 
 		async static Task Main(string[] args)
 		{
-			var cacheDurationSec = 5;
-			var failSafeMaxDurationSec = 30;
-			var failSafeThrottleDurationSec = 3;
-			var factoryTimeoutMs = 2_000;
-			var useFailSafe = true;
-			var useDistributedCache = true;
+			var cacheDuration = TimeSpan.FromSeconds(5);
+			var failSafeMaxDuration = TimeSpan.FromSeconds(30);
+			var failSafeThrottleDuration = TimeSpan.FromSeconds(3);
+			var factoryTimeout = TimeSpan.FromSeconds(2);
+			var useFailSafe = false;
+			var useDistributedCache = false;
+			var useLogger = false;
 
 			Console.OutputEncoding = Encoding.UTF8;
 
@@ -65,7 +66,7 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 
 			var serviceProvider = services.BuildServiceProvider();
 
-			var logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			var logger = useLogger ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
 
 			// CACHE OPTIONS
 			var options = new FusionCacheOptions
@@ -73,14 +74,14 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 				CacheKeyPrefix = "dev:",
 				DefaultEntryOptions = new FusionCacheEntryOptions
 				{
-					Duration = TimeSpan.FromSeconds(cacheDurationSec),
+					Duration = cacheDuration,
 					Priority = CacheItemPriority.NeverRemove,
 
 					IsFailSafeEnabled = useFailSafe,
-					FailSafeMaxDuration = TimeSpan.FromSeconds(failSafeMaxDurationSec),
-					FailSafeThrottleDuration = TimeSpan.FromSeconds(failSafeThrottleDurationSec),
+					FailSafeMaxDuration = failSafeMaxDuration,
+					FailSafeThrottleDuration = failSafeThrottleDuration,
 
-					FactorySoftTimeout = TimeSpan.FromMilliseconds(factoryTimeoutMs),
+					FactorySoftTimeout = factoryTimeout,
 
 					AllowBackgroundDistributedCacheOperations = true
 				},
