@@ -58,3 +58,13 @@ services.AddFusionCache();
 ```
 
 and FusionCache will automatically discover the registered `IDistributedCache` implementation and, if there's also a valid implementation of `IFusionCacheSerializer`, it picks up both and starts using them.
+
+## Long Story Short
+
+Basically it boils down to this:
+
+- **1️⃣ MEMORY ONLY:** if you don't setup a 2nd layer, FusionCache will act as a **normal memory cache** (`IMemoryCache`)
+
+- **2️⃣ MEMORY + DISTRIBUTED:** if you also setup a 2nd layer, FusionCache will automatically coordinate the 2 layers (`IMemoryCache` + `IDistributedCache`) gracefully handling all edge cases to get a smooth experience
+
+Of course in both cases you will also have at your disposal the added ability to enable extra features, like **fail-safe**, **advanced timeouts**, etc.

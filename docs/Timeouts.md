@@ -64,16 +64,16 @@ The end result is this:
 
 ![Timeline With Timeouts](images/timeouts-timeline-background.png)
 
-Now after `100 ms` the factory will timeout and FusionCache will temporarily give us back the expired value, in a total of about `200 ms` total.
+Now after `100 ms` the factory will timeout and FusionCache will **temporarily** give us back the expired value, in about `200 ms` total.
 
-Also, it will complete the factory execution in the background: as soon as it will complete, the cached value will be updated so that any new request will have the fresh value ready to be used.
+Also, it will complete the factory execution **in the background**: as soon as it will complete, the cached value **will be updated** so that any new request will have the fresh value ready to be used.
 
 
 ## Distributed Cache Timeouts
 
 When using a distributed cache it is also possible to observe some slowdowns in case of network congestions or something else.
 
-In this case it may be useful to also set soft/hard timeouts for the distributed cache (`DistributedCacheSoftTimeout` and `DistributedCacheHardTimeout`) for the operations that must be waited (like getting a value from it), whereas the non critical ones - like saving a value into it - can simply run in the background, so a timeout is less important.
+In this case it may be useful to also set soft/hard timeouts for the distributed cache (`DistributedCacheSoftTimeout` and `DistributedCacheHardTimeout`) for the operations that must be awaited (like getting a value), whereas the non critical ones (like saving a value) can simply run in the background, so a timeout is less important.
 
 One last flag available in this space is `AllowBackgroundDistributedCacheOperations`: this will execute most operations on the distributed cache in the background like in a *fire-and-forget* way, so you will get most likely a perf boost.
 
