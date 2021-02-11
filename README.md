@@ -213,6 +213,6 @@ Nothing to do here.
 
 After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
 <br/>
-If you find FusionCache useful please just **drop me a line**, I would be interested in knowing about your usage.
+If you find FusionCache useful please just [**drop me a line :envelope:**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
 
 And if you really want to talk about money, please consider making  **a donation to a good cause :heart:** of your choosing, and maybe let me know about that.
