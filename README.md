@@ -213,6 +213,15 @@ Nothing to do here.
 
 After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
 <br/>
-If you find FusionCache useful please just [**drop me a line :envelope:**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
+If you find FusionCache useful please just [**:envelope: drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
 
-And if you really want to talk about money, please consider making  **a donation to a good cause :heart:** of your choosing, and maybe let me know about that.
+And if you really want to talk about money, please consider making  **:heart: a donation to a good cause** of your choosing, and maybe let me know about that.
+
+## :ab: Comparisons / Benchmarks
+
+*Coming Soon*
+
+## :briefcase: But is it Production Ready :tm: ?
+Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day (at least these are the projects I'm aware of).
+
+And again, if you are using it please [**:envelope: drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
