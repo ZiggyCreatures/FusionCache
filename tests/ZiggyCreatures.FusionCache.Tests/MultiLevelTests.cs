@@ -304,10 +304,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
 				{
-					var initialValue = (object)ComplexObject.CreateRandom();
+					var initialValue = (object)SampleComplexObject.CreateRandom();
 					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
 					memoryCache.Remove("foo");
-					var newValue = await fusionCache.GetOrDefaultAsync<ComplexObject>("foo");
+					var newValue = await fusionCache.GetOrDefaultAsync<SampleComplexObject>("foo");
 					Assert.NotNull(newValue);
 				}
 			}
@@ -321,10 +321,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
 				{
-					var initialValue = (object)ComplexObject.CreateRandom();
+					var initialValue = (object)SampleComplexObject.CreateRandom();
 					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
 					memoryCache.Remove("foo");
-					var newValue = fusionCache.GetOrDefault<ComplexObject>("foo");
+					var newValue = fusionCache.GetOrDefault<SampleComplexObject>("foo");
 					Assert.NotNull(newValue);
 				}
 			}

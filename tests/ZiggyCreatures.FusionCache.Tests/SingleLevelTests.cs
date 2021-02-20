@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,98 +21,8 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		}
 	}
 
-	public class ComplexObjectAddress
-	{
-		public string Country { get; set; }
-		public string City { get; set; }
-		public string Street { get; set; }
-	}
-
-	public class ComplexObject
-	{
-		public int Id { get; set; }
-		public string FirstName { get; set; }
-		public string LastName { get; set; }
-		public ComplexObjectAddress Address { get; set; }
-
-		public static ComplexObject CreateRandom()
-		{
-			return new ComplexObject
-			{
-				Id = DateTimeOffset.UtcNow.Second,
-				FirstName = "John",
-				LastName = $"Doe_{DateTimeOffset.UtcNow.Millisecond}",
-				Address = new ComplexObjectAddress
-				{
-					Country = $"Country_{DateTimeOffset.UtcNow.Millisecond}",
-					City = $"City_{DateTimeOffset.UtcNow.Millisecond}",
-					Street = $"Street_Whatever_{DateTimeOffset.UtcNow.Millisecond}"
-				}
-			};
-		}
-	}
-
 	public class SingleLevelTests
 	{
-
-		[Theory]
-		[InlineData(10)]
-		[InlineData(100)]
-		[InlineData(1_000)]
-		public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
-		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
-			{
-				var factoryCallsCount = 0;
-
-				var tasks = new ConcurrentBag<Task>();
-				Parallel.For(0, accessorsCount, _ =>
-				{
-					var task = cache.GetOrSetAsync<int>(
-						"foo",
-						async _ =>
-						{
-							Interlocked.Increment(ref factoryCallsCount);
-							return 42;
-						},
-						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
-					);
-					tasks.Add(task);
-				});
-
-				await Task.WhenAll(tasks);
-
-				Assert.Equal(1, factoryCallsCount);
-			}
-		}
-
-		[Theory]
-		[InlineData(10)]
-		[InlineData(100)]
-		[InlineData(1_000)]
-		public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(int accessorsCount)
-		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
-			{
-				var factoryCallsCount = 0;
-
-				var tasks = new ConcurrentBag<Task>();
-				Parallel.For(0, accessorsCount, _ =>
-				{
-					cache.GetOrSet<int>(
-						"foo",
-						_ =>
-						{
-							Interlocked.Increment(ref factoryCallsCount);
-							return 42;
-						},
-						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
-					);
-				});
-
-				Assert.Equal(1, factoryCallsCount);
-			}
-		}
 
 		[Fact]
 		public async Task ReturnsStaleDataWhenFactoryFailsWithFailSafeAsync()
@@ -554,9 +463,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
-				var initialValue = (object)ComplexObject.CreateRandom();
+				var initialValue = (object)SampleComplexObject.CreateRandom();
 				await cache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
-				var newValue = await cache.GetOrDefaultAsync<ComplexObject>("foo");
+				var newValue = await cache.GetOrDefaultAsync<SampleComplexObject>("foo");
 				Assert.NotNull(newValue);
 			}
 		}
@@ -566,9 +475,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
-				var initialValue = (object)ComplexObject.CreateRandom();
+				var initialValue = (object)SampleComplexObject.CreateRandom();
 				cache.Set("foo", initialValue, TimeSpan.FromHours(24));
-				var newValue = cache.GetOrDefault<ComplexObject>("foo");
+				var newValue = cache.GetOrDefault<SampleComplexObject>("foo");
 				Assert.NotNull(newValue);
 			}
 		}
