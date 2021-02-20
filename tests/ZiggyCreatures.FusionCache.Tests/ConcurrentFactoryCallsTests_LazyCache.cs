@@ -1,4 +1,6 @@
-using System;
+using LazyCache;
+using LazyCache.Providers;
+using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +9,8 @@ using Xunit;
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 
-	public class ConcurrentFactoryCallsTests
+	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
+	public abstract class ConcurrentFactoryCallsTests_LazyCache
 	{
 
 		[Theory]
@@ -16,22 +19,24 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		[InlineData(1_000)]
 		public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
+				var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+				cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 				var factoryCallsCount = 0;
 
 				var tasks = new ConcurrentBag<Task>();
 				Parallel.For(0, accessorsCount, _ =>
 				{
-					var task = cache.GetOrSetAsync<int>(
+					var task = cache.GetOrAddAsync<int>(
 						"foo",
 						async _ =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
 							await Task.Delay(100).ConfigureAwait(false);
 							return 42;
-						},
-						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+						}
 					);
 					tasks.Add(task);
 				});
@@ -48,21 +53,23 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		[InlineData(1_000)]
 		public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(int accessorsCount)
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
+				var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+				cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 				var factoryCallsCount = 0;
 
 				Parallel.For(0, accessorsCount, _ =>
 				{
-					cache.GetOrSet<int>(
+					cache.GetOrAdd<int>(
 						"foo",
 						_ =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
 							Thread.Sleep(100);
 							return 42;
-						},
-						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+						}
 					);
 				});
 
@@ -76,8 +83,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		[InlineData(1_000)]
 		public async Task OnlyOneFactoryGetsCalledEvenInMixedHighConcurrencyAsync(int accessorsCount)
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
+				var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+				cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 				var factoryCallsCount = 0;
 
 				var tasks = new ConcurrentBag<Task>();
@@ -85,29 +95,27 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				{
 					if (idx % 2 == 0)
 					{
-						var task = cache.GetOrSetAsync<int>(
+						var task = cache.GetOrAddAsync<int>(
 							"foo",
 							async _ =>
 							{
 								Interlocked.Increment(ref factoryCallsCount);
 								await Task.Delay(100).ConfigureAwait(false);
 								return 42;
-							},
-							new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+							}
 						);
 						tasks.Add(task);
 					}
 					else
 					{
-						cache.GetOrSet<int>(
+						cache.GetOrAdd<int>(
 							"foo",
 							_ =>
 							{
 								Interlocked.Increment(ref factoryCallsCount);
 								Thread.Sleep(100);
 								return 42;
-							},
-							new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+							}
 						);
 					}
 				});
