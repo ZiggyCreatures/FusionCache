@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.1</Version>
+		<Version>0.1.2</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -23,7 +23,7 @@
 
 	<PropertyGroup>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.xml</DocumentationFile>
-		<PackageReleaseNotes>Better cpu/memory perf + big refactoring with one (last!) namespace change</PackageReleaseNotes>
+		<PackageReleaseNotes>Bugfix for non deserializable metadata while using System.Text.Json serializer</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
