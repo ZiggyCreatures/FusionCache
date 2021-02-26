@@ -8,20 +8,43 @@ using System.Threading.Tasks;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class MultiLevelTests
 	{
 
-		[Fact]
-		public async Task ReturnsDataFromDistributedCacheIfNoDataInMemoryCacheAsync()
+		public enum SerializerType
+		{
+			NewtonsoftJson = 0,
+			SystemTextJson = 1
+		}
+
+		private IFusionCacheSerializer GetSerializer(SerializerType serializerType)
+		{
+			switch (serializerType)
+			{
+				case SerializerType.NewtonsoftJson:
+					return new FusionCacheNewtonsoftJsonSerializer();
+				case SerializerType.SystemTextJson:
+					return new FusionCacheSystemTextJsonSerializer();
+			}
+
+			throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task ReturnsDataFromDistributedCacheIfNoDataInMemoryCacheAsync(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					var initialValue = await fusionCache.GetOrSetAsync<int>("foo", _ => Task.FromResult(42), new FusionCacheEntryOptions().SetDurationSec(10));
 					memoryCache.Remove("foo");
@@ -31,13 +54,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public void ReturnsDataFromDistributedCacheIfNoDataInMemoryCache()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void ReturnsDataFromDistributedCacheIfNoDataInMemoryCache(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 
@@ -49,12 +74,14 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task HandlesDistributedCacheFailuresAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task HandlesDistributedCacheFailuresAsync(SerializerType serializerType)
 		{
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
-			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType)))
 			{
 				var initialValue = await fusionCache.GetOrSetAsync<int>("foo", _ => Task.FromResult(42), new FusionCacheEntryOptions() { Duration = TimeSpan.FromSeconds(1), IsFailSafeEnabled = true });
 				await Task.Delay(1_500);
@@ -64,12 +91,14 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task HandlesDistributedCacheRemovalInTheMiddleOfAnOperationAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task HandlesDistributedCacheRemovalInTheMiddleOfAnOperationAsync(SerializerType serializerType)
 		{
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
-			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType)))
 			{
 				var task = fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 42; }, new FusionCacheEntryOptions(TimeSpan.FromSeconds(10)));
 				await Task.Delay(500);
@@ -79,14 +108,16 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task HandlesDistributedCacheFailuresInTheMiddleOfAnOperationAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task HandlesDistributedCacheFailuresInTheMiddleOfAnOperationAsync(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 				var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType)))
 				{
 					var task = fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 42; }, new FusionCacheEntryOptions(TimeSpan.FromSeconds(10)));
 					await Task.Delay(500);
@@ -106,8 +137,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task AppliesDistributedCacheHardTimeoutAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task AppliesDistributedCacheHardTimeoutAsync(SerializerType serializerType)
 		{
 			var simulatedDelayMs = 5_000;
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -118,7 +151,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
-					fusionCache.SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer());
+					fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
 					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 					memoryCache.Remove("foo");
@@ -130,8 +163,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public void AppliesDistributedCacheHardTimeout()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void AppliesDistributedCacheHardTimeout(SerializerType serializerType)
 		{
 			var simulatedDelayMs = 5_000;
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -142,7 +177,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
-					fusionCache.SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer());
+					fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
 					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					Thread.Sleep(TimeSpan.FromSeconds(1));
 					memoryCache.Remove("foo");
@@ -154,8 +189,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task AppliesDistributedCacheSoftTimeoutAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task AppliesDistributedCacheSoftTimeoutAsync(SerializerType serializerType)
 		{
 			var simulatedDelayMs = 5_000;
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -166,7 +203,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
-					fusionCache.SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer());
+					fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
 					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 					var sw = Stopwatch.StartNew();
@@ -180,8 +217,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public void AppliesDistributedCacheSoftTimeout()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void AppliesDistributedCacheSoftTimeout(SerializerType serializerType)
 		{
 			var simulatedDelayMs = 5_000;
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -192,7 +231,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
-					fusionCache.SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer());
+					fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
 					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					Thread.Sleep(TimeSpan.FromSeconds(1));
 					var sw = Stopwatch.StartNew();
@@ -206,8 +245,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task DistributedCacheCircuitBreakerActuallyWorksAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task DistributedCacheCircuitBreakerActuallyWorksAsync(SerializerType serializerType)
 		{
 			var circuitBreakerDuration = TimeSpan.FromSeconds(2);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -218,7 +259,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				using (var fusionCache = new FusionCache(new FusionCacheOptions() { DistributedCacheCircuitBreakerDuration = circuitBreakerDuration }, memoryCache))
 				{
 					fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
-					fusionCache.SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer());
+					fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
 
 					await fusionCache.SetAsync<int>("foo", 1, options => options.SetDurationSec(60).SetFailSafe(true));
 					chaosDistributedCache.SetAlwaysThrow();
@@ -234,8 +275,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public void DistributedCacheCircuitBreakerActuallyWorks()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void DistributedCacheCircuitBreakerActuallyWorks(SerializerType serializerType)
 		{
 			var circuitBreakerDuration = TimeSpan.FromSeconds(2);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -246,7 +289,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				using (var fusionCache = new FusionCache(new FusionCacheOptions() { DistributedCacheCircuitBreakerDuration = circuitBreakerDuration }, memoryCache))
 				{
 					fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
-					fusionCache.SetupDistributedCache(chaosDistributedCache, new FusionCacheNewtonsoftJsonSerializer());
+					fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
 
 					fusionCache.Set<int>("foo", 1, options => options.SetDurationSec(60).SetFailSafe(true));
 					chaosDistributedCache.SetAlwaysThrow();
@@ -262,13 +305,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task HandlesFlexibleSimpleTypeConversionsAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task HandlesFlexibleSimpleTypeConversionsAsync(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					var initialValue = (object)42;
 					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
@@ -279,13 +324,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public void HandlesFlexibleSimpleTypeConversions()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void HandlesFlexibleSimpleTypeConversions(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					var initialValue = (object)42;
 					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
@@ -296,13 +343,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public async Task HandlesFlexibleComplexTypeConversionsAsync()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task HandlesFlexibleComplexTypeConversionsAsync(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					var initialValue = (object)SampleComplexObject.CreateRandom();
 					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
@@ -313,13 +362,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
-		[Fact]
-		public void HandlesFlexibleComplexTypeConversions()
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void HandlesFlexibleComplexTypeConversions(SerializerType serializerType)
 		{
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer()))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					var initialValue = (object)SampleComplexObject.CreateRandom();
 					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
