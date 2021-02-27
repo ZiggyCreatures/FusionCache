@@ -1,6 +1,7 @@
 using LazyCache;
 using LazyCache.Providers;
 using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
 	public abstract class ConcurrentFactoryCallsTests_LazyCache
 	{
+
+		static TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
 		[Theory]
 		[InlineData(10)]
@@ -34,7 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						async _ =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
-							await Task.Delay(100).ConfigureAwait(false);
+							await Task.Delay(FactoryDuration).ConfigureAwait(false);
 							return 42;
 						}
 					);
@@ -67,7 +70,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						_ =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
-							Thread.Sleep(100);
+							Thread.Sleep(FactoryDuration);
 							return 42;
 						}
 					);
@@ -100,7 +103,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 							async _ =>
 							{
 								Interlocked.Increment(ref factoryCallsCount);
-								await Task.Delay(100).ConfigureAwait(false);
+								await Task.Delay(FactoryDuration).ConfigureAwait(false);
 								return 42;
 							}
 						);
@@ -113,7 +116,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 							_ =>
 							{
 								Interlocked.Increment(ref factoryCallsCount);
-								Thread.Sleep(100);
+								Thread.Sleep(FactoryDuration);
 								return 42;
 							}
 						);

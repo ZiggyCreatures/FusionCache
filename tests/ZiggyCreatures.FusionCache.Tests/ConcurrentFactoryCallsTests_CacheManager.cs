@@ -11,6 +11,8 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 	public abstract class ConcurrentFactoryCallsTests_CacheManager
 	{
 
+		static TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
+
 		[Theory]
 		[InlineData(10)]
 		[InlineData(100)]
@@ -28,7 +30,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						key =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
-							Thread.Sleep(100);
+							Thread.Sleep(FactoryDuration);
 							return new CacheItem<int>(
 								key,
 								42,
