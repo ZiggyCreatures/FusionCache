@@ -135,7 +135,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			{
 				if (disposing)
 				{
-					// TODO: MAYBE FIND A WAY TO CLEAR ALL THE ENTRIES IN THE CACHE (INCLUDING THE ONES WITH A NeverPriority PRIORITY) AND DISPOSE ALL RELATED SEMAPHORES
+					// TODO: MAYBE FIND A WAY TO CLEAR ALL THE ENTRIES IN THE CACHE (INCLUDING THE ONES WITH A NeverRemove PRIORITY) AND DISPOSE ALL RELATED SEMAPHORES
 					_lockCache.Compact(1.0);
 					_lockCache.Dispose();
 				}
