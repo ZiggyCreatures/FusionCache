@@ -10,7 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,33 +17,15 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
-	public class SyncCacheComparisonBenchmark
+	public class SyncComparisonBenchmark
 	{
-
-		public static Dictionary<string, List<string>> ExcessiveFactoryCalls = new Dictionary<string, List<string>>();
-
-		public static void UpdateExcessiveFactoryCallsStatistics(string name, int expectedFactoryCallsCount, int actualFactoryCallsCount)
-		{
-			if (expectedFactoryCallsCount == actualFactoryCallsCount)
-				return;
-
-			if (ExcessiveFactoryCalls.ContainsKey(name) == false)
-				ExcessiveFactoryCalls[name] = new List<string>();
-
-			ExcessiveFactoryCalls[name].Add($"EXPECTED: {expectedFactoryCallsCount} - ACTUAL: {actualFactoryCallsCount}");
-		}
-
-		public static string GetCallerName([CallerMemberName] string name = "")
-		{
-			return name;
-		}
 
 		private class Config : ManualConfig
 		{
 			public Config()
 			{
 				AddColumn(
-					StatisticColumn.P90
+					StatisticColumn.P95
 				);
 			}
 		}
@@ -63,9 +44,6 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 
 		private List<string> Keys;
 		private TimeSpan CacheDuration = TimeSpan.FromDays(10);
-
-		private int FactoryCallsCount;
-
 		private IServiceProvider ServiceProvider;
 
 		[GlobalSetup]
@@ -73,7 +51,6 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		{
 			// SETUP KEYS
 			Keys = new List<string>();
-			var foo = DateTime.UtcNow.Ticks;
 			for (int i = 0; i < KeysCount; i++)
 			{
 				var key = Guid.NewGuid().ToString("N") + "-" + i.ToString();
@@ -87,7 +64,99 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		}
 
 		[Benchmark(Baseline = true)]
-		public void LazyCacheCache()
+		public void FusionCache()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }))
+			{
+				for (int i = 0; i < Rounds; i++)
+				{
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+						{
+							cache.GetOrSet<SamplePayload>(
+								key,
+								ct =>
+								{
+									Thread.Sleep(FactoryDurationMs);
+									return new SamplePayload();
+								}
+							);
+						});
+					});
+				}
+
+				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+			}
+		}
+
+		[Benchmark]
+		public void CacheManager()
+		{
+			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
+			{
+				for (int i = 0; i < Rounds; i++)
+				{
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+						{
+							cache.GetOrAdd(
+								key,
+								_ =>
+								{
+									Thread.Sleep(FactoryDurationMs);
+									return new CacheItem<SamplePayload>(
+										key,
+										new SamplePayload(),
+										global::CacheManager.Core.ExpirationMode.Absolute,
+										CacheDuration
+									);
+								}
+							);
+
+						});
+					});
+				}
+
+				// CLEANUP
+				cache.Clear();
+			}
+		}
+
+		[Benchmark]
+		public void EasyCaching()
+		{
+			var factory = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>();
+			var cache = factory.GetCachingProvider("default");
+
+			for (int i = 0; i < Rounds; i++)
+			{
+				var tasks = new ConcurrentBag<Task>();
+
+				Parallel.ForEach(Keys, key =>
+				{
+					Parallel.For(0, Accessors, _ =>
+					{
+						cache.Get<SamplePayload>(
+							key,
+							() =>
+							{
+								Thread.Sleep(FactoryDurationMs);
+								return new SamplePayload();
+							},
+							CacheDuration
+						);
+					});
+				});
+			}
+
+			// CLEANUP
+			cache.Flush();
+		}
+
+		[Benchmark]
+		public void LazyCache()
 		{
 			using (var cache = new MemoryCache(new MemoryCacheOptions()))
 			{
@@ -98,9 +167,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				for (int i = 0; i < Rounds; i++)
 				{
 					var tasks = new ConcurrentBag<Task>();
-					FactoryCallsCount = 0;
 
-					// FULL PARALLEL
 					Parallel.ForEach(Keys, key =>
 					{
 						Parallel.For(0, Accessors, _ =>
@@ -109,123 +176,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 								key,
 								() =>
 								{
-									Interlocked.Increment(ref FactoryCallsCount);
 									Thread.Sleep(FactoryDurationMs);
 									return new SamplePayload();
 								}
 							);
 						});
 					});
-
-					UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
 				}
 
+				// CLEANUP
 				cache.Compact(1);
-			}
-		}
-
-		[Benchmark]
-		public void CacheManagerCache()
-		{
-			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
-			{
-				for (int i = 0; i < Rounds; i++)
-				{
-					FactoryCallsCount = 0;
-
-					// FULL PARALLEL
-					Parallel.ForEach(Keys, key =>
-					{
-						Parallel.For(0, Accessors, _ =>
-						{
-							cache.GetOrAdd(
-								key,
-								_ =>
-								{
-									Interlocked.Increment(ref FactoryCallsCount);
-									Thread.Sleep(FactoryDurationMs);
-									return new CacheItem<SamplePayload>(
-										key,
-										new SamplePayload(),
-										CacheManager.Core.ExpirationMode.Absolute,
-										CacheDuration
-									);
-								}
-							);
-
-						});
-					});
-
-					UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
-				}
-			}
-		}
-
-		[Benchmark]
-		public void EasyCachingCache()
-		{
-			var factory = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>();
-			var cache = factory.GetCachingProvider("default");
-
-			for (int i = 0; i < Rounds; i++)
-			{
-				var tasks = new ConcurrentBag<Task>();
-				FactoryCallsCount = 0;
-
-				// FULL PARALLEL
-				Parallel.ForEach(Keys, key =>
-				{
-					Parallel.For(0, Accessors, _ =>
-					{
-						cache.Get<SamplePayload>(
-							key,
-							() =>
-							{
-								Interlocked.Increment(ref FactoryCallsCount);
-								Thread.Sleep(FactoryDurationMs);
-								return new SamplePayload();
-							},
-							CacheDuration
-						);
-					});
-				});
-
-				UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
-			}
-
-			cache.Flush();
-		}
-
-		[Benchmark]
-		public void FusionCacheCache()
-		{
-			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }))
-			{
-				for (int i = 0; i < Rounds; i++)
-				{
-					FactoryCallsCount = 0;
-
-					// FULL PARALLEL
-					Parallel.ForEach(Keys, key =>
-					{
-						Parallel.For(0, Accessors, _ =>
-						{
-							cache.GetOrSet<SamplePayload>(
-								key,
-								ct =>
-								{
-									Interlocked.Increment(ref FactoryCallsCount);
-									Thread.Sleep(FactoryDurationMs);
-									return new SamplePayload();
-								}
-							);
-						});
-					});
-
-					UpdateExcessiveFactoryCallsStatistics(GetCallerName(), KeysCount, FactoryCallsCount);
-				}
-
-				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
 			}
 		}
 
