@@ -29,9 +29,9 @@ And we should all be thankful for that.
 
 ## :ballot_box_with_check: Features
 
-Every library has a different set of features, mostly based on each library design: you may find logging support, both sync and async api, statistics, cache regions and a lot more.
+Every library has a different set of features, mostly based on each library design: you may find logging support, both a sync and an async api, statistics, events, jittering, cache regions and a lot more so making a 1:1 comparison is hardly possible.
 
-In trying to make an honest and generic overview I've identified **a set of features** that I think are important: of course your mileage may vary, and you are welcome to **give me your opinions** so I can expand my view and make this comparison even better.
+In trying to make an honest and generic overview I've identified a set of **very high-level features** that I think are important: of course your mileage may vary, and you are welcome to **give me your opinion** so I can expand my view and make this comparison even better.
 
 The general features I've identified as significants are:
 
@@ -59,25 +59,24 @@ The general features I've identified as significants are:
 
 This is how they compare:
 
-|                       | FusionCache | CacheManager | CacheTower (1) | EasyCaching (2) | LazyCache (3) |
-| ---:                  | :---:       | :---:        | :---:          | :---:           |:---:          |
-| **Factory call opt.** | ✔          | ❌           | ⚠             | ✔               | ✔            |
-| **Sync usage**        | ✔          | ✔            | ❌            | ✔               | ✔            |
-| **Async usage**       | ✔          | ❌           | ✔             | ✔               | ⚠            |
-| **Stale data re-use** | ✔          | ❌           | ✔             | ❌              | ❌           |
-| **Multi-provider**    | ✔          | ✔            | ✔             | ✔               | ❌           |
-| **Multi-level**       | ✔          | ✔            | ✔             | ⚠              | ❌           |
-| **Logging**           | ✔          | ✔            | ❌            | ✔              | ❌           |
-| **Portable**          | ✔          | ✔            | ✔             | ✔               | ✔            |
-| **Tests**             | ✔          | ✔            | ✔             | ✔               | ✔            |
-| **Xml comments**      | ✔          | ✔            | ❌            | ✔               | ❌           |
-| **Documentation**     | ✔          | ✔            | ✔             | ✔               | ✔            |
-| **License**           | `MIT`       | `Apache 2.0` | `MIT`          | `MIT`           | `MIT`         |
+|                       | FusionCache | CacheManager | CacheTower | EasyCaching (1) | LazyCache (2) |
+| ---:                  | :---:       | :---:        | :---:      | :---:           |:---:          |
+| **Factory call opt.** | ✔          | ❌           | ✔         | ✔               | ✔            |
+| **Sync api**          | ✔          | ✔            | ❌        | ✔               | ✔            |
+| **Async api**         | ✔          | ❌           | ✔         | ✔               | ⚠            |
+| **Stale data re-use** | ✔          | ❌           | ✔         | ❌              | ❌           |
+| **Multi-provider**    | ✔          | ✔            | ✔         | ✔               | ❌           |
+| **Multi-level**       | ✔          | ✔            | ✔         | ⚠               | ❌           |
+| **Logging**           | ✔          | ✔            | ❌        | ✔               | ❌           |
+| **Portable**          | ✔          | ✔            | ✔         | ✔               | ✔            |
+| **Tests**             | ✔          | ✔            | ✔         | ✔               | ✔            |
+| **Xml comments**      | ✔          | ✔            | ✔         | ✔               | ❌           |
+| **Documentation**     | ✔          | ✔            | ✔         | ✔               | ✔            |
+| **License**           | `MIT`       | `Apache 2.0` | `MIT`      | `MIT`           | `MIT`         |
 
 :information_source: **NOTES**
-- (1): **CacheTower** does have a factory call optimization, but (currently) seems to deadlock in some scenarios with multiple accessors
-- (2): **EasyCaching** supports an HybridCachingProvider to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know
-- (3): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's up to you
+- (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know
+- (2): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know
 
 ## :checkered_flag: Benchmarks
 
