@@ -131,13 +131,12 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-		// TEMPORARILY DISABLED BECAUSE DURING EXECUTION IT HANGS INDEFINITELY (MAYBE A DEADLOCK?)
-		//[Benchmark]
+		[Benchmark]
 		public async Task CacheTower()
 		{
 			await using (var cache = new CacheStack(new[] { new MemoryCacheLayer() }, new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) }))
 			{
-				var cacheSettings = new CacheSettings(CacheDuration);
+				var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
 
 				for (int i = 0; i < Rounds; i++)
 				{
