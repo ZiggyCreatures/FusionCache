@@ -193,9 +193,15 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**:twisted_rightwards_arrows: Cache Levels**](docs/CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
 - [**:rocket: Factory Call Optimization**](docs/FactoryOptimization.md): no more overloads during a cold start or after an expiration
 - [**:bomb: Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
-- [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**:stopwatch: Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
+- [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**:trophy: Step By Step**](docs/StepByStep.md): a complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain
+
+## :ab: Comparisons
+
+There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
+
+A [feature comparison](docs/Comparisons.md) between existing .NET caching solutions may help you choose which one to use.
 
 ## 🧰 Supported Platforms
 
@@ -203,11 +209,11 @@ FusionCache targets .NET Standard 2.0, so any compatible .NET implementation is 
 
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
 
-## :framed_picture: Logo
+## 🖼 Logo
 
 The logo is an [original creation](https://dribbble.com/shots/14854206-FusionCache-logo) and is a [sloth](https://en.wikipedia.org/wiki/Sloth) because, you know, speed is very important in a cache :smirk: .
 
-## :moneybag: Funding / Support
+## 💰 Funding / Support
 
 Nothing to do here.
 
@@ -217,11 +223,7 @@ If you find FusionCache useful please just [**:envelope: drop me a line**](https
 
 And if you really want to talk about money, please consider making  **:heart: a donation to a good cause** of your choosing, and maybe let me know about that.
 
-## :ab: Comparisons / Benchmarks
-
-*Coming Soon*
-
-## :briefcase: But is it Production Ready :tm: ?
+## 💼 Is it Production Ready :tm: ?
 Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day (at least these are the projects I'm aware of).
 
 And again, if you are using it please [**:envelope: drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
