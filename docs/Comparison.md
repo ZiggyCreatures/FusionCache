@@ -4,7 +4,7 @@
 
 </div>
 
-# :ab: Comparisons
+# :ab: Comparison
 
 FusionCache of course is not the only player in the field of caching libraries.
 

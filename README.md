@@ -197,11 +197,11 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**:trophy: Step By Step**](docs/StepByStep.md): a complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain
 
-## :ab: Comparisons
+## :ab: Comparison
 
 There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
 
-A [feature comparison](docs/Comparisons.md) between existing .NET caching solutions may help you choose which one to use.
+A [feature comparison](docs/Comparison.md) between existing .NET caching solutions may help you choose which one to use.
 
 ## 🧰 Supported Platforms
 

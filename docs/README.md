@@ -25,5 +25,5 @@ A deeper description of the main features:
 ### [**:trophy: Step By Step**](StepByStep.md)
 A complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain.
 
-### [**:ab: Comparisons**](Comparisons.md)
+### [**:ab: Comparison**](Comparison.md)
 A feature comparison between existing .NET caching solutions, to  help you choose which one to use
