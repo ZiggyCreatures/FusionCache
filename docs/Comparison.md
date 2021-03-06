@@ -61,24 +61,25 @@ The general features I've identified as significants are:
 
 This is how they compare:
 
-|                       | FusionCache (1) | CacheManager | CacheTower | EasyCaching (2) | LazyCache (3) |
-| ---:                  | :---:       | :---:        | :---:      | :---:           |:---:          |
-| **Factory call opt.** | ✔          | ❌           | ✔         | ✔               | ✔            |
-| **Sync api**          | ✔          | ✔            | ❌        | ✔               | ✔            |
-| **Async api**         | ✔          | ❌           | ✔         | ✔               | ⚠            |
-| **Stale data re-use** | ✔          | ❌           | ✔         | ❌              | ❌           |
-| **Multi-provider**    | ✔          | ✔            | ✔         | ✔               | ❌           |
-| **Multi-level**       | ✔          | ✔            | ✔         | ⚠               | ❌           |
-| **Distributed sync.** | ❌         | ✔            | ✔         | ✔               | ❌           |
-| **Logging**           | ✔          | ✔            | ❌        | ✔               | ❌           |
-| **Portable**          | ✔          | ✔            | ✔         | ✔               | ✔            |
-| **Tests**             | ✔          | ✔            | ✔         | ✔               | ✔            |
-| **Xml comments**      | ✔          | ✔            | ✔         | ✔               | ❌           |
-| **Documentation**     | ✔          | ✔            | ✔         | ✔               | ✔            |
-| **License**           | `MIT`       | `Apache 2.0` | `MIT`      | `MIT`           | `MIT`         |
+|                       | FusionCache (1) | CacheManager | CacheTower (2) | EasyCaching (3) | LazyCache (4) |
+| ---:                  | :---:           | :---:        | :---:          | :---:           |:---:          |
+| **Factory call opt.** | ✔              | ❌           | ✔             | ✔               | ✔            |
+| **Sync api**          | ✔              | ✔            | ❌            | ✔               | ✔            |
+| **Async api**         | ✔              | ❌           | ✔             | ✔               | ⚠            |
+| **Stale data re-use** | ✔              | ❌           | ❌            | ❌              | ❌           |
+| **Multi-provider**    | ✔              | ✔            | ✔             | ✔               | ❌           |
+| **Multi-level**       | ✔              | ✔            | ✔             | ⚠               | ❌           |
+| **Distributed sync.** | ❌             | ✔            | ✔             | ✔               | ❌           |
+| **Logging**           | ✔              | ✔            | ❌            | ✔               | ❌           |
+| **Portable**          | ✔              | ✔            | ✔             | ✔               | ✔            |
+| **Tests**             | ✔              | ✔            | ✔             | ✔               | ✔            |
+| **Xml comments**      | ✔              | ✔            | ✔             | ✔               | ❌           |
+| **Documentation**     | ✔              | ✔            | ✔             | ✔               | ✔            |
+| **License**           | `MIT`           | `Apache 2.0` | `MIT`          | `MIT`           | `MIT`         |
 
 :information_source: **NOTES**
 - (1): **FusionCache** support for distributed synchronization is being designed and will be available soon. Also, simply setting a lower cache duration and enabling [fail-safe](FailSafe.md) + [soft timeouts](Timeouts.md), in most cases would give you similar results
-- (2): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know
-- (3): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know
+- (2): **CacheTower** does not support stale data-reuse, but offers a way for cache data to be marked as stale before it expires as a way to kick off background refresh ahead of time. It may be what you want or not, but it's good to know
+- (3): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know
+- (4): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know
 
