@@ -5,7 +5,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 {
 
 	/// <summary>
-	/// An entry in a <see cref="FusionCache"/> .
+	/// An entry in a <see cref="FusionCache"/> distributed layer.
 	/// </summary>
 	/// <typeparam name="TValue">The type of the entry's value</typeparam>
 	[DataContract]
@@ -81,16 +81,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (options.IsFailSafeEnabled == false)
 				return new FusionCacheDistributedEntry<TValue>(value, null);
 
-			DateTimeOffset exp;
-
-			if (isFromFailSafe)
-			{
-				exp = DateTimeOffset.UtcNow.AddMilliseconds(options.GetJitterDurationMs()) + options.FailSafeThrottleDuration;
-			}
-			else
-			{
-				exp = DateTimeOffset.UtcNow.AddMilliseconds(options.GetJitterDurationMs()) + options.Duration;
-			}
+			var exp = DateTimeOffset.UtcNow + (isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
 
 			return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 		}

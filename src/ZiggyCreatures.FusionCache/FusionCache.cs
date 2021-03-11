@@ -336,7 +336,14 @@ namespace ZiggyCreatures.Caching.Fusion
 							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 								_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling the factory (timeout={Timeout})", key, operationId, timeout.ToLogString_Timeout());
 
-							value = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
+							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
+							{
+								value = await factory(CancellationToken.None).ConfigureAwait(false);
+							}
+							else
+							{
+								value = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
+							}
 						}
 						catch (OperationCanceledException)
 						{
@@ -478,7 +485,14 @@ namespace ZiggyCreatures.Caching.Fusion
 							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 								_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling the factory (timeout={Timeout})", key, operationId, timeout.ToLogString_Timeout());
 
-							value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
+							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
+							{
+								value = factory(CancellationToken.None);
+							}
+							else
+							{
+								value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
+							}
 						}
 						catch (OperationCanceledException)
 						{
