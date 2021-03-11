@@ -4,7 +4,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
 
 	/// <summary>
-	/// An entry in a <see cref="FusionCache"/> .
+	/// An entry in a <see cref="FusionCache"/> memory layer.
 	/// </summary>
 	internal class FusionCacheMemoryEntry
 		: IFusionCacheEntry
@@ -64,15 +64,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (options.IsFailSafeEnabled == false)
 				return new FusionCacheMemoryEntry(value, null);
 
-			DateTimeOffset exp;
+			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeMaxDuration : options.Duration);
 
-			if (isFromFailSafe)
+			if (options.JitterMaxDuration > TimeSpan.Zero)
 			{
-				exp = DateTimeOffset.UtcNow.AddMilliseconds(options.GetJitterDurationMs()) + options.FailSafeThrottleDuration;
-			}
-			else
-			{
-				exp = DateTimeOffset.UtcNow.AddMilliseconds(options.GetJitterDurationMs()) + options.Duration;
+				exp = exp.AddMilliseconds(options.GetJitterDurationMs());
 			}
 
 			return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));

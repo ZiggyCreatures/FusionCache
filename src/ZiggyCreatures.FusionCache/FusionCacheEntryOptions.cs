@@ -276,13 +276,13 @@ namespace ZiggyCreatures.Caching.Fusion
 				Priority = Priority
 			};
 
-			if (IsFailSafeEnabled)
+			if (JitterMaxDuration <= TimeSpan.Zero)
 			{
-				res.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(GetJitterDurationMs()) + FailSafeMaxDuration;
+				res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
 			}
 			else
 			{
-				res.AbsoluteExpiration = DateTimeOffset.UtcNow.AddMilliseconds(GetJitterDurationMs()) + Duration;
+				res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration).AddMilliseconds(GetJitterDurationMs());
 			}
 
 			return res;
@@ -296,14 +296,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			var res = new DistributedCacheEntryOptions();
 
-			if (IsFailSafeEnabled)
-			{
-				res.AbsoluteExpiration = DateTimeOffset.UtcNow + FailSafeMaxDuration;
-			}
-			else
-			{
-				res.AbsoluteExpiration = DateTimeOffset.UtcNow + Duration;
-			}
+			res.AbsoluteExpiration = DateTimeOffset.UtcNow + (IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
 
 			return res;
 		}
@@ -362,7 +355,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				Duration = duration ?? Duration,
 				LockTimeout = LockTimeout,
-
 				Size = Size,
 				Priority = Priority,
 				JitterMaxDuration = JitterMaxDuration,
