@@ -211,11 +211,16 @@ namespace ZiggyCreatures.Caching.Fusion
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void ReleaseLock(string operationId, string key, object? lockObj)
 		{
+			if (lockObj is null)
+				return;
+
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): releasing LOCK", key, operationId);
+
 			try
 			{
 				_reactor.ReleaseLock(key, operationId, lockObj, _logger);
+
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): LOCK released", key, operationId);
 			}
@@ -384,7 +389,8 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 			finally
 			{
-				ReleaseLock(operationId, key, lockObj);
+				if (lockObj is object)
+					ReleaseLock(operationId, key, lockObj);
 			}
 
 			return _entry;
@@ -533,7 +539,8 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 			finally
 			{
-				ReleaseLock(operationId, key, lockObj);
+				if (lockObj is object)
+					ReleaseLock(operationId, key, lockObj);
 			}
 
 			return _entry;

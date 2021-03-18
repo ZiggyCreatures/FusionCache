@@ -902,7 +902,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> .
+            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> distributed layer.
             </summary>
             <typeparam name="TValue">The type of the entry's value</typeparam>
         </member>
@@ -1108,7 +1108,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> .
+            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory layer.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata)">

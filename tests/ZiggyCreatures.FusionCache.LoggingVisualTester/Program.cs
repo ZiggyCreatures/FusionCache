@@ -54,7 +54,7 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 			var factoryTimeout = TimeSpan.FromSeconds(2);
 			var useFailSafe = false;
 			var useDistributedCache = false;
-			var useLogger = false;
+			var useLogger = true;
 
 			Console.OutputEncoding = Encoding.UTF8;
 

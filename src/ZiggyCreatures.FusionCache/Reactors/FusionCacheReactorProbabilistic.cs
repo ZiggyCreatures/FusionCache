@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
 
-	internal class FusionCacheReactorProbabilistic
+	public class FusionCacheReactorProbabilistic
 		: IFusionCacheReactor
 	{
 
