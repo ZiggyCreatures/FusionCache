@@ -163,6 +163,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				}
 
 				// CLEANUP
+				await cache.CleanupAsync();
 				await cache.FlushAsync();
 			}
 		}
