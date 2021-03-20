@@ -52,14 +52,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				using (var ctsDelay = CancellationTokenSource.CreateLinkedTokenSource(token))
 				{
 					var funcTask = asyncFunc(ctsFunc?.Token ?? token);
-					using (var delayTask = Task.Delay(timeout, ctsDelay.Token))
-					{
-						await Task.WhenAny(funcTask, delayTask).ConfigureAwait(false);
+					var delayTask = Task.Delay(timeout, ctsDelay.Token);
 
-						if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
-						{
-							ctsDelay.Cancel();
-						}
+					await Task.WhenAny(funcTask, delayTask).ConfigureAwait(false);
+
+					if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
+					{
+						ctsDelay.Cancel();
 					}
 
 					if (funcTask.IsCompleted == false && funcTask.IsFaulted == false)
@@ -122,14 +121,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				using (var ctsDelay = CancellationTokenSource.CreateLinkedTokenSource(token))
 				{
 					var actionTask = asyncAction(ctsFunc?.Token ?? token);
-					using (var delayTask = Task.Delay(timeout, ctsDelay.Token))
-					{
-						await Task.WhenAny(actionTask, delayTask).ConfigureAwait(false);
+					var delayTask = Task.Delay(timeout, ctsDelay.Token);
 
-						if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
-						{
-							ctsDelay.Cancel();
-						}
+					await Task.WhenAny(actionTask, delayTask).ConfigureAwait(false);
+
+					if (delayTask.IsCompleted == false && delayTask.IsFaulted == false)
+					{
+						ctsDelay.Cancel();
 					}
 
 					if (actionTask.IsCompleted == false && actionTask.IsFaulted == false)
