@@ -296,7 +296,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			var res = new DistributedCacheEntryOptions();
 
-			res.AbsoluteExpiration = DateTimeOffset.UtcNow + (IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
+			res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
 
 			return res;
 		}
