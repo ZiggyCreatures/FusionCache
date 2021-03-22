@@ -11,12 +11,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		: IOptions<FusionCacheOptions>
 	{
 
+		private FusionCacheEntryOptions _defaultEntryOptions;
+
 		/// <summary>
 		/// Creates a new instance of a <see cref="FusionCacheOptions"/> object.
 		/// </summary>
 		public FusionCacheOptions()
 		{
-			DefaultEntryOptions = new FusionCacheEntryOptions();
+			_defaultEntryOptions = new FusionCacheEntryOptions();
 
 			// LOG LEVELS
 			SerializationErrorsLogLevel = LogLevel.Error;
@@ -30,7 +32,17 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// The default <see cref="FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
 		/// </summary>
-		public FusionCacheEntryOptions DefaultEntryOptions { get; set; }
+		public FusionCacheEntryOptions DefaultEntryOptions
+		{
+			get { return _defaultEntryOptions; }
+			set
+			{
+				if (value is null)
+					throw new ArgumentNullException(nameof(value), "It is not possible to set the DefaultEntryOptions to null");
+
+				_defaultEntryOptions = value;
+			}
+		}
 
 		/// <summary>
 		/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
