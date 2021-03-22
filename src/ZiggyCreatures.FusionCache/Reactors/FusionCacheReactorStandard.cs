@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
 
-	public class FusionCacheReactorStandard
+	internal class FusionCacheReactorStandard
 		: IFusionCacheReactor
 	{
 
