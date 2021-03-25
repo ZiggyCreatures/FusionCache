@@ -366,9 +366,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var res1 = await cache.TryGetAsync<int>("foo");
 				await cache.SetAsync<int>("foo", 42);
 				var res2 = await cache.TryGetAsync<int>("foo");
-				Assert.False(res1.HasValue);
+				Assert.False(res1.Success);
 				Assert.Equal(default(int), res1.Value);
-				Assert.True(res2.HasValue);
+				Assert.True(res2.Success);
 				Assert.Equal(42, res2.Value);
 			}
 		}
@@ -381,9 +381,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var res1 = cache.TryGet<int>("foo");
 				cache.Set<int>("foo", 42);
 				var res2 = cache.TryGet<int>("foo");
-				Assert.False(res1.HasValue);
+				Assert.False(res1.Success);
 				Assert.Equal(default(int), res1.Value);
-				Assert.True(res2.HasValue);
+				Assert.True(res2.Success);
 				Assert.Equal(42, res2.Value);
 			}
 		}

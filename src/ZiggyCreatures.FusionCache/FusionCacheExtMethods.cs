@@ -106,29 +106,29 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="MaybeValue{TValue}"/> instance.
+		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="TryGetResult{TValue}"/> instance.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>A <see cref="MaybeValue{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
-		public static Task<MaybeValue<TValue>> TryGetAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		/// <returns>A <see cref="TryGetResult{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
+		public static Task<TryGetResult<TValue>> TryGetAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.TryGetAsync<TValue>(key, cache.CreateEntryOptions(setupAction), token);
 		}
 
 		/// <summary>
-		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="MaybeValue{TValue}"/> instance.
+		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="TryGetResult{TValue}"/> instance.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>A <see cref="MaybeValue{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
-		public static MaybeValue<TValue> TryGet<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		/// <returns>A <see cref="TryGetResult{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
+		public static TryGetResult<TValue> TryGet<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.TryGet<TValue>(key, cache.CreateEntryOptions(setupAction), token);
 		}
