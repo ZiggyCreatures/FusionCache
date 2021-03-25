@@ -15,6 +15,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using App.Metrics;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
@@ -48,7 +49,8 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		private List<string> Keys;
 		private TimeSpan CacheDuration = TimeSpan.FromDays(10);
 		private IServiceProvider ServiceProvider;
-
+        private IMetrics Metrics;
+        
 		[GlobalSetup]
 		public void Setup()
 		{
@@ -64,6 +66,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			var services = new ServiceCollection();
 			services.AddEasyCaching(options => { options.UseInMemory("default"); });
 			ServiceProvider = services.BuildServiceProvider();
+
+            Metrics = new MetricsBuilder()
+                .Configuration.Configure(
+                    options =>
+                    {
+                        options.DefaultContextLabel = "appMetrics_BenchMarkDotNet";
+                        options.Enabled = true;
+                        options.ReportingEnabled = true;
+                    })
+                .Build();
 		}
 
 		[Benchmark(Baseline = true)]
@@ -97,6 +109,39 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
 			}
 		}
+
+        [Benchmark]
+        [BenchmarkCategory("Metrics")]
+        public async Task FusionCacheWithMetrics()
+        {
+            using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, metrics: Metrics, cacheName: "FusionCache"))
+            {
+                for (int i = 0; i < Rounds; i++)
+                {
+                    var tasks = new ConcurrentBag<Task>();
+
+                    Parallel.ForEach(Keys, key =>
+                    {
+                        Parallel.For(0, Accessors, _ =>
+                        {
+                            var t = cache.GetOrSetAsync<SamplePayload>(
+                                key,
+                                async ct =>
+                                {
+                                    await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+                                    return new SamplePayload();
+                                }
+                            );
+                            tasks.Add(t);
+                        });
+                    });
+
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                }
+
+                // NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+            }
+        }
 
 		[Benchmark]
 		public async Task CacheManager()

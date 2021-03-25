@@ -6,6 +6,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="App.Metrics.Extensions.Hosting" Version="4.1.0" />
+		<PackageReference Include="App.Metrics.Reporting.Console" Version="4.1.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.9" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="3.1.9" />
 		<PackageReference Include="Serilog" Version="2.10.0" />
