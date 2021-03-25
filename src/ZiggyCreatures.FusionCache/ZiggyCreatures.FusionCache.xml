@@ -753,7 +753,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionMetricsRegistry.CacheBackGroundRefreshed">
             <summary>
-            Cache refresh via background.
+            Cache refresh in background.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
