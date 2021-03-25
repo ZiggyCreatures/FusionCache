@@ -25,6 +25,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 	{
 
 		[Fact]
+		public void CannotAssignNullToDefaultEntryOptions()
+		{
+			Assert.Throws<ArgumentNullException>(() =>
+			{
+				var foo = new FusionCacheOptions() { DefaultEntryOptions = null };
+			});
+		}
+
+		[Fact]
 		public async Task ReturnsStaleDataWhenFactoryFailsWithFailSafeAsync()
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions()))
