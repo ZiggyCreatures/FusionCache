@@ -1267,8 +1267,17 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Value">
             <summary>
-            Is either the value found in the cache or the default value for the <typeparamref name="TValue"/> specified.
+            If the value is there (you can check <see cref="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Success"/> to know that) the actual value is returned, otherwise an <see cref="T:System.InvalidOperationException"/> will be thrown.
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.GetValueOrDefault(`0)">
+            <summary>
+            Retrieves the value of the current <see cref="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1"/> object, or the provided <paramref name="defaultValue"/> parameter instead.
+            </summary>
+            <param name="defaultValue">A value to return if the <see cref="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Success"/> property is false.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.ToString">
+            <inheritdoc />
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.op_Implicit(ZiggyCreatures.Caching.Fusion.TryGetResult{`0})~System.Boolean">
             <summary>
