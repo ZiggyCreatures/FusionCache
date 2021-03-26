@@ -50,5 +50,47 @@ namespace ZiggyCreatures.Caching.Fusion
             Tags = new MetricTags("cacheEvent", "STALE_REFRESH"),
             ResetOnReporting = true
         };
+
+        
+        public static CounterOptions CacheExpireCounter => new CounterOptions
+        {
+            Name = MeasurementName,
+            Tags = new MetricTags("cacheEvent", "EXPIRE"),
+            ResetOnReporting = true
+        };
+
+        public static CounterOptions CacheCapacityCounter => new CounterOptions
+        {
+            Name = MeasurementName,
+            Tags = new MetricTags("cacheEvent", "CAPACITY"),
+            ResetOnReporting = true
+        };
+
+        public static CounterOptions CacheRemoveCounter => new CounterOptions
+        {
+            Name = MeasurementName,
+            Tags = new MetricTags("cacheEvent", "REMOVE"),
+            ResetOnReporting = true
+        };
+
+        public static CounterOptions CacheReplaceCounter => new CounterOptions
+        {
+            Name = MeasurementName,
+            Tags = new MetricTags("cacheEvent", "REPLACE"),
+            ResetOnReporting = true
+        };
+        
+        public static CounterOptions CacheEvictCounter => new CounterOptions
+        {
+            Name = MeasurementName,
+            Tags = new MetricTags("cacheEvent", "EVICT"),
+            ResetOnReporting = true
+        };
+        
+        public static CounterOptions CacheSizeCounter => new CounterOptions
+        {
+            Name = "cache-size",
+            ResetOnReporting = false,
+        };
     }
 }

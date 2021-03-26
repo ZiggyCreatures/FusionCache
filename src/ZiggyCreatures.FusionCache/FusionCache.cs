@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,9 +45,21 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (optionsAccessor is null)
 				throw new ArgumentNullException(nameof(optionsAccessor));
 
+			// Metrics
+            if (metrics != null)
+            {
+                _metrics = metrics;
+                _cacheNameMetricTag = new MetricTags("cacheName", cacheName);
+            }
+            
 			// OPTIONS
 			_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
-
+			_options.DefaultEntryOptions.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
+            {
+                EvictionCallback = EvictionCallbackMetrics(),
+                State = null
+			});
+                
 			// LOGGING
 			if (logger is NullLogger<FusionCache>)
 			{
@@ -61,13 +74,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			// REACTOR
 			_reactor = reactor ?? new FusionCacheReactorStandard();
 
-			// Metrics
-            if (metrics != null)
-            {
-                _metrics = metrics;
-                _cacheNameMetricTag = new MetricTags("cacheName", cacheName);
-			}
-
 			// MEMORY CACHE
 			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger);
 
@@ -75,7 +81,37 @@ namespace ZiggyCreatures.Caching.Fusion
 			_dca = null;
 		}
 
-		/// <inheritdoc/>
+        private PostEvictionDelegate EvictionCallbackMetrics()
+        {
+            return (key, value, reason, state) =>
+            {
+                if (reason == EvictionReason.Expired)
+                {
+                    _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheExpireCounter, _cacheNameMetricTag);
+                }
+                else if (reason == EvictionReason.Capacity)
+                {
+                    _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheCapacityCounter, _cacheNameMetricTag);
+                }
+                else if (reason == EvictionReason.Removed)
+                {
+                    _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheRemoveCounter, _cacheNameMetricTag);
+                }
+                else if (reason == EvictionReason.Replaced)
+                {
+                    _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheReplaceCounter, _cacheNameMetricTag);
+                }
+                else
+                {
+                    _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheEvictCounter, _cacheNameMetricTag);
+                }
+                    
+                _metrics?.Measure.Counter.Decrement(FusionMetricsRegistry.CacheSizeCounter, _cacheNameMetricTag);
+
+            };
+        }
+
+        /// <inheritdoc/>
 		public FusionCacheEntryOptions DefaultEntryOptions
 		{
 			get { return _options.DefaultEntryOptions; }
@@ -264,8 +300,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
-
-			token.ThrowIfCancellationRequested();
+            
+            token.ThrowIfCancellationRequested();
 
 			FusionCacheMemoryEntry? _memoryEntry;
 			bool _memoryEntryIsValid;
@@ -417,6 +453,7 @@ namespace ZiggyCreatures.Caching.Fusion
                     if (_entry.Metadata != null && _entry.Metadata.IsFromFailSafe)
                     {
                         _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheStaleHitCounter, _cacheNameMetricTag);
+                        _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheHitCounter, _cacheNameMetricTag);
 					}
                     else
                     {
@@ -589,7 +626,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					if (_entry.Metadata != null && _entry.Metadata.IsFromFailSafe)
                     {
                         _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheStaleHitCounter, _cacheNameMetricTag);
-                    }
+						_metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheHitCounter, _cacheNameMetricTag);
+					}
                     else
                     {
                         _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheMissCounter, _cacheNameMetricTag);

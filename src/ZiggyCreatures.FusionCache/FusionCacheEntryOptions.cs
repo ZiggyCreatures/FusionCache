@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -62,6 +64,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public CacheItemPriority Priority { get; set; }
 
+		/// <summary>
+        /// Gets or sets the callbacks to be fired after the cache entry is evicted from the cache.
+        /// </summary>
+        public IList<PostEvictionCallbackRegistration> PostEvictionCallbacks { get; }
+            = new List<PostEvictionCallbackRegistration>();
+        
 		// DYNAMIC
 		//public Action<FusionCacheEntryOptions, object?>? Modifier { get; set; }
 
@@ -273,9 +281,14 @@ namespace ZiggyCreatures.Caching.Fusion
 			var res = new MemoryCacheEntryOptions
 			{
 				Size = Size,
-				Priority = Priority
+				Priority = Priority,
 			};
 
+            if (PostEvictionCallbacks.Any())
+            {
+                res.RegisterPostEvictionCallback(PostEvictionCallbacks.First()?.EvictionCallback);
+            }
+            
 			if (JitterMaxDuration <= TimeSpan.Zero)
 			{
 				res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
