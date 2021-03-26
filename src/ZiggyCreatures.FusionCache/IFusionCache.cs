@@ -85,24 +85,24 @@ namespace ZiggyCreatures.Caching.Fusion
 		TValue GetOrDefault<TValue>(string key, TValue defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
-		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="MaybeValue{TValue}"/> instance.
+		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="TryGetResult{TValue}"/> instance.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>A <see cref="MaybeValue{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
-		Task<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		/// <returns>A <see cref="TryGetResult{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
+		Task<TryGetResult<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
-		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="MaybeValue{TValue}"/> instance.
+		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="TryGetResult{TValue}"/> instance.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>A <see cref="MaybeValue{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
-		MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		/// <returns>A <see cref="TryGetResult{TValue}"/> instance containing a <see cref="bool"/> indicating if the value was there or not and either the value or a default one.</returns>
+		TryGetResult<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.

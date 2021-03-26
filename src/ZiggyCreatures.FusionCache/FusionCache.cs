@@ -706,7 +706,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public async Task<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public async Task<TryGetResult<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -727,8 +727,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
                 _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheMissCounter, _cacheNameMetricTag);
-
-				return MaybeValue<TValue>.None;
+				
+				return TryGetResult<TValue>.NoSuccess;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -736,11 +736,11 @@ namespace ZiggyCreatures.Caching.Fusion
 
             _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheHitCounter, _cacheNameMetricTag);
 
-            return MaybeValue<TValue>.FromValue(entry.GetValue<TValue>());
+            return TryGetResult<TValue>.CreateSuccess(entry.GetValue<TValue>());
 		}
 
 		/// <inheritdoc/>
-		public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TryGetResult<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -759,10 +759,10 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
-
+				
 				_metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheMissCounter, _cacheNameMetricTag);
-
-				return MaybeValue<TValue>.None;
+				
+				return TryGetResult<TValue>.NoSuccess;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -770,7 +770,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
             _metrics?.Measure.Counter.Increment(FusionMetricsRegistry.CacheHitCounter, _cacheNameMetricTag);
 
-            return MaybeValue<TValue>.FromValue(entry.GetValue<TValue>());
+			return TryGetResult<TValue>.CreateSuccess(entry.GetValue<TValue>());
 		}
 
 		/// <inheritdoc/>
