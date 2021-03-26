@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZiggyCreatures.FusionCache.EventCounters</name>
+    </assembly>
+    <members>
+        <member name="F:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.Instance">
+            <summary>
+            Consumers access class from Instance.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.Tags">
+            <summary>
+            Helper class to tag metrics
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheName">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheHit">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheMiss">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheStaleHit">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheBackgroundRefresh">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheExpired">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheCapacityExpired">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheRemoved">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheReplaced">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheEvicted">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheCountIncrement">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource`1.CacheCountDecrement">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

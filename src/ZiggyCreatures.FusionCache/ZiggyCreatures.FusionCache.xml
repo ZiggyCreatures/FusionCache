@@ -173,7 +173,7 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCache">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor,App.Metrics.IMetrics,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor,ZiggyCreatures.Caching.Fusion.IFusionMetrics)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.
             </summary>
@@ -181,8 +181,7 @@
             <param name="memoryCache">The <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
             <param name="reactor">The <see cref="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-            <param name="metrics">The <see cref="T:App.Metrics.IMetrics"/> instance to use to collect cache metrics.</param>
-            <param name="cacheName">The name used to tag the cache metrics.</param>
+            <param name="metrics">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> metrics provider</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.DefaultEntryOptions">
             <inheritdoc/>
@@ -736,31 +735,6 @@
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a fail-safe activation occurs.
             </summary>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.FusionMetricsRegistry">
-            <summary>
-            Define FusionCache metrics
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionMetricsRegistry.CacheHitCounter">
-            <summary>
-            Cache hit counter
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionMetricsRegistry.CacheMissCounter">
-            <summary>
-            Cache miss counter.  When a cache is written to local cache
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionMetricsRegistry.CacheStaleHitCounter">
-            <summary>
-            Cache stale hit counter.  Cache failed to complete within soft timeout period. 
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionMetricsRegistry.CacheBackGroundRefreshed">
-            <summary>
-            Cache refresh in background.
-            </summary>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
             Represents an instance of a FusionCache.
@@ -895,6 +869,66 @@
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics">
+            <summary>
+            Represents a provider instance.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheHit">
+            <summary>
+            Cache item hit counter
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheMiss">
+            <summary>
+            Cache item miss counter.  When a cache item is written to local cache
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheStaleHit">
+            <summary>
+            Cache item stale hit counter.  Cache item failed to complete within soft timeout period. 
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheBackgroundRefresh">
+            <summary>
+            Cache item refresh in background.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheExpired">
+            <summary>
+            Cache item expired
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheCapacityExpired">
+            <summary>
+            Cache item removed due to capacity
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheRemoved">
+            <summary>
+            Cache item explicitly removed by user code
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheReplaced">
+            <summary>
+            Cache item removed by user code or due to a background refresh
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheEvicted">
+            <summary>
+            Cache item removed for unknown reason.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheCountIncrement">
+            <summary>
+            Cache size reduced
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheCountDecrement">
+            <summary>
+            Cache size increase
+            </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom">
             <summary>
@@ -1329,7 +1363,7 @@
             Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache},App.Metrics.IMetrics,System.String)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache},ZiggyCreatures.Caching.Fusion.IFusionMetrics)">
             <summary>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
@@ -1339,8 +1373,7 @@
             <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
             <param name="setupCacheAction">The <see cref="T:System.Action`2"/> to configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
-            <param name="metrics">The <see cref="T:App.Metrics.IMetrics"/> instance to use to collect cache metrics.</param>
-            <param name="cacheName">The name used to tag the cache metrics.</param>
+            <param name="metrics">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> metrics provider</param>
         </member>
     </members>
 </doc>

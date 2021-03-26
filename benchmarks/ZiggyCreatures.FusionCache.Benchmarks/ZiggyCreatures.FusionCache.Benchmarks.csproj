@@ -13,6 +13,8 @@
 		<PackageReference Include="CacheTower" Version="0.9.0" />
 		<PackageReference Include="EasyCaching.InMemory" Version="1.2.0" />
 		<PackageReference Include="LazyCache" Version="2.1.2" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.AppMetrics" Version="0.1.2.2-appmetrics" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.EventCounters" Version="0.1.2.2-appmetrics" />
 	</ItemGroup>
 
 	<ItemGroup>
