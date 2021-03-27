@@ -47,9 +47,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="defaultValue">A value to return if the <see cref="TryGetResult{TValue}.Success"/> property is false.</param>
 		public TValue GetValueOrDefault(TValue defaultValue = default)
 		{
-			return Success
-				? Value
-				: defaultValue;
+			return Success ? Value : defaultValue;
 		}
 
 		/// <inheritdoc />

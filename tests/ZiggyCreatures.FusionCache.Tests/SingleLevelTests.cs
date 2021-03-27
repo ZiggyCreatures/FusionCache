@@ -497,5 +497,57 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
+		[Fact]
+		public async Task GetOrDefaultDoesNotSetAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var foo = await cache.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromHours(24)));
+				var bar = await cache.GetOrDefaultAsync<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromHours(24)));
+				var baz = await cache.TryGetAsync<int>("foo", opt => opt.SetDuration(TimeSpan.FromHours(24)));
+				Assert.Equal(42, foo);
+				Assert.Equal(21, bar);
+				Assert.False(baz.Success);
+			}
+		}
+
+		[Fact]
+		public void GetOrDefaultDoesNotSet()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var foo = cache.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromHours(24)));
+				var bar = cache.GetOrDefault<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromHours(24)));
+				var baz = cache.TryGet<int>("foo", opt => opt.SetDuration(TimeSpan.FromHours(24)));
+				Assert.Equal(42, foo);
+				Assert.Equal(21, bar);
+				Assert.False(baz.Success);
+			}
+		}
+
+		[Fact]
+		public async Task GetOrSetWithDefaultValueWorksAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var foo = 42;
+				await cache.GetOrSetAsync<int>("foo", foo, TimeSpan.FromHours(24));
+				var bar = await cache.GetOrDefaultAsync<int>("foo", 21);
+				Assert.Equal(foo, bar);
+			}
+		}
+
+		[Fact]
+		public void GetOrSetWithDefaultValueWorks()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var foo = 42;
+				cache.GetOrSet<int>("foo", foo, TimeSpan.FromHours(24));
+				var bar = cache.GetOrDefault<int>("foo", 21);
+				Assert.Equal(foo, bar);
+			}
+		}
+
 	}
 }

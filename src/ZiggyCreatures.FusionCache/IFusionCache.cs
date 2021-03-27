@@ -65,6 +65,26 @@ namespace ZiggyCreatures.Caching.Fusion
 		TValue GetOrSet<TValue>(string key, Func<CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="value"/> will be saved according to the <paramref name="options"/> provided.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="value">In case the value is not in the cache this value will be saved and returned instead.</param>
+		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		Task<TValue> GetOrSetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="value"/> will be saved according to the <paramref name="options"/> provided.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="value">In case the value is not in the cache this value will be saved and returned instead.</param>
+		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		TValue GetOrSet<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+		/// <summary>
 		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>

@@ -619,6 +619,64 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
+		public async Task<TValue> GetOrSetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		{
+			ValidateCacheKey(key);
+
+			token.ThrowIfCancellationRequested();
+
+			MaybeProcessCacheKey(ref key);
+
+			var operationId = GenerateOperationId();
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSetAsync<T> {Options}", key, operationId, options.ToLogString());
+
+			// TODO: MAYBE WE SHOULD AVOID CREATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternalAsync METHOD
+			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, _ => Task.FromResult(value), value, options, token).ConfigureAwait(false);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.LogError("FUSION (K={CacheKey} OP={CacheOperationId}): something went wrong, the resulting entry is null, and it should not be possible", key, operationId);
+				throw new InvalidOperationException("The resulting fusion cache entry is null");
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+			return entry.GetValue<TValue>();
+		}
+
+		/// <inheritdoc/>
+		public TValue GetOrSet<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		{
+			ValidateCacheKey(key);
+
+			token.ThrowIfCancellationRequested();
+
+			MaybeProcessCacheKey(ref key);
+
+			var operationId = GenerateOperationId();
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSet<T> {Options}", key, operationId, options.ToLogString());
+
+			// TODO: MAYBE WE SHOULD AVOID CREATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, _ => value, default, options, token);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.LogError("FUSION (K={CacheKey} OP={CacheOperationId}): something went wrong, the resulting entry is null, and it should not be possible", key, operationId);
+				throw new InvalidOperationException("The resulting fusion cache entry is null");
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+			return entry.GetValue<TValue>();
+		}
+
+		/// <inheritdoc/>
 		public async Task<TryGetResult<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);

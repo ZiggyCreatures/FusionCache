@@ -200,6 +200,12 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.TryGetAsync``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -468,7 +474,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
             <summary>
-            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
             </summary>
             <typeparam name="TValue">The type of the value in the cache.</typeparam>
             <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
@@ -481,7 +487,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSet``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
             <summary>
-            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
             </summary>
             <typeparam name="TValue">The type of the value in the cache.</typeparam>
             <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
@@ -494,25 +500,25 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
             </summary>
             <typeparam name="TValue">The type of the value in the cache.</typeparam>
             <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="factory">The function which will be called if the value is not found in the cache.</param>
-            <param name="options">The options to adhere during this operation. If null is passed, <see cref="!:DefaultEntryOptions"/> will be used.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSet``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
             </summary>
             <typeparam name="TValue">The type of the value in the cache.</typeparam>
             <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="factory">The function which will be called if the value is not found in the cache.</param>
-            <param name="options">The options to adhere during this operation. If null is passed, <see cref="!:DefaultEntryOptions"/> will be used.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
         </member>
@@ -564,6 +570,50 @@
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <paramref name="duration"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="duration">The value for the newly created <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSet``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <paramref name="duration"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="duration">The value for the newly created <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSet``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrDefaultAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},``0,System.Threading.CancellationToken)">
             <summary>
             Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
@@ -577,6 +627,30 @@
             <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrDefault``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},``0,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrDefaultAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrDefault``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
             <summary>
             Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
             </summary>
@@ -861,6 +935,26 @@
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.GetOrSetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="value"/> will be saved according to the <paramref name="options"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.GetOrSet``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="value"/> will be saved according to the <paramref name="options"/> provided.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="value">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.GetOrDefaultAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>

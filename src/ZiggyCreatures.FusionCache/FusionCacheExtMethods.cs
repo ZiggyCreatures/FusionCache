@@ -11,7 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	public static class FusionCacheExtMethods
 	{
 
-		#region GetOrSet overloads
+		#region GetOrSet overloads (with factory and fail-safe default value)
 
 		/// <summary>
 		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
@@ -46,7 +46,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <see cref="FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
@@ -62,7 +62,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <see cref="FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
@@ -77,14 +77,18 @@ namespace ZiggyCreatures.Caching.Fusion
 			return cache.GetOrSet<TValue>(key, factory, failSafeDefaultValue, cache.CreateEntryOptions(setupAction), token);
 		}
 
+		#endregion
+
+		#region GetOrSet overloads (with factory)
+
 		/// <summary>
-		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="factory">The function which will be called if the value is not found in the cache.</param>
-		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
 		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
@@ -93,13 +97,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="factory">The function which will be called if the value is not found in the cache.</param>
-		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
 		public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<CancellationToken, TValue> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
@@ -169,6 +173,66 @@ namespace ZiggyCreatures.Caching.Fusion
 
 		#endregion
 
+		#region GetOrSet overloads (with default value)
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <paramref name="duration"/> provided.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+		/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
+		{
+			return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
+		}
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <paramref name="duration"/> provided.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+		/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
+		{
+			return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
+		}
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <see cref="FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		{
+			return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
+		}
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <see cref="FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		{
+			return cache.GetOrSet<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
+		}
+
+		#endregion
+
 		#region GetOrDefault overloads
 
 		/// <summary>
@@ -199,6 +263,40 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 		public static TValue GetOrDefault<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue defaultValue = default, CancellationToken token = default)
+		{
+#pragma warning disable CS8604 // Possible null reference argument.
+			return cache.GetOrDefault<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
+#pragma warning restore CS8604 // Possible null reference argument.
+		}
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+		public static Task<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		{
+#pragma warning disable CS8604 // Possible null reference argument.
+			return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
+#pragma warning restore CS8604 // Possible null reference argument.
+		}
+
+		/// <summary>
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
+		/// </summary>
+		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		/// <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
+		public static TValue GetOrDefault<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 #pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefault<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);

@@ -34,7 +34,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		/// <inheritdoc/>
 		public TValue GetValue<TValue>()
 		{
+#pragma warning disable CS8603 // Possible null reference return.
 			return (TValue)Value;
+#pragma warning restore CS8603 // Possible null reference return.
 		}
 
 		/// <inheritdoc/>
