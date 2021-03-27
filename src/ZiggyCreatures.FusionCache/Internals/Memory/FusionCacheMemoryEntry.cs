@@ -64,8 +64,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (options.IsFailSafeEnabled == false)
 				return new FusionCacheMemoryEntry(value, null);
 
-			// TODO: PROBABLY THROTTLE INSTEAD OF MAX?
-			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeMaxDuration : options.Duration);
+			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
 
 			if (options.JitterMaxDuration > TimeSpan.Zero)
 			{
