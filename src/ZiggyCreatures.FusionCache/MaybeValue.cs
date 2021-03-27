@@ -85,7 +85,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="maybe">The <see cref="MaybeValue{TValue}"/> instance.</param>
 		public static implicit operator TValue(MaybeValue<TValue> maybe)
 		{
-			// TODO: implicit or explicit ?
 			return maybe.Value;
 		}
 

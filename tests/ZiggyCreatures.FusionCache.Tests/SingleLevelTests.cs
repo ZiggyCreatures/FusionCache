@@ -420,7 +420,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				// TODO: MAYBE DON'T RELY OF ELAPSED TIME
+				// TODO: MAYBE DON'T RELY ON ELAPSED TIME
 				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is lower or equal than outer cancel");
 				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is greater or equal than factory delay");
 			}
@@ -443,7 +443,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				// TODO: MAYBE DON'T RELY OF ELAPSED TIME
+				// TODO: MAYBE DON'T RELY ON ELAPSED TIME
 				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is lower or equal than outer cancel");
 				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is greater or equal than factory delay");
 			}
