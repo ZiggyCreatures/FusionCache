@@ -246,7 +246,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while calling the factory", key, operationId);
 		}
 
-		private async Task<IFusionCacheEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<CancellationToken, Task<TValue>>? factory, FusionCacheEntryOptions? options, CancellationToken token)
+		private async Task<IFusionCacheEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<CancellationToken, Task<TValue>>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -365,6 +365,11 @@ namespace ZiggyCreatures.Caching.Fusion
 							{
 								value = fallbackEntry.GetValue<TValue>();
 							}
+							else if (options.IsFailSafeEnabled && failSafeDefaultValue.HasValue)
+							{
+								failSafeActivated = true;
+								value = failSafeDefaultValue;
+							}
 							else
 							{
 								throw;
@@ -396,7 +401,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			return _entry;
 		}
 
-		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<CancellationToken, TValue>? factory, FusionCacheEntryOptions? options, CancellationToken token)
+		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<CancellationToken, TValue>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -515,6 +520,11 @@ namespace ZiggyCreatures.Caching.Fusion
 							{
 								value = fallbackEntry.GetValue<TValue>();
 							}
+							else if (options.IsFailSafeEnabled && failSafeDefaultValue.HasValue)
+							{
+								failSafeActivated = true;
+								value = failSafeDefaultValue;
+							}
 							else
 							{
 								throw;
@@ -547,7 +557,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public async Task<TValue> GetOrSetAsync<TValue>(string key, Func<CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public async Task<TValue> GetOrSetAsync<TValue>(string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -563,7 +573,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSetAsync<T> {Options}", key, operationId, options.ToLogString());
 
-			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, factory, options, token).ConfigureAwait(false);
+			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
@@ -578,7 +588,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue GetOrSet<TValue>(string key, Func<CancellationToken, TValue> factory, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrSet<TValue>(string key, Func<CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -594,7 +604,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSet<T> {Options}", key, operationId, options.ToLogString());
 
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, options, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, failSafeDefaultValue, options, token);
 
 			if (entry is null)
 			{
@@ -622,7 +632,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling TryGetAsync<T> {Options}", key, operationId, options.ToLogString());
 
-			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, options, token).ConfigureAwait(false);
+			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, default, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
@@ -652,7 +662,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling TryGet<T> {Options}", key, operationId, options.ToLogString());
 
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, options, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
 
 			if (entry is null)
 			{
@@ -682,7 +692,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrDefaultAsync<T> {Options}", key, operationId, options.ToLogString());
 
-			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, options, token).ConfigureAwait(false);
+			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, default, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
@@ -712,7 +722,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrDefault<T> {Options}", key, operationId, options.ToLogString());
 
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, options, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
 
 			if (entry is null)
 			{
