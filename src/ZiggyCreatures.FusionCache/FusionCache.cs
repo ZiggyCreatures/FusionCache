@@ -272,8 +272,15 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (options.IsFailSafeEnabled && _memoryEntry is object)
 				{
+					// CREATE A NEW (THROTTLED) ENTRY
+					_memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(_memoryEntry.Value, options, true);
+
+					// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
+					_mca.SetEntry<TValue>(operationId, key, _memoryEntry, options);
+
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
+
 					return _memoryEntry;
 				}
 
@@ -427,8 +434,15 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (options.IsFailSafeEnabled && _memoryEntry is object)
 				{
+					// CREATE A NEW (THROTTLED) ENTRY
+					_memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(_memoryEntry.Value, options, true);
+
+					// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
+					_mca.SetEntry<TValue>(operationId, key, _memoryEntry, options);
+
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
+
 					return _memoryEntry;
 				}
 

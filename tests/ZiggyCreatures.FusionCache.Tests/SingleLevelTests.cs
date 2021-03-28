@@ -412,7 +412,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var sw = Stopwatch.StartNew();
 				var outerCancelDelayMs = 500;
 				var factoryDelayMs = 2_000;
-				await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+				await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
 				{
 					var cts = new CancellationTokenSource(outerCancelDelayMs);
 					res = await cache.GetOrSetAsync<int>("foo", async ct => { await Task.Delay(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
@@ -435,7 +435,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var sw = Stopwatch.StartNew();
 				var outerCancelDelayMs = 500;
 				var factoryDelayMs = 2_000;
-				Assert.Throws<OperationCanceledException>(() =>
+				Assert.ThrowsAny<OperationCanceledException>(() =>
 				{
 					var cts = new CancellationTokenSource(outerCancelDelayMs);
 					res = cache.GetOrSet<int>("foo", ct => { Thread.Sleep(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
@@ -546,6 +546,70 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.GetOrSet<int>("foo", foo, TimeSpan.FromHours(24));
 				var bar = cache.GetOrDefault<int>("foo", 21);
 				Assert.Equal(foo, bar);
+			}
+		}
+
+		[Fact]
+		public async Task ThrottleDurationWorksCorrectlyAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var duration = TimeSpan.FromSeconds(1);
+				var throttleDuration = TimeSpan.FromSeconds(3);
+
+				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
+				await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));
+				// LET IT EXPIRE
+				await Task.Delay(duration).ConfigureAwait(false);
+				// CHECK EXPIRED (WITHOUT FAIL-SAFE)
+				var nope = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+				// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
+				var throttled1 = await cache.GetOrDefaultAsync("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
+				// WAIT A LITTLE BIT (LESS THAN THE DURATION)
+				await Task.Delay(100).ConfigureAwait(false);
+				// GET THE THROTTLED (NON EXPIRED) VALUE
+				var throttled2 = await cache.GetOrDefaultAsync("foo", 2, opt => opt.SetFailSafe(false));
+				// LET THE THROTTLE DURATION PASS
+				await Task.Delay(throttleDuration).ConfigureAwait(false);
+				// FALLBACK TO THE DEFAULT VALUE
+				var default3 = await cache.GetOrDefaultAsync("foo", 3, opt => opt.SetFailSafe(false));
+
+				Assert.False(nope.HasValue);
+				Assert.Equal(42, throttled1);
+				Assert.Equal(42, throttled2);
+				Assert.Equal(3, default3);
+			}
+		}
+
+		[Fact]
+		public void ThrottleDurationWorksCorrectly()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var duration = TimeSpan.FromSeconds(1);
+				var throttleDuration = TimeSpan.FromSeconds(3);
+
+				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
+				cache.Set("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));
+				// LET IT EXPIRE
+				Thread.Sleep(duration);
+				// CHECK EXPIRED (WITHOUT FAIL-SAFE)
+				var nope = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+				// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
+				var throttled1 = cache.GetOrDefault("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
+				// WAIT A LITTLE BIT (LESS THAN THE DURATION)
+				Thread.Sleep(100);
+				// GET THE THROTTLED (NON EXPIRED) VALUE
+				var throttled2 = cache.GetOrDefault("foo", 2, opt => opt.SetFailSafe(false));
+				// LET THE THROTTLE DURATION PASS
+				Thread.Sleep(throttleDuration);
+				// FALLBACK TO THE DEFAULT VALUE
+				var default3 = cache.GetOrDefault("foo", 3, opt => opt.SetFailSafe(false));
+
+				Assert.False(nope.HasValue);
+				Assert.Equal(42, throttled1);
+				Assert.Equal(42, throttled2);
+				Assert.Equal(3, default3);
 			}
 		}
 
