@@ -375,12 +375,12 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var res1 = await cache.TryGetAsync<int>("foo");
 				await cache.SetAsync<int>("foo", 42);
 				var res2 = await cache.TryGetAsync<int>("foo");
-				Assert.False(res1.Success);
+				Assert.False(res1.HasValue);
 				Assert.Throws<InvalidOperationException>(() =>
 				{
 					var foo = res1.Value;
 				});
-				Assert.True(res2.Success);
+				Assert.True(res2.HasValue);
 				Assert.Equal(42, res2.Value);
 			}
 		}
@@ -393,12 +393,12 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var res1 = cache.TryGet<int>("foo");
 				cache.Set<int>("foo", 42);
 				var res2 = cache.TryGet<int>("foo");
-				Assert.False(res1.Success);
+				Assert.False(res1.HasValue);
 				Assert.Throws<InvalidOperationException>(() =>
 				{
 					var foo = res1.Value;
 				});
-				Assert.True(res2.Success);
+				Assert.True(res2.HasValue);
 				Assert.Equal(42, res2.Value);
 			}
 		}
@@ -507,7 +507,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var baz = await cache.TryGetAsync<int>("foo", opt => opt.SetDuration(TimeSpan.FromHours(24)));
 				Assert.Equal(42, foo);
 				Assert.Equal(21, bar);
-				Assert.False(baz.Success);
+				Assert.False(baz.HasValue);
 			}
 		}
 
@@ -521,7 +521,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				var baz = cache.TryGet<int>("foo", opt => opt.SetDuration(TimeSpan.FromHours(24)));
 				Assert.Equal(42, foo);
 				Assert.Equal(21, bar);
-				Assert.False(baz.Success);
+				Assert.False(baz.HasValue);
 			}
 		}
 

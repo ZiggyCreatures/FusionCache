@@ -29,6 +29,15 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Indicates if the value is there.
 		/// </summary>
+		[Obsolete("Please use HasValue instead")]
+		public bool Success
+		{
+			get { return HasValue; }
+		}
+
+		/// <summary>
+		/// Indicates if the value is there.
+		/// </summary>
 		public bool HasValue { get; private set; }
 
 		/// <summary>
