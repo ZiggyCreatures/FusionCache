@@ -81,12 +81,13 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
                 .Build();
 
             Metrics = new AppMetricsProvider(appMetrics, "FusionCache");
-            EventCounters = FusionCacheEventSource<FusionCacheMarkerClass>.Instance;
+            EventCounters = FusionCacheEventSource.Instance("FusionCache");
         }
 
         public class FusionCacheMarkerClass {}
         
 		[Benchmark(Baseline = true)]
+        [BenchmarkCategory("Metrics")]
 		public async Task FusionCache()
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }))

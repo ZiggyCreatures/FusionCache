@@ -25,13 +25,7 @@ namespace ZiggyCreatures.FusionCache.AppMetrics
         }
 
         /// <inheritdoc/>
-        public string CacheName
-        {
-            get
-            {
-                return _cacheName;
-            }
-        }
+        public string CacheName => _cacheName;
 
         /// <inheritdoc/>
         public void CacheHit()

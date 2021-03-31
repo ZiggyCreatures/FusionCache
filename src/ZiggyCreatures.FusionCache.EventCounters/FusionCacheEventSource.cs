@@ -5,13 +5,16 @@ using ZiggyCreatures.Caching.Fusion;
 
 namespace ZiggyCreatures.FusionCache.EventCounters
 {
+    /// <summary>
+    /// Generic FusionCacheEventSource.  
+    /// </summary>
     [EventSource(Name = "Fusion_Cache")]
-    public sealed partial class FusionCacheEventSource<T> : EventSource, IFusionMetrics
+    public sealed partial class FusionCacheEventSource : EventSource, IFusionMetrics
     {
         /// <summary>
         /// Consumers access class from Instance.
         /// </summary>
-        public static FusionCacheEventSource<T> Instance = new FusionCacheEventSource<T>();
+        public static FusionCacheEventSource Instance(string cacheName) => new FusionCacheEventSource(cacheName);
 
         private long _cacheHits;
         private long _cacheMisses;
@@ -35,14 +38,14 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         private IncrementingPollingCounter? _cacheEvictPollingCounter;
         private PollingCounter? _cacheSizePollingCounter;
 
-        private TimeSpan _displayRateTimeScale;
+        private readonly TimeSpan _displayRateTimeScale;
 
-        private FusionCacheEventSource()
+        private FusionCacheEventSource(string cacheName) : base(eventSourceName: cacheName)
         {
-            CacheName = typeof(T).Name;
             _displayRateTimeScale = TimeSpan.FromSeconds(1);
+            CacheName = cacheName;
         }
-        
+
         protected override void OnEventCommand(EventCommandEventArgs command)
         {
             _cacheHitPollingCounter = new IncrementingPollingCounter(
@@ -157,7 +160,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         /// <summary>
         /// Helper class to tag metrics
         /// </summary>
-        internal static class Tags
+        public static class Tags
         {
             public const string CacheName = "cacheName";
             public const string CacheHit = "HIT";

@@ -877,7 +877,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheHit">
             <summary>
-            Cache item hit counter
+            Cache item hit counter.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheMiss">

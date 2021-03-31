@@ -25,6 +25,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.EventCounters", "src\ZiggyCreatures.FusionCache.EventCounters\ZiggyCreatures.FusionCache.EventCounters.csproj", "{639138A1-35F1-4920-AA6A-7CF757B5FFF5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.EventCounters.Tests", "tests\ZiggyCreatures.FusionCache.EventCounters.Tests\ZiggyCreatures.FusionCache.EventCounters.Tests.csproj", "{622E41C9-F961-4C07-BF54-E1753BD0BB32}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{639138A1-35F1-4920-AA6A-7CF757B5FFF5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{639138A1-35F1-4920-AA6A-7CF757B5FFF5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{639138A1-35F1-4920-AA6A-7CF757B5FFF5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{622E41C9-F961-4C07-BF54-E1753BD0BB32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{622E41C9-F961-4C07-BF54-E1753BD0BB32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{622E41C9-F961-4C07-BF54-E1753BD0BB32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{622E41C9-F961-4C07-BF54-E1753BD0BB32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +82,7 @@ Global
 		{F29AD55C-39F3-47B3-80AE-04130DB5F1ED} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
 		{8FE4D457-5E8A-4996-B59A-2476E1A41A9B} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{639138A1-35F1-4920-AA6A-7CF757B5FFF5} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
+		{622E41C9-F961-4C07-BF54-E1753BD0BB32} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {92916FA2-FCAC-406E-BF3F-0A2CE9512EF0}

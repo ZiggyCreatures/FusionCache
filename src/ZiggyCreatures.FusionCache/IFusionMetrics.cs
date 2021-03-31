@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace ZiggyCreatures.Caching.Fusion
+﻿namespace ZiggyCreatures.Caching.Fusion
 {
     /// <summary>
     /// Represents a provider instance.
     /// </summary>
     public interface IFusionMetrics
     {
+        
         public string CacheName { get; }
+
         /// <summary>
-        /// Cache item hit counter
+        /// Cache item hit counter.
         /// </summary>
         public void CacheHit();
 
