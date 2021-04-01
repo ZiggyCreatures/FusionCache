@@ -247,7 +247,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
 					_metrics?.CacheBackgroundRefresh();
-					
+					_metrics?.CacheCountIncrement();
+
 				}
 			});
 		}
@@ -379,7 +380,8 @@ namespace ZiggyCreatures.Caching.Fusion
 						else
 						{
                             _metrics?.CacheMiss();
-
+                            _metrics?.CacheCountIncrement();
+                            
 							return null;
 						}
 					}
@@ -449,6 +451,7 @@ namespace ZiggyCreatures.Caching.Fusion
                     else
                     {
 						_metrics?.CacheMiss();
+                        _metrics?.CacheCountIncrement();
 					}
                 }
 			}
@@ -552,7 +555,8 @@ namespace ZiggyCreatures.Caching.Fusion
 
 							// Feels different than a cache miss as this throws an exception higher in the stack.  Thinking... 
                             _metrics?.CacheMiss();
-
+                            _metrics?.CacheCountIncrement();
+                            
 							return null;
 						}
 					}
@@ -622,7 +626,8 @@ namespace ZiggyCreatures.Caching.Fusion
                     else
                     {
 						_metrics?.CacheMiss();
-                    }
+						_metrics?.CacheCountIncrement();
+					}
 				}
 			}
 			finally
@@ -718,7 +723,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
 				_metrics?.CacheMiss();
-				
+				_metrics?.CacheCountIncrement();
+
 				return TryGetResult<TValue>.NoSuccess;
 			}
 
@@ -752,7 +758,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
                 _metrics?.CacheMiss();
-				
+				_metrics?.CacheCountIncrement();
+
 				return TryGetResult<TValue>.NoSuccess;
 			}
 

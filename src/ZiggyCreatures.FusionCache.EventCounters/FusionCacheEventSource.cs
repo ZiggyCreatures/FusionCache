@@ -8,7 +8,6 @@ namespace ZiggyCreatures.FusionCache.EventCounters
     /// <summary>
     /// Generic FusionCacheEventSource.  
     /// </summary>
-    [EventSource(Name = "Fusion_Cache")]
     public sealed partial class FusionCacheEventSource : EventSource, IFusionMetrics
     {
         /// <summary>

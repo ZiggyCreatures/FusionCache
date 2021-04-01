@@ -8,7 +8,6 @@
             <summary>
             Generic FusionCacheEventSource.  
             </summary>
-            <typeparam name="T"></typeparam>
         </member>
         <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.Instance(System.String)">
             <summary>
