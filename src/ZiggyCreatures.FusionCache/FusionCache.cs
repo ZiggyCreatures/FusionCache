@@ -272,8 +272,15 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (options.IsFailSafeEnabled && _memoryEntry is object)
 				{
+					// CREATE A NEW (THROTTLED) ENTRY
+					_memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(_memoryEntry.Value, options, true);
+
+					// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
+					_mca.SetEntry<TValue>(operationId, key, _memoryEntry, options);
+
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
+
 					return _memoryEntry;
 				}
 
@@ -427,8 +434,15 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (options.IsFailSafeEnabled && _memoryEntry is object)
 				{
+					// CREATE A NEW (THROTTLED) ENTRY
+					_memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(_memoryEntry.Value, options, true);
+
+					// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
+					_mca.SetEntry<TValue>(operationId, key, _memoryEntry, options);
+
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
+
 					return _memoryEntry;
 				}
 
@@ -677,7 +691,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public async Task<TryGetResult<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public async Task<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -697,17 +711,17 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
-				return TryGetResult<TValue>.NoSuccess;
+				return default;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return SUCCESS", key, operationId);
 
-			return TryGetResult<TValue>.CreateSuccess(entry.GetValue<TValue>());
+			return entry.GetValue<TValue>();
 		}
 
 		/// <inheritdoc/>
-		public TryGetResult<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -727,13 +741,13 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
-				return TryGetResult<TValue>.NoSuccess;
+				return default;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return SUCCESS", key, operationId);
 
-			return TryGetResult<TValue>.CreateSuccess(entry.GetValue<TValue>());
+			return entry.GetValue<TValue>();
 		}
 
 		/// <inheritdoc/>
