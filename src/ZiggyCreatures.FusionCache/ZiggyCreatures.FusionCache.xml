@@ -936,21 +936,21 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.GetOrSetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="value"/> will be saved according to the <paramref name="options"/> provided.
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according to the <paramref name="options"/> provided.
             </summary>
             <typeparam name="TValue">The type of the value in the cache.</typeparam>
             <param name="key">The cache key which identifies the entry in the cache.</param>
-            <param name="value">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.GetOrSet``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="value"/> will be saved according to the <paramref name="options"/> provided.
+            Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according to the <paramref name="options"/> provided.
             </summary>
             <typeparam name="TValue">The type of the value in the cache.</typeparam>
             <param name="key">The cache key which identifies the entry in the cache.</param>
-            <param name="value">In case the value is not in the cache this value will be saved and returned instead.</param>
+            <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
