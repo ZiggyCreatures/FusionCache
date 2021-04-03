@@ -633,7 +633,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public async Task<TValue> GetOrSetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public async Task<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -646,8 +646,8 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSetAsync<T> {Options}", key, operationId, options.ToLogString());
 
-			// TODO: MAYBE WE SHOULD AVOID CREATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternalAsync METHOD
-			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, _ => Task.FromResult(value), value, options, token).ConfigureAwait(false);
+			// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternalAsync METHOD
+			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, _ => Task.FromResult(defaultValue), default, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
@@ -662,7 +662,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue GetOrSet<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -675,8 +675,8 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSet<T> {Options}", key, operationId, options.ToLogString());
 
-			// TODO: MAYBE WE SHOULD AVOID CREATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, _ => value, default, options, token);
+			// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, _ => defaultValue, default, options, token);
 
 			if (entry is null)
 			{
