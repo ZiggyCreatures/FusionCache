@@ -23,9 +23,13 @@
 
 	<PropertyGroup>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
-		<PackageReleaseNotes>Added a fail-safe default value.
-Added a GetOrDefault&lt;T&gt; overload with a direct value (instead of a factory).
-Perf optimizations.</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- Introduced a generic MaybeValue&lt;T&gt; type
+			- Better TryGet&lt;T&gt;
+			- Added a fail-safe default value to GetOrSet&lt;T&gt;
+			- Added a GetOrSet&lt;T&gt; overload with a direct value (instead of a factory)
+			- Perf optimizations
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
