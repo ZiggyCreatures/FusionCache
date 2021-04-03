@@ -18,7 +18,7 @@ FusionCache includes some advanced features like **fail-safe**, concurrent **fac
 
 </div>
 
-## :twisted_rightwards_arrows: Cache Levels: Primary and Secondary
+## :twisted_rightwards_arrows: Cache Levels ([more](CacheLevels.md))
 
 There are 2 caching levels, transparently handled by FusionCache for you.
 
@@ -42,7 +42,7 @@ FusionCache tries to feel like a native part of .NET by adhering to the naming c
 
 If you've ever used one of those you'll feel at home with FusionCache.
 
-## :rocket: Factory
+## :rocket: Factory ([more](FactoryOptimization.md))
 
 A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
 
@@ -62,7 +62,7 @@ FusionCache will search for the value in the cache (*memory* and *distributed*, 
 
 Special care has been put into ensuring that only 1 factory per-key will be execute concurrently: you can read more [**here**](FactoryOptimization.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
-## :bomb: Fail-Safe
+## :bomb: Fail-Safe ([more](FailSafe.md))
 
 Sometimes things can go wrong, and calling a factory for an expired cache entry can lead to exceptions because the database or the network is temporarily down: normally in this case the exception will cause an error page in your website, a failure status code in your api or something like that.
 
@@ -70,7 +70,7 @@ By enabling the fail-safe mechanism you can simply tell FusionCache to ignore th
 
 You can read more [**here**](FailSafe.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
-## :stopwatch: Timeouts
+## :stopwatch: Timeouts ([more](Timeouts.md))
 
 Sometimes your data source (database, webservice, etc) is overloaded, the network is congested or something else is happening, and the end result is a **long wait** for a fresh piece of data.
 
@@ -84,7 +84,7 @@ In both cases it is possible (and enabled *by default*, so you don't have to do 
 
 You can read more [**here**](Timeouts.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
-## :level_slider: Options
+## :level_slider: Options ([more](Options.md))
 
 There are 2 kinds of options:
  
@@ -93,40 +93,23 @@ There are 2 kinds of options:
 
 You can read more [**here**](Options.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
-## :joystick: Core Methods
+## :joystick: Core Methods ([more](CoreMethods.md))
 
-At a high level there are `5` core methods, all available in both a **sync** and **async** versions, all of which work transparently on both the memory cache and the distributed cache (if any):
+At a high level there are 5 core methods:
 
-- `Set[Async]`: puts a **value** in the cache for the specified **key** using the specified **options**. If something is already there, it will be overwritten
-- `Remove[Async]`: removes the **value** in the cache for the specified **key**
-- `GetOrSet[Async]`: the most important one, it gets the **value** in the cache for the specified **key** and, if nothing is there, calls the **factory** to obtain a **value** that will be **set** in the cache and then **returned**
-- `GetOrDefault[Async]`: gets the **value** in the cache for the specified **key** and, if nothing is there, returns the **default value**
-- `TryGet[Async]`: tries to get the **value** in the cache for the specified **key** and returns a `TryGetResult` object. This contains a `Success` bool property indicating if the value was there and, in that case, the value itself in the `Value` property. Trying to access the `Value` property when the value was not in the cache will throw an `InvalidOperationException`, but you can call the `GetValueOrDefault` method for ease of use, just like standard nullables in .NET. Also, the `TryGetResult` type implicitly converts to `bool`, so you can even use it in a statement like `if (cache.TryGet(...))` . Please note that it's not possible to use the classic `out` parameter to set a value because .NET does not allow it on `async` methods (and for good reasons)
+- `Set[Async]`
+- `Remove[Async]`
+- `TryGet[Async]`
+- `GetOrDefault[Async]`
+- `GetOrSet[Async]`
 
-Each of these methods has some **overloads** for a better ease of use, see below.
+All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: you don't have to do anything extra for it to coordinate the 2 layers.
 
-#### :bulb: Why no Get?
+All of them are available in both a **sync** and an **async** version.
 
-You may be wondering why the quite common `Get` method is missing.
+Finally, most of them have a set of ♻ overloads for a better ease of use.
 
-It is because its behaviour normally corresponds to FusionCache's `GetOrDefault` method above, but with 2 problems:
-
-1) it is not explicit about what happens when no data is in the cache: will it return some default value? Will it throw an exception? Taking a hint from .NET's `Nullable<T>` type (like `Nullable<int>` or `int?`), it is better to be explicit, so the `GetOrDefault` name has been preferred
-
-2) it makes impossible to determine if something is in the cache or not. If for example we would do something like `cache.Get<Product>("foo")` and it returns `null`, does it mean that nothing was in the cache (so better go check the database) or that `null` was in the cache (so we already checked the database, the product was not there, and we should not check the database again)?
-
-By being explicit and having 2 methods (`GetOrDefault` and `TryGet`) we remove any doubt a developer may have and solve the above issues.
-
-## :recycle: Common overloads
-
-Every core method that needs a set of options (`FusionCacheEntryOptions`) for how to behave has different overloads to let you specify these options, for better ease of use.
-
-You can choose between passing:
-
-- **None**: you don't pass anything, so the global `DefaultEntryOptions` will be used (also saves some memory allocations)
-- **Direct**: you directly pass a `FusionCacheEntryOptions` object. This gives you total control over each option, but you have to instantiate it yourself and **does not copy** the global `DefaultEntryOptions`
-- **Setup action**: you pass a `lambda` that receives a duplicate of the `DefaultEntryOptions` so you start from there and modify it as you like (there's also a set of *fluent methods* to do that easily)
-- **Duration**: you simply pass a `TimeSpan` value for the duration. This is the same as the previous one (start from the global default + lambda) but for the common scenario of when you only want to change the duration
+You can read more [**here**](CoreMethods.md).
 
 ## :dizzy: Natively Sync and Async
 
