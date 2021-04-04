@@ -9,7 +9,7 @@
             Generic FusionCacheEventSource.  
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.Instance(System.String)">
+        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.Instance(System.String,Microsoft.Extensions.Caching.Memory.MemoryCache)">
             <summary>
             Consumers access class from Instance.
             </summary>

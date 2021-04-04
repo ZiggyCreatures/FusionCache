@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
 using System.Threading;
+using Microsoft.Extensions.Caching.Memory;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace ZiggyCreatures.FusionCache.EventCounters
@@ -13,7 +14,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         /// <summary>
         /// Consumers access class from Instance.
         /// </summary>
-        public static FusionCacheEventSource Instance(string cacheName) => new FusionCacheEventSource(cacheName);
+        public static FusionCacheEventSource Instance(string cacheName, MemoryCache cache) => new FusionCacheEventSource(cacheName, cache);
 
         private long _cacheHits;
         private long _cacheMisses;
@@ -38,11 +39,13 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         private PollingCounter? _cacheSizePollingCounter;
 
         private readonly TimeSpan _displayRateTimeScale;
-
-        private FusionCacheEventSource(string cacheName) : base(eventSourceName: cacheName)
+        private readonly MemoryCache _cache;
+        
+        private FusionCacheEventSource(string cacheName, MemoryCache cache) : base(eventSourceName: cacheName)
         {
-            _displayRateTimeScale = TimeSpan.FromSeconds(1);
+            _displayRateTimeScale = TimeSpan.FromSeconds(5);
             CacheName = cacheName;
+            _cache = cache;
         }
 
         protected override void OnEventCommand(EventCommandEventArgs command)
@@ -149,7 +152,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
             _cacheSizePollingCounter = new PollingCounter(
                 Tags.CacheItemCount,
                 this,
-                () => Volatile.Read(ref _cacheItemCount))
+                () => _cache.Count)
             {
                 DisplayName = "Cache Size",
             };

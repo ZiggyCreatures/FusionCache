@@ -1,6 +1,9 @@
-﻿using Xunit;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Xunit;
+using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.FusionCache.EventCounters;
 
-namespace ZiggyCreatures.FusionCache.EventCounters.Tests
+namespace ZiggyCreatures.Caching.Fusion.EventCounters.Tests
 {
     
     public class Test
@@ -8,8 +11,11 @@ namespace ZiggyCreatures.FusionCache.EventCounters.Tests
         [Fact]
         public void SetCacheName()
         {
-            var eventSource = FusionCacheEventSource.Instance("testCacheName");
-            Assert.Equal("testCacheName", eventSource.CacheName);
+            using (var cache = new MemoryCache(new MemoryCacheOptions()))
+            {
+                var eventSource = FusionCacheEventSource.Instance("testCacheName", cache);
+                Assert.Equal("testCacheName", eventSource.CacheName);
+            }
         }
     }
 }
