@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>8.0</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>0.1.2.24-appmetrics</Version>
+    <Version>0.1.2.32-appmetrics</Version>
     <Authors>Joe Shook</Authors>
     <Product>FusionCache</Product>
     <PackageId>ZiggyCreatures.FusionCache.EventCounters</PackageId>
@@ -20,6 +20,7 @@
 
   <PropertyGroup>
     <DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
+    <UserSecretsId>5d706789-eb3f-4665-8f7b-7a951f21e9d4</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,7 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ZiggyCreatures.FusionCache" Version="0.1.2.24-appmetrics" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.1.13" />
+    <PackageReference Include="ZiggyCreatures.FusionCache" Version="0.1.2.36-appmetrics" />
   </ItemGroup>
 
 </Project>

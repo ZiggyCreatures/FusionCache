@@ -13,6 +13,7 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
+
 namespace ZiggyCreatures.Caching.Fusion
 {
 
@@ -26,26 +27,20 @@ namespace ZiggyCreatures.Caching.Fusion
         private readonly IFusionMetrics? _metrics;
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
-        
+
         /// <summary>
-		/// Creates a new <see cref="FusionCache"/> instance.
-		/// </summary>
-		/// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
-		/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
-		/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
-		/// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-		/// <param name="metrics">The <see cref="IFusionMetrics"/> metrics provider</param>
-		public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheReactor? reactor = null, IFusionMetrics? metrics = null)
+        /// Creates a new <see cref="FusionCache"/> instance.
+        /// </summary>
+        /// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
+        /// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
+        /// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
+        /// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+        /// <param name="cacheName">Name the <see cref="IMemoryCache"/> so multiple caches can be identified when using a <see cref="IFusionMetrics"/> plugin.</param>
+        public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheReactor? reactor = null, string? cacheName = null)
 		{
 			if (optionsAccessor is null)
 				throw new ArgumentNullException(nameof(optionsAccessor));
 
-			// Metrics
-            if (metrics != null)
-            {
-                _metrics = metrics;
-            }
-            
 			// OPTIONS
 			_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
 			_options.DefaultEntryOptions.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
@@ -73,7 +68,16 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// DISTRIBUTED CACHE
 			_dca = null;
-		}
+
+			// Metrics
+            var scanner = new MetricsPluginLoader();
+            _metrics = scanner.GetPlugin(cacheName, _mca.GetCache());
+  
+            if (_metrics != null)
+            {
+				logger?.LogInformation("Loading {metricsPlugin}", _metrics.GetType().FullName);
+            }
+        }
 
         private PostEvictionDelegate EvictionCallbackMetrics()
         {
@@ -99,8 +103,6 @@ namespace ZiggyCreatures.Caching.Fusion
                 {
 					_metrics?.CacheEvicted();
                 }
-
-				_metrics?.CacheCountDecrement();
             };
         }
 
@@ -247,7 +249,6 @@ namespace ZiggyCreatures.Caching.Fusion
 					_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
 					_metrics?.CacheBackgroundRefresh();
-					_metrics?.CacheCountIncrement();
 
 				}
 			});
@@ -380,7 +381,6 @@ namespace ZiggyCreatures.Caching.Fusion
 						else
 						{
                             _metrics?.CacheMiss();
-                            _metrics?.CacheCountIncrement();
                             
 							return null;
 						}
@@ -451,7 +451,6 @@ namespace ZiggyCreatures.Caching.Fusion
                     else
                     {
 						_metrics?.CacheMiss();
-                        _metrics?.CacheCountIncrement();
 					}
                 }
 			}
@@ -555,7 +554,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 							// Feels different than a cache miss as this throws an exception higher in the stack.  Thinking... 
                             _metrics?.CacheMiss();
-                            _metrics?.CacheCountIncrement();
                             
 							return null;
 						}
@@ -626,7 +624,6 @@ namespace ZiggyCreatures.Caching.Fusion
                     else
                     {
 						_metrics?.CacheMiss();
-						_metrics?.CacheCountIncrement();
 					}
 				}
 			}
@@ -723,7 +720,6 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
 				_metrics?.CacheMiss();
-				_metrics?.CacheCountIncrement();
 
 				return TryGetResult<TValue>.NoSuccess;
 			}
@@ -758,7 +754,6 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
                 _metrics?.CacheMiss();
-				_metrics?.CacheCountIncrement();
 
 				return TryGetResult<TValue>.NoSuccess;
 			}
@@ -791,7 +786,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return DEFAULT VALUE", key, operationId);
-                #pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8603 // Possible null reference return.
 				return defaultValue;
 #pragma warning restore CS8603 // Possible null reference return.
 			}
@@ -960,7 +955,11 @@ namespace ZiggyCreatures.Caching.Fusion
 				{
 					_reactor.Dispose();
 					_mca.Dispose();
-				}
+                    if (_metrics is IDisposable)
+                    {
+						((IDisposable)_metrics).Dispose();
+                    }
+                }
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 				_mca = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.

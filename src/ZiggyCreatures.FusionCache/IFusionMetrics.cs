@@ -1,13 +1,12 @@
-﻿namespace ZiggyCreatures.Caching.Fusion
+﻿using System;
+
+namespace ZiggyCreatures.Caching.Fusion
 {
     /// <summary>
     /// Represents a provider instance.
     /// </summary>
-    public interface IFusionMetrics
+    public interface IFusionMetrics 
     {
-        
-        public string CacheName { get; }
-
         /// <summary>
         /// Cache item hit counter.
         /// </summary>
@@ -52,15 +51,6 @@
         /// Cache item removed for unknown reason.
         /// </summary>
         public void CacheEvicted();
-
-        /// <summary>
-        /// Cache size reduced
-        /// </summary>
-        public void CacheCountIncrement();
-
-        /// <summary>
-        /// Cache size increase
-        /// </summary>
-        public void CacheCountDecrement();
+        
     }
 }

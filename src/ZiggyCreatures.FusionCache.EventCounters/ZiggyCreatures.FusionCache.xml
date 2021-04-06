@@ -9,18 +9,10 @@
             Generic FusionCacheEventSource.  
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.Instance(System.String,Microsoft.Extensions.Caching.Memory.MemoryCache)">
-            <summary>
-            Consumers access class from Instance.
-            </summary>
-        </member>
         <member name="T:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.Tags">
             <summary>
             Helper class to tag metrics
             </summary>
-        </member>
-        <member name="P:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.CacheName">
-            <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.CacheHit">
             <inheritdoc/>
@@ -47,12 +39,6 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.CacheEvicted">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.CacheCountIncrement">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.FusionCache.EventCounters.FusionCacheEventSource.CacheCountDecrement">
             <inheritdoc/>
         </member>
     </members>

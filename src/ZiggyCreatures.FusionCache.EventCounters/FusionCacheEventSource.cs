@@ -11,11 +11,6 @@ namespace ZiggyCreatures.FusionCache.EventCounters
     /// </summary>
     public sealed partial class FusionCacheEventSource : EventSource, IFusionMetrics
     {
-        /// <summary>
-        /// Consumers access class from Instance.
-        /// </summary>
-        public static FusionCacheEventSource Instance(string cacheName, MemoryCache cache) => new FusionCacheEventSource(cacheName, cache);
-
         private long _cacheHits;
         private long _cacheMisses;
         private long _cacheStaleHit;
@@ -25,7 +20,6 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         private long _cacheRemoved;
         private long _cacheReplaced;
         private long _cacheEvict;
-        private long _cacheItemCount;
         
         private IncrementingPollingCounter? _cacheHitPollingCounter;
         private IncrementingPollingCounter? _cacheMissPollingCounter;
@@ -39,13 +33,15 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         private PollingCounter? _cacheSizePollingCounter;
 
         private readonly TimeSpan _displayRateTimeScale;
-        private readonly MemoryCache _cache;
+        private readonly MemoryCache? _cache;
         
-        private FusionCacheEventSource(string cacheName, MemoryCache cache) : base(eventSourceName: cacheName)
+        public FusionCacheEventSource(string cacheName, IMemoryCache? cache) : base(eventSourceName: cacheName)
         {
             _displayRateTimeScale = TimeSpan.FromSeconds(5);
-            CacheName = cacheName;
-            _cache = cache;
+            if (cache is MemoryCache memoryCache)
+            {
+                _cache = memoryCache;
+            }
         }
 
         protected override void OnEventCommand(EventCommandEventArgs command)
@@ -58,7 +54,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Hits",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheHitPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheHitPollingCounter.AddMetadata(Tags.CacheName, Name);
 
 
             _cacheMissPollingCounter = new IncrementingPollingCounter(
@@ -69,7 +65,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Misses",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheMissPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheMissPollingCounter.AddMetadata(Tags.CacheName, Name);
             
 
             _cacheStaleHitPollingCounter = new IncrementingPollingCounter(
@@ -80,7 +76,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Stale Hit",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheStaleHitPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheStaleHitPollingCounter.AddMetadata(Tags.CacheName, Name);
 
 
             _cacheBackgroundRefreshedPollingCounter = new IncrementingPollingCounter(
@@ -91,7 +87,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Background Refresh",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheBackgroundRefreshedPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheBackgroundRefreshedPollingCounter.AddMetadata(Tags.CacheName, Name);
 
             
             _cacheExpiredEvictPollingCounter = new IncrementingPollingCounter(
@@ -102,7 +98,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Expired Eviction",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheExpiredEvictPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheExpiredEvictPollingCounter.AddMetadata(Tags.CacheName, Name);
 
             
             _cacheCapacityEvictPollingCounter = new IncrementingPollingCounter(
@@ -113,7 +109,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Capacity Eviction",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheCapacityEvictPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheCapacityEvictPollingCounter.AddMetadata(Tags.CacheName, Name);
 
             
             _cacheRemovedPollingCounter = new IncrementingPollingCounter(
@@ -124,7 +120,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Removed",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheRemovedPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheRemovedPollingCounter.AddMetadata(Tags.CacheName, Name);
             
 
             _cacheReplacedPollingCounter = new IncrementingPollingCounter(
@@ -135,7 +131,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Replaced",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheReplacedPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheReplacedPollingCounter.AddMetadata(Tags.CacheName, Name);
 
             
             _cacheEvictPollingCounter = new IncrementingPollingCounter(
@@ -146,17 +142,17 @@ namespace ZiggyCreatures.FusionCache.EventCounters
                 DisplayName = "Cache Evicted",
                 DisplayRateTimeScale = _displayRateTimeScale
             };
-            _cacheEvictPollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheEvictPollingCounter.AddMetadata(Tags.CacheName, Name);
 
             
             _cacheSizePollingCounter = new PollingCounter(
                 Tags.CacheItemCount,
                 this,
-                () => _cache.Count)
+                () => _cache?.Count ?? 0)
             {
                 DisplayName = "Cache Size",
             };
-            _cacheSizePollingCounter.AddMetadata(Tags.CacheName, CacheName);
+            _cacheSizePollingCounter.AddMetadata(Tags.CacheName, Name);
         }
 
         /// <summary>
@@ -178,9 +174,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         }
 
         #region IFusionMetrics
-        /// <inheritdoc/>
-        public string CacheName { get; }
-
+       
         /// <inheritdoc/>
         [NonEvent]
         public void CacheHit()
@@ -243,21 +237,7 @@ namespace ZiggyCreatures.FusionCache.EventCounters
         {
             Interlocked.Increment(ref _cacheEvict);
         }
-
-        /// <inheritdoc/>
-        [NonEvent]
-        public void CacheCountIncrement()
-        {
-            Interlocked.Increment(ref _cacheItemCount);
-        }
-
-        /// <inheritdoc/>
-        [NonEvent]
-        public void CacheCountDecrement()
-        {
-            Interlocked.Decrement(ref _cacheItemCount);
-        }
-        #endregion
         
+        #endregion
     }
 }

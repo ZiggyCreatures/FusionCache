@@ -17,7 +17,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using App.Metrics;
 using ZiggyCreatures.FusionCache.AppMetrics;
-using ZiggyCreatures.FusionCache.EventCounters;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
@@ -80,8 +79,8 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
                     })
                 .Build();
 
-            Metrics = new AppMetricsProvider(appMetrics, "FusionCache");
-            EventCounters = FusionCacheEventSource.Instance("FusionCache");
+            // Metrics = new AppMetricsProvider(appMetrics, "FusionCache");
+            // EventCounters = FusionCacheEventSource.Instance("FusionCache");
         }
 
         public class FusionCacheMarkerClass {}
@@ -119,71 +118,71 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-        [Benchmark]
-        [BenchmarkCategory("Metrics")]
-        public async Task FusionCacheWithAppMetrics()
-        {
-            using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, metrics: Metrics))
-            {
-                for (int i = 0; i < Rounds; i++)
-                {
-                    var tasks = new ConcurrentBag<Task>();
-
-                    Parallel.ForEach(Keys, key =>
-                    {
-                        Parallel.For(0, Accessors, _ =>
-                        {
-                            var t = cache.GetOrSetAsync<SamplePayload>(
-                                key,
-                                async ct =>
-                                {
-                                    await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-                                    return new SamplePayload();
-                                }
-                            );
-                            tasks.Add(t);
-                        });
-                    });
-
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
-
-                // NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
-            }
-        }
-
-		[Benchmark]
-        [BenchmarkCategory("Metrics")]
-        public async Task FusionCacheWithEventCounters()
-        {
-            using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, metrics: EventCounters))
-            {
-                for (int i = 0; i < Rounds; i++)
-                {
-                    var tasks = new ConcurrentBag<Task>();
-
-                    Parallel.ForEach(Keys, key =>
-                    {
-                        Parallel.For(0, Accessors, _ =>
-                        {
-                            var t = cache.GetOrSetAsync<SamplePayload>(
-                                key,
-                                async ct =>
-                                {
-                                    await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-                                    return new SamplePayload();
-                                }
-                            );
-                            tasks.Add(t);
-                        });
-                    });
-
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                }
-
-                // NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
-            }
-        }
+  //       [Benchmark]
+  //       [BenchmarkCategory("Metrics")]
+  //       public async Task FusionCacheWithAppMetrics()
+  //       {
+  //           using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, metrics: Metrics))
+  //           {
+  //               for (int i = 0; i < Rounds; i++)
+  //               {
+  //                   var tasks = new ConcurrentBag<Task>();
+  //
+  //                   Parallel.ForEach(Keys, key =>
+  //                   {
+  //                       Parallel.For(0, Accessors, _ =>
+  //                       {
+  //                           var t = cache.GetOrSetAsync<SamplePayload>(
+  //                               key,
+  //                               async ct =>
+  //                               {
+  //                                   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+  //                                   return new SamplePayload();
+  //                               }
+  //                           );
+  //                           tasks.Add(t);
+  //                       });
+  //                   });
+  //
+  //                   await Task.WhenAll(tasks).ConfigureAwait(false);
+  //               }
+  //
+  //               // NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+  //           }
+  //       }
+  //
+		// [Benchmark]
+  //       [BenchmarkCategory("Metrics")]
+  //       public async Task FusionCacheWithEventCounters()
+  //       {
+  //           using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, metrics: EventCounters))
+  //           {
+  //               for (int i = 0; i < Rounds; i++)
+  //               {
+  //                   var tasks = new ConcurrentBag<Task>();
+  //
+  //                   Parallel.ForEach(Keys, key =>
+  //                   {
+  //                       Parallel.For(0, Accessors, _ =>
+  //                       {
+  //                           var t = cache.GetOrSetAsync<SamplePayload>(
+  //                               key,
+  //                               async ct =>
+  //                               {
+  //                                   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+  //                                   return new SamplePayload();
+  //                               }
+  //                           );
+  //                           tasks.Add(t);
+  //                       });
+  //                   });
+  //
+  //                   await Task.WhenAll(tasks).ConfigureAwait(false);
+  //               }
+  //
+  //               // NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+  //           }
+  //       }
 
 		[Benchmark]
 		public async Task CacheManager()

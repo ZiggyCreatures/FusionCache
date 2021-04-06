@@ -173,7 +173,7 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCache">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor,ZiggyCreatures.Caching.Fusion.IFusionMetrics)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor,System.String)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.
             </summary>
@@ -181,7 +181,7 @@
             <param name="memoryCache">The <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
             <param name="reactor">The <see cref="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-            <param name="metrics">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> metrics provider</param>
+            <param name="cacheName">Name the <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> so multiple caches can be identified when using a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> plugin.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.DefaultEntryOptions">
             <inheritdoc/>
@@ -920,16 +920,6 @@
             Cache item removed for unknown reason.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheCountIncrement">
-            <summary>
-            Cache size reduced
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionMetrics.CacheCountDecrement">
-            <summary>
-            Cache size increase
-            </summary>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom">
             <summary>
             A thread-safe version of the Random class.
@@ -1212,6 +1202,28 @@
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
             <returns>The newly created entry.</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.MetricsPluginLoader">
+            <summary>
+            Simple assembly scanner for finding a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> plugin.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MetricsPluginLoader.#ctor">
+            <summary>
+            Creates a new scanner defaulting to the <see cref="P:System.AppDomain.CurrentDomain"/>.BaseDirectory
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MetricsPluginLoader.#ctor(System.String)">
+            <summary>
+            Creates a new scanner with an alternative directory from the default <see cref="P:System.AppDomain.CurrentDomain"/>.BaseDirectory
+            </summary>
+            <param name="scanDirectory"></param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MetricsPluginLoader.GetPlugin(System.String,Microsoft.Extensions.Caching.Memory.IMemoryCache)">
+            <summary>
+            Find a single IFusionMetrics plugin.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor">
             <summary>
             Represents one of the core pieces of an instance of an <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
@@ -1363,7 +1375,7 @@
             Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache},ZiggyCreatures.Caching.Fusion.IFusionMetrics)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache},System.String)">
             <summary>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
@@ -1373,7 +1385,7 @@
             <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
             <param name="setupCacheAction">The <see cref="T:System.Action`2"/> to configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
-            <param name="metrics">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> metrics provider</param>
+            <param name="cacheName">Name the <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> so multiple caches can be identified when using a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionMetrics"/> plugin.</param>
         </member>
     </members>
 </doc>

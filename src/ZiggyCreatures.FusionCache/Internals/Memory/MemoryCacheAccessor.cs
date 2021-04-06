@@ -102,7 +102,12 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			}
 		}
 
-		public void Dispose()
+        internal IMemoryCache? GetCache()
+        {
+            return _cache;
+        }
+
+        public void Dispose()
 		{
 			Dispose(true);
 		}

@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <PackageReference Include="App.Metrics" Version="4.1.0" />
-    <PackageReference Include="ZiggyCreatures.FusionCache" Version="0.1.2.21-appmetrics" />
+    <PackageReference Include="ZiggyCreatures.FusionCache" Version="0.1.2.26-appmetrics" />
   </ItemGroup>
 
 </Project>

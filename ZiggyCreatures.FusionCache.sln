@@ -23,9 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.AppMetrics", "src\ZiggyCreatures.FusionCache.AppMetrics\ZiggyCreatures.FusionCache.AppMetrics.csproj", "{8FE4D457-5E8A-4996-B59A-2476E1A41A9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.EventCounters", "src\ZiggyCreatures.FusionCache.EventCounters\ZiggyCreatures.FusionCache.EventCounters.csproj", "{639138A1-35F1-4920-AA6A-7CF757B5FFF5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.EventCounters", "src\ZiggyCreatures.FusionCache.EventCounters\ZiggyCreatures.FusionCache.EventCounters.csproj", "{639138A1-35F1-4920-AA6A-7CF757B5FFF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.EventCounters.Tests", "tests\ZiggyCreatures.FusionCache.EventCounters.Tests\ZiggyCreatures.FusionCache.EventCounters.Tests.csproj", "{622E41C9-F961-4C07-BF54-E1753BD0BB32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.EventCounters.Tests", "tests\ZiggyCreatures.FusionCache.EventCounters.Tests\ZiggyCreatures.FusionCache.EventCounters.Tests.csproj", "{622E41C9-F961-4C07-BF54-E1753BD0BB32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
