@@ -34,7 +34,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		/// <inheritdoc/>
 		public TValue GetValue<TValue>()
 		{
+#pragma warning disable CS8603 // Possible null reference return.
 			return (TValue)Value;
+#pragma warning restore CS8603 // Possible null reference return.
 		}
 
 		/// <inheritdoc/>
@@ -64,7 +66,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (options.IsFailSafeEnabled == false)
 				return new FusionCacheMemoryEntry(value, null);
 
-			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeMaxDuration : options.Duration);
+			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
 
 			if (options.JitterMaxDuration > TimeSpan.Zero)
 			{

@@ -51,13 +51,21 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		/// <inheritdoc/>
 		public TValue1 GetValue<TValue1>()
 		{
+#pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 			return (TValue1)(object)Value;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8603 // Possible null reference return.
 		}
 
 		/// <inheritdoc/>
 		public void SetValue<TValue1>(TValue1 value)
 		{
+#pragma warning disable CS8601 // Possible null reference assignment.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 			Value = (TValue)(object)value;
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8601 // Possible null reference assignment.
 		}
 
 		/// <inheritdoc/>

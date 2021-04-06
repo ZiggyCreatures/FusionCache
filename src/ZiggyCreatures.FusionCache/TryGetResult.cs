@@ -7,6 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	/// Represents the result of a TryGet[Async] operation: it contains a <see cref="bool"/> indicating if the value has been found, and either the found value or a default value instead.
 	/// </summary>
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+	[Obsolete("Please use MaybeValue<T> instead")]
 	public struct TryGetResult<TValue>
 	{
 
@@ -47,9 +48,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="defaultValue">A value to return if the <see cref="TryGetResult{TValue}.Success"/> property is false.</param>
 		public TValue GetValueOrDefault(TValue defaultValue = default)
 		{
-			return Success
-				? Value
-				: defaultValue;
+			return Success ? Value : defaultValue;
 		}
 
 		/// <inheritdoc />

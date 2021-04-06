@@ -20,10 +20,11 @@ A deeper description of the main features:
 - [**:bomb: Fail-Safe**](FailSafe.md): an explanation of how the fail-safe mechanism works
 - [**:stopwatch: Timeouts**](Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**:level_slider: Options**](Options.md): everything about the available options, both cache-wide and per-call
+- [**:joystick: Core Methods**](CoreMethods.md): what you need to know about the core methods available
 
 
 ### [**:trophy: Step By Step**](StepByStep.md)
 A complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain.
 
 ### [**:ab: Comparison**](Comparison.md)
-A feature comparison between existing .NET caching solutions, to  help you choose which one to use
+A feature comparison between existing .NET caching solutions, to  help you choose which one to use.

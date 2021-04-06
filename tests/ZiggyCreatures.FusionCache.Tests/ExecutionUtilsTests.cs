@@ -64,7 +64,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var factoryTerminated = false;
 			var outerCancelDelayMs = 500;
 			var innerDelayMs = 2_000;
-			await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+			await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
 			{
 				var cts = new CancellationTokenSource(outerCancelDelayMs);
 				res = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
@@ -82,7 +82,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var factoryTerminated = false;
 			var outerCancelDelayMs = 500;
 			var innerDelayMs = 2_000;
-			Assert.Throws<OperationCanceledException>(() =>
+			Assert.ThrowsAny<OperationCanceledException>(() =>
 			{
 				var cts = new CancellationTokenSource(outerCancelDelayMs);
 				res = FusionCacheExecutionUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
