@@ -4,6 +4,7 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -32,30 +33,19 @@ namespace ZiggyCreatures.Caching.Fusion.EventCounters.Tests
                 }
             }
         }
-
-        [Fact]
-        public void LoadPluginDirectly()
-        {
-            var scanner = new MetricsAssemblyScanner();
-            using (var cache = new MemoryCache(new MemoryCacheOptions()))
-            {
-                var metrics = scanner.GetPlugin("testCacheName", cache);
-                Assert.Equal("testCacheName", ((EventSource)metrics).Name);
-                ((IDisposable)metrics).Dispose();
-            }
-        }
-
+        
         [Fact]
         public void LoadPluginWithItemCountCheck()
         {
+            using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+            using (var eventSource = new FusionCacheEventSource("testCacheName", memoryCache))
             using (var listener = new TestEventListener())
             {
                 using (var cache = new FusionCache(
                 new FusionCacheOptions(),
-                new MemoryCache(new MemoryCacheOptions()),
-                cacheName: "testCacheName"))
+                memoryCache,
+                metrics: eventSource))
                 {
-                    var eventSource = EventSource.GetSources().Single(es => es.Name == "testCacheName");
                     const long AllKeywords = -1;
                     listener.EnableEvents(eventSource, EventLevel.Verbose, (EventKeywords)AllKeywords, new Dictionary<string, string>
                     {

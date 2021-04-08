@@ -28,15 +28,15 @@ namespace ZiggyCreatures.Caching.Fusion
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
 
-        /// <summary>
-        /// Creates a new <see cref="FusionCache"/> instance.
-        /// </summary>
-        /// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
-        /// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
-        /// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
-        /// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-        /// <param name="cacheName">Name the <see cref="IMemoryCache"/> so multiple caches can be identified when using a <see cref="IFusionMetrics"/> plugin.</param>
-        public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheReactor? reactor = null, string? cacheName = null)
+		/// <summary>
+		/// Creates a new <see cref="FusionCache"/> instance.
+		/// </summary>
+		/// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
+		/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
+		/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
+		/// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+		/// /// <param name="metrics">The <see cref="IFusionMetrics"/> metrics provider</param>
+		public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheReactor? reactor = null, IFusionMetrics? metrics = null)
 		{
 			if (optionsAccessor is null)
 				throw new ArgumentNullException(nameof(optionsAccessor));
@@ -70,11 +70,9 @@ namespace ZiggyCreatures.Caching.Fusion
 			_dca = null;
 
 			// Metrics
-            var scanner = new MetricsPluginLoader();
-            _metrics = scanner.GetPlugin(cacheName, _mca.GetCache());
-  
-            if (_metrics != null)
+            if (metrics != null)
             {
+                _metrics = metrics;
 				logger?.LogInformation("Loading {metricsPlugin}", _metrics.GetType().FullName);
             }
         }
@@ -799,16 +797,12 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
 
-				_metrics?.CacheMiss();
-
 				return default;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return SUCCESS", key, operationId);
-
-			_metrics?.CacheHit();
-
+			
 			return entry.GetValue<TValue>();
 		}
 
@@ -832,17 +826,13 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
-
-                _metrics?.CacheMiss();
-
+				
 				return default;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return SUCCESS", key, operationId);
-
-			_metrics?.CacheHit();
-
+			
 			return entry.GetValue<TValue>();
 		}
 
@@ -873,9 +863,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
-
-			_metrics?.CacheHit();
-
+			
 			return entry.GetValue<TValue>();
 		}
 
@@ -906,8 +894,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
-
-			_metrics?.CacheHit();
 
 			return entry.GetValue<TValue>();
 		}
