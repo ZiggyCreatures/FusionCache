@@ -5,21 +5,26 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{34B53F49-F5C5-4850-B79E-59AD130379C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache", "src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj", "{8EA21069-A6E8-4DAB-8368-796BAA10B40E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache", "src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj", "{8EA21069-A6E8-4DAB-8368-796BAA10B40E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{407E264A-43D3-4139-BF62-D505EECA36F8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{C6F3C570-C68C-4A95-960E-82778306BDBA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson", "src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj", "{482379B4-2A21-4152-B84E-554006FCAC95}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson", "src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj", "{482379B4-2A21-4152-B84E-554006FCAC95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Serialization.SystemTextJson", "src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj", "{ED5B2080-C706-4150-897D-59482F41BC34}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.SystemTextJson", "src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj", "{ED5B2080-C706-4150-897D-59482F41BC34}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Benchmarks", "benchmarks\ZiggyCreatures.FusionCache.Benchmarks\ZiggyCreatures.FusionCache.Benchmarks.csproj", "{EA8020A5-B936-415A-8A1B-0DC8CA7914B1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Benchmarks", "benchmarks\ZiggyCreatures.FusionCache.Benchmarks\ZiggyCreatures.FusionCache.Benchmarks.csproj", "{EA8020A5-B936-415A-8A1B-0DC8CA7914B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Tests", "tests\ZiggyCreatures.FusionCache.Tests\ZiggyCreatures.FusionCache.Tests.csproj", "{25C0D76C-E7D2-43CC-8D0E-BECB0438527B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Tests", "tests\ZiggyCreatures.FusionCache.Tests\ZiggyCreatures.FusionCache.Tests.csproj", "{25C0D76C-E7D2-43CC-8D0E-BECB0438527B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.LoggingVisualTester", "tests\ZiggyCreatures.FusionCache.LoggingVisualTester\ZiggyCreatures.FusionCache.LoggingVisualTester.csproj", "{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.LoggingVisualTester", "tests\ZiggyCreatures.FusionCache.LoggingVisualTester\ZiggyCreatures.FusionCache.LoggingVisualTester.csproj", "{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BDC18C05-F0DF-4B40-90D8-4BE559EA0C23}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

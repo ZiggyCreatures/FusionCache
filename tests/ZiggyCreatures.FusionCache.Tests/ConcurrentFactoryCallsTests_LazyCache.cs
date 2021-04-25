@@ -1,10 +1,10 @@
-using LazyCache;
-using LazyCache.Providers;
-using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using LazyCache;
+using LazyCache.Providers;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
@@ -36,10 +36,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						async _ =>
 						{
-							Interlocked.Increment(ref factoryCallsCount);
-							await Task.Delay(FactoryDuration).ConfigureAwait(false);
-							return 42;
-						}
+						Interlocked.Increment(ref factoryCallsCount);
+						await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						return 42;
+					}
 					);
 					tasks.Add(task);
 				});
@@ -69,10 +69,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						_ =>
 						{
-							Interlocked.Increment(ref factoryCallsCount);
-							Thread.Sleep(FactoryDuration);
-							return 42;
-						}
+						Interlocked.Increment(ref factoryCallsCount);
+						Thread.Sleep(FactoryDuration);
+						return 42;
+					}
 					);
 				});
 
@@ -99,27 +99,27 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 					if (idx % 2 == 0)
 					{
 						var task = cache.GetOrAddAsync<int>(
-							"foo",
-							async _ =>
-							{
-								Interlocked.Increment(ref factoryCallsCount);
-								await Task.Delay(FactoryDuration).ConfigureAwait(false);
-								return 42;
-							}
-						);
+						   "foo",
+						   async _ =>
+						   {
+							 Interlocked.Increment(ref factoryCallsCount);
+							 await Task.Delay(FactoryDuration).ConfigureAwait(false);
+							 return 42;
+						 }
+					   );
 						tasks.Add(task);
 					}
 					else
 					{
 						cache.GetOrAdd<int>(
-							"foo",
-							_ =>
-							{
-								Interlocked.Increment(ref factoryCallsCount);
-								Thread.Sleep(FactoryDuration);
-								return 42;
-							}
-						);
+						   "foo",
+						   _ =>
+						   {
+							 Interlocked.Increment(ref factoryCallsCount);
+							 Thread.Sleep(FactoryDuration);
+							 return 42;
+						 }
+					   );
 					}
 				});
 

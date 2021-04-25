@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using System;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
-using System;
-using System.Text;
-using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester

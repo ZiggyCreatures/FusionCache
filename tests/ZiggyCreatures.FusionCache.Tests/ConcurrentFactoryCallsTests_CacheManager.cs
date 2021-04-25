@@ -1,7 +1,7 @@
-using CacheManager.Core;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CacheManager.Core;
 using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
@@ -29,15 +29,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						key =>
 						{
-							Interlocked.Increment(ref factoryCallsCount);
-							Thread.Sleep(FactoryDuration);
-							return new CacheItem<int>(
-								key,
-								42,
-								ExpirationMode.Absolute,
-								TimeSpan.FromSeconds(10)
-							);
-						}
+						Interlocked.Increment(ref factoryCallsCount);
+						Thread.Sleep(FactoryDuration);
+						return new CacheItem<int>(
+							key,
+							42,
+							ExpirationMode.Absolute,
+							TimeSpan.FromSeconds(10)
+						);
+					}
 					);
 				});
 

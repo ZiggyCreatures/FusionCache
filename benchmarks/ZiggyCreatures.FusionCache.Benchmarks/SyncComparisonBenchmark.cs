@@ -1,4 +1,9 @@
-﻿using BenchmarkDotNet.Attributes;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using CacheManager.Core;
@@ -7,11 +12,6 @@ using LazyCache;
 using LazyCache.Providers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
@@ -73,16 +73,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					Parallel.ForEach(Keys, key =>
 					{
 						Parallel.For(0, Accessors, _ =>
-						{
-							cache.GetOrSet<SamplePayload>(
-								key,
-								ct =>
-								{
-									Thread.Sleep(FactoryDurationMs);
-									return new SamplePayload();
-								}
-							);
-						});
+					   {
+					   cache.GetOrSet<SamplePayload>(
+						  key,
+						  ct =>
+						  {
+							   Thread.Sleep(FactoryDurationMs);
+							   return new SamplePayload();
+						   }
+					  );
+				   });
 					});
 				}
 
@@ -100,22 +100,22 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					Parallel.ForEach(Keys, key =>
 					{
 						Parallel.For(0, Accessors, _ =>
-						{
-							cache.GetOrAdd(
-								key,
-								_ =>
-								{
-									Thread.Sleep(FactoryDurationMs);
-									return new CacheItem<SamplePayload>(
-										key,
-										new SamplePayload(),
-										global::CacheManager.Core.ExpirationMode.Absolute,
-										CacheDuration
-									);
-								}
-							);
+					   {
+					   cache.GetOrAdd(
+						  key,
+						  _ =>
+						  {
+							   Thread.Sleep(FactoryDurationMs);
+							   return new CacheItem<SamplePayload>(
+								  key,
+								  new SamplePayload(),
+								  global::CacheManager.Core.ExpirationMode.Absolute,
+								  CacheDuration
+							  );
+						   }
+					  );
 
-						});
+				   });
 					});
 				}
 
@@ -138,16 +138,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				{
 					Parallel.For(0, Accessors, _ =>
 					{
-						cache.Get<SamplePayload>(
-							key,
-							() =>
-							{
-								Thread.Sleep(FactoryDurationMs);
-								return new SamplePayload();
-							},
-							CacheDuration
-						);
-					});
+					cache.Get<SamplePayload>(
+						key,
+						() =>
+						{
+							Thread.Sleep(FactoryDurationMs);
+							return new SamplePayload();
+						},
+						CacheDuration
+					);
+				});
 				});
 			}
 
@@ -171,16 +171,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					Parallel.ForEach(Keys, key =>
 					{
 						Parallel.For(0, Accessors, _ =>
-						{
-							appcache.GetOrAdd<SamplePayload>(
-								key,
-								() =>
-								{
-									Thread.Sleep(FactoryDurationMs);
-									return new SamplePayload();
-								}
-							);
-						});
+					   {
+					   appcache.GetOrAdd<SamplePayload>(
+						  key,
+						  () =>
+						  {
+							   Thread.Sleep(FactoryDurationMs);
+							   return new SamplePayload();
+						   }
+					  );
+				   });
 					});
 				}
 

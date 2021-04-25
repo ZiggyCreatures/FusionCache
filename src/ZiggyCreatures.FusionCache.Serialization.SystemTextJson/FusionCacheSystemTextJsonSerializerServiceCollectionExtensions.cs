@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
-using System;
+﻿using System;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 

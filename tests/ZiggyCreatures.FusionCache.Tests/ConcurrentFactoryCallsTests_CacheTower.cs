@@ -1,10 +1,10 @@
-using CacheTower;
-using CacheTower.Extensions;
-using CacheTower.Providers.Memory;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using CacheTower;
+using CacheTower.Extensions;
+using CacheTower.Providers.Memory;
 using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
@@ -35,10 +35,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						async old =>
 						{
-							Interlocked.Increment(ref factoryCallsCount);
-							await Task.Delay(FactoryDuration).ConfigureAwait(false);
-							return 42;
-						},
+						Interlocked.Increment(ref factoryCallsCount);
+						await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						return 42;
+					},
 						cacheSettings
 					);
 					tasks.Add(task.AsTask());

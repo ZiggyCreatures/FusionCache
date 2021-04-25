@@ -1,9 +1,9 @@
-using EasyCaching.Core;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using EasyCaching.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
@@ -36,10 +36,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 					"foo",
 					async () =>
 					{
-						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
-						return 42;
-					},
+					 Interlocked.Increment(ref factoryCallsCount);
+					 await Task.Delay(FactoryDuration).ConfigureAwait(false);
+					 return 42;
+				 },
 					TimeSpan.FromSeconds(10)
 				);
 				tasks.Add(task);
@@ -70,10 +70,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 					"foo",
 					() =>
 					{
-						Interlocked.Increment(ref factoryCallsCount);
-						Thread.Sleep(FactoryDuration);
-						return 42;
-					},
+					 Interlocked.Increment(ref factoryCallsCount);
+					 Thread.Sleep(FactoryDuration);
+					 return 42;
+				 },
 					TimeSpan.FromSeconds(10)
 				);
 			});
@@ -104,10 +104,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						async () =>
 						{
-							Interlocked.Increment(ref factoryCallsCount);
-							await Task.Delay(FactoryDuration).ConfigureAwait(false);
-							return 42;
-						},
+						  Interlocked.Increment(ref factoryCallsCount);
+						  await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						  return 42;
+					  },
 						TimeSpan.FromSeconds(10)
 					);
 					tasks.Add(task);
@@ -118,10 +118,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						() =>
 						{
-							Interlocked.Increment(ref factoryCallsCount);
-							Thread.Sleep(FactoryDuration);
-							return 42;
-						},
+						  Interlocked.Increment(ref factoryCallsCount);
+						  Thread.Sleep(FactoryDuration);
+						  return 42;
+					  },
 						TimeSpan.FromSeconds(10)
 					);
 				}

@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
-using System;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 

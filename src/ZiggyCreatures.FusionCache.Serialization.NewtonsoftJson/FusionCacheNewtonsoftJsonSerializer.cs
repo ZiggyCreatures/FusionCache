@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson
 {
