@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -151,6 +153,35 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				return (FusionCacheMemoryEntry)entry;
 
 			return new FusionCacheMemoryEntry(entry.GetValue<object>(), entry.Metadata);
+		}
+
+		public static void SafeExecuteEvent<TEventArgs>(string operationId, string key, IFusionCache cache, EventHandler<TEventArgs>? ev, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel)
+		{
+			var invocations = ev?.GetInvocationList();
+			if (invocations is null || invocations.Length == 0)
+				return;
+
+			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
+			if ((logger?.IsEnabled(logLevel) ?? false) == false)
+				logger = null;
+
+			var e = eventArgsBuilder();
+
+			foreach (EventHandler<TEventArgs> invocation in invocations)
+			{
+				Task.Run(() =>
+				{
+					try
+					{
+						invocation(cache, e);
+					}
+					catch (Exception exc)
+					{
+						logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
+					}
+				});
+			}
+
 		}
 	}
 

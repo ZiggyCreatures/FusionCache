@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
@@ -26,6 +27,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		private readonly IFusionCacheReactor _reactor;
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
+		private FusionCacheEventsHub _events;
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCache"/> instance.
@@ -56,8 +58,11 @@ namespace ZiggyCreatures.Caching.Fusion
 			// REACTOR
 			_reactor = reactor ?? new FusionCacheReactorStandard();
 
+			// EVENTS
+			_events = new FusionCacheEventsHub(this, _options, _logger);
+
 			// MEMORY CACHE
-			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger);
+			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
 
 			// DISTRIBUTED CACHE
 			_dca = null;
@@ -78,7 +83,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (serializer is null)
 				throw new ArgumentNullException(nameof(serializer));
 
-			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger);
+			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
@@ -262,6 +267,10 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+
+				// EVENT
+				_events.General.OnHit(operationId, key, _memoryEntryIsValid);
+
 				return _memoryEntry;
 			}
 
@@ -281,8 +290,14 @@ namespace ZiggyCreatures.Caching.Fusion
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
 
+					// EVENT
+					_events.General.OnHit(operationId, key, _memoryEntryIsValid);
+
 					return _memoryEntry;
 				}
+
+				// EVENT
+				_events.General.OnMiss(operationId, key);
 
 				return null;
 			}
@@ -291,6 +306,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// LOCK
 			var lockObj = await _reactor.AcquireLockAsync(key, operationId, options.LockTimeout, _logger, token).ConfigureAwait(false);
+			bool isStale;
 
 			try
 			{
@@ -300,6 +316,10 @@ namespace ZiggyCreatures.Caching.Fusion
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+
+					// EVENT
+					_events.General.OnHit(operationId, key, _memoryEntryIsValid);
+
 					return _memoryEntry;
 				}
 
@@ -314,6 +334,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				if (distributedEntryIsValid)
 				{
+					isStale = false;
 					_entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, false);
 				}
 				else
@@ -332,6 +353,9 @@ namespace ZiggyCreatures.Caching.Fusion
 						}
 						else
 						{
+							// EVENT
+							_events.General.OnMiss(operationId, key);
+
 							return null;
 						}
 					}
@@ -385,6 +409,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					}
 
 					_entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated);
+					isStale = failSafeActivated;
 
 					if ((dca?.IsCurrentlyUsable() ?? false) && failSafeActivated == false)
 					{
@@ -403,6 +428,16 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (lockObj is object)
 					ReleaseLock(operationId, key, lockObj);
+			}
+
+			// EVENT
+			if (_entry is object)
+			{
+				_events.General.OnHit(operationId, key, isStale);
+			}
+			else
+			{
+				_events.General.OnMiss(operationId, key);
 			}
 
 			return _entry;
@@ -424,6 +459,10 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+
+				// EVENT
+				_events.General.OnHit(operationId, key, _memoryEntryIsValid);
+
 				return _memoryEntry;
 			}
 
@@ -446,6 +485,9 @@ namespace ZiggyCreatures.Caching.Fusion
 					return _memoryEntry;
 				}
 
+				// EVENT
+				_events.General.OnMiss(operationId, key);
+
 				return null;
 			}
 
@@ -453,6 +495,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// LOCK
 			var lockObj = _reactor.AcquireLock(key, operationId, options.LockTimeout, _logger);
+			bool isStale;
 
 			try
 			{
@@ -462,6 +505,10 @@ namespace ZiggyCreatures.Caching.Fusion
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+
+					// EVENT
+					_events.General.OnHit(operationId, key, _memoryEntryIsValid);
+
 					return _memoryEntry;
 				}
 
@@ -476,6 +523,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				if (distributedEntryIsValid)
 				{
+					isStale = false;
 					_entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, false);
 				}
 				else
@@ -494,6 +542,9 @@ namespace ZiggyCreatures.Caching.Fusion
 						}
 						else
 						{
+							// EVENT
+							_events.General.OnMiss(operationId, key);
+
 							return null;
 						}
 					}
@@ -547,6 +598,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					}
 
 					_entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated);
+					isStale = failSafeActivated;
 
 					if ((dca?.IsCurrentlyUsable() ?? false) && failSafeActivated == false)
 					{
@@ -565,6 +617,16 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (lockObj is object)
 					ReleaseLock(operationId, key, lockObj);
+			}
+
+			// EVENT
+			if (_entry is object)
+			{
+				_events.General.OnHit(operationId, key, isStale);
+			}
+			else
+			{
+				_events.General.OnMiss(operationId, key);
 			}
 
 			return _entry;
@@ -829,6 +891,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false);
 
+			// EVENT
+			_events.General.OnSet(operationId, key);
+
 			_mca.SetEntry<TValue>(operationId, key, entry, options);
 
 			var dca = GetCurrentDistributedAccessor();
@@ -858,6 +923,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false);
 
+			// EVENT
+			_events.General.OnSet(operationId, key);
+
 			_mca.SetEntry<TValue>(operationId, key, entry, options);
 
 			var dca = GetCurrentDistributedAccessor();
@@ -885,6 +953,9 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling RemoveAsync<T> {Options}", key, operationId, options.ToLogString());
 
+			// EVENT
+			_events.General.OnRemove(operationId, key);
+
 			_mca.RemoveEntry(operationId, key, options);
 
 			var dca = GetCurrentDistributedAccessor();
@@ -909,6 +980,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var operationId = GenerateOperationId();
 
+			// EVENT
+			_events.General.OnRemove(operationId, key);
+
 			_mca.RemoveEntry(operationId, key, options);
 
 			var dca = GetCurrentDistributedAccessor();
@@ -918,6 +992,8 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			dca.RemoveEntry(operationId, key, options, token);
 		}
+
+		public FusionCacheEventsHub Events { get { return _events; } }
 
 		// IDISPOSABLE
 		private bool disposedValue = false;

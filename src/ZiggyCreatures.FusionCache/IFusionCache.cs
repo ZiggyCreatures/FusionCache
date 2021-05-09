@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion
@@ -161,5 +162,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+		FusionCacheEventsHub Events { get; }
 	}
 }

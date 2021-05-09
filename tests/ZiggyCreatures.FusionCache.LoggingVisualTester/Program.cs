@@ -13,7 +13,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 {
 
-	public static class ExtMethods
+	public static class VisualTesterExtMethods
 	{
 		public static FusionCacheEntryOptions SetFactoryTimeouts(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
 		{

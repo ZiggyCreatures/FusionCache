@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Xunit;
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 
-	public static class ExtMethods
+	public static class SingleLevelTestsExtMethods
 	{
 		public static FusionCacheEntryOptions SetFactoryTimeoutsMs(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
 		{

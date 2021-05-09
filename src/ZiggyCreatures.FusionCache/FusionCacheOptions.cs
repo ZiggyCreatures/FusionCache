@@ -84,6 +84,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public LogLevel FailSafeActivationLogLevel { get; set; }
 
+		/// <summary>
+		/// Specify the <see cref="LogLevel"/> to use when an error occurs during the handling of an event.
+		/// </summary>
+		public LogLevel EventsErrorsLogLevel { get; set; }
+
 		FusionCacheOptions IOptions<FusionCacheOptions>.Value
 		{
 			get { return this; }

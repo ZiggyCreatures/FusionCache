@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
@@ -16,7 +17,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private const int CircuitStateOpen = 1;
 		private const string WireFormatVersionPrefix = "v1:";
 
-		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger)
+		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheLayerEventsHub events)
 		{
 			if (distributedCache == null)
 				throw new ArgumentNullException(nameof(distributedCache));
@@ -33,18 +34,20 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			_gatewayTicks = DateTimeOffset.MinValue.Ticks;
 
 			_logger = logger;
+			_events = events;
 		}
 
-		private readonly FusionCacheOptions _options;
 		private int _circuitState;
 		private long _gatewayTicks;
 		private readonly TimeSpan _breakDuration;
 		private readonly long _breakDurationTicks;
 
-		private readonly ILogger? _logger;
-
 		private IDistributedCache _cache;
 		private IFusionCacheSerializer _serializer;
+		private readonly FusionCacheOptions _options;
+		private readonly ILogger? _logger;
+		private readonly FusionCacheLayerEventsHub _events;
+
 
 		private void UpdateLastError(string key, string operationId)
 		{
@@ -206,6 +209,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
 
+					// EVENT
+					_events.OnSet(operationId, key);
+
 					await _cache.SetAsync(WireFormatVersionPrefix + key, data, distributedOptions, token).ConfigureAwait(false);
 				},
 				"saving entry in distributed",
@@ -255,6 +261,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
+
+					// EVENT
+					_events.OnSet(operationId, key);
 
 					_cache.Set(WireFormatVersionPrefix + key, data, distributedOptions);
 				},
@@ -312,6 +321,17 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 						isValid = true;
 					}
 				}
+
+				// EVENT
+				if (entry is object)
+				{
+					_events.OnHit(operationId, key, isValid == false);
+				}
+				else
+				{
+					_events.OnMiss(operationId, key);
+				}
+
 				return (entry, isValid);
 			}
 			catch (Exception exc)
@@ -370,6 +390,17 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 						isValid = true;
 					}
 				}
+
+				// EVENT
+				if (entry is object)
+				{
+					_events.OnHit(operationId, key, isValid == false);
+				}
+				else
+				{
+					_events.OnMiss(operationId, key);
+				}
+
 				return (entry, isValid);
 			}
 			catch (Exception exc)
@@ -383,11 +414,17 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public Task RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
+			// EVENT
+			_events.OnRemove(operationId, key);
+
 			return ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(WireFormatVersionPrefix + key, ct), "removing entry from distributed", options, null, token);
 		}
 
 		public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
+			// EVENT
+			_events.OnRemove(operationId, key);
+
 			ExecuteOperation(operationId, key, _ => _cache.Remove(WireFormatVersionPrefix + key), "removing entry from distributed", options, null, token);
 		}
 

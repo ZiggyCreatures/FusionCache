@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
@@ -9,7 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		: IDisposable
 	{
 
-		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger)
+		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheLayerEventsHub events)
 		{
 			if (memoryCache is object)
 			{
@@ -22,12 +23,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			}
 			_options = options;
 			_logger = logger;
+			_events = events;
 		}
 
 		private IMemoryCache _cache;
 		private bool _cacheShouldBeDisposed;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
+		private readonly FusionCacheLayerEventsHub _events;
 
 		public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 		{
@@ -37,6 +40,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): saving entry in memory {Options} {Entry}", key, operationId, memoryOptions.ToLogString(), entry.ToLogString());
+
+			// EVENT
+			_events.OnSet(operationId, key);
 
 			_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
 		}
@@ -70,6 +76,16 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 				}
 			}
 
+			// EVENT
+			if (entry is object)
+			{
+				_events.OnHit(operationId, key, isValid == false);
+			}
+			else
+			{
+				_events.OnMiss(operationId, key);
+			}
+
 			return (entry, isValid);
 		}
 
@@ -77,6 +93,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): removing data (from memory)", key, operationId);
+
+			// EVENT
+			_events.OnRemove(operationId, key);
 
 			_cache.Remove(key);
 		}
