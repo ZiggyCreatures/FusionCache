@@ -17,7 +17,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private const int CircuitStateOpen = 1;
 		private const string WireFormatVersionPrefix = "v1:";
 
-		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheLayerEventsHub events)
+		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEvents events)
 		{
 			if (distributedCache == null)
 				throw new ArgumentNullException(nameof(distributedCache));
@@ -46,7 +46,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private IFusionCacheSerializer _serializer;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
-		private readonly FusionCacheLayerEventsHub _events;
+		private readonly FusionCacheDistributedEvents _events;
 
 
 		private void UpdateLastError(string key, string operationId)
@@ -67,6 +67,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			{
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 					_logger.LogWarning("FUSION (K={CacheKey} OP={CacheOperationId}): distributed cache temporarily de-activated for {BreakDuration}", key, operationId, _breakDuration);
+
+				// EVENT
+				_events.OnCircuitBreakerChange(operationId, key, false);
 			}
 		}
 
@@ -93,6 +96,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				{
 					if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 						_logger.LogWarning("FUSION: distributed cache activated again");
+
+					// EVENT
+					_events.OnCircuitBreakerChange(null, null, true);
 				}
 			}
 
@@ -209,10 +215,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
 
+					await _cache.SetAsync(WireFormatVersionPrefix + key, data, distributedOptions, token).ConfigureAwait(false);
+
 					// EVENT
 					_events.OnSet(operationId, key);
-
-					await _cache.SetAsync(WireFormatVersionPrefix + key, data, distributedOptions, token).ConfigureAwait(false);
 				},
 				"saving entry in distributed",
 				options,
@@ -262,10 +268,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
 
+					_cache.Set(WireFormatVersionPrefix + key, data, distributedOptions);
+
 					// EVENT
 					_events.OnSet(operationId, key);
-
-					_cache.Set(WireFormatVersionPrefix + key, data, distributedOptions);
 				},
 				"saving entry in distributed",
 				options,
@@ -340,6 +346,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while deserializing an entry", key, operationId);
 			}
 
+			// EVENT
+			_events.OnMiss(operationId, key);
+
 			return (null, false);
 		}
 
@@ -409,23 +418,26 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while deserializing an entry", key, operationId);
 			}
 
+			// EVENT
+			_events.OnMiss(operationId, key);
+
 			return (null, false);
 		}
 
-		public Task RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+		public async Task RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
+			await ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(WireFormatVersionPrefix + key, ct), "removing entry from distributed", options, null, token);
+
 			// EVENT
 			_events.OnRemove(operationId, key);
-
-			return ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(WireFormatVersionPrefix + key, ct), "removing entry from distributed", options, null, token);
 		}
 
 		public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
+			ExecuteOperation(operationId, key, _ => _cache.Remove(WireFormatVersionPrefix + key), "removing entry from distributed", options, null, token);
+
 			// EVENT
 			_events.OnRemove(operationId, key);
-
-			ExecuteOperation(operationId, key, _ => _cache.Remove(WireFormatVersionPrefix + key), "removing entry from distributed", options, null, token);
 		}
 
 	}

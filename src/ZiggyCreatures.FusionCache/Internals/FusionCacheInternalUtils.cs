@@ -155,14 +155,20 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			return new FusionCacheMemoryEntry(entry.GetValue<object>(), entry.Metadata);
 		}
 
-		public static void SafeExecuteEvent<TEventArgs>(string operationId, string key, IFusionCache cache, EventHandler<TEventArgs>? ev, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel)
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void SafeExecuteEvent<TEventArgs>(string? operationId, string? key, IFusionCache cache, EventHandler<TEventArgs>? ev, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel)
 		{
-			var invocations = ev?.GetInvocationList();
-			if (invocations is null || invocations.Length == 0)
+			if (ev is null)
+				return;
+
+			var invocations = ev.GetInvocationList();
+
+			// TODO: PROBABLY THIS IS NOT NEEDED, 
+			if (invocations.Length == 0)
 				return;
 
 			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
-			if ((logger?.IsEnabled(logLevel) ?? false) == false)
+			if (logger is object && logger.IsEnabled(logLevel) == false)
 				logger = null;
 
 			var e = eventArgsBuilder();

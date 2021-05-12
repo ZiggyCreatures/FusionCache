@@ -163,6 +163,9 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
+		/// <summary>
+		/// The central place for all events handling of this FusionCache instance.
+		/// </summary>
 		FusionCacheEventsHub Events { get; }
 	}
 }

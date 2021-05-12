@@ -10,7 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		: IDisposable
 	{
 
-		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheLayerEventsHub events)
+		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheBaseEvents events)
 		{
 			if (memoryCache is object)
 			{
@@ -30,7 +30,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		private bool _cacheShouldBeDisposed;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
-		private readonly FusionCacheLayerEventsHub _events;
+		private readonly FusionCacheBaseEvents _events;
 
 		public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 		{
@@ -41,10 +41,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): saving entry in memory {Options} {Entry}", key, operationId, memoryOptions.ToLogString(), entry.ToLogString());
 
+			_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
+
 			// EVENT
 			_events.OnSet(operationId, key);
-
-			_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
 		}
 
 		public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key)
@@ -94,10 +94,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): removing data (from memory)", key, operationId);
 
+			_cache.Remove(key);
+
 			// EVENT
 			_events.OnRemove(operationId, key);
-
-			_cache.Remove(key);
 		}
 
 		// IDISPOSABLE

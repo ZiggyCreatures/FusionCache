@@ -14,13 +14,13 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			_options = options;
 			_logger = logger;
 
-			General = new FusionCacheLayerEventsHub(_cache, _options, _logger);
-			Memory = new FusionCacheLayerEventsHub(_cache, _options, _logger);
-			Distributed = new FusionCacheLayerEventsHub(_cache, _options, _logger);
+			General = new FusionCacheBaseEvents(_cache, _options, _logger);
+			Memory = new FusionCacheBaseEvents(_cache, _options, _logger);
+			Distributed = new FusionCacheDistributedEvents(_cache, _options, _logger);
 		}
 
-		public FusionCacheLayerEventsHub General { get; }
-		public FusionCacheLayerEventsHub Memory { get; }
-		public FusionCacheLayerEventsHub Distributed { get; }
+		public FusionCacheBaseEvents General { get; }
+		public FusionCacheBaseEvents Memory { get; }
+		public FusionCacheDistributedEvents Distributed { get; }
 	}
 }

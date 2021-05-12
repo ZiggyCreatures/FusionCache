@@ -5,14 +5,14 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 namespace ZiggyCreatures.Caching.Fusion.Events
 {
 
-	public class FusionCacheLayerEventsHub
+	public class FusionCacheBaseEvents
 	{
 
-		private IFusionCache _cache;
-		private readonly FusionCacheOptions _options;
-		private readonly ILogger? _logger;
+		protected IFusionCache _cache;
+		protected readonly FusionCacheOptions _options;
+		protected readonly ILogger? _logger;
 
-		public FusionCacheLayerEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
+		public FusionCacheBaseEvents(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
 		{
 			_cache = cache;
 			_options = options;
