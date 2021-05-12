@@ -29,10 +29,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						async _ =>
 						{
-						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
-						return 42;
-					},
+							Interlocked.Increment(ref factoryCallsCount);
+							await Task.Delay(FactoryDuration).ConfigureAwait(false);
+							return 42;
+						},
 						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 					);
 					tasks.Add(task);
@@ -60,10 +60,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						_ =>
 						{
-						Interlocked.Increment(ref factoryCallsCount);
-						Thread.Sleep(FactoryDuration);
-						return 42;
-					},
+							Interlocked.Increment(ref factoryCallsCount);
+							Thread.Sleep(FactoryDuration);
+							return 42;
+						},
 						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 					);
 				});
@@ -91,10 +91,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						   "foo",
 						   async _ =>
 						   {
-							 Interlocked.Increment(ref factoryCallsCount);
-							 await Task.Delay(FactoryDuration).ConfigureAwait(false);
-							 return 42;
-						 },
+							   Interlocked.Increment(ref factoryCallsCount);
+							   await Task.Delay(FactoryDuration).ConfigureAwait(false);
+							   return 42;
+						   },
 						   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 					   );
 						tasks.Add(task);
@@ -105,10 +105,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						   "foo",
 						   _ =>
 						   {
-							 Interlocked.Increment(ref factoryCallsCount);
-							 Thread.Sleep(FactoryDuration);
-							 return 42;
-						 },
+							   Interlocked.Increment(ref factoryCallsCount);
+							   Thread.Sleep(FactoryDuration);
+							   return 42;
+						   },
 						   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 					   );
 					}
