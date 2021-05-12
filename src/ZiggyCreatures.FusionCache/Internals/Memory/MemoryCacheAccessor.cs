@@ -10,7 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		: IDisposable
 	{
 
-		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheBaseEvents events)
+		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheBaseEventsHub events)
 		{
 			if (memoryCache is object)
 			{
@@ -30,7 +30,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		private bool _cacheShouldBeDisposed;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
-		private readonly FusionCacheBaseEvents _events;
+		private readonly FusionCacheBaseEventsHub _events;
 
 		public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 		{

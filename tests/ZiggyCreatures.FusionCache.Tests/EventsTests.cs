@@ -15,7 +15,8 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			Miss = 0,
 			Hit = 1,
 			Set = 2,
-			Remove = 3
+			Remove = 3,
+			FailSafeActivate = 4
 		}
 
 		public class EntryActionsStats
@@ -52,12 +53,14 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 				// SETUP HANDLERS
-				cache.Events.General.Miss += onMiss;
-				cache.Events.General.Hit += onHit;
-				cache.Events.General.Set += onSet;
-				cache.Events.General.Remove += onRemove;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("foo");
@@ -74,6 +77,12 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				// HIT: +1
 				await cache.TryGetAsync<int>("foo");
 
+				await Task.Delay(duration).ConfigureAwait(false);
+
+				// HIT: +1
+				// FAIL-SAFE: +1
+				var foo = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
+
 				// MISS: +1
 				await cache.TryGetAsync<int>("bar");
 
@@ -86,15 +95,17 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
 
 				// REMOVE HANDLERS
-				cache.Events.General.Miss -= onMiss;
-				cache.Events.General.Hit -= onHit;
-				cache.Events.General.Set -= onSet;
-				cache.Events.General.Remove -= onRemove;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(3, stats.Data[EntryActionKind.Hit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
 			}
 		}
 
@@ -118,12 +129,14 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 				// SETUP HANDLERS
-				cache.Events.General.Miss += onMiss;
-				cache.Events.General.Hit += onHit;
-				cache.Events.General.Set += onSet;
-				cache.Events.General.Remove += onRemove;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// MISS: +1
 				cache.TryGet<int>("foo");
@@ -140,6 +153,12 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				// HIT: +1
 				cache.TryGet<int>("foo");
 
+				Thread.Sleep(duration);
+
+				// HIT: +1
+				// FAIL-SAFE: +1
+				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
+
 				// MISS: +1
 				cache.TryGet<int>("bar");
 
@@ -152,15 +171,17 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				Thread.Sleep(TimeSpan.FromSeconds(5));
 
 				// REMOVE HANDLERS
-				cache.Events.General.Miss -= onMiss;
-				cache.Events.General.Hit -= onHit;
-				cache.Events.General.Set -= onSet;
-				cache.Events.General.Remove -= onRemove;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(3, stats.Data[EntryActionKind.Hit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
 			}
 		}
 

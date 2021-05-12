@@ -27,8 +27,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		private readonly IFusionCacheReactor _reactor;
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
-		private FusionCacheEventsHub _hub;
-		private FusionCacheBaseEvents _events;
+		private FusionCacheEventsHub _events;
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCache"/> instance.
@@ -60,11 +59,10 @@ namespace ZiggyCreatures.Caching.Fusion
 			_reactor = reactor ?? new FusionCacheReactorStandard();
 
 			// EVENTS
-			_hub = new FusionCacheEventsHub(this, _options, _logger);
-			_events = _hub.General;
+			_events = new FusionCacheEventsHub(this, _options, _logger);
 
 			// MEMORY CACHE
-			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _hub.Memory);
+			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
 
 			// DISTRIBUTED CACHE
 			_dca = null;
@@ -85,7 +83,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (serializer is null)
 				throw new ArgumentNullException(nameof(serializer));
 
-			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _hub.Distributed);
+			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
@@ -154,6 +152,10 @@ namespace ZiggyCreatures.Caching.Fusion
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
 						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (K={CacheKey} OP={CacheOperationId}): FAIL-SAFE activated (from distributed)", key, operationId);
 					failSafeActivated = true;
+
+					// EVENT
+					_events.OnFailSafeActivate(operationId, key);
+
 					return distributedEntry;
 				}
 				else if (memoryEntry is object)
@@ -162,6 +164,10 @@ namespace ZiggyCreatures.Caching.Fusion
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
 						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (K={CacheKey} OP={CacheOperationId}): FAIL-SAFE activated (from memory)", key, operationId);
 					failSafeActivated = true;
+
+					// EVENT
+					_events.OnFailSafeActivate(operationId, key);
+
 					return memoryEntry;
 				}
 				else
@@ -999,7 +1005,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public FusionCacheEventsHub Events { get { return _hub; } }
+		public FusionCacheEventsHub Events { get { return _events; } }
 
 		// IDISPOSABLE
 		private bool disposedValue = false;

@@ -17,7 +17,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private const int CircuitStateOpen = 1;
 		private const string WireFormatVersionPrefix = "v1:";
 
-		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEvents events)
+		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 		{
 			if (distributedCache == null)
 				throw new ArgumentNullException(nameof(distributedCache));
@@ -46,7 +46,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private IFusionCacheSerializer _serializer;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
-		private readonly FusionCacheDistributedEvents _events;
+		private readonly FusionCacheDistributedEventsHub _events;
 
 
 		private void UpdateLastError(string key, string operationId)

@@ -5,11 +5,11 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 namespace ZiggyCreatures.Caching.Fusion.Events
 {
 
-	public class FusionCacheDistributedEvents
-		: FusionCacheBaseEvents
+	public class FusionCacheDistributedEventsHub
+		: FusionCacheBaseEventsHub
 	{
 
-		public FusionCacheDistributedEvents(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
+		public FusionCacheDistributedEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
 			: base(cache, options, logger)
 		{
 		}
