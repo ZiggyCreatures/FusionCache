@@ -880,7 +880,7 @@
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a fail-safe activation occurs.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EventsErrorsLogLevel">
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EventHandlingErrorsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during the handling of an event.
             </summary>

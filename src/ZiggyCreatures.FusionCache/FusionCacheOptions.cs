@@ -27,6 +27,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			FactorySyntheticTimeoutsLogLevel = LogLevel.Warning;
 			FactoryErrorsLogLevel = LogLevel.Warning;
 			FailSafeActivationLogLevel = LogLevel.Warning;
+			EventHandlingErrorsLogLevel = LogLevel.Warning;
 		}
 
 		/// <summary>
@@ -87,7 +88,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during the handling of an event.
 		/// </summary>
-		public LogLevel EventsErrorsLogLevel { get; set; }
+		public LogLevel EventHandlingErrorsLogLevel { get; set; }
 
 		FusionCacheOptions IOptions<FusionCacheOptions>.Value
 		{

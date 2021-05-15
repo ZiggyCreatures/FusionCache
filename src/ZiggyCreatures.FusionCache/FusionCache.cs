@@ -208,6 +208,9 @@ namespace ZiggyCreatures.Caching.Fusion
 				{
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
 						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (K={CacheKey} OP={CacheOperationId}): a timed-out factory thrown an exception", key, operationId);
+
+					// EVENT
+					_events.OnBackgroundFactoryError(operationId, key);
 				}
 				else if (antecedent.Status == TaskStatus.RanToCompletion)
 				{
@@ -217,6 +220,9 @@ namespace ZiggyCreatures.Caching.Fusion
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 					_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
+
+					// EVENT
+					_events.OnBackgroundFactorySuccess(operationId, key);
 				}
 			});
 		}
@@ -252,11 +258,17 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (_logger?.IsEnabled(_options.FactorySyntheticTimeoutsLogLevel) ?? false)
 					_logger.Log(_options.FactorySyntheticTimeoutsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): a synthetic timeout occurred while calling the factory", key, operationId);
 
+				// EVENT
+				_events.OnFactorySyntheticTimeout(operationId, key);
+
 				return;
 			}
 
 			if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
 				_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while calling the factory", key, operationId);
+
+			// EVENT
+			_events.OnFactoryError(operationId, key);
 		}
 
 		private async Task<IFusionCacheEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<CancellationToken, Task<TValue>>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
