@@ -10,11 +10,11 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		public FusionCacheEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
 			: base(cache, options, logger)
 		{
-			Memory = new FusionCacheBaseEventsHub(_cache, _options, _logger);
+			Memory = new FusionCacheMemoryEventsHub(_cache, _options, _logger);
 			Distributed = new FusionCacheDistributedEventsHub(_cache, _options, _logger);
 		}
 
-		public FusionCacheBaseEventsHub Memory { get; }
+		public FusionCacheMemoryEventsHub Memory { get; }
 		public FusionCacheDistributedEventsHub Distributed { get; }
 
 		public event EventHandler<FusionCacheEntryEventArgs> FailSafeActivate;
