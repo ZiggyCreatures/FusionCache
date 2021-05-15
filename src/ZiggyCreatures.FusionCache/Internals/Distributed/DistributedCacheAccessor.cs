@@ -204,6 +204,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, distributedEntry.ToLogString());
 
+						// EVENT
+						_events.OnSerializationError(operationId, key);
+
 						data = null;
 					}
 
@@ -256,6 +259,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					{
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, distributedEntry.ToLogString());
+
+						// EVENT
+						_events.OnSerializationError(operationId, key);
 
 						data = null;
 					}
@@ -344,6 +350,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			{
 				if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while deserializing an entry", key, operationId);
+
+				// EVENT
+				_events.OnDeserializationError(operationId, key);
 			}
 
 			// EVENT
@@ -416,6 +425,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			{
 				if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while deserializing an entry", key, operationId);
+
+				// EVENT
+				_events.OnDeserializationError(operationId, key);
 			}
 
 			// EVENT
