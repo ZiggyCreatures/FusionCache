@@ -280,6 +280,11 @@
             The <see cref="T:Microsoft.Extensions.Caching.Memory.CacheItemPriority"/> of the entry in the memory cache.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.PostEvictionCallbacks">
+            <summary>
+            Gets or sets the callbacks to be fired after the cache entry is evicted from the cache.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.MemoryOptionsModifier">
             <summary>
             A function to apply when creating a <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> object from this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, to allow for extra customizations.
