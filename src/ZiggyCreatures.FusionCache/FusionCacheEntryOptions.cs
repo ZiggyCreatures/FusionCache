@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -282,6 +283,11 @@ namespace ZiggyCreatures.Caching.Fusion
 				Size = Size,
 				Priority = Priority
 			};
+			
+			if (PostEvictionCallbacks.Any())
+			{
+				res.RegisterPostEvictionCallback(PostEvictionCallbacks.First()?.EvictionCallback);
+			}
 
 			if (JitterMaxDuration <= TimeSpan.Zero)
 			{
