@@ -14,9 +14,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		{
 			Miss = 0,
 			Hit = 1,
-			Set = 2,
-			Remove = 3,
-			FailSafeActivate = 4
+			StaleHit = 2,
+			Set = 3,
+			Remove = 4,
+			FailSafeActivate = 5,
 		}
 
 		public class EntryActionsStats
@@ -50,7 +51,18 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) =>
+				{
+					if (e.IsStale)
+					{
+						stats.RecordAction(EntryActionKind.StaleHit);
+					}
+					else
+					{
+						stats.RecordAction(EntryActionKind.Hit);
+					}
+				};
+				
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
