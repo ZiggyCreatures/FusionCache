@@ -48,24 +48,24 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Remove, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
 		}
 
-		internal void OnCacheExpired(string operationId, string? key)
+		internal void OnCacheExpired(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Expired, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Expired, () => new FusionCacheEntryEventArgs(key), nameof(Expired), _logger, _options.EventHandlingErrorsLogLevel);
 		}
 
 		internal void OnCacheCapacity(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Capacity, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Capacity, () => new FusionCacheEntryEventArgs(key), nameof(Capacity), _logger, _options.EventHandlingErrorsLogLevel);
 		}
 
 		internal void OnCacheReplaced(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Replaced, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Replaced, () => new FusionCacheEntryEventArgs(key), nameof(Replaced), _logger, _options.EventHandlingErrorsLogLevel);
 		}
 
 		internal void OnCacheEvicted(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Evicted, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Evicted, () => new FusionCacheEntryEventArgs(key), nameof(Evicted), _logger, _options.EventHandlingErrorsLogLevel);
 		}
 	}
 }
