@@ -41,7 +41,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 			var duration = TimeSpan.FromSeconds(2);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(2);
+			var throttleDuration = TimeSpan.FromSeconds(3);
 
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
@@ -62,7 +62,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						stats.RecordAction(EntryActionKind.Hit);
 					}
 				};
-				
+
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -89,14 +89,21 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				// HIT: +1
 				await cache.TryGetAsync<int>("foo");
 
-				await Task.Delay(duration).ConfigureAwait(false);
+				await Task.Delay(duration);
 
-				// HIT: +1
+				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				var foo = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
+				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("bar");
+
+				// LET THE THROTTLE DURATION PASS
+				await Task.Delay(throttleDuration);
+
+				// HIT (STALE): +1
+				// FAIL-SAFE: +1
+				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
 				await cache.RemoveAsync("foo");
@@ -104,7 +111,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				// REMOVE: +1
 				await cache.RemoveAsync("bar");
 
-				await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(5));
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;
@@ -114,10 +121,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(3, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
-				Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
+				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
 			}
 		}
 
@@ -128,7 +136,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 			var duration = TimeSpan.FromSeconds(2);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(2);
+			var throttleDuration = TimeSpan.FromSeconds(3);
 
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
@@ -138,7 +146,18 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) =>
+				{
+					if (e.IsStale)
+					{
+						stats.RecordAction(EntryActionKind.StaleHit);
+					}
+					else
+					{
+						stats.RecordAction(EntryActionKind.Hit);
+					}
+				};
+
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -167,12 +186,19 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				Thread.Sleep(duration);
 
-				// HIT: +1
+				// HIT (STALE): +1
 				// FAIL-SAFE: +1
 				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
 				cache.TryGet<int>("bar");
+
+				// LET THE THROTTLE DURATION PASS
+				Thread.Sleep(throttleDuration);
+
+				// HIT (STALE): +1
+				// FAIL-SAFE: +1
+				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
 				cache.Remove("foo");
@@ -190,10 +216,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(3, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
-				Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
+				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
 			}
 		}
 

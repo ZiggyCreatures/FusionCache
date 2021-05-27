@@ -43,7 +43,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// OPTIONS
 			_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
-			
+
 			// LOGGING
 			if (logger is NullLogger<FusionCache>)
 			{
@@ -289,7 +289,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
 
 				// EVENT
-				_events.OnHit(operationId, key, _memoryEntryIsValid);
+				_events.OnHit(operationId, key, _memoryEntryIsValid == false);
 
 				return _memoryEntry;
 			}
@@ -311,7 +311,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
 
 					// EVENT
-					_events.OnHit(operationId, key, _memoryEntryIsValid);
+					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
 
 					return _memoryEntry;
 				}
@@ -338,7 +338,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
 
 					// EVENT
-					_events.OnHit(operationId, key, _memoryEntryIsValid);
+					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
 
 					return _memoryEntry;
 				}
@@ -481,7 +481,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
 
 				// EVENT
-				_events.OnHit(operationId, key, _memoryEntryIsValid);
+				_events.OnHit(operationId, key, _memoryEntryIsValid == false);
 
 				return _memoryEntry;
 			}
@@ -503,7 +503,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
 
 					// EVENT
-					_events.OnHit(operationId, key, _memoryEntryIsValid);
+					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
 
 					return _memoryEntry;
 				}
@@ -530,7 +530,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
 
 					// EVENT
-					_events.OnHit(operationId, key, _memoryEntryIsValid);
+					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
 
 					return _memoryEntry;
 				}
