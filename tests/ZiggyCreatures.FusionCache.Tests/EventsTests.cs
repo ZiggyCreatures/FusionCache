@@ -76,7 +76,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("foo");
-
+				
 				// MISS: +1
 				await cache.TryGetAsync<int>("bar");
 
@@ -128,6 +128,131 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
 			}
 		}
+
+
+		/// <summary>
+		/// Expect zero hits
+		/// Expect one miss.
+		///
+		/// Cache call
+		/// await cache.GetOrSetAsync<string>("foo", async _ => null);
+		/// 
+		/// Wired event to <see cref="FusionCacheEventsHub"/>:
+		///   cache.Events.Miss += onMiss;
+		///   cache.Events.Hit += onHit;
+		/// 
+		/// Expect on miss.
+		/// </summary>
+		/// <returns></returns>
+		[Fact]
+		public async Task EntryEventsWorkAsync_ExpectMissButGetHit_OnFusionCacheEventhub()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) =>
+				{
+					if (e.IsStale)
+					{
+						stats.RecordAction(EntryActionKind.StaleHit);
+					}
+					else
+					{
+						stats.RecordAction(EntryActionKind.Hit);
+					}
+				};
+
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate =
+					(s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				//  This is a miss in the context of monitoring hits and misses.
+				await cache.GetOrSetAsync<string>("foo", async _ => null);
+
+				await Task.Delay(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(0, stats.Data[EntryActionKind.Hit]);  // I guess you could have a set but not a hit
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]); // It is a miss. 
+			}
+		}
+
+		/// <summary>
+		/// Don't expect two misses when calling
+		/// await cache.GetOrSetAsync<string>("foo", async _ => null);
+		/// 
+		/// Wired events to <see cref="FusionCacheMemoryEventsHub"></see>:
+		///   cache.Events.Memory.Miss += onMiss;
+		///   cache.Events.Memory.Hit += onHit;
+		/// 
+		/// Expect on miss.
+		/// </summary>
+		/// <returns></returns>
+		[Fact]
+		public async Task EntryEventsWorkAsync_ExpectMissButTwoMisses_OnFusionCacheMemoryEventhub()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) =>
+				{
+					if (e.IsStale)
+					{
+						stats.RecordAction(EntryActionKind.StaleHit);
+					}
+					else
+					{
+						stats.RecordAction(EntryActionKind.Hit);
+					}
+				};
+
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate =
+					(s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Memory.Miss += onMiss;
+				cache.Events.Memory.Hit += onHit;
+				cache.Events.Memory.Set += onSet;
+				cache.Events.Memory.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				await cache.GetOrSetAsync<string>("foo", async _ => "Stuff");
+				// MISS: +1
+				await cache.GetOrSetAsync<string>("bar", async _ => null);
+
+				await Task.Delay(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+			}
+		}
+
 
 		[Fact]
 		public void EntryEventsWork()
