@@ -31,6 +31,12 @@
 			- Added a GetOrSet&lt;T&gt; overload with a direct value (instead of a factory)
 			- Perf optimizations
 		</PackageReleaseNotes>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <DebugType>full</DebugType>
+	  <DebugSymbols>true</DebugSymbols>
 	</PropertyGroup>
 	
 	<ItemGroup>

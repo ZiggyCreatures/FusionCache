@@ -23,10 +23,6 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		public event EventHandler<FusionCacheEntryEventArgs> Miss;
 		public event EventHandler<FusionCacheEntryEventArgs> Set;
 		public event EventHandler<FusionCacheEntryEventArgs> Remove;
-		public event EventHandler<FusionCacheEntryEventArgs> Expired;
-		public event EventHandler<FusionCacheEntryEventArgs> Capacity;
-		public event EventHandler<FusionCacheEntryEventArgs> Replaced;
-		public event EventHandler<FusionCacheEntryEventArgs> Evicted;
 
 		internal void OnHit(string operationId, string key, bool isStale)
 		{
@@ -46,26 +42,6 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		internal void OnRemove(string operationId, string key)
 		{
 			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Remove, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
-		}
-
-		internal void OnCacheExpired(string operationId, string key)
-		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Expired, () => new FusionCacheEntryEventArgs(key), nameof(Expired), _logger, _options.EventHandlingErrorsLogLevel);
-		}
-
-		internal void OnCacheCapacity(string operationId, string key)
-		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Capacity, () => new FusionCacheEntryEventArgs(key), nameof(Capacity), _logger, _options.EventHandlingErrorsLogLevel);
-		}
-
-		internal void OnCacheReplaced(string operationId, string key)
-		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Replaced, () => new FusionCacheEntryEventArgs(key), nameof(Replaced), _logger, _options.EventHandlingErrorsLogLevel);
-		}
-
-		internal void OnCacheEvicted(string operationId, string key)
-		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Evicted, () => new FusionCacheEntryEventArgs(key), nameof(Evicted), _logger, _options.EventHandlingErrorsLogLevel);
 		}
 	}
 }

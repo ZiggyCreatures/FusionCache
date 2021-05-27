@@ -43,12 +43,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// OPTIONS
 			_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
-			_options.DefaultEntryOptions.PostEvictionCallbacks.Add(new PostEvictionCallbackRegistration()
-			{
-				EvictionCallback = EvictionCallbackMetrics(),
-				State = null
-			});
-
+			
 			// LOGGING
 			if (logger is NullLogger<FusionCache>)
 			{
@@ -72,35 +67,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			// DISTRIBUTED CACHE
 			_dca = null;
 		}
-
-		private PostEvictionDelegate EvictionCallbackMetrics()
-		{
-			return (key, value, reason, state) =>
-			{
-				if (reason == EvictionReason.Expired)
-				{
-					_events.Memory.OnCacheExpired(GenerateOperationId(), (string)key);
-				}
-				else if (reason == EvictionReason.Capacity)
-				{
-					_events.Memory.OnCacheCapacity(GenerateOperationId(), (string)key);
-				}
-				// else if (reason == EvictionReason.Removed)
-				// {
-				// 	This is supported already in FusionCache
-				// }
-				else if (reason == EvictionReason.Replaced)
-				{
-
-					_events.Memory.OnCacheReplaced(GenerateOperationId(), (string)key);
-				}
-				else // Evicted un-categorized
-				{
-					_events.Memory.OnCacheEvicted(GenerateOperationId(), (string)key);
-				}
-			};
-		}
-
 
 		/// <inheritdoc/>
 		public FusionCacheEntryOptions DefaultEntryOptions
