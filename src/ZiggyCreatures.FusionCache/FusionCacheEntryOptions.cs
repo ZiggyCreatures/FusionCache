@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion
@@ -63,12 +62,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// The <see cref="CacheItemPriority"/> of the entry in the memory cache.
 		/// </summary>
 		public CacheItemPriority Priority { get; set; }
-
-		/// <summary>
-		/// Gets or sets the callbacks to be fired after the cache entry is evicted from the cache.
-		/// </summary>
-		public IList<PostEvictionCallbackRegistration> PostEvictionCallbacks { get; }
-			= new List<PostEvictionCallbackRegistration>();
 
 		// DYNAMIC
 		//public Action<FusionCacheEntryOptions, object?>? Modifier { get; set; }
@@ -276,18 +269,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 		/// </summary>
 		/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
-		public MemoryCacheEntryOptions ToMemoryCacheEntryOptions()
+		public MemoryCacheEntryOptions ToMemoryCacheEntryOptions(FusionCacheMemoryEventsHub events)
 		{
 			var res = new MemoryCacheEntryOptions
 			{
 				Size = Size,
 				Priority = Priority
 			};
-			
-			if (PostEvictionCallbacks.Any())
-			{
-				res.RegisterPostEvictionCallback(PostEvictionCallbacks.First()?.EvictionCallback);
-			}
 
 			if (JitterMaxDuration <= TimeSpan.Zero)
 			{
@@ -296,6 +284,14 @@ namespace ZiggyCreatures.Caching.Fusion
 			else
 			{
 				res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration).AddMilliseconds(GetJitterDurationMs());
+			}
+
+			if (events.HasEvictionSubscribers())
+			{
+				res.RegisterPostEvictionCallback((key, value, reason, state) =>
+				{
+					((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason);
+				}, events);
 			}
 
 			return res;
