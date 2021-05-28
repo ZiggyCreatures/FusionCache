@@ -383,6 +383,12 @@ namespace ZiggyCreatures.Caching.Fusion
 					{
 						// FACTORY
 
+						// EVENT
+						if (_memoryEntry is object || distributedEntry is object)
+							_events.OnHit(operationId, key, true);
+						else
+							_events.OnMiss(operationId, key);
+
 						Task<TValue>? factoryTask = null;
 
 						try
@@ -453,7 +459,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			// EVENT
 			if (_entry is object)
 			{
-				_events.OnHit(operationId, key, isStale);
+				_events.OnSet(operationId, key);
 			}
 			else
 			{
@@ -575,6 +581,12 @@ namespace ZiggyCreatures.Caching.Fusion
 					{
 						// FACTORY
 
+						// EVENT
+						if (_memoryEntry is object || distributedEntry is object)
+							_events.OnHit(operationId, key, true);
+						else
+							_events.OnMiss(operationId, key);
+
 						Task<TValue>? factoryTask = null;
 
 						try
@@ -645,7 +657,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			// EVENT
 			if (_entry is object)
 			{
-				_events.OnHit(operationId, key, isStale);
+				_events.OnSet(operationId, key);
 			}
 			else
 			{
