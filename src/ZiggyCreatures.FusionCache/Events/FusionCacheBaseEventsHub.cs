@@ -43,6 +43,5 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		{
 			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Remove, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel);
 		}
-
 	}
 }

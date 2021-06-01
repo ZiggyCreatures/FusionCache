@@ -424,7 +424,7 @@
             <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub)">
             <summary>
             Creates a new <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.
             </summary>

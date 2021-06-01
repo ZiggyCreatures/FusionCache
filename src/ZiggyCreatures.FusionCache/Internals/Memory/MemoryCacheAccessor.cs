@@ -34,7 +34,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 
 		public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 		{
-			var memoryOptions = options.ToMemoryCacheEntryOptions();
+			var memoryOptions = options.ToMemoryCacheEntryOptions(_events);
 
 			options.MemoryOptionsModifier?.Invoke(memoryOptions, entry.GetValue<TValue>());
 

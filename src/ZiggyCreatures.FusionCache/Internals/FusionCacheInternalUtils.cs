@@ -163,10 +163,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			var invocations = ev.GetInvocationList();
 
-			// TODO: PROBABLY THIS IS NOT NEEDED, 
-			if (invocations.Length == 0)
-				return;
-
 			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
 			if (logger is object && logger.IsEnabled(logLevel) == false)
 				logger = null;

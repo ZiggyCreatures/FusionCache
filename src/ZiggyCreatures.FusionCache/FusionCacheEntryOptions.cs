@@ -2,6 +2,7 @@
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion
@@ -268,7 +269,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 		/// </summary>
 		/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
-		public MemoryCacheEntryOptions ToMemoryCacheEntryOptions()
+		public MemoryCacheEntryOptions ToMemoryCacheEntryOptions(FusionCacheMemoryEventsHub events)
 		{
 			var res = new MemoryCacheEntryOptions
 			{
@@ -283,6 +284,14 @@ namespace ZiggyCreatures.Caching.Fusion
 			else
 			{
 				res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration).AddMilliseconds(GetJitterDurationMs());
+			}
+
+			if (events.HasEvictionSubscribers())
+			{
+				res.RegisterPostEvictionCallback((key, value, reason, state) =>
+				{
+					((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason);
+				}, events);
 			}
 
 			return res;
