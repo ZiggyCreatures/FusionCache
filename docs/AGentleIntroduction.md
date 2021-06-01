@@ -117,6 +117,12 @@ Everything is natively available for both the **sync** and **async** programming
 
 Any operation works seamlessly with any other, even if one is **sync** and the other is **async**: an example is multiple concurrent factory calls for the same cache key, some of them **sync** while others **async**, all coordinated togheter at the same time with no problems and a guarantee that only one will be executed at the same time.
 
+## :telephone_receiver: Events
+
+There's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers).
+
+You can read more [**here**](Events.md).
+
 ## :page_with_curl: Logging
 FusionCache can log extensively to help you pinpoint any possible problem in your production environment.
 
