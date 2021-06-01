@@ -5,18 +5,32 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Events
 {
-
+	/// <summary>
+	/// The events hub for events specific for the memory layer.
+	/// </summary>
 	public class FusionCacheMemoryEventsHub
 		: FusionCacheBaseEventsHub
 	{
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FusionCacheMemoryEventsHub" /> class.
+		/// </summary>
+		/// <param name="cache">The <see cref="IFusionCache" /> instance.</param>
+		/// <param name="options">The <see cref="FusionCacheOptions" /> instance.</param>
+		/// <param name="logger">The <see cref="ILogger" /> instance.</param>
 		public FusionCacheMemoryEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
 			: base(cache, options, logger)
 		{
 		}
 
-		public event EventHandler<FusionCacheEntryEvictionEventArgs> Eviction;
+		/// <summary>
+		/// The event for a cache eviction.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEvictionEventArgs>? Eviction;
 
+		/// <summary>
+		/// Check if the <see cref="Eviction"/> event has subscribers or not.
+		/// </summary>
+		/// <returns>true if the <see cref="Eviction"/> event has subscribers, otherwhise false.</returns>
 		public bool HasEvictionSubscribers()
 		{
 			return Eviction is object;
@@ -26,6 +40,5 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		{
 			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Eviction, () => new FusionCacheEntryEvictionEventArgs(key, reason), nameof(Eviction), _logger, _options.EventHandlingErrorsLogLevel);
 		}
-
 	}
 }

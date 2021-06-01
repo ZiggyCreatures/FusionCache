@@ -4,9 +4,18 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Events
 {
+	/// <summary>
+	/// The events hub for high-level events for a FusionCache instance, as a whole.
+	/// </summary>
 	public class FusionCacheEventsHub
 		: FusionCacheBaseEventsHub
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FusionCacheEventsHub" /> class.
+		/// </summary>
+		/// <param name="cache">The <see cref="IFusionCache" /> instance.</param>
+		/// <param name="options">The <see cref="FusionCacheOptions" /> instance.</param>
+		/// <param name="logger">The <see cref="ILogger" /> instance.</param>
 		public FusionCacheEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
 			: base(cache, options, logger)
 		{
@@ -14,14 +23,40 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			Distributed = new FusionCacheDistributedEventsHub(_cache, _options, _logger);
 		}
 
+		/// <summary>
+		/// The events hub for the memory layer.
+		/// </summary>
 		public FusionCacheMemoryEventsHub Memory { get; }
+
+		/// <summary>
+		/// The events hub for the distributed layer.
+		/// </summary>
 		public FusionCacheDistributedEventsHub Distributed { get; }
 
-		public event EventHandler<FusionCacheEntryEventArgs> FailSafeActivate;
-		public event EventHandler<FusionCacheEntryEventArgs> FactorySyntheticTimeout;
-		public event EventHandler<FusionCacheEntryEventArgs> FactoryError;
-		public event EventHandler<FusionCacheEntryEventArgs> BackgroundFactoryError;
-		public event EventHandler<FusionCacheEntryEventArgs> BackgroundFactorySuccess;
+		/// <summary>
+		/// The event for a fail-safe activation.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? FailSafeActivate;
+
+		/// <summary>
+		/// The event for a synthetic timeout during a factory execution.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? FactorySyntheticTimeout;
+
+		/// <summary>
+		/// The event for a generic error during a factory execution (excluding synthetic timeouts, for which there is the specific <see cref="FactorySyntheticTimeout"/> event).
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? FactoryError;
+
+		/// <summary>
+		/// The event for a generic error during a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution).
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactoryError;
+
+		/// <summary>
+		/// The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponsing cache entry.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactorySuccess;
 
 		internal void OnFailSafeActivate(string operationId, string key)
 		{

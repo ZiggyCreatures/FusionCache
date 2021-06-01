@@ -5,13 +5,33 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 namespace ZiggyCreatures.Caching.Fusion.Events
 {
 
+	/// <summary>
+	/// A class with base events that are common to any cache layer (general, memroy or distributed)
+	/// </summary>
 	public class FusionCacheBaseEventsHub
 	{
 
+		/// <summary>
+		/// The <see cref="IFusionCache"/> instance.
+		/// </summary>
 		protected IFusionCache _cache;
+
+		/// <summary>
+		/// The <see cref="FusionCacheOptions"/> instance.
+		/// </summary>
 		protected readonly FusionCacheOptions _options;
+
+		/// <summary>
+		/// The <see cref="ILogger"/> instance.
+		/// </summary>
 		protected readonly ILogger? _logger;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FusionCacheBaseEventsHub"/> class.
+		/// </summary>
+		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+		/// <param name="options">The <see cref="FusionCacheOptions"/> instance.</param>
+		/// <param name="logger">The <see cref="ILogger"/> instance.</param>
 		public FusionCacheBaseEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
 		{
 			_cache = cache;
@@ -19,10 +39,25 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			_logger = logger;
 		}
 
-		public event EventHandler<FusionCacheEntryHitEventArgs> Hit;
-		public event EventHandler<FusionCacheEntryEventArgs> Miss;
-		public event EventHandler<FusionCacheEntryEventArgs> Set;
-		public event EventHandler<FusionCacheEntryEventArgs> Remove;
+		/// <summary>
+		/// The event for a cache hit (either fresh or stale).
+		/// </summary>
+		public event EventHandler<FusionCacheEntryHitEventArgs>? Hit;
+
+		/// <summary>
+		/// The event for a cache miss.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? Miss;
+
+		/// <summary>
+		/// The event for a cache set.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? Set;
+
+		/// <summary>
+		/// The event for a cache remove.
+		/// </summary>
+		public event EventHandler<FusionCacheEntryEventArgs>? Remove;
 
 		internal void OnHit(string operationId, string key, bool isStale)
 		{
