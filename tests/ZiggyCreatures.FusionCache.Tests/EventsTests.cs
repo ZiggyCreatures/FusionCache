@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -280,6 +281,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -327,6 +329,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -363,7 +366,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// LET IT BECOME STALE
-				await Task.Delay(throttleDuration);
+				await Task.Delay(duration);
 
 				// HIT (STALE): +1
 				// SET: +1
@@ -380,6 +383,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -416,7 +420,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// LET IT BECOME STALE
-				Thread.Sleep(throttleDuration);
+				Thread.Sleep(duration);
 
 				// HIT (STALE): +1
 				// SET: +1
@@ -433,6 +437,307 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public async Task TryGetAsync()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				_ = await cache.TryGetAsync<int>("foo");
+
+				// REMOVE HANDLERS
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				await Task.Delay(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void TryGet()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				cache.TryGet<int>("foo");
+
+				// REMOVE HANDLERS
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Thread.Sleep(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public async Task TryGetStaleFailSafeAsync()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// INITIAL, NON-TRACKED SET
+				await cache.SetAsync<int>("foo", 42);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// LET IT BECOME STALE
+				await Task.Delay(duration);
+
+				// HIT (STALE): +1
+				_ = await cache.TryGetAsync<int>("foo");
+
+				// REMOVE HANDLERS
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				await Task.Delay(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(1, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void TryGetStaleFailSafe()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// INITIAL, NON-TRACKED SET
+				cache.Set<int>("foo", 42);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// LET IT BECOME STALE
+				Thread.Sleep(duration);
+
+				// HIT (STALE): +1
+				cache.TryGet<int>("foo");
+
+				// REMOVE HANDLERS
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Thread.Sleep(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(1, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public async Task TryGetStaleNoFailSafeAsync()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// INITIAL, NON-TRACKED SET
+				await cache.SetAsync<int>("foo", 42);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// LET IT BECOME STALE
+				await Task.Delay(duration);
+
+				// MISS: +1
+				_ = await cache.TryGetAsync<int>("foo", options => options.SetFailSafe(false));
+
+				// REMOVE HANDLERS
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				await Task.Delay(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void TryGetStaleNoFailSafe()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// INITIAL, NON-TRACKED SET
+				cache.Set<int>("foo", 42);
+
+				// SETUP HANDLERS
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// LET IT BECOME STALE
+				Thread.Sleep(duration);
+
+				// MISS: +1
+				cache.TryGet<int>("foo", options => options.SetFailSafe(false));
+
+				// REMOVE HANDLERS
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Thread.Sleep(TimeSpan.FromSeconds(1));
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
 
