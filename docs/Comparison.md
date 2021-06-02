@@ -55,7 +55,7 @@ The general features I've identified as significants are:
 
 - **Tests**: having a suite of tests covering most of the library can greatly reduce the probabilty of bugs or regressions so, in theory, you can count on a more solid and stable library
 
-- **Xml comments**: having informations always available at your fingertips [while you type](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc) (Intellisense :tm: or similar) is fundamental for learning as you code and to avoid common pitfalls
+- **Xml Comments**: having informations always available at your fingertips [while you type](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc) (Intellisense :tm: or similar) is fundamental for learning as you code and to avoid common pitfalls
 
 - **Documentation**: an expanded documentation, a getting started guide or maybe some samples can greatly improve your learning
 
@@ -66,8 +66,8 @@ This is how they compare:
 |                       | FusionCache (1) | CacheManager | CacheTower (2) | EasyCaching (3) | LazyCache (4) |
 | ---:                  | :---:           | :---:        | :---:          | :---:           |:---:          |
 | **Factory call opt.** | ✔              | ❌           | ✔             | ✔               | ✔            |
-| **Sync api**          | ✔              | ✔            | ❌            | ✔               | ✔            |
-| **Async api**         | ✔              | ❌           | ✔             | ✔               | ⚠            |
+| **Sync Api**          | ✔              | ✔            | ❌            | ✔               | ✔            |
+| **Async Api**         | ✔              | ❌           | ✔             | ✔               | ⚠            |
 | **Stale data re-use** | ✔              | ❌           | ❌            | ❌              | ❌           |
 | **Multi-provider**    | ✔              | ✔            | ✔             | ✔               | ❌           |
 | **Multi-level**       | ✔              | ✔            | ✔             | ⚠               | ❌           |
@@ -76,7 +76,7 @@ This is how they compare:
 | **Logging**           | ✔              | ✔            | ❌            | ✔               | ❌           |
 | **Portable**          | ✔              | ✔            | ✔             | ✔               | ✔            |
 | **Tests**             | ✔              | ✔            | ✔             | ✔               | ✔            |
-| **Xml comments**      | ✔              | ✔            | ✔             | ✔               | ❌           |
+| **Xml Comments**      | ✔              | ✔            | ✔             | ✔               | ❌           |
 | **Documentation**     | ✔              | ✔            | ✔             | ✔               | ✔            |
 | **License**           | `MIT`           | `Apache 2.0` | `MIT`          | `MIT`           | `MIT`         |
 

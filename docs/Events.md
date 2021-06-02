@@ -54,9 +54,13 @@ All events follow this pattern, and some of them have **specific event args** wi
 ## :construction_worker: Safe execution
 Since an event handler is a normal piece of code that FusionCache runs at a certain point in time, with no special care taken a bad event handler may generate errors or slow everyhting down.
 
-Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on different threads, is guarded against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work)
+Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on different threads and is guarded against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
 
 All of this to avoid that one bad handler would stop the others or FusionCache itself from working well.
+
+:bulb: Because of these design decisions, **by default** the order in which the handlers are executed is not guaranteed and it is not possible to know when they will finish running: this should not be a problem, but is good to know.
+
+:warning: In case you really **really** want to execute event handlers in a sync fashion you can do that by setting the `FusionCacheOptions.EnableSyncEventHandlersExecution` prop to `true`. But again, you should really **really** **REALLY** avoid that.
 
 
 ## :gear: On high-level and low-level events
