@@ -1064,6 +1064,13 @@
             An optional <see cref="T:System.String"/> prefix to prepend to any cache key passed to the cache methods.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EnableSyncEventHandlersExecution">
+            <summary>
+            Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
+            <br/><br/>
+            <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.

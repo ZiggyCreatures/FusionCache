@@ -56,6 +56,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		public string? CacheKeyPrefix { get; set; }
 
 		/// <summary>
+		/// Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
+		/// <br/><br/>
+		/// <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
+		/// </summary>
+		public bool EnableSyncEventHandlersExecution { get; set; }
+
+		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
 		/// </summary>
 		public LogLevel SerializationErrorsLogLevel { get; set; }

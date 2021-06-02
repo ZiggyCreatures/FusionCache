@@ -60,27 +60,27 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 
 		internal void OnFailSafeActivate(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, FailSafeActivate, () => new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, FailSafeActivate, () => new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
 		}
 
 		internal void OnFactorySyntheticTimeout(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, FactorySyntheticTimeout, () => new FusionCacheEntryEventArgs(key), nameof(FactorySyntheticTimeout), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, FactorySyntheticTimeout, () => new FusionCacheEntryEventArgs(key), nameof(FactorySyntheticTimeout), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
 		}
 
 		internal void OnFactoryError(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, FactoryError, () => new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, FactoryError, () => new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
 		}
 
 		internal void OnBackgroundFactoryError(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, BackgroundFactoryError, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, BackgroundFactoryError, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
 		}
 
 		internal void OnBackgroundFactorySuccess(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, BackgroundFactorySuccess, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _options.EventHandlingErrorsLogLevel);
+			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, BackgroundFactorySuccess, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
 		}
 	}
 }

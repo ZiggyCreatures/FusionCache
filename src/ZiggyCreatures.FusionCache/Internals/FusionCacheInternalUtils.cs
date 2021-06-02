@@ -156,7 +156,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static void SafeExecuteEvent<TEventArgs>(string? operationId, string? key, IFusionCache cache, EventHandler<TEventArgs>? ev, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel)
+		public static void SafeExecuteEvent<TEventArgs>(string? operationId, string? key, IFusionCache cache, EventHandler<TEventArgs>? ev, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
 		{
 			if (ev is null)
 				return;
@@ -171,7 +171,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			foreach (EventHandler<TEventArgs> invocation in invocations)
 			{
-				Task.Run(() =>
+				if (syncExecution)
 				{
 					try
 					{
@@ -181,7 +181,21 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					{
 						logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
 					}
-				});
+				}
+				else
+				{
+					Task.Run(() =>
+					{
+						try
+						{
+							invocation(cache, e);
+						}
+						catch (Exception exc)
+						{
+							logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
+						}
+					});
+				}
 			}
 
 		}

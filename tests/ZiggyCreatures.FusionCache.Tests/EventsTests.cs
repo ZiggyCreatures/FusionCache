@@ -48,7 +48,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -116,8 +116,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				await Task.Delay(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
 				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
@@ -136,7 +134,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -204,8 +202,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
 				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
@@ -224,7 +220,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -254,8 +250,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Set -= onSet;
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
-
-				await Task.Delay(TimeSpan.FromSeconds(1));
 
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
@@ -272,7 +266,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -303,8 +297,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data.Values.Sum());
@@ -320,7 +312,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -357,8 +349,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				await Task.Delay(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data.Values.Sum());
@@ -374,7 +364,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -411,8 +401,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data.Values.Sum());
@@ -428,7 +416,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -458,8 +446,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				await Task.Delay(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
@@ -474,7 +460,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -504,8 +490,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
@@ -520,7 +504,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -556,8 +540,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				await Task.Delay(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
@@ -572,7 +554,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -608,8 +590,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
@@ -624,7 +604,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -660,8 +640,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				await Task.Delay(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
@@ -676,7 +654,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -712,8 +690,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
@@ -728,7 +704,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -753,8 +729,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Memory.Hit -= onHit;
 				cache.Events.Memory.Set -= onSet;
 
-				await Task.Delay(TimeSpan.FromSeconds(1));
-
 				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(3, stats.Data.Values.Sum());
@@ -770,7 +744,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var maxDuration = TimeSpan.FromDays(1);
 			var throttleDuration = TimeSpan.FromSeconds(3);
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				cache.DefaultEntryOptions.Duration = duration;
 				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -794,8 +768,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Memory.Miss -= onMiss;
 				cache.Events.Memory.Hit -= onHit;
 				cache.Events.Memory.Set -= onSet;
-
-				Thread.Sleep(TimeSpan.FromSeconds(1));
 
 				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
