@@ -45,7 +45,9 @@ The general features I've identified as significants are:
 
 - **Multi-level**: the ability to handle more than one caching level, transparently. This can give you - at the same time - the benefits of a local in-memory cache (high performance + data locality) and the benefits of a distributed cache (sharing of cached data + better cold start) without having to handle them separately
 
-- **Distributed synchronization**: when a change occurs in a distributed cache, local memory caches are notified of that so they can react
+- **Backplane**: available with different names, it allows a change in a distributed cache to be reflected in the local memory cache
+
+- **Events**: the ability to be notified when certain events happen in he cache, useful to collect custom metrics, etc
 
 - **Logging**: when things go bad you would like to have some help investigating what went wrong, and logging is key
 
@@ -69,7 +71,8 @@ This is how they compare:
 | **Stale data re-use** | ✔              | ❌           | ❌            | ❌              | ❌           |
 | **Multi-provider**    | ✔              | ✔            | ✔             | ✔               | ❌           |
 | **Multi-level**       | ✔              | ✔            | ✔             | ⚠               | ❌           |
-| **Distributed sync.** | ❌             | ✔            | ✔             | ✔               | ❌           |
+| **Backplane**         | ❌             | ✔            | ✔             | ✔               | ❌           |
+| **Events**            | ✔              | ✔            | ❌            | ❌              | ❌           |
 | **Logging**           | ✔              | ✔            | ❌            | ✔               | ❌           |
 | **Portable**          | ✔              | ✔            | ✔             | ✔               | ✔            |
 | **Tests**             | ✔              | ✔            | ✔             | ✔               | ✔            |
@@ -78,8 +81,8 @@ This is how they compare:
 | **License**           | `MIT`           | `Apache 2.0` | `MIT`          | `MIT`           | `MIT`         |
 
 :information_source: **NOTES**
-- (1): **FusionCache** support for distributed synchronization is being designed and will be available soon. Also, simply setting a lower cache duration and enabling [fail-safe](FailSafe.md) + [soft timeouts](Timeouts.md), in most cases would give you similar results
-- (2): **CacheTower** does not support stale data-reuse, but offers a way for cache data to be marked as stale before it expires as a way to kick off background refresh ahead of time. It may be what you want or not, but it's good to know
-- (3): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know
-- (4): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know
+- (1): **FusionCache** support for a backplane is being designed and will be available soon.
+- (2): **CacheTower** does not support stale data-reuse, but offers a way for cache data to be marked as stale before it expires as a way to kick off background refresh ahead of time. It may be what you want or not, but it's good to know.
+- (3): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
+- (4): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.
 
