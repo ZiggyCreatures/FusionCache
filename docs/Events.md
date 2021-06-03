@@ -77,12 +77,12 @@ Also note that newer locking implementations may be possible in the future (I'm 
 ## :construction_worker: Safe execution
 Since an event handler is a normal piece of code that FusionCache runs at a certain point in time, with no special care taken a bad event handler may generate errors or slow everything down.
 
-Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on a different threads and is a guard against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
+Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on a different thread and is guarded against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
 
-All of this is done to avoid one bad handler from blocking subsequent handlers or FusionCache itself.
+All of this is done to avoid one bad handler from slowing down subsequent handlers and FusionCache itself.
 
 :bulb: Because of these design decisions, **by default** the order in which the handlers are executed is not guaranteed and it is not possible to know when they will finish running: this should not be a problem, but is good to know.
 
 | :warning: WARNING |
 |:------------------|
-| In case you really **really** want to execute event handlers synchronously you can do that by setting the `FusionCacheOptions.EnableSyncEventHandlersExecution` property to `true`. <br/> <br/> But again, you should really **really** **REALLY** avoid that. |
+| In case you really **really** want to execute event handlers synchronously you can do that by setting the `FusionCacheOptions.EnableSyncEventHandlersExecution` option to `true`. <br/> <br/> But again, you should really **really** **REALLY** avoid that. |
