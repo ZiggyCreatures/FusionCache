@@ -56,7 +56,7 @@ Since an event handler is a normal piece of code that FusionCache runs at a cert
 
 Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on a different threads and is a guard against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
 
-All of this to avoid one bad handler from blocking a subsequent handler that would stop others or FusionCache itself from working well.
+All of this is done to avoid one bad handler from blocking subsequent handlers or FusionCache itself.
 
 :bulb: Because of these design decisions, **by default** the order in which the handlers are executed is not guaranteed and it is not possible to know when they will finish running: this should not be a problem, but is good to know.
 

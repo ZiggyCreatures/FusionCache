@@ -8,9 +8,11 @@
 
 What follows is an example scenario on which we can reason about: we've built a **service** that handle some **requests** by retrieving some data from a **database**, that's it.
 
-**:bulb: NOTE:** it's important to say upfront that this is both **overly simplified** and **(hopefully) more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile:
+The hypothetical infrastructure involved is somewhat bad on purpose, and is used just to illustrate some points like why a cache is useful in general, what FusionCache in particular can do and to have some nice round numbers to play with.
 
-**All of this is just used to illustrate some points like why a cache is useful in general, what FusionCache in particular can do and to have some nice round numbers to play with.**
+| **:bulb: NOTE** |
+|:----------------|
+| It's important to say upfront that this is both **overly simplified** and **(hopefully) more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
 
 <br/>
 <br/>
@@ -66,7 +68,7 @@ public ActionResult<Product> GetProduct(int id)
 }
 ```
 
-I know, I know, nobody would be such a mad lad 🤪 not to use any form of caching at all, but this serves just a starting point.
+I know, I know, nobody would be such a mad lad not to use any form of caching at all, but this serves just a starting point.
 
 ### :trophy: Results
 
@@ -151,7 +153,7 @@ In the previous step we would still have one big problem: **multiple concurrent 
 
 You see, the moment something is not in the cache (or is expired) every request will go to the database: in our example we have **100 concurrent requests** per each product arriving at the same time, so every single one of them would go to the database whereas it would be sufficient for just one of them to go to the database - per product id - and as soon as having the result from the database every other request for the same product id should be satisfied with the same result.
 
-This is a problem of factory execution coordination, and **FusionCache** wil solve that for us, automatically.
+This is a problem of factory execution coordination, and **FusionCache** will solve that for us, automatically.
 
 To use FusionCache we simply install the package via the nuget UI (search for the `ZiggyCreatures.FusionCache` package) or via the nuget package manager console:
 
@@ -251,7 +253,7 @@ And again, reducing the number of requests to the database (this time by a lot) 
 
 ## 3) Fail-Safe
 
-Looking at the colors in the resulting graph above, we can see we still have a big problem: when the database is down our service is also down (the **red** parts).
+Looking at the colors in the graph above we can see we still have a big problem: when the database is down our service is also down (the **red** parts).
 
 To solve this issue we can enable one of the main features of FusionCache: **Fail-Safe**.
 
@@ -297,9 +299,9 @@ public void ConfigureServices(IServiceCollection services)
 
 Settings these 3 options will automatically **dissolve any downtime** in our service: look at graph, **no more red** :tada:
 
-This is because any problem that may happen while calling the factory (in our case calling the database) to refresh an expired value in the cache will be handled transparently by giving us the expired value, temporarily.
+This is because any problem that may happen while calling the factory - in our case calling the database - to refresh an expired value in the cache will be handled transparently by giving us the expired value, temporarily.
 
-Also, during those 3 minutes of database downtime we will still have a cached value to use (even if expired, but better than nothing) so only 2 call per minute (since we set `FailSafeThrottleDuration` to `30` sec).
+Also, during those 3 minutes of database downtime we will still have a cached value to use (expired, but better than nothing) so only 2 call per minute, since we set `FailSafeThrottleDuration` to `30` sec.
 
 This will give us `1,000` products requested X `1` factory executed X `3` nodes = `3,000` req/min, for a total of `30,000`requests in `10` min.
 
@@ -314,9 +316,9 @@ Plus `1` extra req for each product & node for each of the `3` min where the dat
 
 ## 4) Factory Timeouts
 
-The situation now is way better than initially, but here and there we are still **a little slow** becuase of **some latency spikes** when we go to the database.
+The situation is now way better than how it was initially, but here and there we are still **a little slow** becuase of **some latency spikes** when we go to the database.
 
-Wouldn't it be nice if FusionCache would simply give us back the expired value (if any) when a factory is taking too long? Also it should keep running the factory in the background so that - if and when the factory successfully completes - it can immediately update the cache such that the new value would be available right away without waiting for the next expiration time to occur?
+Wouldn't it be nice if FusionCache would simply give us back the expired value (if any) when a factory takes too long? Also the timed out factory should keep running in the background so that - if and when the factory successfully completes - it can immediately update the cache so that the new value would be available right away without waiting for the next expiration time to occur?
 
 Luckily, just setting the [**factory timeouts**](Timeouts.md) does exactly that, so let's do it in the registration:
 
@@ -367,11 +369,11 @@ The number of database requests in this case remains the same.
 
 Now everything is great on every node, but each node goes to the database for the same data, **without sharing it** with the other nodes that probably already did the same, and that is a waste.
 
-We can do better: we can add a **distributed cache** .
+We can do better: we can add a **distributed cache**.
 
 On premise or in the cloud, you can choose whichever you want (Redis, Memcached, MongoDB, etc) as long as an implementation of the standard `IDistributedCache` interface exists, and there are a lot of them.
 
-But distributed caches do not work with object instances like memory caches, they work with binary data (where the value you get/set is of type `byte[]`) so FusionCache also needs a **serializer** to be able to integrate with them.
+But distributed caches do not work with *object instances* like memory caches, they work with *binary data* where the value you get/set is of type `byte[]` so FusionCache also needs a **serializer** to be able to integrate with them.
 
 To do that we just pick one of the existing implementations (eg: based on `Newtonsoft Json.NET` or `System.Text.Json`, available in various packages on nuget) or we can roll our own: we just need to implement an interface with 4 methods (`Serialize` + `Deserialize` + `SerializeAsync` + `DeserializeAsync`).
 
