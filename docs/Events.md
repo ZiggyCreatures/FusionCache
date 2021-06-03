@@ -51,17 +51,6 @@ cache.Events.Miss -= onMiss;
 
 All events follow this pattern, and some of them have **specific event args** with data specific to each event: for example the cache HIT event contains the cache key just like the cache MISS event but it also includes a `bool IsStale` flag that indicates if the cache hit has been for a fresh piece of data or for a stale one (for example after a fail-safe activation).
 
-## :construction_worker: Safe execution
-Since an event handler is a normal piece of code that FusionCache runs at a certain point in time, with no special care taken a bad event handler may generate errors or slow everything down.
-
-Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on a different threads and is a guard against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
-
-All of this is done to avoid one bad handler from blocking subsequent handlers or FusionCache itself.
-
-:bulb: Because of these design decisions, **by default** the order in which the handlers are executed is not guaranteed and it is not possible to know when they will finish running: this should not be a problem, but is good to know.
-
-:warning: In case you really **really** want to execute event handlers in a sync fashion you can do that by setting the `FusionCacheOptions.EnableSyncEventHandlersExecution` prop to `true`. But again, you should really **really** **REALLY** avoid that.
-
 
 ## :gear: On high-level and low-level events
 
@@ -83,3 +72,17 @@ But if you subscribe to the lower **memory layer** events you may fall into one 
 As you can see lower level events may delve into the internals of how FusionCache **currently** works.
 
 Also note that newer locking implementations may be possible in the future (I'm actually trying them out) so lower level events may even change one day.
+
+
+## :construction_worker: Safe execution
+Since an event handler is a normal piece of code that FusionCache runs at a certain point in time, with no special care taken a bad event handler may generate errors or slow everything down.
+
+Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on a different threads and is a guard against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
+
+All of this is done to avoid one bad handler from blocking subsequent handlers or FusionCache itself.
+
+:bulb: Because of these design decisions, **by default** the order in which the handlers are executed is not guaranteed and it is not possible to know when they will finish running: this should not be a problem, but is good to know.
+
+| :warning: WARNING |
+|:------------------|
+| In case you really **really** want to execute event handlers synchronously you can do that by setting the `FusionCacheOptions.EnableSyncEventHandlersExecution` property to `true`. <br/> <br/> But again, you should really **really** **REALLY** avoid that. |
