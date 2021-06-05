@@ -38,7 +38,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 
 		internal void OnEviction(string operationId, string key, EvictionReason reason)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Eviction, () => new FusionCacheEntryEvictionEventArgs(key, reason), nameof(Eviction), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			Eviction?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEvictionEventArgs(key, reason), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 		}
 	}
 }

@@ -38,17 +38,17 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 
 		internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, CircuitBreakerChange, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			CircuitBreakerChange?.SafeExecute(operationId, key, _cache, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 		}
 
 		internal void OnSerializationError(string? operationId, string? key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, SerializationError, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(SerializationError), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			SerializationError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(SerializationError), _logger, _errorsLogLevel, _syncExecution);
 		}
 
 		internal void OnDeserializationError(string? operationId, string? key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, DeserializationError, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			DeserializationError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
 		}
 	}
 }

@@ -190,6 +190,16 @@
             The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.
             </summary>
         </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._errorsLogLevel">
+            <summary>
+            The <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> for errors during event handling.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._syncExecution">
+            <summary>
+            The execution mode for event handlers.
+            </summary>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub"/> class.

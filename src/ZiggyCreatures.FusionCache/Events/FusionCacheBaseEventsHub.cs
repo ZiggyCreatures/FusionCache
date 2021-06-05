@@ -27,6 +27,16 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		protected readonly ILogger? _logger;
 
 		/// <summary>
+		/// The <see cref="LogLevel"/> for errors during event handling.
+		/// </summary>
+		protected LogLevel _errorsLogLevel;
+
+		/// <summary>
+		/// The execution mode for event handlers.
+		/// </summary>
+		protected bool _syncExecution;
+
+		/// <summary>
 		/// Initializes a new instance of the <see cref="FusionCacheBaseEventsHub"/> class.
 		/// </summary>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
@@ -37,6 +47,9 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			_cache = cache;
 			_options = options;
 			_logger = logger;
+
+			_errorsLogLevel = _options.EventHandlingErrorsLogLevel;
+			_syncExecution = _options.EnableSyncEventHandlersExecution;
 		}
 
 		/// <summary>
@@ -61,22 +74,22 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 
 		internal void OnHit(string operationId, string key, bool isStale)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Hit, () => new FusionCacheEntryHitEventArgs(key, isStale), nameof(Hit), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			Hit?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryHitEventArgs(key, isStale), nameof(Hit), _logger, _errorsLogLevel, _syncExecution);
 		}
 
 		internal void OnMiss(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Miss, () => new FusionCacheEntryEventArgs(key), nameof(Miss), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			Miss?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Miss), _logger, _errorsLogLevel, _syncExecution);
 		}
 
 		internal void OnSet(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Set, () => new FusionCacheEntryEventArgs(key), nameof(Set), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			Set?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Set), _logger, _errorsLogLevel, _syncExecution);
 		}
 
 		internal void OnRemove(string operationId, string key)
 		{
-			FusionCacheInternalUtils.SafeExecuteEvent(operationId, key, _cache, Remove, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _options.EventHandlingErrorsLogLevel, _options.EnableSyncEventHandlersExecution);
+			Remove?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _errorsLogLevel, _syncExecution);
 		}
 	}
 }
