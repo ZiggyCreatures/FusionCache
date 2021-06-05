@@ -1013,6 +1013,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var operationId = GenerateOperationId();
 
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling RemoveAsync<T> {Options}", key, operationId, options.ToLogString());
+
 			_mca.RemoveEntry(operationId, key, options);
 
 			var dca = GetCurrentDistributedAccessor();
