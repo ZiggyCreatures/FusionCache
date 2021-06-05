@@ -1049,6 +1049,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				}
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 				_mca = null;
+				_events = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 				disposedValue = true;
 			}
