@@ -66,7 +66,7 @@ A single high level `GetOrSet` method call may result in one of these two set of
 But if you subscribe to the lower **memory layer** events you may fall into one of these situations:
 
 - **🟢 1 HIT**: if immediately found
-- **🔴 1 MISS + 🟢 1 HIT**: if not immediately found, a lock is acquired to call the factory in an optimized way, then another cache read is done in case another thread set the entry while acquiring the lock, and the entry is found
+- **🔴 1 MISS + 🟢 1 HIT**: if not immediately found, a lock is acquired to call the factory in an optimized way, then another cache read is done and this time the entry is found (because another thread set it while acquiring the lock)
 - **🔴🔴 2 MISS + 🔵 1 SET**: as above, but even with the 2nd read the entry was not found, so the factory is called and the returned value is then set into the cache
 
 As you can see lower level events may delve into the internals of how FusionCache **currently** works.
