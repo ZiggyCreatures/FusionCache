@@ -10,10 +10,8 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals
 {
-
 	internal static class FusionCacheInternalUtils
 	{
-
 		/// <summary>
 		/// Checks if the entry is logically expired.
 		/// </summary>
@@ -193,8 +191,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					});
 				}
 			}
-
 		}
 	}
-
 }

@@ -2,7 +2,6 @@
 
 namespace ZiggyCreatures.Caching.Fusion
 {
-
 	/// <summary>
 	/// Represents the result of a TryGet[Async] operation: it contains a <see cref="bool"/> indicating if the value has been found, and either the found value or a default value instead.
 	/// </summary>
@@ -10,7 +9,6 @@ namespace ZiggyCreatures.Caching.Fusion
 	[Obsolete("Please use MaybeValue<T> instead")]
 	public struct TryGetResult<TValue>
 	{
-
 		private TValue _value;
 
 		/// <summary>
@@ -79,7 +77,5 @@ namespace ZiggyCreatures.Caching.Fusion
 				Value = value
 			};
 		}
-
 	}
-
 }

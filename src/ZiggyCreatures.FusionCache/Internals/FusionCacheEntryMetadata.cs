@@ -3,14 +3,12 @@ using System.Runtime.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals
 {
-
 	/// <summary>
 	/// Metadata for an entry in a <see cref="FusionCache"/> .
 	/// </summary>
 	[DataContract]
 	public class FusionCacheEntryMetadata
 	{
-
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
@@ -25,7 +23,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		// TYPICALLY USED BY SERIALIZERS
 		private FusionCacheEntryMetadata()
 		{
-
 		}
 
 		/// <summary>
@@ -56,7 +53,5 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		{
 			return $"[FFS={(IsFromFailSafe ? "Y" : "N")} LEXP={LogicalExpiration.ToLogString_Expiration()}]";
 		}
-
 	}
-
 }

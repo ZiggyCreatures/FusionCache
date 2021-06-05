@@ -4,13 +4,11 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion
 {
-
 	/// <summary>
 	/// Contains the default values used globally.
 	/// </summary>
 	public static class FusionCacheGlobalDefaults
 	{
-
 		/// <summary>
 		/// The global default <see cref="FusionCacheEntryOptions.Duration"/>.
 		/// </summary>
@@ -80,7 +78,5 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// The global default <see cref="FusionCacheEntryOptions.FailSafeThrottleDuration"/>.
 		/// </summary>
 		public static TimeSpan EntryOptionsFailSafeThrottleDuration { get; set; } = TimeSpan.FromSeconds(30);
-
 	}
-
 }

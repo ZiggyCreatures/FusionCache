@@ -9,10 +9,8 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 {
-
 	internal class DistributedCacheAccessor
 	{
-
 		private const int CircuitStateClosed = 0;
 		private const int CircuitStateOpen = 1;
 		private const string WireFormatVersionPrefix = "v1:";
@@ -47,7 +45,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheDistributedEventsHub _events;
-
 
 		private void UpdateLastError(string key, string operationId)
 		{
@@ -451,7 +448,5 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			// EVENT
 			_events.OnRemove(operationId, key);
 		}
-
 	}
-
 }

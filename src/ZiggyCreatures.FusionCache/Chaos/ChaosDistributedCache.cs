@@ -11,7 +11,6 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 	public class ChaosDistributedCache
 		: IDistributedCache
 	{
-
 		private IDistributedCache _innerCache;
 
 		/// <summary>
@@ -148,6 +147,5 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 			await _innerCache.SetAsync(key, value, options, token).ConfigureAwait(false);
 		}
-
 	}
 }

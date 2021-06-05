@@ -4,13 +4,11 @@ using System.Threading.Tasks;
 
 namespace ZiggyCreatures.Caching.Fusion
 {
-
 	/// <summary>
 	/// A set of extension methods that add some commonly used overloads to any instance of a <see cref="IFusionCache"/> object.
 	/// </summary>
 	public static class FusionCacheExtMethods
 	{
-
 		#region GetOrSet overloads (with factory and fail-safe default value)
 
 		/// <summary>
@@ -427,5 +425,4 @@ namespace ZiggyCreatures.Caching.Fusion
 		#endregion
 
 	}
-
 }

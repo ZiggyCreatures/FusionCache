@@ -3,7 +3,6 @@ using System.Runtime.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 {
-
 	/// <summary>
 	/// An entry in a <see cref="FusionCache"/> distributed layer.
 	/// </summary>
@@ -12,7 +11,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 	internal class FusionCacheDistributedEntry<TValue>
 		: IFusionCacheEntry
 	{
-
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
@@ -94,5 +92,4 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 		}
 	}
-
 }

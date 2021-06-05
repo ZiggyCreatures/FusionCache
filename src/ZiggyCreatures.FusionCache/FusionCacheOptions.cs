@@ -10,7 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion
 	public class FusionCacheOptions
 		: IOptions<FusionCacheOptions>
 	{
-
 		private FusionCacheEntryOptions _defaultEntryOptions;
 
 		/// <summary>
@@ -101,6 +100,5 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			get { return this; }
 		}
-
 	}
 }

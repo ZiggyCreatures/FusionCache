@@ -4,13 +4,11 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Events
 {
-
 	/// <summary>
 	/// A class with base events that are common to any cache layer (general, memroy or distributed)
 	/// </summary>
 	public class FusionCacheBaseEventsHub
 	{
-
 		/// <summary>
 		/// The <see cref="IFusionCache"/> instance.
 		/// </summary>

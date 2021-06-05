@@ -16,12 +16,10 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion
 {
-
 	/// <inheritdoc/>
 	public class FusionCache
 		: IFusionCache
 	{
-
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly IFusionCacheReactor _reactor;
@@ -1060,7 +1058,5 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			Dispose(true);
 		}
-
 	}
-
 }

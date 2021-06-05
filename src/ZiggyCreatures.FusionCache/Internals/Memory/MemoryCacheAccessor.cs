@@ -5,11 +5,9 @@ using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
-
 	internal class MemoryCacheAccessor
 		: IDisposable
 	{
-
 		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheMemoryEventsHub events)
 		{
 			if (memoryCache is object)
@@ -125,7 +123,5 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		{
 			Dispose(true);
 		}
-
 	}
-
 }

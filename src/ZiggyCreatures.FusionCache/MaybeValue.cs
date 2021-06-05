@@ -2,7 +2,6 @@
 
 namespace ZiggyCreatures.Caching.Fusion
 {
-
 	/// <summary>
 	/// Represents maybe a value, maybe not.
 	/// <br/>
@@ -11,7 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion
 	/// <typeparam name="TValue">The type of the value.</typeparam>
 	public struct MaybeValue<TValue>
 	{
-
 		private TValue _value;
 
 		/// <summary>
@@ -106,7 +104,5 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			return new MaybeValue<TValue>(value);
 		}
-
 	}
-
 }

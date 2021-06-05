@@ -66,6 +66,5 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		{
 			return Random.NextDouble();
 		}
-
 	}
 }

@@ -7,11 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-
 	internal class FusionCacheReactorStandard
 		: IFusionCacheReactor
 	{
-
 		private MemoryCache _lockCache;
 
 		private int _lockPoolSize;
@@ -152,7 +150,5 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			Dispose(disposing: true);
 			GC.SuppressFinalize(this);
 		}
-
 	}
-
 }

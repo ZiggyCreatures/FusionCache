@@ -5,14 +5,12 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-
 	/// <summary>
 	/// Represents one of the core pieces of an instance of an <see cref="FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
 	/// </summary>
 	public interface IFusionCacheReactor
 		: IDisposable
 	{
-
 		/// <summary>
 		/// Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
 		/// </summary>
@@ -47,7 +45,5 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 		/// Exposes the eventual amount ofcollisions happened inside the reactor, for diagnostics purposes.
 		/// </summary>
 		int Collisions { get; }
-
 	}
-
 }

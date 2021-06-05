@@ -12,7 +12,6 @@ namespace ZiggyCreatures.Caching.Fusion
 	/// </summary>
 	public class FusionCacheEntryOptions
 	{
-
 		/// <summary>
 		/// Creates a new instance of a <see cref="FusionCacheEntryOptions"/> object.
 		/// </summary>
@@ -389,6 +388,5 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			return res;
 		}
-
 	}
 }

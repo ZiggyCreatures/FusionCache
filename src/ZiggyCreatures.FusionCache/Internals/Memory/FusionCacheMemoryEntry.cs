@@ -2,14 +2,12 @@
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
-
 	/// <summary>
 	/// An entry in a <see cref="FusionCache"/> memory layer.
 	/// </summary>
 	internal class FusionCacheMemoryEntry
 		: IFusionCacheEntry
 	{
-
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
@@ -76,5 +74,4 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 		}
 	}
-
 }
