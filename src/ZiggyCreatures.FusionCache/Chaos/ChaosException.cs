@@ -3,7 +3,6 @@ using System.Runtime.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Chaos
 {
-
 	/// <summary>
 	/// The exception that is thrown when a method call should fail because of a randomized chaos event.
 	/// </summary>
@@ -41,5 +40,4 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		{
 		}
 	}
-
 }

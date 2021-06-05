@@ -2,7 +2,6 @@
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization
 {
-
 	/// <summary>
 	/// A generic serializer that converts any object instance to and from byte[], used along the <see cref="Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> .
 	/// </summary>
@@ -40,5 +39,4 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization
 		/// <returns>The deserialized object.</returns>
 		Task<T> DeserializeAsync<T>(byte[] data);
 	}
-
 }

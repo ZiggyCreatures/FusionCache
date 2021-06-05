@@ -35,10 +35,10 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						"foo",
 						async old =>
 						{
-						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
-						return 42;
-					},
+							Interlocked.Increment(ref factoryCallsCount);
+							await Task.Delay(FactoryDuration).ConfigureAwait(false);
+							return 42;
+						},
 						cacheSettings
 					);
 					tasks.Add(task.AsTask());

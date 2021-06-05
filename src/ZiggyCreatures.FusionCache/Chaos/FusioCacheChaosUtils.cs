@@ -5,7 +5,6 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Chaos
 {
-
 	/// <summary>
 	/// Various utils to work with randomized controllable chaos.
 	/// </summary>
@@ -108,5 +107,4 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 			MaybeThrow(throwProbability);
 		}
 	}
-
 }

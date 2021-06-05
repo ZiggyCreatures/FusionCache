@@ -170,6 +170,230 @@
             <param name="maxDelay">The maximum amount of delay.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub">
+            <summary>
+            A class with base events that are common to any cache layer (general, memroy or distributed)
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._cache">
+            <summary>
+            The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._options">
+            <summary>
+            The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._logger">
+            <summary>
+            The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._errorsLogLevel">
+            <summary>
+            The <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> for errors during event handling.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._syncExecution">
+            <summary>
+            The execution mode for event handlers.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub"/> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Hit">
+            <summary>
+            The event for a cache hit (either fresh or stale).
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Miss">
+            <summary>
+            The event for a cache miss.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Set">
+            <summary>
+            The event for a cache set.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Remove">
+            <summary>
+            The event for a cache remove.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs">
+            <summary>
+            The specific <see cref="T:System.EventArgs"/> object for events related to opening/closing of the distributed cache circuit breaker.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs.#ctor(System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs"/> class.
+            </summary>
+            <param name="isClosed">A flag that indicates if the circuit breaker has been opened or closed.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs.IsClosed">
+            <summary>
+            A flag that indicates if the circuit breaker has been opened or closed.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub">
+            <summary>
+            The events hub for events specific for the distributed layer.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub" /> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache" /> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions" /> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger" /> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub.CircuitBreakerChange">
+            <summary>
+            The event for a state change in the circuit breaker.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub.SerializationError">
+            <summary>
+            The event for data serialization.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub.DeserializationError">
+            <summary>
+            The event for data deserialization.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEventArgs">
+            <summary>
+            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries (eg: with a cache key).
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEventArgs.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEventArgs"/> class.
+            </summary>
+            <param name="key">The cache key related to the event.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEventArgs.Key">
+            <summary>
+            The cache key related to the event.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs">
+            <summary>
+            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries' evictions.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs.#ctor(System.String,Microsoft.Extensions.Caching.Memory.EvictionReason)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs"/> class.
+            </summary>
+            <param name="key">The cache key related to the event.</param>
+            <param name="reason">The reason for the eviction.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs.Reason">
+            <summary>
+            The reason for the eviction.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryHitEventArgs">
+            <summary>
+            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries' hits (eg: with a cache key and a stale flag).
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryHitEventArgs.#ctor(System.String,System.Boolean)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryHitEventArgs" /> class.
+            </summary>
+            <param name="key">The cache key related to the event.</param>
+            <param name="isStale">A flag that indicates if the cache hit was for a fresh or stale entry.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryHitEventArgs.IsStale">
+            <summary>
+            A flag that indicates if the cache hit was for a fresh or stale entry.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub">
+            <summary>
+            The events hub for high-level events for a FusionCache instance, as a whole.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub" /> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache" /> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions" /> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger" /> instance.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Memory">
+            <summary>
+            The events hub for the memory layer.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Distributed">
+            <summary>
+            The events hub for the distributed layer.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FailSafeActivate">
+            <summary>
+            The event for a fail-safe activation.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactorySyntheticTimeout">
+            <summary>
+            The event for a synthetic timeout during a factory execution.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactoryError">
+            <summary>
+            The event for a generic error during a factory execution (excluding synthetic timeouts, for which there is the specific <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactorySyntheticTimeout"/> event).
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.BackgroundFactoryError">
+            <summary>
+            The event for a generic error during a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution).
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.BackgroundFactorySuccess">
+            <summary>
+            The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponsing cache entry.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub">
+            <summary>
+            The events hub for events specific for the memory layer.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub" /> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache" /> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions" /> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger" /> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction">
+            <summary>
+            The event for a cache eviction.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.HasEvictionSubscribers">
+            <summary>
+            Check if the <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction"/> event has subscribers or not.
+            </summary>
+            <returns>true if the <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction"/> event has subscribers, otherwhise false.</returns>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCache">
             <inheritdoc/>
         </member>
@@ -228,6 +452,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.Events">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Dispose(System.Boolean)">
@@ -421,7 +648,7 @@
             <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub)">
             <summary>
             Creates a new <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.
             </summary>
@@ -847,6 +1074,13 @@
             An optional <see cref="T:System.String"/> prefix to prepend to any cache key passed to the cache methods.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EnableSyncEventHandlersExecution">
+            <summary>
+            Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
+            <br/><br/>
+            <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
@@ -875,6 +1109,11 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.FailSafeActivationLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a fail-safe activation occurs.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EventHandlingErrorsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during the handling of an event.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
@@ -1031,6 +1270,11 @@
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.Events">
+            <summary>
+            The central place for all events handling of this FusionCache instance.
+            </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom">
             <summary>

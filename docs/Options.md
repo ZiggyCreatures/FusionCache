@@ -51,14 +51,16 @@ In general this can be used as a set of options that will act as the *baseline*,
 | Name | Type | Default | Description |
 | ---: | :---: | :---: | :--- |
 | `DefaultEntryOptions`                       | `FusionCacheEntryOptions` | *see below* | This is the default entry options object that will be used when one is not passed to each method call that need one, and as a starting point when duplicating one, either via the explicit `FusionCache.CreateOptions(...)` method or in one of the *overloads* of each *core method*. |
-| `DistributedCacheCircuitBreakerDuration`  | `TimeSpan`                     | `none` | If set to a value greater than zero, every time the distributed cache will fail it will become temporarily unavailable for this amount of time. This is useful to avoid overloading the distributed cache when it has some problems. |
+| `DistributedCacheCircuitBreakerDuration`    | `TimeSpan`                     | `none` | If set to a value greater than zero, every time the distributed cache will fail it will become temporarily unavailable for this amount of time. This is useful to avoid overloading the distributed cache when it has some problems. |
 | `CacheKeyPrefix`                            | `string?`                 | `null` | If specified, each call to a core method will pre-process the specified cache key, prefixing it with this value. Uesful for example when using the same distributed cache for different environments (lowering the costs), to avoid cache entries from the development environment to mix with the ones from the staging environment. |
+| `EnableSyncEventHandlersExecution`          | `bool`                    | `false` | If set to `true` all registered event handlers will be run synchronously: this is really, very, highly discouraged as it may slow down all other handlers and FusionCache itself. |
 | `SerializationErrorsLogLevel`               | `LogLevel`                | `Error` | Used when logging serialization errors (while working with the distributed cache) |
 | `DistributedCacheSyntheticTimeoutsLogLevel` | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while using the distributed cache |
 | `DistributedCacheErrorsLogLevel`            | `LogLevel`                | `Warning` | Used when logging any other kind of errors while using the distributed cache |
 | `FactorySyntheticTimeoutsLogLevel`          | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while calling the factory |
 | `FactoryErrorsLogLevel`                     | `LogLevel`                | `Warning` | Used when logging any other kind of errors while calling the factory |
 | `FailSafeActivationLogLevel`                | `LogLevel`                | `Warning` | Used when logging fail-safe activations |
+| `EventHandlingErrorsLogLevel`               | `LogLevel`                | `Warning` | Used when logging errors while executing event handlers |
 
 
 ## FusionCacheEntryOptions

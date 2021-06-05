@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals
 {
-
 	internal static class FusionCacheInternalUtils
 	{
-
 		/// <summary>
 		/// Checks if the entry is logically expired.
 		/// </summary>
@@ -152,6 +152,45 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			return new FusionCacheMemoryEntry(entry.GetValue<object>(), entry.Metadata);
 		}
-	}
 
+		public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
+		{
+			var invocations = ev.GetInvocationList();
+
+			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
+			if (logger is object && logger.IsEnabled(logLevel) == false)
+				logger = null;
+
+			var e = eventArgsBuilder();
+
+			foreach (EventHandler<TEventArgs> invocation in invocations)
+			{
+				if (syncExecution)
+				{
+					try
+					{
+						invocation(cache, e);
+					}
+					catch (Exception exc)
+					{
+						logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
+					}
+				}
+				else
+				{
+					Task.Run(() =>
+					{
+						try
+						{
+							invocation(cache, e);
+						}
+						catch (Exception exc)
+						{
+							logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
+						}
+					});
+				}
+			}
+		}
+	}
 }

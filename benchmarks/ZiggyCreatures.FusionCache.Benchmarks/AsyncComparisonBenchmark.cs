@@ -79,16 +79,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 					   {
-					   var t = cache.GetOrSetAsync<SamplePayload>(
-						  key,
-						  async ct =>
-						  {
-							   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							   return new SamplePayload();
-						   }
-					  );
-					   tasks.Add(t);
-				   });
+						   var t = cache.GetOrSetAsync<SamplePayload>(
+							  key,
+							  async ct =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  }
+						  );
+						   tasks.Add(t);
+					   });
 					});
 
 					await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -109,20 +109,20 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 					   {
-					   cache.GetOrAdd(
-						  key,
-						  _ =>
-						  {
-							   Thread.Sleep(FactoryDurationMs);
-							   return new CacheItem<SamplePayload>(
-								  key,
-								  new SamplePayload(),
-								  global::CacheManager.Core.ExpirationMode.Absolute,
-								  CacheDuration
-							  );
-						   }
-					  );
-				   });
+						   cache.GetOrAdd(
+							  key,
+							  _ =>
+							  {
+								  Thread.Sleep(FactoryDurationMs);
+								  return new CacheItem<SamplePayload>(
+								 key,
+								 new SamplePayload(),
+								 global::CacheManager.Core.ExpirationMode.Absolute,
+								 CacheDuration
+							 );
+							  }
+						  );
+					   });
 					});
 				}
 
@@ -146,17 +146,17 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 					   {
-					   var t = cache.GetOrSetAsync<SamplePayload>(
-						  key,
-						  async (old) =>
-						  {
-							   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							   return new SamplePayload();
-						   },
-						  cacheSettings
-					  ).AsTask();
-					   tasks.Add(t);
-				   });
+						   var t = cache.GetOrSetAsync<SamplePayload>(
+							  key,
+							  async (old) =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  },
+							  cacheSettings
+						  ).AsTask();
+						   tasks.Add(t);
+					   });
 					});
 
 					await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -182,17 +182,17 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				{
 					Parallel.For(0, Accessors, _ =>
 					{
-					var t = cache.GetAsync<SamplePayload>(
-						key,
-						async () =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						},
-						CacheDuration
-					);
-					tasks.Add(t);
-				});
+						var t = cache.GetAsync<SamplePayload>(
+							key,
+							async () =>
+							{
+								await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								return new SamplePayload();
+							},
+							CacheDuration
+						);
+						tasks.Add(t);
+					});
 				});
 
 				await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -219,16 +219,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					{
 						Parallel.For(0, Accessors, _ =>
 					   {
-					   var t = appcache.GetOrAddAsync<SamplePayload>(
-						  key,
-						  async () =>
-						  {
-							   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							   return new SamplePayload();
-						   }
-					  );
-					   tasks.Add(t);
-				   });
+						   var t = appcache.GetOrAddAsync<SamplePayload>(
+							  key,
+							  async () =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  }
+						  );
+						   tasks.Add(t);
+					   });
 					});
 
 					await Task.WhenAll(tasks).ConfigureAwait(false);

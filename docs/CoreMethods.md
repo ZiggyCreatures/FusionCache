@@ -18,9 +18,9 @@ All of them work **on both the memory cache and the distributed cache** (if any)
 
 All of them are available in both a **sync** and an **async** version.
 
-Finally, most of them have a set of ♻ overloads for a better ease of use.
+Finally, most of them have a set of **overloads** for a better ease of use.
 
-If you are thinking **"which one should I use 🤔 ?"** please keep reading.
+If you are thinking *"which one should I use?"* please keep reading.
 
 
 ## Set[Async]

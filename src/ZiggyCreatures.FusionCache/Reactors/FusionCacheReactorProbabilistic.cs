@@ -6,11 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-
 	internal class FusionCacheReactorProbabilistic
 		: IFusionCacheReactor
 	{
-
 		private int _lockPoolSize;
 		private SemaphoreSlim[] _lockPool;
 		private string?[] _lockPoolKeys;
@@ -178,7 +176,5 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			Dispose(disposing: true);
 			System.GC.SuppressFinalize(this);
 		}
-
 	}
-
 }

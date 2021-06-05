@@ -43,6 +43,7 @@ These are the **key features** of FusionCache:
 - **:dark_sunglasses: Background factory completion**: when you specify a factory timeout and it actually occurs, the timed-out factory can keep running in the background and, if and when it successfully complete, the cache will be immediately updated with the new value to be used right away ([read more](docs/Timeouts.md))
 - **:zap: High performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - **:dizzy: Natively sync/async**: full native support for both the synchronous and asynchronous programming model, with sync/async methods working togheter harmoniously ([read more](docs/CoreMethods.md))
+- **:telephone_receiver: Events**: there's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers) ([read more](docs/Events.md))
 - **:page_with_curl: Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 
 Also, FusionCache has some other nice **additional features**:
@@ -59,11 +60,11 @@ Also, FusionCache has some other nice **additional features**:
 
 Available packages on Nuget:
 
-| Package Name                   | Release (NuGet) |
-|--------------------------------|-----------------|
-| `ZiggyCreatures.FusionCache`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) |
-| `ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson/) |
-| `ZiggyCreatures.FusionCache.Serialization.SystemTextJson`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.SystemTextJson/) |
+| Package Name                   | Release (NuGet) | Downloads |
+|--------------------------------|:---------------:|:---------:|
+| `ZiggyCreatures.FusionCache`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache) |
+| `ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson) |
+| `ZiggyCreatures.FusionCache.Serialization.SystemTextJson`         | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.SystemTextJson/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Serialization.SystemTextJson) |
 
 ## :star: Quick Start
 
@@ -199,7 +200,10 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**:stopwatch: Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**:joystick: Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
-- [**:trophy: Step By Step**](docs/StepByStep.md): a complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain
+- [**:telephone_receiver: Events**](docs/Events.md): the events hub and how to use it
+
+## **:trophy: Step By Step**
+If you are in for a ride you can read a complete [step by step example](docs/StepByStep.md) of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what **results** you can expect to obtain.
 
 ## :ab: Comparison
 

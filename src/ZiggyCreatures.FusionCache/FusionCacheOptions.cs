@@ -10,7 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion
 	public class FusionCacheOptions
 		: IOptions<FusionCacheOptions>
 	{
-
 		private FusionCacheEntryOptions _defaultEntryOptions;
 
 		/// <summary>
@@ -27,6 +26,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			FactorySyntheticTimeoutsLogLevel = LogLevel.Warning;
 			FactoryErrorsLogLevel = LogLevel.Warning;
 			FailSafeActivationLogLevel = LogLevel.Warning;
+			EventHandlingErrorsLogLevel = LogLevel.Warning;
 		}
 
 		/// <summary>
@@ -53,6 +53,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// An optional <see cref="string"/> prefix to prepend to any cache key passed to the cache methods.
 		/// </summary>
 		public string? CacheKeyPrefix { get; set; }
+
+		/// <summary>
+		/// Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
+		/// <br/><br/>
+		/// <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
+		/// </summary>
+		public bool EnableSyncEventHandlersExecution { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
@@ -84,10 +91,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public LogLevel FailSafeActivationLogLevel { get; set; }
 
+		/// <summary>
+		/// Specify the <see cref="LogLevel"/> to use when an error occurs during the handling of an event.
+		/// </summary>
+		public LogLevel EventHandlingErrorsLogLevel { get; set; }
+
 		FusionCacheOptions IOptions<FusionCacheOptions>.Value
 		{
 			get { return this; }
 		}
-
 	}
 }

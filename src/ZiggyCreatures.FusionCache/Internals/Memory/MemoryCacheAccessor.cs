@@ -1,15 +1,14 @@
 ﻿using System;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
-
 	internal class MemoryCacheAccessor
 		: IDisposable
 	{
-
-		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger)
+		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheMemoryEventsHub events)
 		{
 			if (memoryCache is object)
 			{
@@ -22,16 +21,18 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			}
 			_options = options;
 			_logger = logger;
+			_events = events;
 		}
 
 		private IMemoryCache _cache;
 		private bool _cacheShouldBeDisposed;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
+		private readonly FusionCacheMemoryEventsHub _events;
 
 		public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 		{
-			var memoryOptions = options.ToMemoryCacheEntryOptions();
+			var memoryOptions = options.ToMemoryCacheEntryOptions(_events);
 
 			options.MemoryOptionsModifier?.Invoke(memoryOptions, entry.GetValue<TValue>());
 
@@ -39,6 +40,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): saving entry in memory {Options} {Entry}", key, operationId, memoryOptions.ToLogString(), entry.ToLogString());
 
 			_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
+
+			// EVENT
+			_events.OnSet(operationId, key);
 		}
 
 		public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key)
@@ -70,6 +74,16 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 				}
 			}
 
+			// EVENT
+			if (entry is object)
+			{
+				_events.OnHit(operationId, key, isValid == false);
+			}
+			else
+			{
+				_events.OnMiss(operationId, key);
+			}
+
 			return (entry, isValid);
 		}
 
@@ -79,6 +93,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): removing data (from memory)", key, operationId);
 
 			_cache.Remove(key);
+
+			// EVENT
+			_events.OnRemove(operationId, key);
 		}
 
 		// IDISPOSABLE
@@ -106,7 +123,5 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		{
 			Dispose(true);
 		}
-
 	}
-
 }
