@@ -101,9 +101,9 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null, bool includeOptionsModifiers = true)
+		public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 		{
-			var res = _options.DefaultEntryOptions.Duplicate(duration, includeOptionsModifiers);
+			var res = _options.DefaultEntryOptions.Duplicate(duration);
 			setupAction?.Invoke(res);
 			return res;
 		}
@@ -143,12 +143,12 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (options.IsFailSafeEnabled)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): trying to activate FAIL-SAFE", key, operationId);
+					_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", operationId, key);
 				if (distributedEntry is object)
 				{
 					// FAIL SAFE (FROM DISTRIBUTED)
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (K={CacheKey} OP={CacheOperationId}): FAIL-SAFE activated (from distributed)", key, operationId);
+						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (OP={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", operationId, key);
 					failSafeActivated = true;
 
 					// EVENT
@@ -160,7 +160,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				{
 					// FAIL SAFE (FROM MEMORY)
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (K={CacheKey} OP={CacheOperationId}): FAIL-SAFE activated (from memory)", key, operationId);
+						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (OP={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", operationId, key);
 					failSafeActivated = true;
 
 					// EVENT
@@ -171,14 +171,14 @@ namespace ZiggyCreatures.Caching.Fusion
 				else
 				{
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (K={CacheKey} OP={CacheOperationId}): unable to activate FAIL-SAFE (no entries in memory or distributed)", key, operationId);
+						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (OP={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
 					return null;
 				}
 			}
 			else
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): FAIL-SAFE not enabled", key, operationId);
+					_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", operationId, key);
 				return null;
 			}
 		}
@@ -192,20 +192,20 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (factoryTask.IsFaulted)
 			{
 				if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (K={CacheKey} OP={CacheOperationId}): a timed-out factory thrown an exception", key, operationId);
+					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (OP={CacheOperationId} K={CacheKey}): a timed-out factory thrown an exception", operationId, key);
 				return;
 			}
 
 			// CONTINUE IN THE BACKGROUND TO TRY TO KEEP THE RESULT AS SOON AS IT WILL COMPLETE SUCCESSFULLY
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): trying to complete the timed-out factory in the background", key, operationId);
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): trying to complete the timed-out factory in the background", operationId, key);
 
 			_ = factoryTask.ContinueWith(antecedent =>
 			{
 				if (antecedent.Status == TaskStatus.Faulted)
 				{
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (K={CacheKey} OP={CacheOperationId}): a timed-out factory thrown an exception", key, operationId);
+						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (OP={CacheOperationId} K={CacheKey}): a timed-out factory thrown an exception", operationId, key);
 
 					// EVENT
 					_events.OnBackgroundFactoryError(operationId, key);
@@ -213,7 +213,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				else if (antecedent.Status == TaskStatus.RanToCompletion)
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): a timed-out factory successfully completed in the background: keeping the result", key, operationId);
+						_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): a timed-out factory successfully completed in the background: keeping the result", operationId, key);
 
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
@@ -232,19 +232,19 @@ namespace ZiggyCreatures.Caching.Fusion
 				return;
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): releasing LOCK", key, operationId);
+				_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): releasing LOCK", operationId, key);
 
 			try
 			{
 				_reactor.ReleaseLock(key, operationId, lockObj, _logger);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): LOCK released", key, operationId);
+					_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK released", operationId, key);
 			}
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.LogWarning(exc, "FUSION (K={CacheKey} OP={CacheOperationId}): releasing the LOCK has thrown an exception", key, operationId);
+					_logger.LogWarning(exc, "FUSION (OP={CacheOperationId} K={CacheKey}): releasing the LOCK has thrown an exception", operationId, key);
 			}
 		}
 
@@ -254,7 +254,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (exc is SyntheticTimeoutException)
 			{
 				if (_logger?.IsEnabled(_options.FactorySyntheticTimeoutsLogLevel) ?? false)
-					_logger.Log(_options.FactorySyntheticTimeoutsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): a synthetic timeout occurred while calling the factory", key, operationId);
+					_logger.Log(_options.FactorySyntheticTimeoutsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while calling the factory", operationId, key);
 
 				// EVENT
 				_events.OnFactorySyntheticTimeout(operationId, key);
@@ -263,7 +263,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 
 			if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-				_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while calling the factory", key, operationId);
+				_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while calling the factory", operationId, key);
 
 			// EVENT
 			_events.OnFactoryError(operationId, key);
@@ -284,7 +284,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_memoryEntryIsValid)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+					_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 				// EVENT
 				_events.OnHit(operationId, key, _memoryEntryIsValid == false);
@@ -306,7 +306,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_mca.SetEntry<TValue>(operationId, key, _memoryEntry, options);
 
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
+						_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 					// EVENT
 					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
@@ -333,7 +333,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (_memoryEntryIsValid)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+						_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 					// EVENT
 					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
@@ -394,7 +394,7 @@ namespace ZiggyCreatures.Caching.Fusion
 							var timeout = options.GetAppropriateFactoryTimeout(_memoryEntry is object || distributedEntry is object);
 
 							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-								_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling the factory (timeout={Timeout})", key, operationId, timeout.ToLogString_Timeout());
+								_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
 
 							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 							{
@@ -482,7 +482,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_memoryEntryIsValid)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+					_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 				// EVENT
 				_events.OnHit(operationId, key, _memoryEntryIsValid == false);
@@ -504,7 +504,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_mca.SetEntry<TValue>(operationId, key, _memoryEntry, options);
 
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry (expired)", key, operationId);
+						_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 					// EVENT
 					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
@@ -531,7 +531,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (_memoryEntryIsValid)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): using memory entry", key, operationId);
+						_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 					// EVENT
 					_events.OnHit(operationId, key, _memoryEntryIsValid == false);
@@ -592,7 +592,7 @@ namespace ZiggyCreatures.Caching.Fusion
 							var timeout = options.GetAppropriateFactoryTimeout(_memoryEntry is object || distributedEntry is object);
 
 							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-								_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling the factory (timeout={Timeout})", key, operationId, timeout.ToLogString_Timeout());
+								_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
 
 							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 							{
@@ -680,19 +680,19 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSetAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.LogError("FUSION (K={CacheKey} OP={CacheOperationId}): something went wrong, the resulting entry is null, and it should not be possible", key, operationId);
+					_logger.LogError("FUSION (OP={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", operationId, key);
 				throw new InvalidOperationException("The resulting fusion cache entry is null");
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return {Entry}", operationId, key, entry.ToLogString());
 			return entry.GetValue<TValue>();
 		}
 
@@ -711,19 +711,19 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSet<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, failSafeDefaultValue, options, token);
 
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.LogError("FUSION (K={CacheKey} OP={CacheOperationId}): something went wrong, the resulting entry is null, and it should not be possible", key, operationId);
+					_logger.LogError("FUSION (OP={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", operationId, key);
 				throw new InvalidOperationException("The resulting fusion cache entry is null");
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return {Entry}", operationId, key, entry.ToLogString());
 			return entry.GetValue<TValue>();
 		}
 
@@ -739,7 +739,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSetAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternalAsync METHOD
 			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, _ => Task.FromResult(defaultValue), default, options, token).ConfigureAwait(false);
@@ -747,12 +747,12 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.LogError("FUSION (K={CacheKey} OP={CacheOperationId}): something went wrong, the resulting entry is null, and it should not be possible", key, operationId);
+					_logger.LogError("FUSION (OP={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", operationId, key);
 				throw new InvalidOperationException("The resulting fusion cache entry is null");
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return {Entry}", operationId, key, entry.ToLogString());
 			return entry.GetValue<TValue>();
 		}
 
@@ -768,7 +768,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrSet<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
 			// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
 			var entry = GetOrSetEntryInternal<TValue>(operationId, key, _ => defaultValue, default, options, token);
@@ -776,12 +776,12 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.LogError("FUSION (K={CacheKey} OP={CacheOperationId}): something went wrong, the resulting entry is null, and it should not be possible", key, operationId);
+					_logger.LogError("FUSION (OP={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", operationId, key);
 				throw new InvalidOperationException("The resulting fusion cache entry is null");
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return {Entry}", operationId, key, entry.ToLogString());
 			return entry.GetValue<TValue>();
 		}
 
@@ -797,20 +797,20 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling TryGetAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling TryGetAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, default, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
+					_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return NO SUCCESS", operationId, key);
 
 				return default;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return SUCCESS", key, operationId);
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return SUCCESS", operationId, key);
 
 			return entry.GetValue<TValue>();
 		}
@@ -827,20 +827,20 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling TryGet<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling TryGet<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
 
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return NO SUCCESS", key, operationId);
+					_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return NO SUCCESS", operationId, key);
 
 				return default;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return SUCCESS", key, operationId);
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return SUCCESS", operationId, key);
 
 			return entry.GetValue<TValue>();
 		}
@@ -857,21 +857,21 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrDefaultAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling GetOrDefaultAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, default, options, token).ConfigureAwait(false);
 
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return DEFAULT VALUE", key, operationId);
+					_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", operationId, key);
 #pragma warning disable CS8603 // Possible null reference return.
 				return defaultValue;
 #pragma warning restore CS8603 // Possible null reference return.
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return {Entry}", operationId, key, entry.ToLogString());
 			return entry.GetValue<TValue>();
 		}
 
@@ -887,21 +887,21 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling GetOrDefault<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling GetOrDefault<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
 
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return DEFAULT VALUE", key, operationId);
+					_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", operationId, key);
 #pragma warning disable CS8603 // Possible null reference return.
 				return defaultValue;
 #pragma warning restore CS8603 // Possible null reference return.
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): return {Entry}", key, operationId, entry.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): return {Entry}", operationId, key, entry.ToLogString());
 			return entry.GetValue<TValue>();
 		}
 
@@ -920,7 +920,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling SetAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling SetAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false);
 
@@ -952,7 +952,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling Set<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling Set<T> {Options}", operationId, key, options.ToLogString());
 
 			var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false);
 
@@ -984,7 +984,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling RemoveAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling RemoveAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			_mca.RemoveEntry(operationId, key, options);
 
@@ -1014,7 +1014,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): calling RemoveAsync<T> {Options}", key, operationId, options.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): calling RemoveAsync<T> {Options}", operationId, key, options.ToLogString());
 
 			_mca.RemoveEntry(operationId, key, options);
 

@@ -173,7 +173,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					}
 					catch (Exception exc)
 					{
-						logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
+						logger?.Log(logLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", operationId, key, eventName);
 					}
 				}
 				else
@@ -186,7 +186,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 						}
 						catch (Exception exc)
 						{
-							logger?.Log(logLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while handling an event handler for {EventName}", key, operationId, eventName);
+							logger?.Log(logLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", operationId, key, eventName);
 						}
 					});
 				}

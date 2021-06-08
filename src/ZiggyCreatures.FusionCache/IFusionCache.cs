@@ -37,9 +37,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		/// <param name="setupAction">An optional setup action to further configure the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
 		/// <param name="duration">An optional duration to directly change the <see cref="FusionCacheEntryOptions.Duration"/> of the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
-		/// <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
 		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/>.</returns>
-		FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null, bool includeOptionsModifiers = true);
+		FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null);
 
 		/// <summary>
 		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.

@@ -82,12 +82,12 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			var semaphore = GetSemaphore(key, operationId, logger);
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): waiting to acquire the LOCK", key, operationId);
+				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 			var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): LOCK acquired", key, operationId);
+				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 
 			return acquired ? semaphore : null;
 		}
@@ -98,12 +98,12 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			var semaphore = GetSemaphore(key, operationId, logger);
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): waiting to acquire the LOCK", key, operationId);
+				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 			var acquired = semaphore.Wait(timeout);
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): LOCK acquired", key, operationId);
+				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 
 			return acquired ? semaphore : null;
 		}
@@ -121,7 +121,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			catch (Exception exc)
 			{
 				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.LogWarning(exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while trying to release a SemaphoreSlim in the reactor", key, operationId);
+					logger.LogWarning(exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
 			}
 		}
 

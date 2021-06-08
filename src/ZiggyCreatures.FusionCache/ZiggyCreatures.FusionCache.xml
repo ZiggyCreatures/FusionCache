@@ -415,7 +415,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveDistributedCache">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan},System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSetAsync``1(System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
@@ -981,6 +981,15 @@
             <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.CreateEntryOptions(ZiggyCreatures.Caching.Fusion.IFusionCache,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan},System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance by duplicating the DefaultEntryOptions and optionally applying a setup action.
+            </summary>
+            <param name="setupAction">An optional setup action to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
+            <param name="duration">An optional duration to directly change the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
+            <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
+            <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/>.</returns>		
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults">
             <summary>
             Contains the default values used globally.
@@ -1147,13 +1156,12 @@
             </summary>
             <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan},System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance by duplicating the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> and optionally applying a setup action.
             </summary>
             <param name="setupAction">An optional setup action to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
             <param name="duration">An optional duration to directly change the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
-            <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
             <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/>.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.GetOrSetAsync``1(System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">

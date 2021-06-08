@@ -63,7 +63,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (oldCircuitState == CircuitStateClosed)
 			{
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.LogWarning("FUSION (K={CacheKey} OP={CacheOperationId}): distributed cache temporarily de-activated for {BreakDuration}", key, operationId, _breakDuration);
+					_logger.LogWarning("FUSION (OP={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", operationId, key, _breakDuration);
 
 				// EVENT
 				_events.OnCircuitBreakerChange(operationId, key, false);
@@ -104,7 +104,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (exc is SyntheticTimeoutException)
 			{
 				if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
-					_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): a synthetic timeout occurred while " + actionDescription, key, operationId);
+					_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, operationId, key);
 
 				return;
 			}
@@ -113,7 +113,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			UpdateLastError(key, operationId);
 
 			if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
-				_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while " + actionDescription, key, operationId);
+				_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
 		}
 
 		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -127,7 +127,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			var actionDescriptionInner = actionDescription + (options.AllowBackgroundDistributedCacheOperations ? " (background)" : null);
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): " + actionDescriptionInner + " {DistributedOptions}", key, operationId, distributedOptions.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): " + actionDescriptionInner + " {DistributedOptions}", operationId, key, distributedOptions.ToLogString());
 
 			await FusionCacheExecutionUtils
 				.RunAsyncActionAdvancedAsync(
@@ -154,7 +154,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			var actionDescriptionInner = actionDescription + (options.AllowBackgroundDistributedCacheOperations ? " (background)" : null);
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): " + actionDescriptionInner + " {DistributedOptions}", key, operationId, distributedOptions.ToLogString());
+				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): " + actionDescriptionInner + " {DistributedOptions}", operationId, key, distributedOptions.ToLogString());
 
 			FusionCacheExecutionUtils.RunSyncActionAdvanced(
 				action,
@@ -189,14 +189,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					try
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): serializing the entry {Entry}", key, operationId, distributedEntry.ToLogString());
+							_logger.Log(LogLevel.Debug, "FUSION (OP={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", operationId, key, distributedEntry.ToLogString());
 
 						data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
 					}
 					catch (Exception exc)
 					{
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, distributedEntry.ToLogString());
+							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", operationId, key, distributedEntry.ToLogString());
 
 						// EVENT
 						_events.OnSerializationError(operationId, key);
@@ -210,7 +210,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					ct.ThrowIfCancellationRequested();
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION (OP={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", operationId, key, distributedEntry.ToLogString());
 
 					await _cache.SetAsync(WireFormatVersionPrefix + key, data, distributedOptions, token).ConfigureAwait(false);
 
@@ -246,14 +246,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					try
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): serializing the entry {Entry}", key, operationId, distributedEntry.ToLogString());
+							_logger.Log(LogLevel.Debug, "FUSION (OP={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", operationId, key, distributedEntry.ToLogString());
 
 						data = _serializer.Serialize(distributedEntry);
 					}
 					catch (Exception exc)
 					{
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while serializing an entry {Entry}", key, operationId, distributedEntry.ToLogString());
+							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", operationId, key, distributedEntry.ToLogString());
 
 						// EVENT
 						_events.OnSerializationError(operationId, key);
@@ -267,7 +267,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					ct.ThrowIfCancellationRequested();
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey} OP={CacheOperationId}): setting the entry in distributed {Entry}", key, operationId, distributedEntry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION (OP={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", operationId, key, distributedEntry.ToLogString());
 
 					_cache.Set(WireFormatVersionPrefix + key, data, distributedOptions);
 
@@ -287,7 +287,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				return (null, false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): trying to get entry from distributed", key, operationId);
+				_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): trying to get entry from distributed", operationId, key);
 
 			byte[]? data;
 			try
@@ -311,19 +311,19 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				if (entry is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry not found", key, operationId);
+						_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): distributed entry not found", operationId, key);
 				}
 				else
 				{
 					if (entry.IsLogicallyExpired())
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found (expired) {Entry}", key, operationId, entry.ToLogString());
+							_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", operationId, key, entry.ToLogString());
 					}
 					else
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found {Entry}", key, operationId, entry.ToLogString());
+							_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", operationId, key, entry.ToLogString());
 
 						isValid = true;
 					}
@@ -344,7 +344,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while deserializing an entry", key, operationId);
+					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", operationId, key);
 
 				// EVENT
 				_events.OnDeserializationError(operationId, key);
@@ -362,7 +362,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				return (null, false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (K={CacheKey} OP={CacheOperationId}): trying to get entry from distributed", key, operationId);
+				_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): trying to get entry from distributed", operationId, key);
 
 			byte[]? data;
 			try
@@ -386,19 +386,19 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				if (entry is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry not found", key, operationId);
+						_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): distributed entry not found", operationId, key);
 				}
 				else
 				{
 					if (entry.IsLogicallyExpired())
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found (expired) {Entry}", key, operationId, entry.ToLogString());
+							_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", operationId, key, entry.ToLogString());
 					}
 					else
 					{
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): distributed entry found {Entry}", key, operationId, entry.ToLogString());
+							_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", operationId, key, entry.ToLogString());
 
 						isValid = true;
 					}
@@ -419,7 +419,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (K={CacheKey} OP={CacheOperationId}): an error occurred while deserializing an entry", key, operationId);
+					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", operationId, key);
 
 				// EVENT
 				_events.OnDeserializationError(operationId, key);
