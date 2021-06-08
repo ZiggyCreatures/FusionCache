@@ -73,6 +73,16 @@ As you can see lower level events may delve into the internals of how FusionCach
 
 Also note that newer locking implementations may be possible in the future (I'm actually trying them out) so lower level events may even change one day.
 
+Here's a non comprehensive list of the available events:
+
+- **Hit**: when a value was in the cache (there's also a flag to indicate if the data was stale or not)
+- **Miss**: when a value was not in the cache
+- **Remove**: when an entry has been removed
+- **Eviction**: when an eviction occurred, along with the reason (only for the memory layer)
+- **FailSafeActivation**: when the fail-safe mechanism kicked in
+
+There are more, and you easily discover them with code completion by just typing `cache.Events.` or `cache.Events.Memory` / `cache.Events.Distributed` in your code editor.
+
 
 ## :construction_worker: Safe execution
 Since an event handler is a normal piece of code that FusionCache runs at a certain point in time, with no special care taken a bad event handler may generate errors or slow everything down.
