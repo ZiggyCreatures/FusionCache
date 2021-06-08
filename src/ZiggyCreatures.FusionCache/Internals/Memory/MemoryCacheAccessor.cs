@@ -37,7 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			//options.MemoryOptionsModifier?.Invoke(memoryOptions, entry.GetValue<TValue>());
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
+				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
 
 			_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
 
@@ -51,24 +51,24 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			bool isValid = false;
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): trying to get from memory", operationId, key);
+				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to get from memory", operationId, key);
 
 			if (_cache.TryGetValue<FusionCacheMemoryEntry>(key, out entry) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): memory entry not found", operationId, key);
+					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): memory entry not found", operationId, key);
 			}
 			else
 			{
 				if (entry.IsLogicallyExpired())
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): memory entry found (expired) {Entry}", operationId, key, entry.ToLogString());
+						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): memory entry found (expired) {Entry}", operationId, key, entry.ToLogString());
 				}
 				else
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): memory entry found {Entry}", operationId, key, entry.ToLogString());
+						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): memory entry found {Entry}", operationId, key, entry.ToLogString());
 
 					isValid = true;
 				}
@@ -90,7 +90,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (OP={CacheOperationId} K={CacheKey}): removing data (from memory)", operationId, key);
+				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): removing data (from memory)", operationId, key);
 
 			_cache.Remove(key);
 

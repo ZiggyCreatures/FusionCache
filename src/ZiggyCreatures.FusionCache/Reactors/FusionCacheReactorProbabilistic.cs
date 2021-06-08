@@ -46,39 +46,39 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			var semaphore = _lockPool[idx];
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", operationId, key);
 
 			var acquired = semaphore.Wait(0);
 			if (acquired)
 			{
 				_lockPoolKeys[idx] = key;
 				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-					logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK fast-acquired", operationId, key);
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", operationId, key);
 
 				return semaphore;
 			}
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK already taken", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK already taken", operationId, key);
 
 			var key2 = _lockPoolKeys[idx];
 			if (key2 != key)
 			{
 				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-					logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", operationId, key);
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", operationId, key);
 
 				Interlocked.Increment(ref _lockPoolCollisions);
 			}
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 			acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
 			_lockPoolKeys[idx] = key;
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 
 			return acquired ? semaphore : null;
 		}
@@ -90,39 +90,39 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			var semaphore = _lockPool[idx];
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", operationId, key);
 
 			var acquired = semaphore.Wait(0);
 			if (acquired)
 			{
 				_lockPoolKeys[idx] = key;
 				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-					logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK fast-acquired", operationId, key);
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", operationId, key);
 
 				return semaphore;
 			}
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK already taken", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK already taken", operationId, key);
 
 			var key2 = _lockPoolKeys[idx];
 			if (key2 != key)
 			{
 				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-					logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", operationId, key);
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", operationId, key);
 
 				Interlocked.Increment(ref _lockPoolCollisions);
 			}
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 			acquired = semaphore.Wait(timeout);
 
 			_lockPoolKeys[idx] = key;
 
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (OP={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 
 			return acquired ? semaphore : null;
 		}
@@ -143,7 +143,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			catch (Exception exc)
 			{
 				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.LogWarning(exc, "FUSION (OP={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
+					logger.LogWarning(exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
 			}
 		}
 
