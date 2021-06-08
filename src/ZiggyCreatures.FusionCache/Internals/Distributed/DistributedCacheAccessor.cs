@@ -72,10 +72,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public bool IsCurrentlyUsable()
 		{
-			// NO DISTRIBUTEC CACHE
-			if (_cache is null)
-				return false;
-
 			// NO CIRCUIT-BREAKER DURATION
 			if (_breakDurationTicks == 0)
 				return true;
