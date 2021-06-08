@@ -175,7 +175,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			token.ThrowIfCancellationRequested();
 
 			var distributedOptions = options.ToDistributedCacheEntryOptions();
-			options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
+
+			//options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
 
 			await ExecuteOperationAsync(
 				operationId,
@@ -231,7 +232,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			token.ThrowIfCancellationRequested();
 
 			var distributedOptions = options.ToDistributedCacheEntryOptions();
-			options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
+
+			//options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
 
 			ExecuteOperation(
 				operationId,

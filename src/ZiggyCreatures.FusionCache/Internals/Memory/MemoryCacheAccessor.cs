@@ -34,7 +34,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		{
 			var memoryOptions = options.ToMemoryCacheEntryOptions(_events);
 
-			options.MemoryOptionsModifier?.Invoke(memoryOptions, entry.GetValue<TValue>());
+			//options.MemoryOptionsModifier?.Invoke(memoryOptions, entry.GetValue<TValue>());
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (K={CacheKey} OP={CacheOperationId}): saving entry in memory {Options} {Entry}", key, operationId, memoryOptions.ToLogString(), entry.ToLogString());

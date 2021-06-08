@@ -660,6 +660,13 @@
             </summary>
             <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duplicate(System.Nullable{System.TimeSpan})">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
+            </summary>
+            <param name="duration">A custom <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> that, if specified, will overwrite the current one.</param>
+            <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duplicate(System.Nullable{System.TimeSpan},System.Boolean)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object by duplicating all the options of the current one.

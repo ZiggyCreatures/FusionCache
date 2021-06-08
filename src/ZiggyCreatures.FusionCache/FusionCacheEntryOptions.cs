@@ -68,10 +68,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// A function to apply when creating a <see cref="MemoryCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
 		/// </summary>
+		[Obsolete("Please stop using this, it was an undocumented work in progress")]
 		public Action<MemoryCacheEntryOptions, object?>? MemoryOptionsModifier { get; set; }
+
 		/// <summary>
 		/// A function to apply when creating a <see cref="DistributedCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
 		/// </summary>
+		[Obsolete("Please stop using this, it was an undocumented work in progress")]
 		public Action<DistributedCacheEntryOptions, object?>? DistributedOptionsModifier { get; set; }
 
 		/// <summary>
@@ -355,11 +358,10 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Creates a new <see cref="FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
 		/// </summary>
 		/// <param name="duration">A custom <see cref="Duration"/> that, if specified, will overwrite the current one.</param>
-		/// <param name="includeOptionsModifiers">If false, the <see cref="MemoryOptionsModifier"/> and <see cref="DistributedOptionsModifier"/> will not be duplicated.</param>
 		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/> object.</returns>
-		public FusionCacheEntryOptions Duplicate(TimeSpan? duration = null, bool includeOptionsModifiers = true)
+		public FusionCacheEntryOptions Duplicate(TimeSpan? duration = null)
 		{
-			var res = new FusionCacheEntryOptions()
+			return new FusionCacheEntryOptions()
 			{
 				Duration = duration ?? Duration,
 				LockTimeout = LockTimeout,
@@ -379,14 +381,47 @@ namespace ZiggyCreatures.Caching.Fusion
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
 				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations
 			};
+		}
 
-			if (includeOptionsModifiers)
-			{
-				res.MemoryOptionsModifier = MemoryOptionsModifier;
-				res.DistributedOptionsModifier = DistributedOptionsModifier;
-			}
+		/// <summary>
+		/// Creates a new <see cref="FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
+		/// </summary>
+		/// <param name="duration">A custom <see cref="Duration"/> that, if specified, will overwrite the current one.</param>
+		/// <param name="includeOptionsModifiers">If false, the <see cref="MemoryOptionsModifier"/> and <see cref="DistributedOptionsModifier"/> will not be duplicated.</param>
+		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/> object.</returns>
+		[Obsolete("Please stop using this, it was an undocumented work in progress")]
+		public FusionCacheEntryOptions Duplicate(TimeSpan? duration, bool includeOptionsModifiers)
+		{
+			return Duplicate(duration);
 
-			return res;
+			//var res = new FusionCacheEntryOptions()
+			//{
+			//	Duration = duration ?? Duration,
+			//	LockTimeout = LockTimeout,
+			//	Size = Size,
+			//	Priority = Priority,
+			//	JitterMaxDuration = JitterMaxDuration,
+
+			//	IsFailSafeEnabled = IsFailSafeEnabled,
+			//	FailSafeMaxDuration = FailSafeMaxDuration,
+			//	FailSafeThrottleDuration = FailSafeThrottleDuration,
+
+			//	FactorySoftTimeout = FactorySoftTimeout,
+			//	FactoryHardTimeout = FactoryHardTimeout,
+			//	AllowTimedOutFactoryBackgroundCompletion = AllowTimedOutFactoryBackgroundCompletion,
+
+			//	DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
+			//	DistributedCacheHardTimeout = DistributedCacheHardTimeout,
+			//	AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations
+			//};
+
+			//if (includeOptionsModifiers)
+			//{
+			//	res.MemoryOptionsModifier = MemoryOptionsModifier;
+			//	res.DistributedOptionsModifier = DistributedOptionsModifier;
+			//}
+
+			//return res;
 		}
 	}
 }
