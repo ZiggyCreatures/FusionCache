@@ -51,6 +51,16 @@ cache.Events.Miss -= onMiss;
 
 All events follow this pattern, and some of them have **specific event args** with data specific to each event: for example the cache HIT event contains the cache key just like the cache MISS event but it also includes a `bool IsStale` flag that indicates if the cache hit has been for a fresh piece of data or for a stale one (for example after a fail-safe activation).
 
+Here's a non comprehensive list of the available events:
+
+- **Hit**: when a value was in the cache (there's also a flag to indicate if the data was stale or not)
+- **Miss**: when a value was not in the cache
+- **Remove**: when an entry has been removed
+- **Eviction**: when an eviction occurred, along with the reason (only for the memory layer)
+- **FailSafeActivation**: when the fail-safe mechanism kicked in
+
+There are more, and you easily discover them with code completion by just typing `cache.Events.` or `cache.Events.Memory` / `cache.Events.Distributed` in your code editor.
+
 
 ## :gear: On high-level and low-level events
 
@@ -72,16 +82,6 @@ But if you subscribe to the lower **memory layer** events you may fall into one 
 As you can see lower level events may delve into the internals of how FusionCache **currently** works.
 
 Also note that newer locking implementations may be possible in the future (I'm actually trying them out) so lower level events may even change one day.
-
-Here's a non comprehensive list of the available events:
-
-- **Hit**: when a value was in the cache (there's also a flag to indicate if the data was stale or not)
-- **Miss**: when a value was not in the cache
-- **Remove**: when an entry has been removed
-- **Eviction**: when an eviction occurred, along with the reason (only for the memory layer)
-- **FailSafeActivation**: when the fail-safe mechanism kicked in
-
-There are more, and you easily discover them with code completion by just typing `cache.Events.` or `cache.Events.Memory` / `cache.Events.Distributed` in your code editor.
 
 
 ## :construction_worker: Safe execution
