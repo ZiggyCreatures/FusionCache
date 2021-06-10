@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -43,6 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
 					logger: logger
 				);
 
+				// DISTRIBUTED CACHE
 				if (useDistributedCacheIfAvailable)
 				{
 					var distributedCache = serviceProvider.GetService<IDistributedCache>();
@@ -68,6 +70,20 @@ namespace Microsoft.Extensions.DependencyInjection
 					}
 				}
 
+				// PLUGINS
+				foreach (var plugin in serviceProvider.GetServices<IFusionCachePlugin>())
+				{
+					try
+					{
+						cache.AddPlugin(plugin);
+					}
+					catch
+					{
+						// EMPTY: EVERYTHING HAS BEEN ALREADY LOGGED, IF NECESSARY
+					}
+				}
+
+				// CUSTOM SETUP ACTION
 				setupCacheAction?.Invoke(serviceProvider, cache);
 
 				return cache;
