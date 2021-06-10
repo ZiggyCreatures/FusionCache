@@ -457,6 +457,12 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.Events">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.AddPlugin(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemovePlugin(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Dispose(System.Boolean)">
             <summary>
             Release all resources managed by FusionCache.
@@ -985,6 +991,7 @@
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance by duplicating the DefaultEntryOptions and optionally applying a setup action.
             </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.</param>
             <param name="setupAction">An optional setup action to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
             <param name="duration">An optional duration to directly change the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
             <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
@@ -1290,6 +1297,19 @@
             <summary>
             The central place for all events handling of this FusionCache instance.
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.AddPlugin(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+            <summary>
+            Add a plugin to this FusionCache instance, then start it.
+            </summary>
+            <param name="plugin">The <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> instance.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemovePlugin(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+            <summary>
+            Stop a plugin, then remove it from this FusionCache instance.
+            </summary>
+            <param name="plugin">The <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> instance.</param>
+            <returns>True if the plugin has been removed, otherwise false.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom">
             <summary>
@@ -1633,6 +1653,18 @@
             </summary>
             <param name="value">The value of type <typeparamref name="TValue"/> to use.</param>
             <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1"/> instance.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <summary>
+            This method is called right after adding the plugin to a FusionCache instance. If it throws, the plugin will be automatically removed.
+            </summary>
+            <param name="cache">The FusionCache instance this plugin is being added to.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <summary>
+            This method is called right before removing the plugin from a FusionCache instance.
+            </summary>
+            <param name="cache">The FusionCache instance this plugin is being added to.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor">
             <summary>

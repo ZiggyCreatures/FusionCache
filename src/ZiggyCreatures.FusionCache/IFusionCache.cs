@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using ZiggyCreatures.Caching.Fusion.Events;
+using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion
@@ -166,5 +167,18 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// The central place for all events handling of this FusionCache instance.
 		/// </summary>
 		FusionCacheEventsHub Events { get; }
+
+		/// <summary>
+		/// Add a plugin to this FusionCache instance, then start it.
+		/// </summary>
+		/// <param name="plugin">The <see cref="IFusionCachePlugin"/> instance.</param>
+		void AddPlugin(IFusionCachePlugin plugin);
+
+		/// <summary>
+		/// Stop a plugin, then remove it from this FusionCache instance.
+		/// </summary>
+		/// <param name="plugin">The <see cref="IFusionCachePlugin"/> instance.</param>
+		/// <returns>True if the plugin has been removed, otherwise false.</returns>
+		bool RemovePlugin(IFusionCachePlugin plugin);
 	}
 }
