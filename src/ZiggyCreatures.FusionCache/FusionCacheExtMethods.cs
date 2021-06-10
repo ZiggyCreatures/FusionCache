@@ -427,6 +427,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Creates a new <see cref="FusionCacheEntryOptions"/> instance by duplicating the DefaultEntryOptions and optionally applying a setup action.
 		/// </summary>
+		/// <param name="cache">The <see cref="FusionCache"/> instance.</param>
 		/// <param name="setupAction">An optional setup action to further configure the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
 		/// <param name="duration">An optional duration to directly change the <see cref="FusionCacheEntryOptions.Duration"/> of the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
 		/// <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
