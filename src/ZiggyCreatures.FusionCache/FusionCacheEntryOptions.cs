@@ -140,7 +140,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 		/// <summary>
 		/// If <see cref="JitterMaxDuration"/> is greater than <see cref="TimeSpan.Zero"/>, this method returns a randomized duration (in ms) between 0 and <see cref="JitterMaxDuration"/> that will be added to the entry's specified <see cref="Duration"/> .
-		/// This is done to avoid a variation of the so called <a href="https://en.wikipedia.org/wiki/Thundering_herd_problem">thundering herd problem</a> that may happen when the entry for the same key expires on multiple nodes at the same time, because of high synchronization.
+		/// This is done to avoid a variation of the so called <a href="https://en.wikipedia.org/wiki/Cache_stampede">cache stampede problem</a> that may happen when the entry for the same key expires on multiple nodes at the same time, because of high synchronization.
 		/// </summary>
 		/// <returns>An additional cache duration (in ms) to slightly vary the entry duration</returns>
 		public double GetJitterDurationMs()
