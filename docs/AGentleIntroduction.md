@@ -119,7 +119,7 @@ Any operation works seamlessly with any other, even if one is **sync** and the o
 
 ## :telephone_receiver: Events
 
-There's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers).
+There's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers).
 
 You can read more [**here**](Events.md).
 
