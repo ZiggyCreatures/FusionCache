@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.4</Version>
+		<Version>0.1.5</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -15,15 +15,12 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-		<RootNamespace>ZiggyCreatures.FusionCaching</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
-		<PackageReleaseNotes>
-			- Introduced the events system
-			- Some perf optimizations
-		</PackageReleaseNotes>
+		<PackageReleaseNotes>- Introduced the plugins subsystem</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 

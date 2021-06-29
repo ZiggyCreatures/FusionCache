@@ -44,6 +44,7 @@ These are the **key features** of FusionCache:
 - **:zap: High performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - **:dizzy: Natively sync/async**: full native support for both the synchronous and asynchronous programming model, with sync/async methods working togheter harmoniously ([read more](docs/CoreMethods.md))
 - **:telephone_receiver: Events**: there's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers) ([read more](docs/Events.md))
+- **:jigsaw: Plugins**: thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc... ([read more](docs/Plugins.md))
 - **:page_with_curl: Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 
 Also, FusionCache has some other nice **additional features**:
@@ -201,6 +202,8 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**:joystick: Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
 - [**:telephone_receiver: Events**](docs/Events.md): the events hub and how to use it
+- [**:jigsaw: Plugins**](docs/Plugins.md): how to create and use plugins
+
 
 ## **:trophy: Step By Step**
 If you are in for a ride you can read a complete [step by step example](docs/StepByStep.md) of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what **results** you can expect to obtain.

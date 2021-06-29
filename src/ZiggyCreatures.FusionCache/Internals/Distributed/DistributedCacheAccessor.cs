@@ -17,10 +17,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 		{
-			if (distributedCache == null)
+			if (distributedCache is null)
 				throw new ArgumentNullException(nameof(distributedCache));
 
-			if (serializer == null)
+			if (serializer is null)
 				throw new ArgumentNullException(nameof(serializer));
 
 			_cache = distributedCache;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
+using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -26,6 +28,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
 		private FusionCacheEventsHub _events;
+		private List<IFusionCachePlugin> _plugins;
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCache"/> instance.
@@ -58,6 +61,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// EVENTS
 			_events = new FusionCacheEventsHub(this, _options, _logger);
+
+			// PLUGINS
+			_plugins = new List<IFusionCachePlugin>();
 
 			// MEMORY CACHE
 			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
@@ -1032,6 +1038,99 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <inheritdoc/>
 		public FusionCacheEventsHub Events { get { return _events; } }
 
+		/// <inheritdoc/>
+		public void AddPlugin(IFusionCachePlugin plugin)
+		{
+			if (plugin is null)
+				throw new ArgumentNullException(nameof(plugin));
+
+			// ADD THE PLUGIN
+			lock (_plugins)
+			{
+				if (_plugins.Contains(plugin))
+				{
+					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+						_logger?.LogError("FUSION: the same plugin instance already exists (TYPE={PluginType})", plugin.GetType().FullName);
+
+					throw new InvalidOperationException($"FUSION: the same plugin instance already exists (TYPE={plugin.GetType().FullName})");
+				}
+
+				_plugins.Add(plugin);
+			}
+
+			// START THE PLUGIN
+			try
+			{
+				plugin.Start(this);
+			}
+			catch (Exception exc)
+			{
+				lock (_plugins)
+				{
+					_plugins.Remove(plugin);
+				}
+
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.LogError(exc, "FUSION: an error occurred while starting a plugin (TYPE={PluginType})", plugin.GetType().FullName);
+
+				throw new InvalidOperationException($"FUSION: an error occurred while starting a plugin (TYPE={plugin.GetType().FullName})", exc);
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger?.LogInformation("FUSION: a plugin has been added and started (TYPE={PluginType})", plugin.GetType().FullName);
+		}
+
+		/// <inheritdoc/>
+		public bool RemovePlugin(IFusionCachePlugin plugin)
+		{
+			if (plugin is null)
+				throw new ArgumentNullException(nameof(plugin));
+
+			lock (_plugins)
+			{
+				if (_plugins.Contains(plugin) == false)
+				{
+					if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+						_logger?.LogWarning("FUSION: the plugin cannot be removed because is not part of this FusionCache instance (TYPE={PluginType})", plugin.GetType().FullName);
+
+					// MAYBE WE SHOULD THROW (LIKE IN AddPlugin) INSTEAD OF JUST RETURNING (LIKE IN List<T>.Remove()) ?
+					return false;
+					//throw new InvalidOperationException($"FUSION: the plugin cannot be removed because is not part of this FusionCache instance (TYPE={plugin.GetType().FullName})");
+				}
+
+				// STOP THE PLUGIN
+				try
+				{
+					plugin.Stop(this);
+				}
+				catch (Exception exc)
+				{
+					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+						_logger.LogError(exc, "FUSION: an error occurred while stopping a plugin (TYPE={PluginType})", plugin.GetType().FullName);
+
+					throw new InvalidOperationException($"FUSION: an error occurred while stopping a plugin (TYPE={plugin.GetType().FullName})", exc);
+				}
+				finally
+				{
+					// REMOVE THE PLUGIN
+					_plugins.Remove(plugin);
+				}
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger?.LogInformation("FUSION: a plugin has been stopped and removed (TYPE={PluginType})", plugin.GetType().FullName);
+
+			return true;
+		}
+
+		private void RemoveAllPlugins()
+		{
+			foreach (var plugin in _plugins.ToArray())
+			{
+				RemovePlugin(plugin);
+			}
+		}
+
 		// IDISPOSABLE
 		private bool disposedValue = false;
 		/// <summary>
@@ -1044,6 +1143,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (disposing)
 				{
+					RemoveAllPlugins();
 					_reactor.Dispose();
 					_mca.Dispose();
 				}
