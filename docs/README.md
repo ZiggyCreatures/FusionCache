@@ -22,6 +22,7 @@ A deeper description of the main features:
 - [**:level_slider: Options**](Options.md): everything about the available options, both cache-wide and per-call
 - [**:joystick: Core Methods**](CoreMethods.md): what you need to know about the core methods available
 - [**:telephone_receiver: Events**](Events.md): the events hub and how to use it
+- [**:jigsaw: Plugins**](Plugins.md): how to create and use plugins
 
 ### [**:trophy: Step By Step**](StepByStep.md)
 A complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain.

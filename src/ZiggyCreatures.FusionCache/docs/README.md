@@ -18,7 +18,8 @@ These are the **key features** of FusionCache:
 - **🕶 Background factory completion**: when you specify a factory timeout and it actually occurs, the timed-out factory can keep running in the background and, if and when it successfully complete, the cache will be immediately updated with the new value to be used right away
 - **⚡ High performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - **💫 Natively sync/async**: full native support for both the synchronous and asynchronous programming model, with sync/async methods working togheter harmoniously
-- **📞 Events**: there's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers) ([read more](docs/Events.md))
+- **📞 Events**: there's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers)
+- **🧩 Plugins**: thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc...
 - **📃 Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
 
 Also, FusionCache has some other nice **additional features**:
@@ -96,6 +97,12 @@ cache.GetOrSet<Product>(
 ```
 
 That's it 🎉
+
+
+## 📖 Documentation
+
+A complete documentation, including examples and common use cases, is available at the [official repo](https://github.com/jodydonetti/ZiggyCreatures.FusionCache) page on GitHub.
+
 
 ## 🧰 Supported Platforms
 
