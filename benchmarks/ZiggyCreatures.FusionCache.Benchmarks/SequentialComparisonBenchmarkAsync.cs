@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
-using CacheManager.Core;
+using CacheTower;
+using CacheTower.Extensions;
+using CacheTower.Providers.Memory;
 using EasyCaching.Core;
 using LazyCache;
 using LazyCache.Providers;
@@ -17,7 +17,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
-	public class SyncComparisonBenchmark
+	public class SequentialComparisonBenchmarkAsync
 	{
 
 		private class Config : ManualConfig
@@ -29,12 +29,6 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				);
 			}
 		}
-
-		[Params(20)]
-		public int FactoryDurationMs;
-
-		[Params(10, 100)]
-		public int Accessors;
 
 		[Params(100)]
 		public int KeysCount;
@@ -64,26 +58,22 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		}
 
 		[Benchmark(Baseline = true)]
-		public void FusionCache()
+		public async Task FusionCache()
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }))
 			{
 				for (int i = 0; i < Rounds; i++)
 				{
-					Parallel.ForEach(Keys, key =>
+					foreach (var key in Keys)
 					{
-						Parallel.For(0, Accessors, _ =>
-					   {
-						   cache.GetOrSet<SamplePayload>(
-							  key,
-							  ct =>
-							  {
-								  Thread.Sleep(FactoryDurationMs);
-								  return new SamplePayload();
-							  }
-						  );
-					   });
-					});
+						await cache.GetOrSetAsync<SamplePayload>(
+							key,
+							async ct =>
+							{
+								return new SamplePayload();
+							}
+						);
+					}
 				}
 
 				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
@@ -91,72 +81,60 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		}
 
 		[Benchmark]
-		public void CacheManager()
+		public async Task CacheTower()
 		{
-			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
+			await using (var cache = new CacheStack(new[] { new MemoryCacheLayer() }, new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) }))
 			{
+				var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
+
 				for (int i = 0; i < Rounds; i++)
 				{
-					Parallel.ForEach(Keys, key =>
+					foreach (var key in Keys)
 					{
-						Parallel.For(0, Accessors, _ =>
-					   {
-						   cache.GetOrAdd(
-							  key,
-							  _ =>
-							  {
-								  Thread.Sleep(FactoryDurationMs);
-								  return new CacheItem<SamplePayload>(
-								 key,
-								 new SamplePayload(),
-								 global::CacheManager.Core.ExpirationMode.Absolute,
-								 CacheDuration
-							 );
-							  }
-						  );
-
-					   });
-					});
+						await cache.GetOrSetAsync<SamplePayload>(
+							key,
+							async (old) =>
+							{
+								return new SamplePayload();
+							},
+							cacheSettings
+						);
+					}
 				}
 
 				// CLEANUP
-				cache.Clear();
+				await cache.CleanupAsync();
+				await cache.FlushAsync();
 			}
 		}
 
 		[Benchmark]
-		public void EasyCaching()
+		public async Task EasyCaching()
 		{
 			var factory = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>();
 			var cache = factory.GetCachingProvider("default");
 
 			for (int i = 0; i < Rounds; i++)
 			{
-				var tasks = new ConcurrentBag<Task>();
-
-				Parallel.ForEach(Keys, key =>
+				foreach (var key in Keys)
 				{
-					Parallel.For(0, Accessors, _ =>
-					{
-						cache.Get<SamplePayload>(
-							key,
-							() =>
-							{
-								Thread.Sleep(FactoryDurationMs);
-								return new SamplePayload();
-							},
-							CacheDuration
-						);
-					});
-				});
+					await cache.GetAsync<SamplePayload>(
+						key,
+						async () =>
+						{
+							return new SamplePayload();
+						},
+						CacheDuration
+					);
+				}
 			}
 
 			// CLEANUP
-			cache.Flush();
+			await cache.FlushAsync();
 		}
 
 		[Benchmark]
-		public void LazyCache()
+		public async Task LazyCache()
 		{
 			using (var cache = new MemoryCache(new MemoryCacheOptions()))
 			{
@@ -166,22 +144,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 
 				for (int i = 0; i < Rounds; i++)
 				{
-					var tasks = new ConcurrentBag<Task>();
-
-					Parallel.ForEach(Keys, key =>
+					foreach (var key in Keys)
 					{
-						Parallel.For(0, Accessors, _ =>
-					   {
-						   appcache.GetOrAdd<SamplePayload>(
-							  key,
-							  () =>
-							  {
-								  Thread.Sleep(FactoryDurationMs);
-								  return new SamplePayload();
-							  }
-						  );
-					   });
-					});
+						await appcache.GetOrAddAsync<SamplePayload>(
+							key,
+							async () =>
+							{
+								return new SamplePayload();
+							}
+						);
+					}
 				}
 
 				// CLEANUP

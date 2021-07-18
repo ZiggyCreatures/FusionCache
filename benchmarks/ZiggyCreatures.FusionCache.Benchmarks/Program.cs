@@ -8,8 +8,8 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 
 		public static async Task Main(string[] args)
 		{
-			_ = BenchmarkRunner.Run<AsyncComparisonBenchmark>();
-			//_ = BenchmarkRunner.Run<SyncComparisonBenchmark>();
+			_ = BenchmarkRunner.Run<SequentialComparisonBenchmarkAsync>();
+			//_ = BenchmarkRunner.Run<SequentialComparisonBenchmarkSync>();
 		}
 
 	}

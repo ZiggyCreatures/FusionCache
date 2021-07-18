@@ -20,7 +20,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
-	public class AsyncComparisonBenchmark
+	public class ParallelComparisonBenchmark
 	{
 
 		private class Config : ManualConfig
@@ -99,7 +99,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		}
 
 		[Benchmark]
-		public async Task CacheManager()
+		public void CacheManager()
 		{
 			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
 			{
@@ -108,21 +108,21 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					Parallel.ForEach(Keys, key =>
 					{
 						Parallel.For(0, Accessors, _ =>
-					   {
-						   cache.GetOrAdd(
-							  key,
-							  _ =>
-							  {
-								  Thread.Sleep(FactoryDurationMs);
-								  return new CacheItem<SamplePayload>(
-								 key,
-								 new SamplePayload(),
-								 global::CacheManager.Core.ExpirationMode.Absolute,
-								 CacheDuration
-							 );
-							  }
-						  );
-					   });
+						{
+							cache.GetOrAdd(
+								key,
+								_ =>
+								{
+									Thread.Sleep(FactoryDurationMs);
+									return new CacheItem<SamplePayload>(
+										key,
+										new SamplePayload(),
+										global::CacheManager.Core.ExpirationMode.Absolute,
+										CacheDuration
+									);
+								}
+							);
+						});
 					});
 				}
 
