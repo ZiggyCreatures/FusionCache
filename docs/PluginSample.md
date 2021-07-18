@@ -394,7 +394,9 @@ You can of course use the namespace you prefer, but if you want to be in the com
 
 ### Xml Comments
 
-It would be nice for users of our plugin to know what they are doing **while** they are doing it. By using [xml comments](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc) you can ensure a nice learning path so that each property, method or option available is clearly documented and they will learn while doing it.
+It would be nice for users of our plugin to know what they are doing **while** they are doing it.
+
+By using [xml comments](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc) we can have a good developer experience with an easier learning path so that each property, method or option available is clearly documented and our users will learn our plugin while using it.
 
 
 ### Documentation
