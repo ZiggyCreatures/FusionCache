@@ -426,13 +426,15 @@ Oh, and if you come up with a better way please [**:envelope: drop me a line**](
 
 Of course use your own logo if you like, it goes without saying!
 
-Please **⚠ DON'T USE** the official FusionCache logo as-is for your own third-party plugin or other packages: the reasoning is I'd like for users to differentiate between **official packages** and **third party** packages.
+A lot of times though it's not easy to create or came up with a nice logo, and the default one in Nuget would not make your package emerge, so it may be tempting to just use the official FusionCache logo for your own third-party plugin or other packages.
 
-A lot of times though it's not easy to create or came up with a nice logo, and the default one in Nuget would not make your package emerge.
+⚠ Please **DON'T DO THAT**.
 
-So, to keep a common branding and make FusionCache plugins recognizable I've created a slightly different logo, available in different sizes:
+The reason being I'd like for users to clearly differentiate between **official packages** and **third party packages**.
 
-**128x128:**
+So, to keep a common branding and make FusionCache plugins quickly recognizable in the Nuget gallery, I've created a slightly different logo for you to use readily available in different sizes:
+
+**128x128:** (standard Nuget icon size)
 
 ![FusionCache logo - 400x400](logo-plugin-128x128.png)
 
