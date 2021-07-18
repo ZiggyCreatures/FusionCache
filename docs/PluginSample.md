@@ -389,7 +389,7 @@ Choose a name that clearly explain what the plugin does: I know, naming things i
 
 ### Namespace
 
-You can of course use the namespace you prefer, but if you want to be in the common FusionCache namespace I'd suggest going with something like `ZiggyCreatures.Caching.Fusion.Plugins.BrandOrCompanyOrFeatureSubject.MyPlugin` to keep everything in place and make it such that any other potential plugin will not collide with others. Some examples
+You can of course use the namespace you prefer, but if you want to be in the common FusionCache namespace I'd suggest going with something like `ZiggyCreatures.Caching.Fusion.Plugins.BrandOrCompanyOrFeatureSubject.MyPlugin` to keep everything in place and make it such that any other potential plugin will not collide with others.
 
 
 ### Xml Comments
