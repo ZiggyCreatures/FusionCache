@@ -87,7 +87,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 								  return new SamplePayload();
 							  }
 						  );
-						   tasks.Add(t);
+						   tasks.Add(t.AsTask());
 					   });
 					});
 

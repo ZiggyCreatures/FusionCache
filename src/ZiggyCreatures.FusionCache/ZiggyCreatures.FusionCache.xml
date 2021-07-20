@@ -1264,7 +1264,7 @@
             <param name="value">The value to put in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> to await the completion of the operation.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Set``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
@@ -1283,7 +1283,7 @@
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>A <see cref="T:System.Threading.Tasks.Task"/> to await the completion of the operation.</returns>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> to await the completion of the operation.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
@@ -1653,6 +1653,11 @@
             </summary>
             <param name="value">The value of type <typeparamref name="TValue"/> to use.</param>
             <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1"/> instance.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin">
+            <summary>
+            The core plugin interface to implement to create a FusionCache plugin.
+            </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
             <summary>

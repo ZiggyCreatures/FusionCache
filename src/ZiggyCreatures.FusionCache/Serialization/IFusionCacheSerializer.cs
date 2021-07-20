@@ -29,7 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization
 		/// <typeparam name="T">The type of the <paramref name="obj"/> parameter.</typeparam>
 		/// <param name="obj"></param>
 		/// <returns>The byte[] which represents the serialized <paramref name="obj"/>.</returns>
-		Task<byte[]> SerializeAsync<T>(T obj);
+		ValueTask<byte[]> SerializeAsync<T>(T obj);
 
 		/// <summary>
 		/// Deserialized the specified byte[] <paramref name="data"/> into an object of type <typeparamref name="T"/>.
@@ -37,6 +37,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization
 		/// <typeparam name="T">The type of the object to be returned.</typeparam>
 		/// <param name="data"></param>
 		/// <returns>The deserialized object.</returns>
-		Task<T> DeserializeAsync<T>(byte[] data);
+		ValueTask<T> DeserializeAsync<T>(byte[] data);
 	}
 }

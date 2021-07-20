@@ -51,7 +51,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-		Task<TValue> GetOrSetAsync<TValue>(string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.
@@ -73,7 +73,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		Task<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according to the <paramref name="options"/> provided.
@@ -94,7 +94,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
-		Task<TValue> GetOrDefaultAsync<TValue>(string key, TValue defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		ValueTask<TValue> GetOrDefaultAsync<TValue>(string key, TValue defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
@@ -114,7 +114,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		Task<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="MaybeValue{TValue}"/> instance.
@@ -133,8 +133,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="value">The value to put in the cache.</param>
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
-		Task SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
+		ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
@@ -152,8 +152,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
-		Task RemoveAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
+		ValueTask RemoveAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Removes the value in the cache for the specified <paramref name="key"/>.

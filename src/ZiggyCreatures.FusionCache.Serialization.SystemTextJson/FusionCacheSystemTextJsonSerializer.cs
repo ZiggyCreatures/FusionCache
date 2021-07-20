@@ -35,7 +35,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson
 		}
 
 		/// <inheritdoc />
-		public async Task<byte[]> SerializeAsync<T>(T obj)
+		public async ValueTask<byte[]> SerializeAsync<T>(T obj)
 		{
 			using (var stream = new MemoryStream())
 			{
@@ -45,7 +45,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson
 		}
 
 		/// <inheritdoc />
-		public async Task<T> DeserializeAsync<T>(byte[] data)
+		public async ValueTask<T> DeserializeAsync<T>(byte[] data)
 		{
 			using (var stream = new MemoryStream(data))
 			{
