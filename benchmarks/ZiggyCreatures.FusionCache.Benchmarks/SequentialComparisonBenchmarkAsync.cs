@@ -30,7 +30,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-		[Params(100)]
+		[Params(200)]
 		public int KeysCount;
 
 		[Params(1, 50)]

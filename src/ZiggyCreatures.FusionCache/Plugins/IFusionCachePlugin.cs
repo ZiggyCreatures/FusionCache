@@ -1,5 +1,8 @@
 ﻿namespace ZiggyCreatures.Caching.Fusion.Plugins
 {
+	/// <summary>
+	/// The core plugin interface to implement to create a FusionCache plugin.
+	/// </summary>
 	public interface IFusionCachePlugin
 	{
 		/// <summary>

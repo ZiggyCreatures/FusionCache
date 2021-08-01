@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,7 +35,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						},
 						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 					);
-					tasks.Add(task);
+					tasks.Add(task.AsTask());
 				});
 
 				await Task.WhenAll(tasks);
@@ -97,7 +97,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 						   },
 						   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 					   );
-						tasks.Add(task);
+						tasks.Add(task.AsTask());
 					}
 					else
 					{

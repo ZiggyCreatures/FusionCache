@@ -41,17 +41,17 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson
 		}
 
 		/// <inheritdoc />
-		public Task<byte[]> SerializeAsync<T>(T obj)
+		public ValueTask<byte[]> SerializeAsync<T>(T obj)
 		{
 			// TODO: DO BETTER HERE
-			return Task.FromResult(Serialize<T>(obj));
+			return new ValueTask<byte[]>(Serialize<T>(obj));
 		}
 
 		/// <inheritdoc />
-		public Task<T> DeserializeAsync<T>(byte[] data)
+		public ValueTask<T> DeserializeAsync<T>(byte[] data)
 		{
 			// TODO: DO BETTER HERE
-			return Task.FromResult(Deserialize<T>(data));
+			return new ValueTask<T>(Deserialize<T>(data));
 		}
 	}
 

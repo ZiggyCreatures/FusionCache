@@ -20,7 +20,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 		/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The acquired genericlock object, later released when the crytical section is over.</returns>
-		Task<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
+		ValueTask<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
 
 		/// <summary>
 		/// Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.

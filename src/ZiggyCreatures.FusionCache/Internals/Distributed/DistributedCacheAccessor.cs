@@ -117,7 +117,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		}
 
 		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private async Task ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
+		private async ValueTask ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return;
@@ -167,7 +167,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			);
 		}
 
-		public async Task SetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
+		public async ValueTask SetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return;
@@ -281,7 +281,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			);
 		}
 
-		public async Task<(FusionCacheDistributedEntry<TValue>? entry, bool isValid)> TryGetEntryAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
+		public async ValueTask<(FusionCacheDistributedEntry<TValue>? entry, bool isValid)> TryGetEntryAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
 		{
 			if (IsCurrentlyUsable() == false)
 				return (null, false);
@@ -431,7 +431,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			return (null, false);
 		}
 
-		public async Task RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+		public async ValueTask RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			await ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(WireFormatVersionPrefix + key, ct), "removing entry from distributed", options, null, token);
 

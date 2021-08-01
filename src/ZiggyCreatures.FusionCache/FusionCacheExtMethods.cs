@@ -22,7 +22,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
 		}
@@ -54,7 +54,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, cache.CreateEntryOptions(setupAction), token);
 		}
@@ -89,7 +89,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, factory, default, options, token);
 		}
@@ -119,7 +119,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, TimeSpan duration, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, TimeSpan duration, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration), token);
 		}
@@ -149,7 +149,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<CancellationToken, Task<TValue>> factory, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, factory, default, cache.CreateEntryOptions(setupAction), token);
 		}
@@ -182,7 +182,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 		/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
 		}
@@ -210,7 +210,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		public static Task<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
 		}
@@ -243,7 +243,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
-		public static Task<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue defaultValue = default, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue defaultValue = default, CancellationToken token = default)
 		{
 #pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
@@ -277,7 +277,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
-		public static Task<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 #pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
@@ -313,7 +313,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		public static Task<MaybeValue<TValue>> TryGetAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.TryGetAsync<TValue>(key, cache.CreateEntryOptions(setupAction), token);
 		}
@@ -345,7 +345,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
-		public static Task SetAsync<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, CancellationToken token = default)
+		public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, CancellationToken token = default)
 		{
 			return cache.SetAsync<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration), token);
 		}
@@ -374,7 +374,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
-		public static Task SetAsync<TValue>(this IFusionCache cache, string key, TValue value, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(setupAction), token);
 		}
@@ -405,7 +405,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
-		public static Task RemoveAsync(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+		public static ValueTask RemoveAsync(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
 			return cache.RemoveAsync(key, cache.CreateEntryOptions(setupAction), token);
 		}

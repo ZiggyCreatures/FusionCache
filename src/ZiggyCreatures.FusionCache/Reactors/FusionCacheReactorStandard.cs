@@ -75,7 +75,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 		}
 
 		// ACQUIRE LOCK ASYNC
-		public async Task<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+		public async ValueTask<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
 			token.ThrowIfCancellationRequested();
 
