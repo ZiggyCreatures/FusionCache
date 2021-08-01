@@ -123,6 +123,14 @@ There's a comprehensive set of events to subscribe to regarding core events insi
 
 You can read more [**here**](Events.md).
 
+## :jigsaw: Plugins
+
+FusionCache supports extensibility via plugins: it is possible for example to listen to [events](Events.md) and react in any way you want.
+
+In time, the most useful plugins will be listed directly in the homepage.
+
+You can read more [**here**](Plugins.md).
+
 ## :page_with_curl: Logging
 FusionCache can log extensively to help you pinpoint any possible problem in your production environment.
 
