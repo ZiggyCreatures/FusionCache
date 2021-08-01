@@ -1606,11 +1606,6 @@
             Represents a reusable result to be used when no value is there: using this saves memory allocations.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.MaybeValue`1.Success">
-            <summary>
-            Indicates if the value is there.
-            </summary>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.MaybeValue`1.HasValue">
             <summary>
             Indicates if the value is there.
