@@ -1774,49 +1774,6 @@
             <exception cref="T:System.ArgumentNullException">The <paramref name="info">info</paramref> parameter is null.</exception>
             <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is null, or <see cref="P:System.Exception.HResult"/> is zero (0).</exception>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1">
-            <summary>
-            Represents the result of a TryGet[Async] operation: it contains a <see cref="T:System.Boolean"/> indicating if the value has been found, and either the found value or a default value instead.
-            </summary>
-            <typeparam name="TValue">The type of the value in the cache.</typeparam>
-        </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.TryGetResult`1.NoSuccess">
-            <summary>
-            Represents a reusable result to be used when no value has been found in the cache. Using this saves memory allocations.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Success">
-            <summary>
-            Indicates if the value was in the cache.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Value">
-            <summary>
-            If the value is there (you can check <see cref="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Success"/> to know that) the actual value is returned, otherwise an <see cref="T:System.InvalidOperationException"/> will be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.GetValueOrDefault(`0)">
-            <summary>
-            Retrieves the value of the current <see cref="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1"/> object, or the provided <paramref name="defaultValue"/> parameter instead.
-            </summary>
-            <param name="defaultValue">A value to return if the <see cref="P:ZiggyCreatures.Caching.Fusion.TryGetResult`1.Success"/> property is false.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.ToString">
-            <inheritdoc />
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.op_Implicit(ZiggyCreatures.Caching.Fusion.TryGetResult{`0})~System.Boolean">
-            <summary>
-            Implements an implicit conversion between a <see cref="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1"/> instance and a <see cref="T:System.Boolean"/>, to be easily used in boolean-based statements, like an if or a while.
-            </summary>
-            <param name="res">The <see cref="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1"/> instance to convert.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.TryGetResult`1.CreateSuccess(`0)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1"/> instance for a successful case by providing the <paramref name="value"/>.
-            </summary>
-            <param name="value">The value of type <typeparamref name="TValue"/> to use.</param>
-            <returns>THe newly created <see cref="T:ZiggyCreatures.Caching.Fusion.TryGetResult`1"/> instance.</returns>
-        </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions">
             <summary>
             Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
