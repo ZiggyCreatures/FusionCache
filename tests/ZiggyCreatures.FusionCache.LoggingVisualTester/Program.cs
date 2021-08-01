@@ -57,19 +57,20 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 		{
 			Console.OutputEncoding = Encoding.UTF8;
 
-			using (var cache = new FusionCache(new FusionCacheOptions()))
-			{
-				cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(1);
-				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
-				cache.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
-				cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(10);
+			// TEMPORARY: SMALL TEST
+			//using (var cache = new FusionCache(new FusionCacheOptions()))
+			//{
+			//	cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(1);
+			//	cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			//	cache.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
+			//	cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(10);
 
-				for (int i = 0; i < 1_000; i++)
-				{
-					await cache.GetOrSetAsync<int>("foo" + i.ToString(), _ => Task.FromResult(42));
-				}
-			}
-			return;
+			//	for (int i = 0; i < 1_000; i++)
+			//	{
+			//		await cache.GetOrSetAsync<int>("foo" + i.ToString(), _ => Task.FromResult(42));
+			//	}
+			//}
+			//return;
 
 			// DI
 			var services = new ServiceCollection();
