@@ -5,6 +5,7 @@
 </div>
 
 # FusionCache
+
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -32,6 +33,14 @@ If you want to get yourself **comfortable with the overall concepts** there's [:
 If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:trophy: Step By Step ](docs/StepByStep.md) guide.
 
 If instead you want to start using it **immediately** there's a [:star: Quick Start](#star-quick-start) for you.
+
+<div style="text-align:center;">
+
+![Google Award](docs/google-award-128x128.png)
+
+</div>
+
+On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666).
 
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:

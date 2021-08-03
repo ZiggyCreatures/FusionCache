@@ -8,6 +8,10 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 FusionCache also includes some advanced features like a **fail-safe** mechanism, concurrent **factory calls optimization** for the same cache key, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
+## :trophy: Award
+On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666) .
+
+
 ## ✔ Features
 These are the **key features** of FusionCache:
 
