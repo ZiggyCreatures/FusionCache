@@ -34,8 +34,8 @@ If you want to see what you can achieve **from start to finish** with FusionCach
 
 If instead you want to start using it **immediately** there's a [:star: Quick Start](#star-quick-start) for you.
 
-<div style="text-align:center;">
-
+<div align="center">
+	
 ![Google Award](docs/google-award-128x128.png)
 
 </div>
