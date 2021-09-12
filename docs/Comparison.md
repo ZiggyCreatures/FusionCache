@@ -35,11 +35,13 @@ In trying to make an honest and generic overview I've identified a set of **very
 
 The general features I've identified as significants are:
 
-- **Factory call optimization**: the ability to guarantee only one factory will be executed concurrently per-key, even in highly concurrent scenarios. This will reduce a lot the load on your origin datasource (database, etc)
+- **[Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) prevention**: the ability to guarantee only one factory will be executed concurrently per-key, even in highly concurrent scenarios. This will reduce a lot the load on your origin datasource (database, etc)
 
 - **Native sync/async support**: native support for both programming models. Even though nowadays the async one is more widly used and in general more performant, they are both useful and have their place in everyday usage
 
-- **Stale data re-use**: the ability to temporarily re-use an expired entry in case it's not possible to get a new one. This can greatly reduce transient errors in your application
+- **Fail-Safe (or similar mechanism)**: in general the ability to temporarily re-use an expired entry in case it's currently not possible to get a new one. This can greatly reduce transient errors in your application
+
+- **Timeouts**: the ability to avoid factories to run for too long, potentially creating a blocking situation or resulting in too slow responses
 
 - **Multi-provider**: the abilty to use the same caching api towards different implementations (memory, Redis, MongoDb, etc)
 
@@ -57,32 +59,32 @@ The general features I've identified as significants are:
 
 - **Xml Comments**: having informations always available at your fingertips [while you type](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc) (Intellisense :tm: or similar) is fundamental for learning as you code and to avoid common pitfalls
 
-- **Documentation**: an expanded documentation, a getting started guide or maybe some samples can greatly improve your learning
+- **Docs**: an expanded documentation, a getting started guide or maybe some samples can greatly improve your learning
 
 - **License**: important to know what are your rights and obligations
 
 This is how they compare:
 
-|                       | FusionCache (1) | CacheManager | CacheTower (2) | EasyCaching (3) | LazyCache (4) |
-| ---:                  | :---:           | :---:        | :---:          | :---:           |:---:          |
-| **Factory call opt.** | ✔              | ❌           | ✔             | ✔               | ✔            |
-| **Sync Api**          | ✔              | ✔            | ❌            | ✔               | ✔            |
-| **Async Api**         | ✔              | ❌           | ✔             | ✔               | ⚠            |
-| **Stale data re-use** | ✔              | ❌           | ❌            | ❌              | ❌           |
-| **Multi-provider**    | ✔              | ✔            | ✔             | ✔               | ❌           |
-| **Multi-level**       | ✔              | ✔            | ✔             | ⚠               | ❌           |
-| **Backplane**         | ❌             | ✔            | ✔             | ✔               | ❌           |
-| **Events**            | ✔              | ✔            | ❌            | ❌              | ❌           |
-| **Logging**           | ✔              | ✔            | ❌            | ✔               | ❌           |
-| **Portable**          | ✔              | ✔            | ✔             | ✔               | ✔            |
-| **Tests**             | ✔              | ✔            | ✔             | ✔               | ✔            |
-| **Xml Comments**      | ✔              | ✔            | ✔             | ✔               | ❌           |
-| **Documentation**     | ✔              | ✔            | ✔             | ✔               | ✔            |
-| **License**           | `MIT`           | `Apache 2.0` | `MIT`          | `MIT`           | `MIT`         |
+|                          | FusionCache (1) | CacheManager | CacheTower | EasyCaching (2) | LazyCache (3) |
+| ---:                     | :---:           | :---:        | :---:      | :---:           |:---:          |
+| **Cache Stampede prev.** | ✔              | ❌           | ✔          | ✔               | ✔            |
+| **Sync Api**             | ✔              | ✔            | ❌         | ✔               | ✔            |
+| **Async Api**            | ✔              | ❌           | ✔          | ✔               | ⚠            |
+| **Fail-Safe or similar** | ✔              | ❌           | ❌         | ❌              | ❌           |
+| **Timeouts**             | ✔              | ❌           | ❌         | ❌              | ❌           |
+| **Multi-provider**       | ✔              | ✔            | ✔          | ✔               | ❌           |
+| **Multi-level**          | ✔              | ✔            | ✔          | ⚠               | ❌           |
+| **Backplane**            | ❌             | ✔            | ✔          | ✔               | ❌           |
+| **Events**               | ✔              | ✔            | ❌         | ❌              | ❌           |
+| **Logging**              | ✔              | ✔            | ❌         | ✔               | ❌           |
+| **Portable**             | ✔              | ✔            | ✔          | ✔               | ✔            |
+| **Tests**                | ✔              | ✔            | ✔          | ✔               | ✔            |
+| **Xml Comments**         | ✔              | ✔            | ✔          | ✔               | ❌           |
+| **Docs**                 | ✔              | ✔            | ✔          | ✔               | ✔            |
+| **License**              | `MIT`           | `Apache 2.0` | `MIT`      | `MIT`           | `MIT`         |
 
 :information_source: **NOTES**
 - (1): **FusionCache** support for a backplane is being designed and will be available soon.
-- (2): **CacheTower** does not support stale data-reuse, but offers a way for cache data to be marked as stale before it expires as a way to kick off background refresh ahead of time. It may be what you want or not, but it's good to know.
-- (3): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
-- (4): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.
+- (2): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
+- (3): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.
 

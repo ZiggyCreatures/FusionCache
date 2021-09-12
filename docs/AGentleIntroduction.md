@@ -10,7 +10,8 @@ FusionCache is an easy to use, high performance and robust **multi-level cache**
 
 It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
 
-FusionCache includes some advanced features like **fail-safe**, concurrent **factory calls optimization** for the same cache key, fine grained **soft/hard timeouts**, **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache includes some advanced features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+
 
 <div style="text-align:center;">
 
@@ -60,7 +61,9 @@ var product = cache.GetOrSet<Product>(
 
 FusionCache will search for the value in the cache (*memory* and *distributed*, if available) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
 
-Special care has been put into ensuring that only 1 factory per-key will be execute concurrently: you can read more [**here**](FactoryOptimization.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+Special care has been put into ensuring that only 1 factory per-key will be executed concurrently, to avoid what is known as [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede).
+
+You can read more [**here**](FactoryOptimization.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
 ## :bomb: Fail-Safe ([more](FailSafe.md))
 

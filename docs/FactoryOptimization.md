@@ -4,9 +4,11 @@
 
 </div>
 
-# :rocket: Factory Call Optimization
+# :rocket: Cache Stampede prevention
 
-A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
+A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario: FusionCache takes great care in hwo to execute factories concurrently for the same key, to avoid cache stampede altogether.
+
+Inside FusionCache a factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
 
 Here's an example:
 
@@ -22,7 +24,7 @@ var product = cache.GetOrSet<Product>(
 
 FusionCache will search for the value in the cache (*memory* and *distributed*, if available) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
 
-Special care is put into calling just one factory per key, concurrently: this means that if 10 concurrent requests for the same key arrive at the same time and the data is not there, **only one factory** will be called, and the result will be stored and shared with all callers right away.
+Special care is put into calling just one factory per key, concurrently: this means that if 10 (or 100, or more) concurrent requests for the same key arrive at the same time and the data is not there, **only one factory** will be executed, and the result will be stored and shared with all callers right away.
 
 ![Factory Call Optimization](images/factory-optimization.png)
 

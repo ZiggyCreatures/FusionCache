@@ -26,7 +26,7 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 </div>
 
-FusionCache also includes some advanced features like a **fail-safe** mechanism, concurrent **factory calls optimization** for the same cache key, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache also includes some advanced features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
 If you want to get yourself **comfortable with the overall concepts** there's [:unicorn: A Gentle Introduction](docs/AGentleIntroduction.md) available.
 
@@ -47,7 +47,7 @@ On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](h
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:
 
-- **:rocket: Optimized factory calls**: using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 factory will be called at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires ([read more](docs/FactoryOptimization.md))
+- **:rocket: Cache Stampede prevention**: using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires ([read more](docs/FactoryOptimization.md))
 - **:twisted_rightwards_arrows: Optional 2nd level**: FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported like Redis, Memcached, MongoDB, SqlServer, etc ([read more](docs/CacheLevels.md))
 - **:bomb: Fail-Safe**: enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required ([read more](docs/FailSafe.md))
 - **:stopwatch: Soft/Hard timeouts**: advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache. This is done to avoid that such slow calls would hang your application. It is possible to specify both *soft* and *hard* timeouts that will be used depending on whether there's a fallback value to use for the specific call or not ([read more](docs/Timeouts.md))
@@ -207,7 +207,7 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 
 - [**:unicorn: A Gentle Introduction**](docs/AGentleIntroduction.md): what you need to know first
 - [**:twisted_rightwards_arrows: Cache Levels**](docs/CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
-- [**:rocket: Factory Call Optimization**](docs/FactoryOptimization.md): no more overloads during a cold start or after an expiration
+- [**:rocket: Cache Stampede prevention**](docs/FactoryOptimization.md): no more overloads during a cold start or after an expiration
 - [**:bomb: Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
 - [**:stopwatch: Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call

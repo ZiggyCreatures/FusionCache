@@ -16,7 +16,7 @@ What you need to know first, to make yourself comfortable with FusionCache.
 A deeper description of the main features:
 
 - [**:twisted_rightwards_arrows: Cache Levels**](CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
-- [**:rocket: Factory Call Optimization**](FactoryOptimization.md): no more overloads during a cold start or after an expiration
+- [**:rocket: Cache Stampede prevention**](FactoryOptimization.md): no more overloads during a cold start or after an expiration
 - [**:bomb: Fail-Safe**](FailSafe.md): an explanation of how the fail-safe mechanism works
 - [**:stopwatch: Timeouts**](Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**:level_slider: Options**](Options.md): everything about the available options, both cache-wide and per-call
