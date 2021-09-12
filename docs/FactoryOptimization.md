@@ -6,7 +6,7 @@
 
 # :rocket: Cache Stampede prevention
 
-A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario: FusionCache takes great care in coordinating theconcurrent execution of factories, to avoid the Cache Stampede failure altogether.
+A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario: FusionCache takes great care in coordinating the execution of concurrent factories for the sme cache key, to avoid this type of failure altogether.
 
 Inside FusionCache a factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
 
