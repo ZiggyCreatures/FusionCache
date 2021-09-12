@@ -30,17 +30,19 @@ FusionCache also includes some advanced features like a **fail-safe** mechanism,
 
 If you want to get yourself **comfortable with the overall concepts** there's [:unicorn: A Gentle Introduction](docs/AGentleIntroduction.md) available.
 
-If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:trophy: Step By Step ](docs/StepByStep.md) guide.
+If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:woman_teacher: Step By Step ](docs/StepByStep.md) guide.
 
 If instead you want to start using it **immediately** there's a [:star: Quick Start](#star-quick-start) for you.
 
+## :trophy: Award
+
+On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666).
+
 <div align="center">
-	
+
 ![Google Award](docs/google-award-128x128.png)
 
 </div>
-
-On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666).
 
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:
@@ -56,7 +58,7 @@ These are the **key features** of FusionCache:
 - **:jigsaw: Plugins**: thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc... ([read more](docs/Plugins.md))
 - **:page_with_curl: Extensive logging**: comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 
-Also, FusionCache has some other nice **additional features**:
+Also, FusionCache has some nice **additional features**:
 
 - **Portable**: targets .NET Standard 2.0
 - **Null caching**: explicitly supports caching of null values differently than "no value". This creates a less ambiguous usage, and typically leads to better performance because it avoids the classic problem of not being able to differentiate between *"the value was not in the cache, go check the database"* and *"the value was in the cache, and it was `null`"*
@@ -214,7 +216,7 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**:jigsaw: Plugins**](docs/Plugins.md): how to create and use plugins
 
 
-## **:trophy: Step By Step**
+## **:woman_teacher: Step By Step**
 If you are in for a ride you can read a complete [step by step example](docs/StepByStep.md) of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what **results** you can expect to obtain.
 
 ## :ab: Comparison
@@ -225,7 +227,7 @@ A [feature comparison](docs/Comparison.md) between existing .NET caching solutio
 
 ## 🧰 Supported Platforms
 
-FusionCache targets .NET Standard 2.0, so any compatible .NET implementation is fine.
+FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is fine: this means `.NET Framework` (the old one), `.NET Core 2+`/`.NET 5+` (the new one), `Mono` 5.4+ and more (see [here](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support) for a complete rundown).
 
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
 

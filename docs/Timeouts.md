@@ -8,7 +8,7 @@
 
 There are different types of timeouts available and it may be useful to know them.
 
-:bulb: For a complete example of how to use them and what results you can achieve there's the [:trophy: Step By Step](StepByStep.md) guide.
+:bulb: For a complete example of how to use them and what results you can achieve there's the [:woman_teacher: Step By Step](StepByStep.md) guide.
 ## Factory Timeouts
 
 Sometimes your data source (database, webservice, etc) is overloaded, the network is congested or something else bad is happening and the end result is things start to get **:snail: very slow** to get a fresh piece of data.

@@ -47,7 +47,7 @@ The general features I've identified as significants are:
 
 - **Backplane**: available with different names, it allows a change in a distributed cache to be reflected in the local memory cache
 
-- **Events**: the ability to be notified when certain events happen in he cache, useful to collect custom metrics, etc
+- **Events**: the ability to be notified when certain events happen in the cache, useful to collect custom metrics, etc
 
 - **Logging**: when things go bad you would like to have some help investigating what went wrong, and logging is key
 

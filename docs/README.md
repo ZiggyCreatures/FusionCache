@@ -24,7 +24,7 @@ A deeper description of the main features:
 - [**:telephone_receiver: Events**](Events.md): the events hub and how to use it
 - [**:jigsaw: Plugins**](Plugins.md): how to create and use plugins
 
-### [**:trophy: Step By Step**](StepByStep.md)
+### [**:woman_teacher: Step By Step**](StepByStep.md)
 A complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain.
 
 ### [**:ab: Comparison**](Comparison.md)
