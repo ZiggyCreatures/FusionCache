@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.6</Version>
+		<Version>0.1.7</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -20,8 +20,7 @@
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
-		<PackageReleaseNotes>- switched from Task&lt;T&gt; to ValueTask&lt;T&gt;
-- removed obsolete TryGetResult&lt;T&gt; type</PackageReleaseNotes>
+		<PackageReleaseNotes>- added FusionCacheOptions.DistributedCacheKeyModifierMode</PackageReleaseNotes>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
