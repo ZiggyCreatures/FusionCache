@@ -22,7 +22,6 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 	[Config(typeof(Config))]
 	public class ParallelComparisonBenchmark
 	{
-
 		private class Config : ManualConfig
 		{
 			public Config()
@@ -238,6 +237,5 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 				cache.Compact(1);
 			}
 		}
-
 	}
 }
