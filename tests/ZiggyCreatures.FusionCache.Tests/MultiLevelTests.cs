@@ -386,7 +386,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions() { DistributedCacheWireFormatVersionModifierMode = modifierMode }, memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
+				using (var fusionCache = new FusionCache(new FusionCacheOptions() { DistributedCacheKeyModifierMode = modifierMode }, memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 				{
 					var cacheKey = "foo";
 					string distributedCacheKey;

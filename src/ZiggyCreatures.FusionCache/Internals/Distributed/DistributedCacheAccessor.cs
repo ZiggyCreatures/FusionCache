@@ -49,7 +49,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private string MaybeProcessCacheKey(string key)
 		{
-			switch (_options.DistributedCacheWireFormatVersionModifierMode)
+			switch (_options.DistributedCacheKeyModifierMode)
 			{
 				case CacheKeyModifierMode.Prefix:
 					return WireFormatVersion + ':' + key;

@@ -1124,7 +1124,7 @@
             <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatVersionModifierMode">
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
             Specify the mode in which the wire format version should be combined with the cache key.
             </summary>
