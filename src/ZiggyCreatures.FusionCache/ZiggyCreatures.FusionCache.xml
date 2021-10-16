@@ -4,6 +4,26 @@
         <name>ZiggyCreatures.FusionCache</name>
     </assembly>
     <members>
+        <member name="T:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode">
+            <summary>
+            The mode in which a cache modifier should be used to produce a cache key.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode.Prefix">
+            <summary>
+            The cache modifier will be prepended, plus a separator.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode.Suffix">
+            <summary>
+            The cache modifier will be appended, plus a separator.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode.None">
+            <summary>
+            The cache modifier will not be prepended.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache">
             <summary>
             An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.
@@ -1102,6 +1122,11 @@
             Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
             <br/><br/>
             <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatVersionModifierMode">
+            <summary>
+            Specify the mode in which the wire format version should be combined with the cache key.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">

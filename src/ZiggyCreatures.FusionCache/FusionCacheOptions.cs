@@ -62,6 +62,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		public bool EnableSyncEventHandlersExecution { get; set; }
 
 		/// <summary>
+		/// Specify the mode in which the wire format version should be combined with the cache key.
+		/// </summary>
+		public CacheKeyModifierMode DistributedCacheWireFormatVersionModifierMode { get; set; }
+
+		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
 		/// </summary>
 		public LogLevel SerializationErrorsLogLevel { get; set; }

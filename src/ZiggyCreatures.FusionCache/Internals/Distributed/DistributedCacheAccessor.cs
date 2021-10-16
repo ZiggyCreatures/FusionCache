@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 	{
 		private const int CircuitStateClosed = 0;
 		private const int CircuitStateOpen = 1;
-		private const string WireFormatVersionPrefix = "v1:";
+		private const string WireFormatVersion = "v1";
 
 		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 		{
@@ -45,6 +45,20 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheDistributedEventsHub _events;
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private string MaybeProcessCacheKey(string key)
+		{
+			switch (_options.DistributedCacheWireFormatVersionModifierMode)
+			{
+				case CacheKeyModifierMode.Prefix:
+					return WireFormatVersion + ':' + key;
+				case CacheKeyModifierMode.Suffix:
+					return key + ':' + WireFormatVersion;
+				default:
+					return key;
+			}
+		}
 
 		private void UpdateLastError(string key, string operationId)
 		{
@@ -212,7 +226,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", operationId, key, distributedEntry.ToLogString());
 
-					await _cache.SetAsync(WireFormatVersionPrefix + key, data, distributedOptions, token).ConfigureAwait(false);
+					await _cache.SetAsync(MaybeProcessCacheKey(key), data, distributedOptions, token).ConfigureAwait(false);
 
 					// EVENT
 					_events.OnSet(operationId, key);
@@ -269,7 +283,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", operationId, key, distributedEntry.ToLogString());
 
-					_cache.Set(WireFormatVersionPrefix + key, data, distributedOptions);
+					_cache.Set(MaybeProcessCacheKey(key), data, distributedOptions);
 
 					// EVENT
 					_events.OnSet(operationId, key);
@@ -293,7 +307,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			try
 			{
 				var timeout = options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-				data = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(async ct => await _cache.GetAsync(WireFormatVersionPrefix + key, ct).ConfigureAwait(false), timeout, true, token: token).ConfigureAwait(false);
+				data = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false), timeout, true, token: token).ConfigureAwait(false);
 			}
 			catch (Exception exc)
 			{
@@ -368,7 +382,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			try
 			{
 				var timeout = options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-				data = FusionCacheExecutionUtils.RunSyncFuncWithTimeout<byte[]?>(ct => _cache.Get(WireFormatVersionPrefix + key), timeout, true, token: token);
+				data = FusionCacheExecutionUtils.RunSyncFuncWithTimeout<byte[]?>(ct => _cache.Get(MaybeProcessCacheKey(key)), timeout, true, token: token);
 			}
 			catch (Exception exc)
 			{
@@ -433,7 +447,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public async ValueTask RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			await ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(WireFormatVersionPrefix + key, ct), "removing entry from distributed", options, null, token);
+			await ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(MaybeProcessCacheKey(key), ct), "removing entry from distributed", options, null, token);
 
 			// EVENT
 			_events.OnRemove(operationId, key);
@@ -441,7 +455,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			ExecuteOperation(operationId, key, _ => _cache.Remove(WireFormatVersionPrefix + key), "removing entry from distributed", options, null, token);
+			ExecuteOperation(operationId, key, _ => _cache.Remove(MaybeProcessCacheKey(key)), "removing entry from distributed", options, null, token);
 
 			// EVENT
 			_events.OnRemove(operationId, key);
