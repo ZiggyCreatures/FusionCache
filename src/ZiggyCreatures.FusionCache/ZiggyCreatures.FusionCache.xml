@@ -1126,7 +1126,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
-            Specify the mode in which the wire format version should be combined with the cache key.
+            Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version).
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">
