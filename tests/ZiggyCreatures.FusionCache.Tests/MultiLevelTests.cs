@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -381,5 +381,59 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			}
 		}
 
+		private void _DistributedCacheWireVersionModifierWorks(SerializerType serializerType, CacheKeyModifierMode modifierMode)
+		{
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+			{
+				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+				using (var fusionCache = new FusionCache(new FusionCacheOptions() { DistributedCacheWireFormatVersionModifierMode = modifierMode }, memoryCache).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
+				{
+					var cacheKey = "foo";
+					string distributedCacheKey;
+					switch (modifierMode)
+					{
+						case CacheKeyModifierMode.Prefix:
+							distributedCacheKey = $"v1:{cacheKey}";
+							break;
+						case CacheKeyModifierMode.Suffix:
+							distributedCacheKey = $"{cacheKey}:v1";
+							break;
+						default:
+							distributedCacheKey = cacheKey;
+							break;
+					}
+					var value = "sloths";
+					fusionCache.Set(cacheKey, value, new FusionCacheEntryOptions(TimeSpan.FromHours(24)) { AllowBackgroundDistributedCacheOperations = false });
+					var nullValue = distributedCache.Get("foo42");
+					var distributedValue = distributedCache.Get(distributedCacheKey);
+					Assert.Null(nullValue);
+					Assert.NotNull(distributedValue);
+				}
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void DistributedCacheWireVersionPrefixModeWorks(SerializerType serializerType)
+		{
+			_DistributedCacheWireVersionModifierWorks(serializerType, CacheKeyModifierMode.Prefix);
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void DistributedCacheWireVersionSuffixModeWorks(SerializerType serializerType)
+		{
+			_DistributedCacheWireVersionModifierWorks(serializerType, CacheKeyModifierMode.Suffix);
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void DistributedCacheWireVersionNoneModeWorks(SerializerType serializerType)
+		{
+			_DistributedCacheWireVersionModifierWorks(serializerType, CacheKeyModifierMode.None);
+		}
 	}
 }
