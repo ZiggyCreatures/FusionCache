@@ -36,7 +36,7 @@ If instead you want to start using it **immediately** there's a [:star: Quick St
 
 ## :trophy: Award
 
-On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666).
+On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666). Here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
 
 <div align="center">
 
