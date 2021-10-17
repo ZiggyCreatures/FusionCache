@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	internal class FusionCacheReactorStandard
+	sealed internal class FusionCacheReactorStandard
 		: IFusionCacheReactor
 	{
 		private MemoryCache _lockCache;
@@ -127,7 +127,8 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 		// IDISPOSABLE
 		private bool disposedValue;
-		protected virtual void Dispose(bool disposing)
+		/*protected virtual*/
+		private void Dispose(bool disposing)
 		{
 			if (!disposedValue)
 			{

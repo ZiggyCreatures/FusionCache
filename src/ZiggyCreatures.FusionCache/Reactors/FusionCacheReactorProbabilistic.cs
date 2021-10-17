@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	internal class FusionCacheReactorProbabilistic
+	sealed internal class FusionCacheReactorProbabilistic
 		: IFusionCacheReactor
 	{
 		private int _lockPoolSize;
@@ -149,7 +149,8 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 		// IDISPOSABLE
 		private bool disposedValue;
-		protected virtual void Dispose(bool disposing)
+		/*protected virtual*/
+		private void Dispose(bool disposing)
 		{
 			if (!disposedValue)
 			{

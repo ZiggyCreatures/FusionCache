@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 	/// </summary>
 	/// <typeparam name="TValue">The type of the entry's value</typeparam>
 	[DataContract]
-	internal class FusionCacheDistributedEntry<TValue>
+	sealed internal class FusionCacheDistributedEntry<TValue>
 		: IFusionCacheEntry
 	{
 		/// <summary>

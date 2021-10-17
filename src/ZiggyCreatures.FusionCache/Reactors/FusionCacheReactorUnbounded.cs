@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	internal class FusionCacheReactorUnbounded
+	sealed internal class FusionCacheReactorUnbounded
 		: IFusionCacheReactor
 	{
 		private Dictionary<string, SemaphoreSlim> _lockCache;
@@ -94,12 +94,24 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 		// IDISPOSABLE
 		private bool disposedValue;
-		protected virtual void Dispose(bool disposing)
+		/*protected virtual*/
+		private void Dispose(bool disposing)
 		{
 			if (!disposedValue)
 			{
 				if (disposing)
 				{
+					foreach (var semaphore in _lockCache.Values)
+					{
+						try
+						{
+							semaphore.Dispose();
+						}
+						catch
+						{
+							// EMPTY
+						}
+					}
 					_lockCache.Clear();
 				}
 
