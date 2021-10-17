@@ -15,6 +15,7 @@ using LazyCache;
 using LazyCache.Providers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using ZiggyCreatures.Caching.Fusion.Reactors;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
@@ -97,7 +98,104 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-		[Benchmark]
+		//[Benchmark]
+		public async Task FusionCacheUnbounded()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, reactor: new FusionCacheReactorUnbounded()))
+			{
+				for (int i = 0; i < Rounds; i++)
+				{
+					var tasks = new ConcurrentBag<Task>();
+
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+					   {
+						   var t = cache.GetOrSetAsync<SamplePayload>(
+							  key,
+							  async ct =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  }
+						  );
+						   tasks.Add(t.AsTask());
+					   });
+					});
+
+					await Task.WhenAll(tasks).ConfigureAwait(false);
+				}
+
+				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+			}
+		}
+
+		//[Benchmark]
+		public async Task FusionCacheUnboundedWithPool()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, reactor: new FusionCacheReactorUnboundedWithPool()))
+			{
+				for (int i = 0; i < Rounds; i++)
+				{
+					var tasks = new ConcurrentBag<Task>();
+
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+					   {
+						   var t = cache.GetOrSetAsync<SamplePayload>(
+							  key,
+							  async ct =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  }
+						  );
+						   tasks.Add(t.AsTask());
+					   });
+					});
+
+					await Task.WhenAll(tasks).ConfigureAwait(false);
+				}
+
+				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+			}
+		}
+
+		//[Benchmark]
+		public async Task FusionCacheUnboundedConcurrent()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, reactor: new FusionCacheReactorUnboundedConcurrent()))
+			{
+				for (int i = 0; i < Rounds; i++)
+				{
+					var tasks = new ConcurrentBag<Task>();
+
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+					   {
+						   var t = cache.GetOrSetAsync<SamplePayload>(
+							  key,
+							  async ct =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  }
+						  );
+						   tasks.Add(t.AsTask());
+					   });
+					});
+
+					await Task.WhenAll(tasks).ConfigureAwait(false);
+				}
+
+				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+			}
+		}
+
+		// NOTE: EXCLUDED BECAUSE IT DOES NOT SUPPORT CACHE STAMPEDE PREVENTION, SO IT WOULD NOT BE COMPARABLE
+		//[Benchmark]
 		public void CacheManager()
 		{
 			using (var cache = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle()))
