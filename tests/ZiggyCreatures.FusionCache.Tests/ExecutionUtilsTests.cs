@@ -204,6 +204,5 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 			Assert.True(factoryCompleted);
 		}
-
 	}
 }

@@ -10,12 +10,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class PluginsTests
 	{
-		class SamplePlugin
+		private class SamplePlugin
 			: IFusionCachePlugin
 		{
-
-			bool _throwOnStart = false;
-			int _missCount = 0;
+			private readonly bool _throwOnStart = false;
+			private int _missCount = 0;
 
 			public SamplePlugin(bool throwOnStart = false)
 			{

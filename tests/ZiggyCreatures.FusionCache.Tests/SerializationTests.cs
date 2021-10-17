@@ -8,8 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class SerializationTests
 	{
-
-		static readonly string SampleString = "Supercalifragilisticexpialidocious";
+		private static readonly string SampleString = "Supercalifragilisticexpialidocious";
 
 		private T LoopDeLoop<T>(IFusionCacheSerializer serializer, T obj)
 		{
@@ -84,6 +83,5 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			var looped = LoopDeLoop<string>(serializer, null);
 			Assert.Null(looped);
 		}
-
 	}
 }

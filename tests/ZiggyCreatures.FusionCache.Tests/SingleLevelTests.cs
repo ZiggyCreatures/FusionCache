@@ -6,7 +6,6 @@ using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
-
 	public static class SingleLevelTestsExtMethods
 	{
 		public static FusionCacheEntryOptions SetFactoryTimeoutsMs(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
@@ -23,7 +22,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 	public class SingleLevelTests
 	{
-
 		[Fact]
 		public void CannotAssignNullToDefaultEntryOptions()
 		{
@@ -612,6 +610,5 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				Assert.Equal(3, default3);
 			}
 		}
-
 	}
 }

@@ -8,7 +8,6 @@ using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
-
 	public class EventsTests
 	{
 		public enum EntryActionKind

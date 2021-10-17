@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,12 +8,10 @@ using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
-
 	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
-	public abstract class ConcurrentFactoryCallsTests_EasyCaching
+	public abstract class CacheStampedeTests_EasyCaching
 	{
-
-		static TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
+		private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
 		[Theory]
 		[InlineData(10)]
@@ -132,5 +130,4 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 			Assert.Equal(1, factoryCallsCount);
 		}
 	}
-
 }

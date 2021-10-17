@@ -16,7 +16,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class MultiLevelTests
 	{
-
 		public enum SerializerType
 		{
 			NewtonsoftJson = 0,

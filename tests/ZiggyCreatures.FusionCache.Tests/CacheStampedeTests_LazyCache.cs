@@ -2,15 +2,17 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using LazyCache;
+using LazyCache.Providers;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 
 namespace ZiggyCreatures.Caching.Fusion.Tests
 {
-
-	public class ConcurrentFactoryCallsTests
+	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
+	public abstract class CacheStampedeTests_LazyCache
 	{
-
-		static TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
+		private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
 		[Theory]
 		[InlineData(10)]
@@ -18,24 +20,26 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		[InlineData(1_000)]
 		public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
+				var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+				cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 				var factoryCallsCount = 0;
 
 				var tasks = new ConcurrentBag<Task>();
 				Parallel.For(0, accessorsCount, _ =>
 				{
-					var task = cache.GetOrSetAsync<int>(
+					var task = cache.GetOrAddAsync<int>(
 						"foo",
 						async _ =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
 							await Task.Delay(FactoryDuration).ConfigureAwait(false);
 							return 42;
-						},
-						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+						}
 					);
-					tasks.Add(task.AsTask());
+					tasks.Add(task);
 				});
 
 				await Task.WhenAll(tasks);
@@ -50,21 +54,23 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		[InlineData(1_000)]
 		public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(int accessorsCount)
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
+				var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+				cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 				var factoryCallsCount = 0;
 
 				Parallel.For(0, accessorsCount, _ =>
 				{
-					cache.GetOrSet<int>(
+					cache.GetOrAdd<int>(
 						"foo",
 						_ =>
 						{
 							Interlocked.Increment(ref factoryCallsCount);
 							Thread.Sleep(FactoryDuration);
 							return 42;
-						},
-						new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+						}
 					);
 				});
 
@@ -78,8 +84,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		[InlineData(1_000)]
 		public async Task OnlyOneFactoryGetsCalledEvenInMixedHighConcurrencyAsync(int accessorsCount)
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions()))
+			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
+				var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+				cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 				var factoryCallsCount = 0;
 
 				var tasks = new ConcurrentBag<Task>();
@@ -87,29 +96,27 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				{
 					if (idx % 2 == 0)
 					{
-						var task = cache.GetOrSetAsync<int>(
+						var task = cache.GetOrAddAsync<int>(
 						   "foo",
 						   async _ =>
 						   {
 							   Interlocked.Increment(ref factoryCallsCount);
 							   await Task.Delay(FactoryDuration).ConfigureAwait(false);
 							   return 42;
-						   },
-						   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+						   }
 					   );
-						tasks.Add(task.AsTask());
+						tasks.Add(task);
 					}
 					else
 					{
-						cache.GetOrSet<int>(
+						cache.GetOrAdd<int>(
 						   "foo",
 						   _ =>
 						   {
 							   Interlocked.Increment(ref factoryCallsCount);
 							   Thread.Sleep(FactoryDuration);
 							   return 42;
-						   },
-						   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+						   }
 					   );
 					}
 				});
@@ -119,7 +126,5 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				Assert.Equal(1, factoryCallsCount);
 			}
 		}
-
 	}
-
 }

@@ -4,7 +4,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class SampleComplexObject
 	{
-
 		public class SampleComplexObjectAddress
 		{
 			public string Country { get; set; }
