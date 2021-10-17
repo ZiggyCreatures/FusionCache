@@ -16,6 +16,7 @@ using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
+[assembly: InternalsVisibleTo("ZiggyCreatures.FusionCache.Benchmarks")]
 namespace ZiggyCreatures.Caching.Fusion
 {
 	/// <inheritdoc/>
