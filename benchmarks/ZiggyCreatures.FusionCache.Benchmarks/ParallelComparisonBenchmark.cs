@@ -194,6 +194,38 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
+		//[Benchmark]
+		public async Task FusionCacheUnboundedConcurrentLazy()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, reactor: new FusionCacheReactorUnboundedConcurrentLazy()))
+			{
+				for (int i = 0; i < Rounds; i++)
+				{
+					var tasks = new ConcurrentBag<Task>();
+
+					Parallel.ForEach(Keys, key =>
+					{
+						Parallel.For(0, Accessors, _ =>
+					   {
+						   var t = cache.GetOrSetAsync<SamplePayload>(
+							  key,
+							  async ct =>
+							  {
+								  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								  return new SamplePayload();
+							  }
+						  );
+						   tasks.Add(t.AsTask());
+					   });
+					});
+
+					await Task.WhenAll(tasks).ConfigureAwait(false);
+				}
+
+				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
+			}
+		}
+
 		// NOTE: EXCLUDED BECAUSE IT DOES NOT SUPPORT CACHE STAMPEDE PREVENTION, SO IT WOULD NOT BE COMPARABLE
 		//[Benchmark]
 		public void CacheManager()
