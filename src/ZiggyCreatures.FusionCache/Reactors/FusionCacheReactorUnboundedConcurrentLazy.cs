@@ -6,14 +6,14 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	sealed internal class FusionCacheReactorUnboundedConcurrent
+	sealed internal class FusionCacheReactorUnboundedConcurrentLazy
 		: IFusionCacheReactor
 	{
-		private ConcurrentDictionary<string, SemaphoreSlim> _lockCache;
+		private ConcurrentDictionary<string, Lazy<SemaphoreSlim>> _lockCache;
 
-		public FusionCacheReactorUnboundedConcurrent(int reactorSize = 100)
+		public FusionCacheReactorUnboundedConcurrentLazy(int reactorSize = 100)
 		{
-			_lockCache = new ConcurrentDictionary<string, SemaphoreSlim>(Environment.ProcessorCount, reactorSize);
+			_lockCache = new ConcurrentDictionary<string, Lazy<SemaphoreSlim>>(Environment.ProcessorCount, reactorSize);
 		}
 
 		public int Collisions
@@ -23,7 +23,12 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 		private SemaphoreSlim GetSemaphore(string key, string operationId, ILogger? logger)
 		{
-			return _lockCache.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+			return _lockCache.GetOrAdd(
+				key,
+				_ => new Lazy<SemaphoreSlim>(
+					() => new SemaphoreSlim(1, 1)
+				)
+			).Value;
 		}
 
 		// ACQUIRE LOCK ASYNC
@@ -86,11 +91,11 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			{
 				if (disposing)
 				{
-					foreach (var semaphore in _lockCache.Values)
+					foreach (var lazy in _lockCache.Values)
 					{
 						try
 						{
-							semaphore.Dispose();
+							lazy.Value.Dispose();
 						}
 						catch
 						{
