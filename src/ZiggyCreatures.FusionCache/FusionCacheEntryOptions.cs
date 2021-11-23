@@ -290,10 +290,10 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			if (events.HasEvictionSubscribers())
 			{
-				res.RegisterPostEvictionCallback((key, value, reason, state) =>
-				{
-					((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason);
-				}, events);
+				res.RegisterPostEvictionCallback(
+					(key, value, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
+					events
+				);
 			}
 
 			return res;

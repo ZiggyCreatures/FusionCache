@@ -426,6 +426,12 @@
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
             <param name="reactor">The <see cref="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.CacheName">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.InstanceId">
+            <inheritdoc/>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.DefaultEntryOptions">
             <inheritdoc/>
         </member>
@@ -438,40 +444,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSetAsync``1(System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.TryGetAsync``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.TryGet``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrDefaultAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrDefault``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Set``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
             <inheritdoc/>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.Events">
@@ -493,6 +466,42 @@
             <summary>
             Release all resources managed by FusionCache.
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSetAsync``1(System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.TryGetAsync``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrDefaultAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.TryGet``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrDefault``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Set``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
             <summary>
@@ -1102,6 +1111,13 @@
             Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName">
+            <summary>
+            The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
+            <br/><br/>
+            <strong>NOTE:</strong> if you try to set this to a null/whitespace value, that value will be ignored.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions">
             <summary>
             The default <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
@@ -1114,6 +1130,10 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix">
             <summary>
+            <strong>WARNING:</strong> this feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
+            <br/>
+            For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
+            <br/><br/>
             An optional <see cref="T:System.String"/> prefix to prepend to any cache key passed to the cache methods.
             </summary>
         </member>
@@ -1167,6 +1187,16 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
             Represents an instance of a FusionCache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName">
+            <summary>
+            The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.InstanceId">
+            <summary>
+            A globally unique Id, auto-generated at startup, representing this specific cache instance: this will change every time a FusionCache instance is created.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions">
@@ -1317,6 +1347,12 @@
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Evict(System.String)">
+            <summary>
+            Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
+            </summary>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.Events">
             <summary>

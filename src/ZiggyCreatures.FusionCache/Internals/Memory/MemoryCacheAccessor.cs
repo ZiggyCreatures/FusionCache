@@ -98,6 +98,17 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			_events.OnRemove(operationId, key);
 		}
 
+		public void EvictEntry(string operationId, string key)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): evicting data (from memory)", operationId, key);
+
+			_cache.Remove(key);
+
+			// EVENT
+			_events.OnEviction(operationId, key, EvictionReason.None);
+		}
+
 		// IDISPOSABLE
 		private bool disposedValue = false;
 		protected virtual void Dispose(bool disposing)

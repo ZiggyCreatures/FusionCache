@@ -10,6 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	public class FusionCacheOptions
 		: IOptions<FusionCacheOptions>
 	{
+		private string _cacheName;
 		private FusionCacheEntryOptions _defaultEntryOptions;
 
 		/// <summary>
@@ -17,6 +18,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public FusionCacheOptions()
 		{
+			_cacheName = "FusionCache";
+
 			_defaultEntryOptions = new FusionCacheEntryOptions();
 
 			// LOG LEVELS
@@ -27,6 +30,26 @@ namespace ZiggyCreatures.Caching.Fusion
 			FactoryErrorsLogLevel = LogLevel.Warning;
 			FailSafeActivationLogLevel = LogLevel.Warning;
 			EventHandlingErrorsLogLevel = LogLevel.Warning;
+		}
+
+		/// <summary>
+		/// The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
+		/// <br/><br/>
+		/// <strong>NOTE:</strong> if you try to set this to a null/whitespace value, that value will be ignored.
+		/// </summary>
+		public string CacheName
+		{
+			get { return _cacheName; }
+			set
+			{
+				if (string.IsNullOrWhiteSpace(value))
+				{
+					//throw new ArgumentNullException(nameof(value), "It is not possible to set the CacheName to null");
+					return;
+				}
+
+				_cacheName = value;
+			}
 		}
 
 		/// <summary>
@@ -50,8 +73,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		public TimeSpan DistributedCacheCircuitBreakerDuration { get; set; }
 
 		/// <summary>
+		/// <strong>WARNING:</strong> this feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
+		/// <br/>
+		/// For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
+		/// <br/><br/>
 		/// An optional <see cref="string"/> prefix to prepend to any cache key passed to the cache methods.
 		/// </summary>
+		[Obsolete("This feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore. For more info see https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33")]
 		public string? CacheKeyPrefix { get; set; }
 
 		/// <summary>

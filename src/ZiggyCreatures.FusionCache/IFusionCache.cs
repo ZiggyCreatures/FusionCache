@@ -15,6 +15,16 @@ namespace ZiggyCreatures.Caching.Fusion
 		: IDisposable
 	{
 		/// <summary>
+		/// The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
+		/// </summary>
+		string CacheName { get; }
+
+		/// <summary>
+		/// A globally unique Id, auto-generated at startup, representing this specific cache instance: this will change every time a FusionCache instance is created.
+		/// </summary>
+		string InstanceId { get; }
+
+		/// <summary>
 		/// The default set of options that will be used either when none are provided or as a starting point for creating a new one with the fluent api.
 		/// </summary>
 		FusionCacheEntryOptions DefaultEntryOptions { get; }
@@ -162,6 +172,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+		/// <summary>
+		/// Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
+		/// </summary>
+		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		void Evict(string key);
 
 		/// <summary>
 		/// The central place for all events handling of this FusionCache instance.
