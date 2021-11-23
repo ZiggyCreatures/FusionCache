@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.8</Version>
+		<Version>0.1.9</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -20,10 +20,10 @@
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>- added CacheName and InstanceId props
 - added Evict method
 - marked CacheKeyPrefix option as obsolete for future removal</PackageReleaseNotes>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>

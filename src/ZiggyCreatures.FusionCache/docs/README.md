@@ -1,5 +1,7 @@
 ﻿# FusionCache
 
+![FusionCache logo](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/logo-256x256.png)
+
 ### FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put togheter these experiences and came up with FusionCache.
@@ -7,6 +9,8 @@ It was born after years of dealing with all sorts of different types of caches: 
 It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
 
 FusionCache also includes some advanced features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+
+![FusionCache diagram](https://raw.githubusercontent.com/jodydonetti/ZiggyCreatures.FusionCache/main/docs/images/diagram.png)
 
 ## :trophy: Award
 On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666). Here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
