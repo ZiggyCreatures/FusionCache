@@ -20,7 +20,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		string CacheName { get; }
 
 		/// <summary>
-		/// A globally unique Id, auto-generated at startup, representing this specific cache instance: this will change every time a FusionCache instance is created.
+		/// A globally unique Id, auto-generated when a new instance is created (eg: the ctor is called), representing this specific cache instance: this will change every time a FusionCache instance is created.
 		/// </summary>
 		string InstanceId { get; }
 
