@@ -6,7 +6,7 @@
 
 # :level_slider: Options
 
-Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite your needs, and maybe save some memry allocations, too.
+Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite your needs, and maybe save some memory allocations, too.
 
 **:bulb: NOTE**: all of this information is fully available via Intellisense, thanks to the embedded code comments.
 
