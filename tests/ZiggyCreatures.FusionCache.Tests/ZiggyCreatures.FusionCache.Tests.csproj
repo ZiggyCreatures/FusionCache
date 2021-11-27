@@ -2,10 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFramework>net5.0</TargetFramework>
-
+		<LangVersion>8.0</LangVersion>
+		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
-
-		<RootNamespace>ZiggyCreatures.FusionCaching.Tests</RootNamespace>
+		<RootNamespace>FusionCacheTests</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -26,6 +26,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Plugins.MemoryBackplane\ZiggyCreatures.FusionCache.Plugins.MemoryBackplane.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Plugins.StackExchangeRedisBackplane\ZiggyCreatures.FusionCache.Plugins.StackExchangeRedisBackplane.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
