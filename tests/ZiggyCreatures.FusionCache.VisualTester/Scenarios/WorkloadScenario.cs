@@ -31,13 +31,13 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 
 	public static class WorkloadScenarioOptions
 	{
-		// SIZE
+		// GENERAL
 		public static readonly int GroupsCount = 4;
 		public static readonly int NodesPerGroupCount = 5;
+		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(20);
 
 		// DISTRIBUTED CACHE
-		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.None;
-
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly bool AllowDistributedCacheBackgroundOperations = true;
 		public static readonly TimeSpan? DistributedCacheSoftTimeout = TimeSpan.FromMilliseconds(100);
 		public static readonly TimeSpan? DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(100);
@@ -45,16 +45,14 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 
 		// BACKPLANE
 		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
-
 		public static readonly TimeSpan? BackplaneMemoryNotificationsDelay = null; //TimeSpan.FromMilliseconds(2_000);
 		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
 		// OTHERS
-		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(20);
 		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
 		public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
 		public static readonly bool UpdateCacheOnSaveToDb = false;
-		public static readonly TimeSpan? PostUpdateCooldownDelay = null;
+		public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(100);
 	}
 
 	public static class WorkloadScenario
