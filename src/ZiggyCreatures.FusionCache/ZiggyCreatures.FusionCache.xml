@@ -1130,7 +1130,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix">
             <summary>
-            <strong>WARNING:</strong> this feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
+            <strong>WARNING:</strong> this feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
             <br/>
             For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
             <br/><br/>

@@ -70,7 +70,6 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 			// CACHE OPTIONS
 			var options = new FusionCacheOptions
 			{
-				CacheKeyPrefix = "dev:",
 				DefaultEntryOptions = new FusionCacheEntryOptions
 				{
 					Duration = CacheDuration,

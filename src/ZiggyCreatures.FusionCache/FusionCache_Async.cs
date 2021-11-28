@@ -216,8 +216,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			token.ThrowIfCancellationRequested();
 
-			MaybeProcessCacheKey(ref key);
-
 			if (factory is null)
 				throw new ArgumentNullException(nameof(factory), "Factory cannot be null");
 
@@ -247,8 +245,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			token.ThrowIfCancellationRequested();
 
-			MaybeProcessCacheKey(ref key);
-
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -275,8 +271,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			ValidateCacheKey(key);
 
 			token.ThrowIfCancellationRequested();
-
-			MaybeProcessCacheKey(ref key);
 
 			var operationId = GenerateOperationId();
 
@@ -306,8 +300,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			token.ThrowIfCancellationRequested();
 
-			MaybeProcessCacheKey(ref key);
-
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -335,8 +327,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			ValidateCacheKey(key);
 
 			token.ThrowIfCancellationRequested();
-
-			MaybeProcessCacheKey(ref key);
 
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -367,8 +357,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			ValidateCacheKey(key);
 
 			token.ThrowIfCancellationRequested();
-
-			MaybeProcessCacheKey(ref key);
 
 			if (options is null)
 				options = _options.DefaultEntryOptions;
