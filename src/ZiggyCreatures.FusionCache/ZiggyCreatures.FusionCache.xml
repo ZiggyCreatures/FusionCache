@@ -26,14 +26,14 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache">
             <summary>
-            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.
+            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but with a (controllable) little chaos in-between.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.#ctor(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
             <summary>
-            The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.
+            Initializes a new instance of the ChaosDistributedCache class.
             </summary>
-            <param name="innerCache"></param>
+            <param name="innerCache">The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.ChaosThrowProbability">
             <summary>
