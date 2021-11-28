@@ -237,6 +237,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 					_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
+					_events.OnSet(operationId, key);
+
 					// EVENT
 					_events.OnBackgroundFactorySuccess(operationId, key);
 				}
