@@ -3,6 +3,9 @@ using StackExchange.Redis;
 
 namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 {
+	/// <summary>
+	/// Represents the options available for the Redis backplane.
+	/// </summary>
 	public class RedisBackplaneOptions
 		: IOptions<RedisBackplaneOptions>
 	{
@@ -20,7 +23,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 		/// <summary>
 		/// The prefix that will be used to construct the Redis pub/sub channel name.
 		/// <br/><br/>
-		/// NOTE: if not specified, ti the <see cref="IFusionCache.CacheName"/> will be used.
+		/// NOTE: if not specified, the <see cref="IFusionCache.CacheName"/> will be used.
 		/// </summary>
 		public string? ChannelPrefix { get; set; }
 
