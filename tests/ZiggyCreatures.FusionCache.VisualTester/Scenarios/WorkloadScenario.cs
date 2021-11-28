@@ -15,38 +15,50 @@ using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 {
+	public enum DistributedCacheType
+	{
+		None = 0,
+		Memory = 1,
+		Redis = 2
+	}
+
+	public enum BackplaneType
+	{
+		None = 0,
+		Memory = 1,
+		Redis = 2
+	}
+
+	public static class WorkloadScenarioOptions
+	{
+		// SIZE
+		public static readonly int GroupsCount = 4;
+		public static readonly int NodesPerGroupCount = 5;
+
+		// DISTRIBUTED CACHE
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.None;
+
+		public static readonly bool AllowDistributedCacheBackgroundOperations = true;
+		public static readonly TimeSpan? DistributedCacheSoftTimeout = TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(100);
+		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
+
+		// BACKPLANE
+		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
+
+		public static readonly TimeSpan? BackplaneMemoryNotificationsDelay = null; //TimeSpan.FromMilliseconds(2_000);
+		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
+
+		// OTHERS
+		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(20);
+		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
+		public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
+		public static readonly bool UpdateCacheOnSaveToDb = false;
+		public static readonly TimeSpan? PostUpdateCooldownDelay = null;
+	}
+
 	public static class WorkloadScenario
 	{
-		// OPTIONS: SIZE
-		private static readonly int GroupsCount = 4;
-		private static readonly int NodesPerGroupCount = 5;
-
-		// OPTIONS DISTRIBUTED CACHE
-		private static readonly bool UseDistributedCache = true;
-
-		private static readonly bool AllowDistributedCacheBackgroundOperations = false;
-		private static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
-		private static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(100);
-		private static readonly string? DistributedCacheRedisConnection =
-			//null
-			"127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}"
-		;
-
-		// OPTIONS: BACKPLANE
-		private static readonly bool UseBackplane = true;
-
-		private static readonly TimeSpan? BackplaneNotificationsDelay = null; //TimeSpan.FromMilliseconds(2_000);
-		private static readonly string? BackplaneRedisConnection =
-			//null
-			"127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}"
-		;
-
-		// OPTIONS: OTHERS
-		private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(20);
-		private static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
-		private static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
-		private static readonly bool UpdateCacheOnSaveToDb = false;
-
 		// INTERNAL
 		private static string CacheKey = "foo";
 		private static readonly Random RNG = new Random();
@@ -63,30 +75,28 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 
 		private static IDistributedCache? CreateDistributedCache(int groupIdx)
 		{
-			// NONE
-			if (UseDistributedCache == false)
-				return null;
-
-			// REDIS
-			if (string.IsNullOrWhiteSpace(DistributedCacheRedisConnection) == false)
-				return new RedisCache(new RedisCacheOptions { Configuration = string.Format(DistributedCacheRedisConnection, groupIdx) });
-
-			// MEMORY
-			return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			switch (WorkloadScenarioOptions.DistributedCacheType)
+			{
+				case DistributedCacheType.None:
+					return null;
+				case DistributedCacheType.Redis:
+					return new RedisCache(new RedisCacheOptions { Configuration = string.Format(WorkloadScenarioOptions.DistributedCacheRedisConnection, groupIdx) });
+				default:
+					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			}
 		}
 
 		private static IFusionCachePlugin? CreateBackplane(int groupIdx)
 		{
-			// NONE
-			if (UseBackplane == false)
-				return null;
-
-			// REDIS
-			if (string.IsNullOrWhiteSpace(BackplaneRedisConnection) == false)
-				return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = string.Format(BackplaneRedisConnection, groupIdx) });
-
-			// MEMORY
-			return new MemoryBackplanePlugin(new MemoryBackplaneOptions() { NotificationsDelay = BackplaneNotificationsDelay });
+			switch (WorkloadScenarioOptions.BackplaneType)
+			{
+				case BackplaneType.None:
+					return null;
+				case BackplaneType.Redis:
+					return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx) });
+				default:
+					return new MemoryBackplanePlugin(new MemoryBackplaneOptions() { NotificationsDelay = WorkloadScenarioOptions.BackplaneMemoryNotificationsDelay });
+			}
 		}
 
 		private static void SaveToDb(int groupIdx, int value)
@@ -109,10 +119,9 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 		{
 			AnsiConsole.MarkupLine("[deepskyblue1]SETUP[/]");
 			AnsiConsole.Markup("- [deepskyblue1]SERIALIZER  : [/] CREATING...");
-			var serializer = new FusionCacheNewtonsoftJsonSerializer();
 			AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
-			for (int groupIdx = 1; groupIdx <= GroupsCount; groupIdx++)
+			for (int groupIdx = 1; groupIdx <= WorkloadScenarioOptions.GroupsCount; groupIdx++)
 			{
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE : [/] CREATING...");
 				var distributedCache = CreateDistributedCache(groupIdx);
@@ -120,22 +129,26 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 
 				var nodes = new List<IFusionCache>();
 
-				for (int nodeIdx = 1; nodeIdx <= NodesPerGroupCount; nodeIdx++)
+				for (int nodeIdx = 1; nodeIdx <= WorkloadScenarioOptions.NodesPerGroupCount; nodeIdx++)
 				{
 					AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] CREATING...");
 					var cache = new FusionCache(new FusionCacheOptions()
 					{
 						CacheName = $"C{groupIdx}",
-						DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration)
+						DefaultEntryOptions = new FusionCacheEntryOptions(WorkloadScenarioOptions.CacheDuration)
 							.SetFailSafe(false)
-							.SetDistributedCacheTimeouts(DistributedCacheSoftTimeout, DistributedCacheHardTimeout, AllowDistributedCacheBackgroundOperations)
+							.SetDistributedCacheTimeouts(
+								WorkloadScenarioOptions.DistributedCacheSoftTimeout,
+								WorkloadScenarioOptions.DistributedCacheHardTimeout,
+								WorkloadScenarioOptions.AllowDistributedCacheBackgroundOperations
+							)
 					});
 					AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
 					if (distributedCache is object)
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING DIST. CACHE...");
-						cache.SetupDistributedCache(distributedCache, serializer);
+						cache.SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer());
 						AnsiConsole.MarkupLine("[green3_1]OK[/]");
 					}
 
@@ -190,7 +203,7 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 					{
 						var value = values[nodeIdx];
 
-						string color = "white";
+						var color = "white";
 						if (lastUpdatedNodeIdx.HasValue)
 						{
 							if (lastUpdatedNodeIdx.Value == nodeIdx)
@@ -202,15 +215,21 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 							}
 							else if (values[lastUpdatedNodeIdx.Value] == value)
 							{
-								color = "green4";
+								if (LastUpdatedGroupIdx == groupIdx)
+									color = "green3_1";
+								else
+									color = "green4";
 							}
 							else
 							{
-								color = "red1";
+								if (LastUpdatedGroupIdx == groupIdx)
+									color = "red1";
+								else
+									color = "red3_1";
 							}
 						}
 
-						var text = value.ToString();
+						var text = (value?.ToString() ?? "/").PadRight(2).PadLeft(3);
 						if (string.IsNullOrEmpty(text))
 							text = " ";
 
@@ -241,18 +260,18 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 				AnsiConsole.Clear();
 
 				AnsiConsole.MarkupLine("SUMMARY");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] GROUPS = {GroupsCount} / NODES = {NodesPerGroupCount}");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {CacheDuration}");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]UPDATE DELAY  :[/] {DataChangesMinDelay} - {DataChangesMaxDelay}");
-				if (UseDistributedCache == false)
+				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] GROUPS = {WorkloadScenarioOptions.GroupsCount} / NODES = {WorkloadScenarioOptions.NodesPerGroupCount}");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]UPDATE DELAY  :[/] {WorkloadScenarioOptions.DataChangesMinDelay} - {WorkloadScenarioOptions.DataChangesMaxDelay}");
+				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None)
 					AnsiConsole.MarkupLine($"- [deepskyblue1]DIST. CACHE   :[/] [red1]X[/]");
 				else
-					AnsiConsole.MarkupLine($"- [deepskyblue1]DIST. CACHE   :[/] [green3_1]v[/]");
+					AnsiConsole.MarkupLine($"- [deepskyblue1]DIST. CACHE   :[/] [green3_1]v[/] ({WorkloadScenarioOptions.DistributedCacheType})");
 
-				if (UseBackplane == false)
+				if (WorkloadScenarioOptions.BackplaneType == BackplaneType.None)
 					AnsiConsole.MarkupLine($"- [deepskyblue1]BACKPLANE     :[/] [red1]X[/]");
 				else
-					AnsiConsole.MarkupLine($"- [deepskyblue1]BACKPLANE     :[/] [green3_1]v[/] (DELAY: {BackplaneNotificationsDelay})");
+					AnsiConsole.MarkupLine($"- [deepskyblue1]BACKPLANE     :[/] [green3_1]v[/] ({WorkloadScenarioOptions.BackplaneType})");
 				AnsiConsole.WriteLine();
 
 				// STATS
@@ -290,10 +309,14 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 				var nodeIdx = RNG.Next(nodes.Count);
 				var cache = nodes[nodeIdx];
 
-				if (UpdateCacheOnSaveToDb)
+				if (WorkloadScenarioOptions.UpdateCacheOnSaveToDb)
+				{
 					cache.Set(CacheKey, LastValue);
+				}
 				else
+				{
 					cache.Remove(CacheKey);
+				}
 
 				// SAVE LAST XYZ
 				LastUpdatedGroupIdx = groupIdx;
@@ -319,15 +342,19 @@ namespace ZiggyCreatures.Caching.Fusion.VisualTester.Scenarios
 
 				// WAIT SOME RANDOM TIME
 				var delay = TimeSpan.FromMilliseconds(
-					DataChangesMinDelay.TotalMilliseconds
-					+ (RNG.NextDouble() * (DataChangesMaxDelay.TotalMilliseconds - DataChangesMinDelay.TotalMilliseconds))
+					WorkloadScenarioOptions.DataChangesMinDelay.TotalMilliseconds
+					+ (RNG.NextDouble() * (WorkloadScenarioOptions.DataChangesMaxDelay.TotalMilliseconds - WorkloadScenarioOptions.DataChangesMinDelay.TotalMilliseconds))
 				);
+
+				await Task.Delay(delay).ConfigureAwait(false);
+
 
 				// UPDATE SOME DATA
 				UpdateSomeRandomData();
 
 				// WAIT A LITTLE TO LET THE BACKBONE TO ITS JOB
-				await Task.Delay(500).ConfigureAwait(false);
+				if (WorkloadScenarioOptions.PostUpdateCooldownDelay.HasValue)
+					await Task.Delay(WorkloadScenarioOptions.PostUpdateCooldownDelay.Value).ConfigureAwait(false);
 			}
 		}
 	}
