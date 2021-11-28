@@ -7,6 +7,9 @@ using Microsoft.Extensions.Options;
 
 namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 {
+	/// <summary>
+	/// An-in memory implementation of a FusionCache backplane
+	/// </summary>
 	public class MemoryBackplanePlugin
 		: IFusionCachePlugin
 	{
@@ -16,6 +19,11 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 
 		private static ConcurrentDictionary<string, ConcurrentDictionary<string, IFusionCache>> _channels = new ConcurrentDictionary<string, ConcurrentDictionary<string, IFusionCache>>();
 
+		/// <summary>
+		/// Initializes a new instance of the MemoryBackplanePlugin class.
+		/// </summary>
+		/// <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
+		/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
 		public MemoryBackplanePlugin(IOptions<MemoryBackplaneOptions> optionsAccessor, ILogger<MemoryBackplanePlugin>? logger = null)
 		{
 			if (optionsAccessor is null)
@@ -39,6 +47,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 			_channel = "FusionCache.Eviction";
 		}
 
+		/// <inheritdoc/>
 		public void Start(IFusionCache cache)
 		{
 			// CHANNEL
@@ -53,6 +62,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 			cache.Events.Remove += OnRemove;
 		}
 
+		/// <inheritdoc/>
 		public void Stop(IFusionCache cache)
 		{
 			cache.Events.Set -= OnSet;
@@ -103,14 +113,14 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 			}
 		}
 
-		public void StartListeningForRemoteEvictions(IFusionCache cache)
+		private void StartListeningForRemoteEvictions(IFusionCache cache)
 		{
 			var channel = GetChannel();
 
 			channel[cache.InstanceId] = cache;
 		}
 
-		public void StopListeningForRemoteEvictions(IFusionCache cache)
+		private void StopListeningForRemoteEvictions(IFusionCache cache)
 		{
 			var channel = GetChannel();
 

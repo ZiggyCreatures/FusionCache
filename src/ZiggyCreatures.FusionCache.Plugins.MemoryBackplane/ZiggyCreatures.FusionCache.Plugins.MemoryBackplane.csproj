@@ -19,6 +19,7 @@
 		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
+		<DocumentationFile>ZiggyCreatures.FusionCache.Plugins.MemoryBackplane.xml</DocumentationFile>
 	</PropertyGroup>
 
 	<ItemGroup>
