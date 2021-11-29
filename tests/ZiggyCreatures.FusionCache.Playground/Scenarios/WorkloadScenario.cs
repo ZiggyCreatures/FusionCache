@@ -93,7 +93,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				case BackplaneType.Redis:
 					return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx) });
 				default:
-					return new MemoryBackplanePlugin(new MemoryBackplaneOptions() { NotificationsDelay = WorkloadScenarioOptions.BackplaneMemoryNotificationsDelay });
+					return new MemoryBackplanePlugin(new MemoryBackplaneOptions());
 			}
 		}
 

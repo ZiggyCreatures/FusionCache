@@ -91,9 +91,6 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", cacheKey);
 
-			if (_options.NotificationsDelay.HasValue)
-				await Task.Delay(_options.NotificationsDelay.Value).ConfigureAwait(false);
-
 			foreach (var item in GetChannel())
 			{
 				if (item.Key != cache.InstanceId)

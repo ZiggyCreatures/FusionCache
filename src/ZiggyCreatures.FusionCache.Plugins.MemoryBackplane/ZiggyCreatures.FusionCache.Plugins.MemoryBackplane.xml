@@ -9,11 +9,6 @@
             Represents the options available for the memory backplane.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplaneOptions.NotificationsDelay">
-            <summary>
-            A simulated delay that will pass between sending and receiving notifications
-            </summary>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplaneOptions.ChannelPrefix">
             <summary>
             The prefix that will be used to construct the notification channel name.

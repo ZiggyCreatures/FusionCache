@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 
 namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 {
@@ -9,11 +8,6 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 	public class MemoryBackplaneOptions
 		: IOptions<MemoryBackplaneOptions>
 	{
-		/// <summary>
-		/// A simulated delay that will pass between sending and receiving notifications
-		/// </summary>
-		public TimeSpan? NotificationsDelay { get; set; }
-
 		/// <summary>
 		/// The prefix that will be used to construct the notification channel name.
 		/// <br/><br/>
