@@ -7,10 +7,13 @@ using StackExchange.Redis;
 
 namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 {
+	/// <summary>
+	/// A Redis based implementation of a FusionCache backplane.
+	/// </summary>
 	public class RedisBackplanePlugin
 		: IFusionCachePlugin
 	{
-		private static readonly char _messageSeparator = ':';
+		private const char _messageSeparator = ':';
 		private static readonly char[] _messageSeparatorArray = new char[] { _messageSeparator };
 
 		private readonly RedisBackplaneOptions _options;
@@ -19,6 +22,11 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 		private ISubscriber? _subscriber;
 		private RedisChannel _channel;
 
+		/// <summary>
+		/// Initializes a new instance of the RedisBackplanePlugin class.
+		/// </summary>
+		/// <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
+		/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
 		public RedisBackplanePlugin(IOptions<RedisBackplaneOptions> optionsAccessor, ILogger<RedisBackplanePlugin>? logger = null)
 		{
 			if (optionsAccessor is null)
@@ -39,37 +47,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			}
 		}
 
-		private ConfigurationOptions GetConfigurationOptions()
-		{
-			if (_options.ConfigurationOptions is null && string.IsNullOrWhiteSpace(_options.Configuration))
-				throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
-
-			var res = _options.ConfigurationOptions;
-
-			if (res is null)
-				res = ConfigurationOptions.Parse(_options.Configuration);
-
-			return res;
-		}
-
-		private void Disconnect()
-		{
-			if (_connection is null)
-				return;
-
-			try
-			{
-				_connection.Dispose();
-			}
-			catch (Exception exc)
-			{
-				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, exc, "An error occurred while disconnecting from Redis");
-			}
-
-			_connection = null;
-		}
-
+		/// <inheritdoc/>
 		public void Start(IFusionCache cache)
 		{
 			_ = Task.Run(async () =>
@@ -113,6 +91,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			cache.Events.Remove += OnRemove;
 		}
 
+		/// <inheritdoc/>
 		public void Stop(IFusionCache cache)
 		{
 			cache.Events.Set -= OnSet;
@@ -122,6 +101,37 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			{
 				Disconnect();
 			});
+		}
+
+		private ConfigurationOptions GetConfigurationOptions()
+		{
+			if (_options.ConfigurationOptions is null && string.IsNullOrWhiteSpace(_options.Configuration))
+				throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
+
+			var res = _options.ConfigurationOptions;
+
+			if (res is null)
+				res = ConfigurationOptions.Parse(_options.Configuration);
+
+			return res;
+		}
+
+		private void Disconnect()
+		{
+			if (_connection is null)
+				return;
+
+			try
+			{
+				_connection.Dispose();
+			}
+			catch (Exception exc)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, exc, "An error occurred while disconnecting from Redis");
+			}
+
+			_connection = null;
 		}
 
 		private void OnSet(object sender, Events.FusionCacheEntryEventArgs e)
@@ -139,7 +149,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			return instanceId + _messageSeparator + action + _messageSeparator + cacheKey;
 		}
 
-		private static (string?, string?, string?) ParseMessage(RedisValue message)
+		private static (string? InstanceId, string? Action, string? CacheKey) ParseMessage(RedisValue message)
 		{
 			var payload = (string)message;
 			var parts = payload.Split(_messageSeparatorArray, 3, StringSplitOptions.None);
@@ -163,7 +173,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 				_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", cacheKey);
 		}
 
-		public async Task StartListeningForRemoteEvictionsAsync(IFusionCache cache)
+		private async Task StartListeningForRemoteEvictionsAsync(IFusionCache cache)
 		{
 			if (_subscriber is null)
 				return;

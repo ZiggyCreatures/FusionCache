@@ -27,5 +27,23 @@
             NOTE: if not specified, the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/> will be used.
             </summary>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplanePlugin">
+            <summary>
+            A Redis based implementation of a FusionCache backplane.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplanePlugin.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplaneOptions},Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplanePlugin})">
+            <summary>
+            Initializes a new instance of the RedisBackplanePlugin class.
+            </summary>
+            <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplanePlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplanePlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <inheritdoc/>
+        </member>
     </members>
 </doc>
