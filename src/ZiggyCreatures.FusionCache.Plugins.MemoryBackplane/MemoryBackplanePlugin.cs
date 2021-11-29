@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -15,7 +14,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 	{
 		private readonly MemoryBackplaneOptions _options;
 		private readonly ILogger? _logger;
-		private string _channel;
+		private string _channel = "FusionCache.Eviction";
 
 		private static ConcurrentDictionary<string, ConcurrentDictionary<string, IFusionCache>> _channels = new ConcurrentDictionary<string, ConcurrentDictionary<string, IFusionCache>>();
 
@@ -42,9 +41,6 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 			{
 				_logger = logger;
 			}
-
-			// CHANNEL
-			_channel = "FusionCache.Eviction";
 		}
 
 		/// <inheritdoc/>
@@ -73,12 +69,12 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 
 		private void OnSet(object sender, Events.FusionCacheEntryEventArgs e)
 		{
-			_ = NotifyEvictionAsync((IFusionCache)sender, e.Key);
+			NotifyEviction((IFusionCache)sender, e.Key);
 		}
 
 		private void OnRemove(object sender, Events.FusionCacheEntryEventArgs e)
 		{
-			_ = NotifyEvictionAsync((IFusionCache)sender, e.Key);
+			NotifyEviction((IFusionCache)sender, e.Key);
 		}
 
 		private ConcurrentDictionary<string, IFusionCache> GetChannel()
@@ -86,7 +82,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane
 			return _channels.GetOrAdd(_channel, _ => new ConcurrentDictionary<string, IFusionCache>());
 		}
 
-		private async Task NotifyEvictionAsync(IFusionCache cache, string cacheKey)
+		private void NotifyEviction(IFusionCache cache, string cacheKey)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", cacheKey);
