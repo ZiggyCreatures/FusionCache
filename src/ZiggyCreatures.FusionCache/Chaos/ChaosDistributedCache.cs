@@ -6,17 +6,17 @@ using Microsoft.Extensions.Caching.Distributed;
 namespace ZiggyCreatures.Caching.Fusion.Chaos
 {
 	/// <summary>
-	/// An implementation of <see cref="IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.
+	/// An implementation of <see cref="IDistributedCache"/> that acts on behalf of another one, but with a (controllable) little chaos in-between.
 	/// </summary>
 	public class ChaosDistributedCache
 		: IDistributedCache
 	{
-		private IDistributedCache _innerCache;
+		private readonly IDistributedCache _innerCache;
 
 		/// <summary>
-		/// The actual <see cref="IDistributedCache"/> used if and when chaos does not happen.
+		/// Initializes a new instance of the ChaosDistributedCache class.
 		/// </summary>
-		/// <param name="innerCache"></param>
+		/// <param name="innerCache">The actual <see cref="IDistributedCache"/> used if and when chaos does not happen.</param>
 		public ChaosDistributedCache(IDistributedCache innerCache)
 		{
 			_innerCache = innerCache ?? throw new ArgumentNullException(nameof(innerCache));

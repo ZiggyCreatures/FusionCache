@@ -3,8 +3,9 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 
-namespace ZiggyCreatures.Caching.Fusion.Tests
+namespace FusionCacheTests
 {
 	public class CacheStampedeTests
 	{

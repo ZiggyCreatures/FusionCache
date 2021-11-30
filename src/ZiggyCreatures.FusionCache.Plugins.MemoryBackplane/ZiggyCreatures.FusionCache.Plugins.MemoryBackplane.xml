@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ZiggyCreatures.FusionCache.Plugins.MemoryBackplane</name>
+    </assembly>
+    <members>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplaneOptions">
+            <summary>
+            Represents the options available for the memory backplane.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplaneOptions.ChannelPrefix">
+            <summary>
+            The prefix that will be used to construct the notification channel name.
+            <br/><br/>
+            NOTE: if not specified, the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/> will be used.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplanePlugin">
+            <summary>
+            An-in memory implementation of a FusionCache backplane
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplanePlugin.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplaneOptions},Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplanePlugin})">
+            <summary>
+            Initializes a new instance of the MemoryBackplanePlugin class.
+            </summary>
+            <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplanePlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.MemoryBackplane.MemoryBackplanePlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>
