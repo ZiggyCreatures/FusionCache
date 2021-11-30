@@ -614,6 +614,38 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
+		public async Task DirectEvictionWorksAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+				var removeCalled = false;
+				var evictCalled = false;
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
+				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => evictCalled = true;
+
+				cache.Events.Memory.Remove += onRemove;
+				cache.Events.Memory.Eviction += onEvict;
+
+				var duration = TimeSpan.FromMinutes(1);
+
+				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
+				await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true)).ConfigureAwait(false);
+
+				// EVICT
+				cache.Evict("foo");
+
+				var res = await cache.TryGetAsync<int>("foo").ConfigureAwait(false);
+
+				cache.Events.Memory.Remove -= onRemove;
+				cache.Events.Memory.Eviction -= onEvict;
+
+				Assert.False(removeCalled, "Remove event has been fired");
+				Assert.True(evictCalled, "Evict event has not been fired");
+				Assert.False(res.HasValue, "The cache entry is still there");
+			}
+		}
+
+		[Fact]
 		public void DirectEvictionWorks()
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
