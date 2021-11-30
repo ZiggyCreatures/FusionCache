@@ -38,7 +38,7 @@ namespace FusionCacheTests
 				cache.Events.Miss -= OnMiss;
 			}
 
-			private void OnMiss(object sender, FusionCacheEntryEventArgs e)
+			private void OnMiss(object? sender, FusionCacheEntryEventArgs e)
 			{
 				Interlocked.Increment(ref _missCount);
 			}
