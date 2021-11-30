@@ -30,8 +30,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			_logger = logger;
 			_events = events;
 
+			// CIRCUIT-BREAKER
 			_breaker = new SimpleCircuitBreaker(distributedCache is null ? TimeSpan.Zero : options.DistributedCacheCircuitBreakerDuration);
 
+			// WIRE FORMAT SETUP
 			_wireFormatToken = _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Prefix
 				? (WireFormatVersion + WireFormatSeparator)
 				: _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Suffix
