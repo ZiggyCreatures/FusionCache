@@ -35,16 +35,17 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static readonly int GroupsCount = 4;
 		public static readonly int NodesPerGroupCount = 5;
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(20);
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
+		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
 
 		// DISTRIBUTED CACHE
-		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Redis;
 		public static readonly bool AllowDistributedCacheBackgroundOperations = false;
 		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
 		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(100);
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
 		// BACKPLANE
-		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
+		public static readonly bool AllowBackplaneBackgroundOperations = false;
 		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(10);
 		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
@@ -78,7 +79,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				case DistributedCacheType.None:
 					return null;
 				case DistributedCacheType.Redis:
-					return new RedisCache(new RedisCacheOptions { Configuration = string.Format(WorkloadScenarioOptions.DistributedCacheRedisConnection, groupIdx) });
+					return new RedisCache(new RedisCacheOptions
+					{
+						Configuration = string.Format(WorkloadScenarioOptions.DistributedCacheRedisConnection, groupIdx)
+					});
 				default:
 					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			}
@@ -91,7 +95,12 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				case BackplaneType.None:
 					return null;
 				case BackplaneType.Redis:
-					return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx), CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration });
+					return new RedisBackplanePlugin(new RedisBackplaneOptions
+					{
+						Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx),
+						CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration,
+						EnableFireAndForgetMode = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
+					});
 				default:
 					return new MemoryBackplanePlugin(new MemoryBackplaneOptions());
 			}
