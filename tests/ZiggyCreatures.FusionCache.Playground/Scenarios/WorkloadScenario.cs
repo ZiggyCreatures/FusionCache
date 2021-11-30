@@ -37,7 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(20);
 
 		// DISTRIBUTED CACHE
-		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Redis;
 		public static readonly bool AllowDistributedCacheBackgroundOperations = false;
 		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
 		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(100);
@@ -45,6 +45,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		// BACKPLANE
 		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
+		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(10);
 		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
 		// OTHERS
@@ -90,7 +91,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				case BackplaneType.None:
 					return null;
 				case BackplaneType.Redis:
-					return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx) });
+					return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx), CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration });
 				default:
 					return new MemoryBackplanePlugin(new MemoryBackplaneOptions());
 			}
