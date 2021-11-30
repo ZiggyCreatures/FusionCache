@@ -20,7 +20,14 @@
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Plugins.StackExchangeRedisBackplane.xml</DocumentationFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReleaseNotes>Initial release</PackageReleaseNotes>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="StackExchange.Redis" Version="2.2.88" />
