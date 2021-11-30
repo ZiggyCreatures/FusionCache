@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 {
@@ -21,6 +23,7 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 		private IConnectionMultiplexer? _connection;
 		private ISubscriber? _subscriber;
 		private RedisChannel _channel;
+		private readonly SimpleCircuitBreaker _breaker;
 
 		/// <summary>
 		/// Initializes a new instance of the RedisBackplanePlugin class.
@@ -45,6 +48,9 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			{
 				_logger = logger;
 			}
+
+			// CIRCUIT-BREAKER
+			_breaker = new SimpleCircuitBreaker(_options.CircuitBreakerDuration);
 		}
 
 		/// <inheritdoc/>
@@ -64,10 +70,10 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 				}
 				catch (Exception exc)
 				{
+					UpdateLastError();
+
 					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 						_logger.LogError(exc, "An error occurred while connecting to the Redis backplane");
-
-					throw;
 				}
 
 				if (_connection is null)
@@ -101,6 +107,36 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			{
 				Disconnect();
 			});
+		}
+
+		private void UpdateLastError()
+		{
+			Debug.WriteLine("FUSION: Uops!");
+
+			var res = _breaker.TryOpen(out var hasChanged);
+
+			if (res && hasChanged)
+			{
+				Debug.WriteLine($"FUSION: Redis backplane temporarily de-activated for {_breaker.BreakDuration}");
+
+				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+					_logger.LogWarning("FUSION: Redis backplane temporarily de-activated for {BreakDuration}", _breaker.BreakDuration);
+			}
+		}
+
+		private bool IsCurrentlyUsable()
+		{
+			var res = _breaker.IsClosed(out var hasChanged);
+
+			if (res && hasChanged)
+			{
+				Debug.WriteLine("FUSION: Redis backplane activated again");
+
+				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+					_logger.LogWarning("FUSION: Redis backplane activated again");
+			}
+
+			return res;
 		}
 
 		private ConfigurationOptions GetConfigurationOptions()
@@ -165,12 +201,53 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			if (_subscriber is null)
 				return;
 
+			if (IsCurrentlyUsable() == false)
+				return;
+
+			if (_connection is object && _connection.IsConnected == false)
+			{
+				UpdateLastError();
+				return;
+			}
+
 			var message = CreateMessage(cache.InstanceId, type, cacheKey);
 
-			await _subscriber.PublishAsync(_channel, message, CommandFlags.FireAndForget).ConfigureAwait(false);
+			try
+			{
+				if (_options.EnableFireAndForgetMode)
+				{
+					// FIRE AND FORGET
 
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", cacheKey);
+					await _subscriber.PublishAsync(_channel, message, CommandFlags.FireAndForget).ConfigureAwait(false);
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey} (maybe)", cacheKey);
+				}
+				else
+				{
+					// WAITED
+
+					var receivedAmount = await _subscriber.PublishAsync(_channel, message).ConfigureAwait(false);
+					if (receivedAmount == 0)
+					{
+						UpdateLastError();
+
+						if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+							_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
+
+						return;
+					}
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", cacheKey);
+				}
+			}
+			catch (Exception exc)
+			{
+				UpdateLastError();
+
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
+			}
 		}
 
 		private async Task StartListeningForRemoteEvictionsAsync(IFusionCache cache)
@@ -178,31 +255,41 @@ namespace ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane
 			if (_subscriber is null)
 				return;
 
-			await _subscriber.SubscribeAsync(_channel, (c, m) =>
+			try
 			{
-				var (instanceId, type, cacheKey) = ParseMessage(m);
+				await _subscriber.SubscribeAsync(_channel, (c, m) =>
+					{
+						var (instanceId, type, cacheKey) = ParseMessage(m);
 
-				// IGNORE INVALID MESSAGES
-				if (string.IsNullOrWhiteSpace(instanceId) || string.IsNullOrWhiteSpace(cacheKey))
-					return;
+						// IGNORE INVALID MESSAGES
+						if (string.IsNullOrWhiteSpace(instanceId) || string.IsNullOrWhiteSpace(cacheKey))
+							return;
 
-				// IGNORE MESSAGES FROM THIS SOURCE
-				if (instanceId == cache.InstanceId)
-					return;
+						// IGNORE MESSAGES FROM THIS SOURCE
+						if (instanceId == cache.InstanceId)
+							return;
 
-				if (string.IsNullOrWhiteSpace(type))
-				{
-					cache.Evict(cacheKey!);
+						if (string.IsNullOrWhiteSpace(type))
+						{
+							cache.Evict(cacheKey!);
 
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "An eviction notification has been received for {CacheKey}", cacheKey);
-				}
-				else
-				{
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "An unknown notification has been received for {CacheKey}: {Type}", cacheKey, type);
-				}
-			}).ConfigureAwait(false);
+							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+								_logger.Log(LogLevel.Debug, "An eviction notification has been received for {CacheKey}", cacheKey);
+						}
+						else
+						{
+							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+								_logger.Log(LogLevel.Debug, "An unknown notification has been received for {CacheKey}: {Type}", cacheKey, type);
+						}
+					}).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				UpdateLastError();
+
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, exc, "An error occurred while trying to subscribe for notifications to the Redis backplane");
+			}
 		}
 	}
 }

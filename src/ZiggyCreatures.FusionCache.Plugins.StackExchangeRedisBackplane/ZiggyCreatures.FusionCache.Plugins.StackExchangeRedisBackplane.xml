@@ -27,6 +27,18 @@
             NOTE: if not specified, the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/> will be used.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplaneOptions.EnableFireAndForgetMode">
+            <summary>
+            Enable the (low level) FireAndForget flag of the StackExchange Redis publish method.
+            <br/><br/>
+            NOTE: if enabled, the circuit-breaker may not notice errors while sending a notification.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplaneOptions.CircuitBreakerDuration">
+            <summary>
+            The duration of the circuit-breaker used when working with the backplane. Defaults to <see cref="F:System.TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.StackExchangeRedisBackplane.RedisBackplanePlugin">
             <summary>
             A Redis based implementation of a FusionCache backplane.
