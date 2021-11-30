@@ -37,7 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var dca = GetCurrentDistributedAccessor();
 
 			// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
-			if (factory is null && (dca?.IsCurrentlyUsable() ?? false) == false)
+			if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
 			{
 				if (options.IsFailSafeEnabled && memoryEntry is object)
 				{
@@ -88,7 +88,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 				bool distributedEntryIsValid = false;
 
-				if (dca?.IsCurrentlyUsable() ?? false)
+				if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 				{
 					(distributedEntry, distributedEntryIsValid) = dca.TryGetEntry<TValue>(operationId, key, options, memoryEntry is object, token);
 				}
@@ -173,7 +173,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated);
 					isStale = failSafeActivated;
 
-					if ((dca?.IsCurrentlyUsable() ?? false) && failSafeActivated == false)
+					if ((dca?.IsCurrentlyUsable(operationId, key) ?? false) && failSafeActivated == false)
 					{
 						// SAVE IN THE DISTRIBUTED CACHE (BUT ONLY IF NO FAIL-SAFE HAS BEEN EXECUTED)
 						dca.SetEntry<TValue>(operationId, key, entry, options);
@@ -342,7 +342,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var dca = GetCurrentDistributedAccessor();
 
-			if (dca?.IsCurrentlyUsable() ?? false)
+			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
 				dca.SetEntry<TValue>(operationId, key, entry, options, token);
 			}
@@ -370,7 +370,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var dca = GetCurrentDistributedAccessor();
 
-			if (dca?.IsCurrentlyUsable() ?? false)
+			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
 				dca.RemoveEntry(operationId, key, options, token);
 			}
