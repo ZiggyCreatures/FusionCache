@@ -11,7 +11,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 namespace Microsoft.Extensions.DependencyInjection
 {
 	/// <summary>
-	/// Extension methods for setting up fusion cache related services in an <see cref="IServiceCollection" />.
+	/// Extension methods for setting up FusionCache related services in an <see cref="IServiceCollection" />.
 	/// </summary>
 	public static class FusionCacheServiceCollectionExtensions
 	{
