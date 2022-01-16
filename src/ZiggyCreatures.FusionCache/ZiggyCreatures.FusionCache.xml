@@ -1832,7 +1832,7 @@
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions">
             <summary>
-            Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Extension methods for setting up FusionCache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache})">
