@@ -11,8 +11,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 {
 	internal class DistributedCacheAccessor
 	{
+		private const int CircuitStateClosed = 0;
+		private const int CircuitStateOpen = 1;
 		private const string WireFormatVersion = "v1";
-		private const char WireFormatSeparator = ':';
 
 		public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 		{
@@ -26,28 +27,24 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			_serializer = serializer;
 
 			_options = options;
+			_breakDuration = distributedCache is null ? TimeSpan.Zero : options.DistributedCacheCircuitBreakerDuration;
+			_breakDurationTicks = _breakDuration.Ticks;
+			_gatewayTicks = DateTimeOffset.MinValue.Ticks;
 
 			_logger = logger;
 			_events = events;
-
-			// CIRCUIT-BREAKER
-			_breaker = new SimpleCircuitBreaker(distributedCache is null ? TimeSpan.Zero : options.DistributedCacheCircuitBreakerDuration);
-
-			// WIRE FORMAT SETUP
-			_wireFormatToken = _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Prefix
-				? (WireFormatVersion + WireFormatSeparator)
-				: _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Suffix
-					? WireFormatSeparator + WireFormatVersion
-					: string.Empty;
 		}
 
-		private readonly IDistributedCache _cache;
-		private readonly IFusionCacheSerializer _serializer;
+		private int _circuitState;
+		private long _gatewayTicks;
+		private readonly TimeSpan _breakDuration;
+		private readonly long _breakDurationTicks;
+
+		private IDistributedCache _cache;
+		private IFusionCacheSerializer _serializer;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheDistributedEventsHub _events;
-		private readonly SimpleCircuitBreaker _breaker;
-		private readonly string _wireFormatToken;
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private string MaybeProcessCacheKey(string key)
@@ -55,9 +52,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			switch (_options.DistributedCacheKeyModifierMode)
 			{
 				case CacheKeyModifierMode.Prefix:
-					return _wireFormatToken + key;
+					return WireFormatVersion + ':' + key;
 				case CacheKeyModifierMode.Suffix:
-					return key + _wireFormatToken;
+					return key + ':' + WireFormatVersion;
 				default:
 					return key;
 			}
@@ -69,32 +66,50 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (_cache is null)
 				return;
 
-			var res = _breaker.TryOpen(out var hasChanged);
+			// NO CIRCUIT-BREAKER DURATION
+			if (_breakDurationTicks == 0)
+				return;
 
-			if (res && hasChanged)
+			Interlocked.Exchange(ref _gatewayTicks, DateTimeOffset.UtcNow.Ticks + _breakDurationTicks);
+
+			// DETECT CIRCUIT STATE CHANGE
+			var oldCircuitState = Interlocked.Exchange(ref _circuitState, CircuitStateOpen);
+			if (oldCircuitState == CircuitStateClosed)
 			{
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
+					_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", operationId, key, _breakDuration);
 
 				// EVENT
 				_events.OnCircuitBreakerChange(operationId, key, false);
 			}
 		}
 
-		public bool IsCurrentlyUsable(string? operationId, string? key)
+		public bool IsCurrentlyUsable()
 		{
-			var res = _breaker.IsClosed(out var hasChanged);
+			// NO CIRCUIT-BREAKER DURATION
+			if (_breakDurationTicks == 0)
+				return true;
 
-			if (res && hasChanged)
+			long gatewayTicksLocal = Interlocked.Read(ref _gatewayTicks);
+
+			// NOT ENOUGH TIME IS PASSED
+			if (DateTimeOffset.UtcNow.Ticks < gatewayTicksLocal)
+				return false;
+
+			if (_circuitState == CircuitStateOpen)
 			{
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.LogWarning("FUSION: distributed cache activated again");
+				var oldCircuitState = Interlocked.Exchange(ref _circuitState, CircuitStateClosed);
+				if (oldCircuitState == CircuitStateOpen)
+				{
+					if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+						_logger.LogWarning("FUSION: distributed cache activated again");
 
-				// EVENT
-				_events.OnCircuitBreakerChange(operationId, key, true);
+					// EVENT
+					_events.OnCircuitBreakerChange(null, null, true);
+				}
 			}
 
-			return res;
+			return true;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -118,7 +133,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private async ValueTask ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 		{
-			if (IsCurrentlyUsable(operationId, key) == false)
+			if (IsCurrentlyUsable() == false)
 				return;
 
 			token.ThrowIfCancellationRequested();
@@ -145,7 +160,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 		{
-			if (IsCurrentlyUsable(operationId, key) == false)
+			if (IsCurrentlyUsable() == false)
 				return;
 
 			token.ThrowIfCancellationRequested();
@@ -168,7 +183,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public async ValueTask SetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			if (IsCurrentlyUsable(operationId, key) == false)
+			if (IsCurrentlyUsable() == false)
 				return;
 
 			token.ThrowIfCancellationRequested();
@@ -225,7 +240,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public void SetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token = default)
 		{
-			if (IsCurrentlyUsable(operationId, key) == false)
+			if (IsCurrentlyUsable() == false)
 				return;
 
 			token.ThrowIfCancellationRequested();
@@ -282,7 +297,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public async ValueTask<(FusionCacheDistributedEntry<TValue>? entry, bool isValid)> TryGetEntryAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
 		{
-			if (IsCurrentlyUsable(operationId, key) == false)
+			if (IsCurrentlyUsable() == false)
 				return (null, false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -357,7 +372,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 		public (FusionCacheDistributedEntry<TValue>? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
 		{
-			if (IsCurrentlyUsable(operationId, key) == false)
+			if (IsCurrentlyUsable() == false)
 				return (null, false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)

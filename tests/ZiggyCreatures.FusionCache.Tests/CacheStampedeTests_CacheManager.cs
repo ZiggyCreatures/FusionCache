@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using CacheManager.Core;
 using Xunit;
 
-namespace FusionCacheTests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
 	public abstract class CacheStampedeTests_CacheManager

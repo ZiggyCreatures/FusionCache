@@ -10,4 +10,3 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: SuppressMessage("Performance", "HAA0301:Closure Allocation Source", Justification = "<Pending>")]
 [assembly: SuppressMessage("Performance", "HAA0303:Lambda or anonymous method in a generic method allocates a delegate instance", Justification = "<Pending>")]
 [assembly: SuppressMessage("Performance", "HAA0601:Value type to reference type conversion causing boxing allocation", Justification = "<Pending>")]
-[assembly: SuppressMessage("Simplification", "RCS1049:Simplify boolean comparison.", Justification = "<Pending>")]

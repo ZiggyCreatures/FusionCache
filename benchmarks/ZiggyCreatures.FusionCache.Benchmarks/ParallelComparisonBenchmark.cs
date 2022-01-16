@@ -17,11 +17,11 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using ZiggyCreatures.Caching.Fusion.Reactors;
 
-namespace ZiggyCreatures.Caching.Fusion.Benchmarks.Benchmarks
+namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
-	public class ParallelBenchmark
+	public class ParallelComparisonBenchmark
 	{
 		private class Config : ManualConfig
 		{

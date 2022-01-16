@@ -7,7 +7,7 @@ using CacheTower.Extensions;
 using CacheTower.Providers.Memory;
 using Xunit;
 
-namespace FusionCacheTests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
 	public abstract class CacheStampedeTests_CacheTower

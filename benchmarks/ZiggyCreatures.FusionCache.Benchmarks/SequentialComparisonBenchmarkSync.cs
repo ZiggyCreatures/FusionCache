@@ -10,12 +10,13 @@ using LazyCache.Providers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ZiggyCreatures.Caching.Fusion.Benchmarks.Benchmarks
+namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
-	public class SequentialBenchmarkSync
+	public class SequentialComparisonBenchmarkSync
 	{
+
 		private class Config : ManualConfig
 		{
 			public Config()
@@ -157,5 +158,6 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks.Benchmarks
 				cache.Compact(1);
 			}
 		}
+
 	}
 }

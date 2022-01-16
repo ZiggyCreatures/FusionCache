@@ -1,20 +1,20 @@
 ﻿using System;
 
-namespace FusionCacheTests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class SampleComplexObject
 	{
 		public class SampleComplexObjectAddress
 		{
-			public string? Country { get; set; }
-			public string? City { get; set; }
-			public string? Street { get; set; }
+			public string Country { get; set; }
+			public string City { get; set; }
+			public string Street { get; set; }
 		}
 
 		public int Id { get; set; }
-		public string? FirstName { get; set; }
-		public string? LastName { get; set; }
-		public SampleComplexObjectAddress? Address { get; set; }
+		public string FirstName { get; set; }
+		public string LastName { get; set; }
+		public SampleComplexObjectAddress Address { get; set; }
 
 		public static SampleComplexObject CreateRandom()
 		{

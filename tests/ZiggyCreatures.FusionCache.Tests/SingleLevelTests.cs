@@ -3,10 +3,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using ZiggyCreatures.Caching.Fusion;
-using ZiggyCreatures.Caching.Fusion.Events;
 
-namespace FusionCacheTests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public static class SingleLevelTestsExtMethods
 	{
@@ -610,70 +608,6 @@ namespace FusionCacheTests
 				Assert.Equal(42, throttled1);
 				Assert.Equal(42, throttled2);
 				Assert.Equal(3, default3);
-			}
-		}
-
-		[Fact]
-		public async Task DirectEvictionWorksAsync()
-		{
-			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
-			{
-				var removeCalled = false;
-				var evictCalled = false;
-				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
-				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => evictCalled = true;
-
-				cache.Events.Memory.Remove += onRemove;
-				cache.Events.Memory.Eviction += onEvict;
-
-				var duration = TimeSpan.FromMinutes(1);
-
-				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
-				await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true)).ConfigureAwait(false);
-
-				// EVICT
-				cache.Evict("foo");
-
-				var res = await cache.TryGetAsync<int>("foo").ConfigureAwait(false);
-
-				cache.Events.Memory.Remove -= onRemove;
-				cache.Events.Memory.Eviction -= onEvict;
-
-				Assert.False(removeCalled, "Remove event has been fired");
-				Assert.True(evictCalled, "Evict event has not been fired");
-				Assert.False(res.HasValue, "The cache entry is still there");
-			}
-		}
-
-		[Fact]
-		public void DirectEvictionWorks()
-		{
-			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
-			{
-				var removeCalled = false;
-				var evictCalled = false;
-				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
-				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => evictCalled = true;
-
-				cache.Events.Memory.Remove += onRemove;
-				cache.Events.Memory.Eviction += onEvict;
-
-				var duration = TimeSpan.FromMinutes(1);
-
-				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
-				cache.Set("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true));
-
-				// EVICT
-				cache.Evict("foo");
-
-				var res = cache.TryGet<int>("foo");
-
-				cache.Events.Memory.Remove -= onRemove;
-				cache.Events.Memory.Eviction -= onEvict;
-
-				Assert.False(removeCalled, "Remove event has been fired");
-				Assert.True(evictCalled, "Evict event has not been fired");
-				Assert.False(res.HasValue, "The cache entry is still there");
 			}
 		}
 	}

@@ -26,14 +26,14 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache">
             <summary>
-            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but with a (controllable) little chaos in-between.
+            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.#ctor(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
             <summary>
-            Initializes a new instance of the ChaosDistributedCache class.
+            The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.
             </summary>
-            <param name="innerCache">The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.</param>
+            <param name="innerCache"></param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.ChaosThrowProbability">
             <summary>
@@ -1130,7 +1130,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix">
             <summary>
-            <strong>WARNING:</strong> this feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
+            <strong>WARNING:</strong> this feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
             <br/>
             For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
             <br/><br/>
@@ -1653,36 +1653,6 @@
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
             <returns>The newly created entry.</returns>
-        </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker">
-            <summary>
-            A simple, reusable circuit-breaker.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.#ctor(System.TimeSpan)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker"/> instance.
-            </summary>
-            <param name="breakDuration">The amount of time the circuit will remain open, when told to.</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.BreakDuration">
-            <summary>
-            The amount of time the circuit will remain open, when told to.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.TryOpen(System.Boolean@)">
-            <summary>
-            Tries to pen the circuit.
-            </summary>
-            <param name="isStateChanged">Indicates if the circuit has been opened with this operation.</param>
-            <returns>True if the circuit is open, either because it was already or because it has been opened with this operation. False otherwise.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.IsClosed(System.Boolean@)">
-            <summary>
-            Check if the circuit is closed, or has been closed with this operation.
-            </summary>
-            <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
-            <returns>True if the circuit is close, either because it was already or because it has been closed with this operation. False otherwise.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1">
             <summary>

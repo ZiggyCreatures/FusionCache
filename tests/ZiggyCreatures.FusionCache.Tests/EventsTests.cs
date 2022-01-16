@@ -4,22 +4,20 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Events;
 
-namespace FusionCacheTests
+namespace ZiggyCreatures.Caching.Fusion.Tests
 {
 	public class EventsTests
 	{
 		public enum EntryActionKind
 		{
 			Miss = 0,
-			HitNormal = 1,
-			HitStale = 2,
+			Hit = 1,
+			StaleHit = 2,
 			Set = 3,
 			Remove = 4,
 			FailSafeActivate = 5,
-			FactoryError = 6
 		}
 
 		public class EntryActionsStats
@@ -57,11 +55,10 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
-				EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
 
 				// SETUP HANDLERS
 				cache.Events.Miss += onMiss;
@@ -69,7 +66,6 @@ namespace FusionCacheTests
 				cache.Events.Set += onSet;
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
-				cache.Events.FactoryError += onFactoryError;
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("foo");
@@ -90,7 +86,7 @@ namespace FusionCacheTests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// FACTORY ERROR: +1
+				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
@@ -101,7 +97,7 @@ namespace FusionCacheTests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// FACTORY ERROR: +1
+				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
@@ -118,15 +114,13 @@ namespace FusionCacheTests
 				cache.Events.Set -= onSet;
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
-				cache.Events.FactoryError -= onFactoryError;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
-				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(3, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
-				Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
 			}
 		}
 
@@ -147,11 +141,10 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
-				EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
 
 				// SETUP HANDLERS
 				cache.Events.Miss += onMiss;
@@ -159,7 +152,6 @@ namespace FusionCacheTests
 				cache.Events.Set += onSet;
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
-				cache.Events.FactoryError += onFactoryError;
 
 				// MISS: +1
 				cache.TryGet<int>("foo");
@@ -180,7 +172,7 @@ namespace FusionCacheTests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// FACTORY ERROR: +1
+				// SET: +1
 				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
@@ -191,7 +183,7 @@ namespace FusionCacheTests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// FACTORY ERROR: +1
+				// SET: +1
 				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
@@ -208,15 +200,13 @@ namespace FusionCacheTests
 				cache.Events.Set -= onSet;
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
-				cache.Events.FactoryError -= onFactoryError;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
-				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
+				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(3, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
-				Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
 			}
 		}
 
@@ -237,7 +227,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -249,6 +239,7 @@ namespace FusionCacheTests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
+				// MISS: +1
 				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
 
@@ -259,9 +250,9 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(0, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -282,7 +273,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -294,6 +285,7 @@ namespace FusionCacheTests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
+				// MISS: +1
 				// SET: +1
 				cache.GetOrSet<int>("foo", _ => 42);
 
@@ -304,9 +296,9 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(0, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -327,7 +319,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -345,6 +337,7 @@ namespace FusionCacheTests
 				// LET IT BECOME STALE
 				await Task.Delay(duration);
 
+				// HIT (STALE): +1
 				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
 
@@ -355,9 +348,9 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -378,7 +371,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -396,6 +389,7 @@ namespace FusionCacheTests
 				// LET IT BECOME STALE
 				Thread.Sleep(duration);
 
+				// HIT (STALE): +1
 				// SET: +1
 				cache.GetOrSet<int>("foo", _ => 42);
 
@@ -406,9 +400,9 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -429,7 +423,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -473,7 +467,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -517,7 +511,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -545,7 +539,7 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
@@ -567,7 +561,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -595,7 +589,7 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
@@ -617,7 +611,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -667,7 +661,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -717,7 +711,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 
 				// SETUP HANDLERS
@@ -757,7 +751,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 
 				// SETUP HANDLERS

@@ -73,13 +73,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		public TimeSpan DistributedCacheCircuitBreakerDuration { get; set; }
 
 		/// <summary>
-		/// <strong>WARNING:</strong> this feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
+		/// <strong>WARNING:</strong> this feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
 		/// <br/>
 		/// For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
 		/// <br/><br/>
 		/// An optional <see cref="string"/> prefix to prepend to any cache key passed to the cache methods.
 		/// </summary>
-		[Obsolete("This feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore. For more info see https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33", true)]
+		[Obsolete("This feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore. For more info see https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33")]
 		public string? CacheKeyPrefix { get; set; }
 
 		/// <summary>
