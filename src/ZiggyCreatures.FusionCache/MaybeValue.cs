@@ -10,7 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	/// <typeparam name="TValue">The type of the value.</typeparam>
 	public struct MaybeValue<TValue>
 	{
-		private TValue _value;
+		private readonly TValue _value;
 
 		/// <summary>
 		/// Represents a reusable result to be used when no value is there: using this saves memory allocations.
