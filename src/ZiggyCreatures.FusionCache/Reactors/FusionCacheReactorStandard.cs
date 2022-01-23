@@ -86,8 +86,18 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 			var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			if (acquired)
+			{
+				// LOCK ACQUIRED
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			}
+			else
+			{
+				// LOCK TIMEOUT
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
+			}
 
 			return acquired ? semaphore : null;
 		}
@@ -102,8 +112,18 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 			var acquired = semaphore.Wait(timeout);
 
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			if (acquired)
+			{
+				// LOCK ACQUIRED
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			}
+			else
+			{
+				// LOCK TIMEOUT
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
+			}
 
 			return acquired ? semaphore : null;
 		}

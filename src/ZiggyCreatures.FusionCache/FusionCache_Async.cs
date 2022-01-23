@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
@@ -37,7 +38,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			var dca = GetCurrentDistributedAccessor();
 
 			// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
-			if (factory is null && (dca?.IsCurrentlyUsable() ?? false) == false)
+			if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
 			{
 				if (options.IsFailSafeEnabled && _memoryEntry is object)
 				{
@@ -67,6 +68,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			// LOCK
 			var lockObj = await _reactor.AcquireLockAsync(key, operationId, options.LockTimeout, _logger, token).ConfigureAwait(false);
 			bool isStale;
+			bool factoryCompletedSuccessfully = false;
 
 			try
 			{
@@ -87,7 +89,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 				bool distributedEntryIsValid = false;
 
-				if (dca?.IsCurrentlyUsable() ?? false)
+				if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 				{
 					(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, _memoryEntry is object, token).ConfigureAwait(false);
 				}
@@ -123,12 +125,6 @@ namespace ZiggyCreatures.Caching.Fusion
 					{
 						// FACTORY
 
-						// EVENT
-						if (_memoryEntry is object || distributedEntry is object)
-							_events.OnHit(operationId, key, true);
-						else
-							_events.OnMiss(operationId, key);
-
 						Task<TValue>? factoryTask = null;
 
 						try
@@ -146,6 +142,7 @@ namespace ZiggyCreatures.Caching.Fusion
 							{
 								value = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
 							}
+							factoryCompletedSuccessfully = true;
 						}
 						catch (OperationCanceledException)
 						{
@@ -177,7 +174,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated);
 					isStale = failSafeActivated;
 
-					if ((dca?.IsCurrentlyUsable() ?? false) && failSafeActivated == false)
+					if ((dca?.IsCurrentlyUsable(operationId, key) ?? false) && failSafeActivated == false)
 					{
 						// SAVE IN THE DISTRIBUTED CACHE (BUT ONLY IF NO FAIL-SAFE HAS BEEN EXECUTED)
 						await dca.SetEntryAsync<TValue>(operationId, key, _entry, options, token).ConfigureAwait(false);
@@ -197,9 +194,17 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 
 			// EVENT
-			if (_entry is object)
+			if (factoryCompletedSuccessfully)
 			{
 				_events.OnSet(operationId, key);
+
+				// BACKPLANE
+				if (options.EnableBackplaneNotifications)
+					await SendBackplaneNotificationAsync(BackplaneMessage.CreateForEviction(this.InstanceId, key), token).ConfigureAwait(false);
+			}
+			else if (_entry is object)
+			{
+				_events.OnHit(operationId, key, isStale);
 			}
 			else
 			{
@@ -215,8 +220,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			ValidateCacheKey(key);
 
 			token.ThrowIfCancellationRequested();
-
-			MaybeProcessCacheKey(ref key);
 
 			if (factory is null)
 				throw new ArgumentNullException(nameof(factory), "Factory cannot be null");
@@ -247,8 +250,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			token.ThrowIfCancellationRequested();
 
-			MaybeProcessCacheKey(ref key);
-
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -275,8 +276,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			ValidateCacheKey(key);
 
 			token.ThrowIfCancellationRequested();
-
-			MaybeProcessCacheKey(ref key);
 
 			var operationId = GenerateOperationId();
 
@@ -306,8 +305,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			token.ThrowIfCancellationRequested();
 
-			MaybeProcessCacheKey(ref key);
-
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -336,8 +333,6 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			token.ThrowIfCancellationRequested();
 
-			MaybeProcessCacheKey(ref key);
-
 			if (options is null)
 				options = _options.DefaultEntryOptions;
 
@@ -352,13 +347,17 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var dca = GetCurrentDistributedAccessor();
 
-			if (dca?.IsCurrentlyUsable() ?? false)
+			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
 				await dca.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 			}
 
 			// EVENT
 			_events.OnSet(operationId, key);
+
+			// BACKPLANE
+			if (options.EnableBackplaneNotifications)
+				await SendBackplaneNotificationAsync(BackplaneMessage.CreateForEviction(this.InstanceId, key), token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
@@ -367,8 +366,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			ValidateCacheKey(key);
 
 			token.ThrowIfCancellationRequested();
-
-			MaybeProcessCacheKey(ref key);
 
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -382,13 +379,63 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			var dca = GetCurrentDistributedAccessor();
 
-			if (dca?.IsCurrentlyUsable() ?? false)
+			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
 				await dca.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 			}
 
 			// EVENT
 			_events.OnRemove(operationId, key);
+
+			// BACKPLANE
+			if (options.EnableBackplaneNotifications)
+				await SendBackplaneNotificationAsync(BackplaneMessage.CreateForEviction(this.InstanceId, key), token).ConfigureAwait(false);
+		}
+
+		/// <inheritdoc/>
+		public async ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token)
+		{
+			var res = false;
+			foreach (var plugin in _plugins)
+			{
+				if (plugin is IFusionCacheBackplane backplane)
+				{
+					res = true;
+					await backplane.SendNotificationAsync(this, message, token);
+				}
+			}
+			return res;
+		}
+
+		/// <inheritdoc/>
+		public async ValueTask OnBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token)
+		{
+			// IGNORE INVALID MESSAGES
+			if (message is null || message.IsValid() == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "An invalid message has been received from cache {CacheInstanceId} for key {CacheKey} and action {Action}", message?.SourceId, message?.CacheKey, message?.Action);
+
+				return;
+			}
+
+			// IGNORE MESSAGES FROM THIS SOURCE
+			if (message.SourceId == InstanceId)
+				return;
+
+			switch (message.Action)
+			{
+				case BackplaneMessageAction.Evict:
+					Evict(message.CacheKey!);
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "An eviction notification has been received for {CacheKey}", message.CacheKey);
+					break;
+				default:
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "An unknown notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
+					break;
+			}
 		}
 	}
 }

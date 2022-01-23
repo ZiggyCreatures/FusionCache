@@ -132,14 +132,6 @@ namespace ZiggyCreatures.Caching.Fusion
 				throw new ArgumentNullException(nameof(key));
 		}
 
-		private void MaybeProcessCacheKey(ref string key)
-		{
-			if (string.IsNullOrEmpty(_options.CacheKeyPrefix))
-				return;
-
-			key = _options.CacheKeyPrefix + key;
-		}
-
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private string GenerateOperationId()
 		{
@@ -237,6 +229,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 					_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
+					_events.OnSet(operationId, key);
+
 					// EVENT
 					_events.OnBackgroundFactorySuccess(operationId, key);
 				}
@@ -291,8 +285,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		public void Evict(string key)
 		{
 			ValidateCacheKey(key);
-
-			MaybeProcessCacheKey(ref key);
 
 			var operationId = GenerateOperationId();
 

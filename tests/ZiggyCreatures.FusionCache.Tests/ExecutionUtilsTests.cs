@@ -1,11 +1,12 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
-namespace ZiggyCreatures.Caching.Fusion.Tests
+namespace FusionCacheTests
 {
 	public class ExecutionUtilsTests
 	{
@@ -179,13 +180,13 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		public async Task DoNotCancelWhenTimeoutActuallyWorksAsync()
 		{
 			var factoryCompleted = false;
-			var timeoutMs = 500;
+			var timeoutMs = 100;
 			var innerDelayMs = 2_000;
 			await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 			{
 				await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
 			});
-			await Task.Delay(innerDelayMs);
+			await Task.Delay(innerDelayMs + timeoutMs);
 
 			Assert.True(factoryCompleted);
 		}
@@ -194,13 +195,13 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 		public void DoNotCancelWhenTimeoutActuallyWorks()
 		{
 			var factoryCompleted = false;
-			var timeoutMs = 500;
+			var timeoutMs = 100;
 			var innerDelayMs = 2_000;
 			Assert.ThrowsAny<TimeoutException>(() =>
 			{
 				FusionCacheExecutionUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
 			});
-			Thread.Sleep(innerDelayMs);
+			Thread.Sleep(innerDelayMs + timeoutMs);
 
 			Assert.True(factoryCompleted);
 		}

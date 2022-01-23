@@ -3,10 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 
-namespace ZiggyCreatures.Caching.Fusion.Tests
+namespace FusionCacheTests
 {
 	public class PluginsTests
 	{
@@ -37,7 +38,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Miss -= OnMiss;
 			}
 
-			private void OnMiss(object sender, FusionCacheEntryEventArgs e)
+			private void OnMiss(object? sender, FusionCacheEntryEventArgs e)
 			{
 				Interlocked.Increment(ref _missCount);
 			}

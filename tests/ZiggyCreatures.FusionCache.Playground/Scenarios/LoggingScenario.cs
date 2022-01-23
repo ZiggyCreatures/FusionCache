@@ -10,7 +10,7 @@ using Serilog;
 using Serilog.Events;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
-namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
+namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 {
 	public static class VisualTesterExtMethods
 	{
@@ -26,17 +26,17 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 		}
 	}
 
-	class Program
+	public static class LoggingScenario
 	{
-		static TimeSpan CacheDuration = TimeSpan.FromSeconds(5);
-		static TimeSpan FailSafeMaxDuration = TimeSpan.FromSeconds(30);
-		static TimeSpan FailSafeThrottleDuration = TimeSpan.FromSeconds(3);
-		static TimeSpan FactoryTimeout = TimeSpan.FromSeconds(2);
-		static bool UseFailSafe = true;
-		static bool UseDistributedCache = false;
-		static bool UseLogger = true;
+		private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(5);
+		private static readonly TimeSpan FailSafeMaxDuration = TimeSpan.FromSeconds(30);
+		private static readonly TimeSpan FailSafeThrottleDuration = TimeSpan.FromSeconds(3);
+		private static readonly TimeSpan FactoryTimeout = TimeSpan.FromSeconds(2);
+		private static readonly bool UseFailSafe = true;
+		private static readonly bool UseDistributedCache = false;
+		private static readonly bool UseLogger = true;
 
-		static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
+		private static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
 		{
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Is(minLevel)
@@ -48,29 +48,14 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 			services.AddLogging(configure => configure.AddSerilog());
 		}
 
-		static void SetupStandardLogger(IServiceCollection services, LogLevel minLevel = LogLevel.Trace)
+		private static void SetupStandardLogger(IServiceCollection services, LogLevel minLevel = LogLevel.Trace)
 		{
 			services.AddLogging(configure => configure.SetMinimumLevel(minLevel).AddConsole(options => options.IncludeScopes = true));
 		}
 
-		async static Task Main(string[] args)
+		public static async Task RunAsync()
 		{
 			Console.OutputEncoding = Encoding.UTF8;
-
-			// TEMPORARY: SMALL TEST
-			//using (var cache = new FusionCache(new FusionCacheOptions()))
-			//{
-			//	cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(1);
-			//	cache.DefaultEntryOptions.IsFailSafeEnabled = true;
-			//	cache.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
-			//	cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(10);
-
-			//	for (int i = 0; i < 1_000; i++)
-			//	{
-			//		await cache.GetOrSetAsync<int>("foo" + i.ToString(), _ => Task.FromResult(42));
-			//	}
-			//}
-			//return;
 
 			// DI
 			var services = new ServiceCollection();
@@ -85,7 +70,6 @@ namespace ZiggyCreatures.Caching.Fusion.LoggingVisualTester
 			// CACHE OPTIONS
 			var options = new FusionCacheOptions
 			{
-				CacheKeyPrefix = "dev:",
 				DefaultEntryOptions = new FusionCacheEntryOptions
 				{
 					Duration = CacheDuration,

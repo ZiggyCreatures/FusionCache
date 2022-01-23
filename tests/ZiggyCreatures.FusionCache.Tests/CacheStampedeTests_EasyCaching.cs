@@ -6,7 +6,7 @@ using EasyCaching.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace ZiggyCreatures.Caching.Fusion.Tests
+namespace FusionCacheTests
 {
 	// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
 	public abstract class CacheStampedeTests_EasyCaching

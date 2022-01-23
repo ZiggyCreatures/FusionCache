@@ -103,23 +103,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): evicting data (from memory)", operationId, key);
 
-			if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry))
-			{
-				if (entry is null)
-					return;
+			_cache.Remove(key);
 
-				if (entry.Metadata is object)
-				{
-					entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
-				}
-				else
-				{
-					_cache.Remove(key);
-				}
-
-				// EVENT
-				_events.OnEviction(operationId, key, EvictionReason.None);
-			}
+			// EVENT
+			_events.OnEviction(operationId, key, EvictionReason.None);
 		}
 
 		// IDISPOSABLE

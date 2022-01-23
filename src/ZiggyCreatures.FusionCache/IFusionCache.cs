@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -178,6 +179,34 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
 		void Evict(string key);
+
+		/// <summary>
+		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// </summary>
+		/// <param name="message">The message to send.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token);
+
+		/// <summary>
+		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// </summary>
+		/// <param name="message">The message to send.</param>
+		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		bool SendBackplaneNotification(BackplaneMessage message);
+
+		/// <summary>
+		/// Process a backplane notification.
+		/// </summary>
+		/// <param name="message">The message to process.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		ValueTask OnBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token);
+
+		/// <summary>
+		/// Process a backplane notification.
+		/// </summary>
+		/// <param name="message">The message to process.</param>
+		void OnBackplaneNotification(BackplaneMessage message);
 
 		/// <summary>
 		/// The central place for all events handling of this FusionCache instance.

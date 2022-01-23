@@ -35,6 +35,8 @@ namespace ZiggyCreatures.Caching.Fusion
 			IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
 			FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
 			FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
+
+			EnableBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsEnableBackplaneNotifications;
 		}
 
 		/// <summary>
@@ -131,6 +133,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <para>TL/DR: set this flag to true for a perf boost, but watch out for rare side effects.</para>
 		/// </summary>
 		public bool AllowBackgroundDistributedCacheOperations { get; set; }
+
+		/// <summary>
+		/// Sends notifications on the backplane to other nodes after some operations on cache entries, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
+		/// </summary>
+		public bool EnableBackplaneNotifications { get; set; }
 
 		/// <inheritdoc/>
 		public override string ToString()
@@ -379,7 +386,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
-				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations
+				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
+
+				EnableBackplaneNotifications = EnableBackplaneNotifications
 			};
 		}
 
