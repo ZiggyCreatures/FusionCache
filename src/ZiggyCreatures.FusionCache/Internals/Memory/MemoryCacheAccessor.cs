@@ -19,22 +19,20 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 				_cache = new MemoryCache(new MemoryCacheOptions());
 				_cacheShouldBeDisposed = true;
 			}
-			_options = options;
+			//_options = options;
 			_logger = logger;
 			_events = events;
 		}
 
 		private IMemoryCache _cache;
 		private bool _cacheShouldBeDisposed;
-		private readonly FusionCacheOptions _options;
+		//private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheMemoryEventsHub _events;
 
 		public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 		{
 			var memoryOptions = options.ToMemoryCacheEntryOptions(_events);
-
-			//options.MemoryOptionsModifier?.Invoke(memoryOptions, entry.GetValue<TValue>());
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
