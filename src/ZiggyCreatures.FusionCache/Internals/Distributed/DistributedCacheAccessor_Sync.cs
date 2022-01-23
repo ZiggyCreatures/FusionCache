@@ -25,7 +25,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					options.DistributedCacheHardTimeout,
 					false,
 					options.AllowBackgroundDistributedCacheOperations == false,
-					exc => ProcessCacheError(operationId, key, exc, actionDescriptionInner),
+					exc => ProcessError(operationId, key, exc, actionDescriptionInner),
 					false,
 					token
 				)
@@ -40,8 +40,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			token.ThrowIfCancellationRequested();
 
 			var distributedOptions = options.ToDistributedCacheEntryOptions();
-
-			//options.DistributedOptionsModifier?.Invoke(distributedOptions, entry.GetValue<TValue>());
 
 			ExecuteOperation(
 				operationId,
@@ -105,7 +103,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			}
 			catch (Exception exc)
 			{
-				ProcessCacheError(operationId, key, exc, "getting entry from distributed");
+				ProcessError(operationId, key, exc, "getting entry from distributed");
 				data = null;
 			}
 

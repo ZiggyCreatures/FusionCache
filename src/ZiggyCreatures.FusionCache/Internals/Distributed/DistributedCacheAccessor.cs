@@ -86,7 +86,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (res && hasChanged)
 			{
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.LogWarning("FUSION: distributed cache activated again");
+					_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): distributed cache activated again", operationId, key);
 
 				// EVENT
 				_events.OnCircuitBreakerChange(operationId, key, true);
@@ -96,7 +96,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void ProcessCacheError(string operationId, string key, Exception exc, string actionDescription)
+		private void ProcessError(string operationId, string key, Exception exc, string actionDescription)
 		{
 			if (exc is SyntheticTimeoutException)
 			{
