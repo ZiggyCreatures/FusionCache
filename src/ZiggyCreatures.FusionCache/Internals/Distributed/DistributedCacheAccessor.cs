@@ -106,7 +106,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				return;
 			}
 
-			// TODO: MAYBE ALWAYS CALL UpdateLastError(...) ? MAYBE NOT?
 			UpdateLastError(key, operationId);
 
 			if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
