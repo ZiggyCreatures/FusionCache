@@ -8,9 +8,9 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Options;
 using Spectre.Console;
 using Spectre.Console.Rendering;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
-using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
@@ -32,20 +32,20 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 	public static class WorkloadScenarioOptions
 	{
 		// GENERAL
-		public static readonly int GroupsCount = 1;
+		public static readonly int GroupsCount = 4;
 		public static readonly int NodesPerGroupCount = 10;
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
-		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
-		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Redis;
+		public static readonly BackplaneType BackplaneType = BackplaneType.Redis;
 
 		// DISTRIBUTED CACHE
-		public static readonly bool AllowDistributedCacheBackgroundOperations = false;
+		public static readonly bool AllowBackgroundDistributedCacheOperations = false;
 		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
 		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(100);
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
 		// BACKPLANE
-		public static readonly bool AllowBackplaneBackgroundOperations = false;
+		public static readonly bool AllowBackgroundBackplaneOperations = false;
 		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(10);
 		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
@@ -88,21 +88,21 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			}
 		}
 
-		private static IFusionCachePlugin? CreateBackplane(int groupIdx)
+		private static IFusionCacheBackplane? CreateBackplane(int groupIdx)
 		{
 			switch (WorkloadScenarioOptions.BackplaneType)
 			{
 				case BackplaneType.None:
 					return null;
 				case BackplaneType.Redis:
-					return new RedisBackplanePlugin(new RedisBackplaneOptions
+					return new RedisBackplane(new RedisBackplaneOptions
 					{
 						Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx),
-						CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration,
-						AllowBackgroundOperations = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
+						//CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration,
+						//AllowBackgroundOperations = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
 					});
 				default:
-					return new MemoryBackplanePlugin(new MemoryBackplaneOptions());
+					return new MemoryBackplane(new MemoryBackplaneOptions());
 			}
 		}
 
@@ -139,7 +139,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				for (int nodeIdx = 1; nodeIdx <= WorkloadScenarioOptions.NodesPerGroupCount; nodeIdx++)
 				{
 					AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] CREATING...");
-					var cache = new FusionCache(new FusionCacheOptions()
+					var options = new FusionCacheOptions()
 					{
 						CacheName = $"C{groupIdx}",
 						DefaultEntryOptions = new FusionCacheEntryOptions(WorkloadScenarioOptions.CacheDuration)
@@ -147,9 +147,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 							.SetDistributedCacheTimeouts(
 								WorkloadScenarioOptions.DistributedCacheSoftTimeout,
 								WorkloadScenarioOptions.DistributedCacheHardTimeout,
-								WorkloadScenarioOptions.AllowDistributedCacheBackgroundOperations
+								WorkloadScenarioOptions.AllowBackgroundDistributedCacheOperations
 							)
-					});
+					};
+					options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = WorkloadScenarioOptions.AllowBackgroundBackplaneOperations;
+					options.BackplaneCircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration;
+					if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
+						options.DefaultEntryOptions.EnableBackplaneNotifications = false;
+
+					var cache = new FusionCache(options);
 					AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
 					if (distributedCache is object)
@@ -165,7 +171,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					if (backplane is object)
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING BACKPLANE...");
-						cache.AddPlugin(backplane);
+						cache.SetupBackplane(backplane);
 						AnsiConsole.MarkupLine("[green3_1]OK[/]");
 					}
 
@@ -324,6 +330,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				{
 					cache.Remove(CacheKey);
 				}
+
+				// MAYBE MANUALLY NOTIFY BACKPLANE
+				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
+					cache.SendBackplaneNotification(BackplaneMessage.CreateForEviction(cache.InstanceId, CacheKey));
 
 				// SAVE LAST XYZ
 				LastUpdatedGroupIdx = groupIdx;

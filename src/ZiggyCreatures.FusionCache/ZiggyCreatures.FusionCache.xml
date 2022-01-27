@@ -63,25 +63,57 @@
             Evict (local)
             </summary>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs">
+            <summary>
+            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries (eg: with a cache key).
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs"/> class.
+            </summary>
+            <param name="message">The backplane message received</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs.Message">
+            <summary>
+            The backplane message received.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">
             <summary>
             The core interface to create a FusionCache backplane plugin.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.SendNotificationAsync(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(System.String)">
+            <summary>
+            Start receiving notifications.
+            </summary>
+            <param name="channelName">The channel name to use.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Unsubscribe">
+            <summary>
+            Stop receiving notifications.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.SendNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Tries to send a notification to other nodes connected to the same backplane, if any.
             </summary>
-            <param name="cache">The FusionCache instance on which to operate.</param>
             <param name="message">The message to send.</param>
+            /// <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.SendNotification(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.SendNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
             <summary>
             Tries to send a notification to other nodes connected to the same backplane, if any.
             </summary>
-            <param name="cache">The FusionCache instance on which to operate.</param>
             <param name="message">The message to send.</param>
+            <param name="options">The options to use.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Message">
+            <summary>
+            The event for a new message.
+            </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode">
             <summary>
@@ -520,6 +552,12 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveDistributedCache">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveBackplane">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
@@ -564,10 +602,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SendBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.OnBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SendBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
@@ -588,10 +623,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SendBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.OnBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SendBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
@@ -698,6 +730,14 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications">
             <summary>
             Sends notifications on the backplane to other nodes after some operations on cache entries, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations">
+            <summary>
+            By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
+            <br/>
+            Setting this flag to false will execute these operations in a blocking fashion, typically resulting in worse performance.
+            <para>TL/DR: if you want to wait for backplane operations to complete, set this flag to false.</para>
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToString">
@@ -1202,6 +1242,11 @@
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/>.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions">
             <summary>
             Represents all the options available for the entire <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
@@ -1248,6 +1293,16 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
             Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneCircuitBreakerDuration">
+            <summary>
+            The duration of the circuit-breaker used when working with the backplane. Defaults to <see cref="F:System.TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneChannelPrefix">
+            <summary>
+            The prefix to use in the backplane channel name: if not specified the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/> will be used.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">
@@ -1307,7 +1362,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>
-            Sets a secondary caching layer, by providing a <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and a <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+            Sets a secondary caching layer, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
             </summary>
             <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
             <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
@@ -1316,6 +1371,19 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
             <summary>
             Removes the secondary caching layer.
+            </summary>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
+            <summary>
+            Sets a backplane, by providing an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance.
+            </summary>
+            <param name="backplane">The <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveBackplane">
+            <summary>
+            Removes the backplane.
             </summary>
             <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
         </member>
@@ -1455,33 +1523,23 @@
             </summary>
             <param name="key">The cache key which identifies the entry in the cache.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SendBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SendBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Tries to send a notification to other nodes connected to the same backplane, if any.
             </summary>
             <param name="message">The message to send.</param>
+            <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SendBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SendBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Tries to send a notification to other nodes connected to the same backplane, if any.
             </summary>
             <param name="message">The message to send.</param>
-            <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.OnBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,System.Threading.CancellationToken)">
-            <summary>
-            Process a backplane notification.
-            </summary>
-            <param name="message">The message to process.</param>
+            <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.OnBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
-            <summary>
-            Process a backplane notification.
-            </summary>
-            <param name="message">The message to process.</param>
+            <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.Events">
             <summary>

@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 	internal class MemoryCacheAccessor
 		: IDisposable
 	{
-		public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheMemoryEventsHub events)
+		public MemoryCacheAccessor(IMemoryCache? memoryCache, ILogger? logger, FusionCacheMemoryEventsHub events)
 		{
 			if (memoryCache is object)
 			{
@@ -19,14 +19,12 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 				_cache = new MemoryCache(new MemoryCacheOptions());
 				_cacheShouldBeDisposed = true;
 			}
-			//_options = options;
 			_logger = logger;
 			_events = events;
 		}
 
 		private IMemoryCache _cache;
 		private bool _cacheShouldBeDisposed;
-		//private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheMemoryEventsHub _events;
 

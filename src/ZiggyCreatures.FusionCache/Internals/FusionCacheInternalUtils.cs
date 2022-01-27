@@ -178,6 +178,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				}
 				else
 				{
+					// TODO: MAYBE (PROBABLY) MOVE THE Task.Run OUTSIDE OF THE FOR LOOP
 					Task.Run(() =>
 					{
 						try
@@ -191,6 +192,15 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					});
 				}
 			}
+		}
+
+		public static string GetBackplaneChannelName(FusionCacheOptions options)
+		{
+			var prefix = options.BackplaneChannelPrefix;
+			if (string.IsNullOrWhiteSpace(prefix))
+				prefix = options.CacheName;
+
+			return $"{prefix}.Notifications";
 		}
 	}
 }

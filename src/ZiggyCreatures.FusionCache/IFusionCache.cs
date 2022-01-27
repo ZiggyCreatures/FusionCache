@@ -31,7 +31,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		FusionCacheEntryOptions DefaultEntryOptions { get; }
 
 		/// <summary>
-		/// Sets a secondary caching layer, by providing a <see cref="IDistributedCache"/> instance and a <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+		/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
 		/// </summary>
 		/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
 		/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
@@ -43,6 +43,19 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
 		IFusionCache RemoveDistributedCache();
+
+		/// <summary>
+		/// Sets a backplane, by providing an <see cref="IFusionCacheBackplane"/> instance.
+		/// </summary>
+		/// <param name="backplane">The <see cref="IFusionCacheBackplane"/> instance to use.</param>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache SetupBackplane(IFusionCacheBackplane backplane);
+
+		/// <summary>
+		/// Removes the backplane.
+		/// </summary>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache RemoveBackplane();
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCacheEntryOptions"/> instance by duplicating the <see cref="DefaultEntryOptions"/> and optionally applying a setup action.
@@ -184,29 +197,19 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Tries to send a notification to other nodes connected to the same backplane, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
+		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-		ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token);
+		ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// Tries to send a notification to other nodes connected to the same backplane, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
-		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-		bool SendBackplaneNotification(BackplaneMessage message);
-
-		/// <summary>
-		/// Process a backplane notification.
-		/// </summary>
-		/// <param name="message">The message to process.</param>
+		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		ValueTask OnBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token);
-
-		/// <summary>
-		/// Process a backplane notification.
-		/// </summary>
-		/// <param name="message">The message to process.</param>
-		void OnBackplaneNotification(BackplaneMessage message);
+		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		bool SendBackplaneNotification(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// The central place for all events handling of this FusionCache instance.

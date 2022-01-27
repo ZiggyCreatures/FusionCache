@@ -95,6 +95,16 @@ namespace ZiggyCreatures.Caching.Fusion
 		public CacheKeyModifierMode DistributedCacheKeyModifierMode { get; set; }
 
 		/// <summary>
+		/// The duration of the circuit-breaker used when working with the backplane. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
+		/// </summary>
+		public TimeSpan BackplaneCircuitBreakerDuration { get; set; }
+
+		/// <summary>
+		/// The prefix to use in the backplane channel name: if not specified the <see cref="CacheName"/> will be used.
+		/// </summary>
+		public string? BackplaneChannelPrefix { get; set; }
+
+		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
 		/// </summary>
 		public LogLevel SerializationErrorsLogLevel { get; set; }

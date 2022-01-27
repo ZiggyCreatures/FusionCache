@@ -1,6 +1,6 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
-using ZiggyCreatures.Caching.Fusion.Plugins;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane
 {
@@ -8,21 +8,36 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 	/// The core interface to create a FusionCache backplane plugin.
 	/// </summary>
 	public interface IFusionCacheBackplane
-		: IFusionCachePlugin
 	{
 		/// <summary>
-		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// Start receiving notifications.
 		/// </summary>
-		/// <param name="cache">The FusionCache instance on which to operate.</param>
-		/// <param name="message">The message to send.</param>
-		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		ValueTask SendNotificationAsync(IFusionCache cache, BackplaneMessage message, CancellationToken token);
+		/// <param name="channelName">The channel name to use.</param>
+		void Subscribe(string channelName);
+
+		/// <summary>
+		/// Stop receiving notifications.
+		/// </summary>
+		void Unsubscribe();
 
 		/// <summary>
 		/// Tries to send a notification to other nodes connected to the same backplane, if any.
 		/// </summary>
-		/// <param name="cache">The FusionCache instance on which to operate.</param>
 		/// <param name="message">The message to send.</param>
-		void SendNotification(IFusionCache cache, BackplaneMessage message);
+		/// /// <param name="options">The options to use.</param>
+		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		ValueTask SendNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token);
+
+		/// <summary>
+		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// </summary>
+		/// <param name="message">The message to send.</param>
+		/// <param name="options">The options to use.</param>
+		void SendNotification(BackplaneMessage message, FusionCacheEntryOptions options);
+
+		/// <summary>
+		/// The event for a new message.
+		/// </summary>
+		event EventHandler<FusionCacheBackplaneMessageEventArgs>? Message;
 	}
 }

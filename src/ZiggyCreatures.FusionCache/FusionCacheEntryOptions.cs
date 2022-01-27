@@ -37,6 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
 
 			EnableBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsEnableBackplaneNotifications;
+			AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
 		}
 
 		/// <summary>
@@ -138,6 +139,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Sends notifications on the backplane to other nodes after some operations on cache entries, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
 		/// </summary>
 		public bool EnableBackplaneNotifications { get; set; }
+
+		/// <summary>
+		/// By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
+		/// <br/>
+		/// Setting this flag to false will execute these operations in a blocking fashion, typically resulting in worse performance.
+		/// <para>TL/DR: if you want to wait for backplane operations to complete, set this flag to false.</para>
+		/// </summary>
+		public bool AllowBackgroundBackplaneOperations { get; set; }
 
 		/// <inheritdoc/>
 		public override string ToString()
@@ -298,7 +307,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (events.HasEvictionSubscribers())
 			{
 				res.RegisterPostEvictionCallback(
-					(key, value, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
+					(key, _, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
 					events
 				);
 			}
@@ -388,7 +397,8 @@ namespace ZiggyCreatures.Caching.Fusion
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
 				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 
-				EnableBackplaneNotifications = EnableBackplaneNotifications
+				EnableBackplaneNotifications = EnableBackplaneNotifications,
+				AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations
 			};
 		}
 
@@ -402,35 +412,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		public FusionCacheEntryOptions Duplicate(TimeSpan? duration, bool includeOptionsModifiers)
 		{
 			return Duplicate(duration);
-
-			//var res = new FusionCacheEntryOptions()
-			//{
-			//	Duration = duration ?? Duration,
-			//	LockTimeout = LockTimeout,
-			//	Size = Size,
-			//	Priority = Priority,
-			//	JitterMaxDuration = JitterMaxDuration,
-
-			//	IsFailSafeEnabled = IsFailSafeEnabled,
-			//	FailSafeMaxDuration = FailSafeMaxDuration,
-			//	FailSafeThrottleDuration = FailSafeThrottleDuration,
-
-			//	FactorySoftTimeout = FactorySoftTimeout,
-			//	FactoryHardTimeout = FactoryHardTimeout,
-			//	AllowTimedOutFactoryBackgroundCompletion = AllowTimedOutFactoryBackgroundCompletion,
-
-			//	DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
-			//	DistributedCacheHardTimeout = DistributedCacheHardTimeout,
-			//	AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations
-			//};
-
-			//if (includeOptionsModifiers)
-			//{
-			//	res.MemoryOptionsModifier = MemoryOptionsModifier;
-			//	res.DistributedOptionsModifier = DistributedOptionsModifier;
-			//}
-
-			//return res;
 		}
 	}
 }

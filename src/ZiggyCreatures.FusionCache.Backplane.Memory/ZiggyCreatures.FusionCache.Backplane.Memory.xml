@@ -4,41 +4,37 @@
         <name>ZiggyCreatures.FusionCache.Backplane.Memory</name>
     </assembly>
     <members>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions">
-            <summary>
-            Represents the options available for the memory backplane.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions.ChannelPrefix">
-            <summary>
-            The prefix that will be used to construct the notification channel name.
-            <br/><br/>
-            NOTE: if not specified, the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/> will be used.
-            </summary>
-        </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane">
             <summary>
             An-in memory implementation of a FusionCache backplane
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions},Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions},Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane})">
             <summary>
             Initializes a new instance of the MemoryBackplanePlugin class.
             </summary>
             <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Subscribe(System.String)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Unsubscribe">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin.SendNotificationAsync(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.SendNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplanePlugin.SendNotification(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.SendNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
             <inheritdoc/>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Message">
+            <inheritdoc/>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions">
+            <summary>
+            Represents the options available for the memory backplane.
+            </summary>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.MemoryBackplaneServiceCollectionExtensions">
             <summary>

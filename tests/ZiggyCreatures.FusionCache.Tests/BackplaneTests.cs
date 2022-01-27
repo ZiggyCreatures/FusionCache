@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -39,21 +40,21 @@ namespace FusionCacheTests
 			throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
 		}
 
-		private static IFusionCachePlugin CreateBackplane()
+		private static IFusionCacheBackplane CreateBackplane()
 		{
 			if (string.IsNullOrWhiteSpace(RedisConnection))
-				return new MemoryBackplanePlugin(new MemoryBackplaneOptions());
+				return new MemoryBackplane(new MemoryBackplaneOptions());
 
-			return new RedisBackplanePlugin(new RedisBackplaneOptions { Configuration = RedisConnection });
+			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection });
 		}
 
-		private static IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCachePlugin? backplane)
+		private static IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane)
 		{
 			var fusionCache = new FusionCache(new FusionCacheOptions() { CacheName = cacheName, EnableSyncEventHandlersExecution = true });
 			if (distributedCache is object && serializerType.HasValue)
 				fusionCache.SetupDistributedCache(distributedCache, GetSerializer(serializerType.Value));
 			if (backplane is object)
-				fusionCache.AddPlugin(backplane);
+				fusionCache.SetupBackplane(backplane);
 
 			return fusionCache;
 		}
@@ -90,9 +91,9 @@ namespace FusionCacheTests
 				Assert.Equal(1, await cache2.GetOrDefaultAsync<int>("foo"));
 				Assert.Equal(1, await cache3.GetOrDefaultAsync<int>("foo"));
 
-				cache1.AddPlugin(CreateBackplane());
-				cache2.AddPlugin(CreateBackplane());
-				cache3.AddPlugin(CreateBackplane());
+				cache1.SetupBackplane(CreateBackplane());
+				cache2.SetupBackplane(CreateBackplane());
+				cache3.SetupBackplane(CreateBackplane());
 
 				await cache1.SetAsync("foo", 42);
 
@@ -151,9 +152,9 @@ namespace FusionCacheTests
 				Assert.Equal(1, cache2.GetOrDefault<int>("foo"));
 				Assert.Equal(1, cache3.GetOrDefault<int>("foo"));
 
-				cache1.AddPlugin(CreateBackplane());
-				cache2.AddPlugin(CreateBackplane());
-				cache3.AddPlugin(CreateBackplane());
+				cache1.SetupBackplane(CreateBackplane());
+				cache2.SetupBackplane(CreateBackplane());
+				cache3.SetupBackplane(CreateBackplane());
 
 				cache1.Set("foo", 42, TimeSpan.FromMinutes(10));
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -200,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					await SendBackplaneNotificationAsync(BackplaneMessage.CreateForEviction(this.InstanceId, key), token).ConfigureAwait(false);
+					await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options, token).ConfigureAwait(false);
 			}
 			else if (_entry is object)
 			{
@@ -357,7 +358,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await SendBackplaneNotificationAsync(BackplaneMessage.CreateForEviction(this.InstanceId, key), token).ConfigureAwait(false);
+				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
@@ -389,53 +390,25 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await SendBackplaneNotificationAsync(BackplaneMessage.CreateForEviction(this.InstanceId, key), token).ConfigureAwait(false);
+				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options, token).ConfigureAwait(false);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private async ValueTask<bool> SendBackplaneNotificationInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		{
+			if (_bpa is null)
+				return false;
+
+			return await _bpa.SendNotificationAsync(operationId, message, options, token);
 		}
 
 		/// <inheritdoc/>
-		public async ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token)
+		public ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
-			var res = false;
-			foreach (var plugin in _plugins)
-			{
-				if (plugin is IFusionCacheBackplane backplane)
-				{
-					res = true;
-					await backplane.SendNotificationAsync(this, message, token);
-				}
-			}
-			return res;
-		}
+			if (options is null)
+				options = _options.DefaultEntryOptions;
 
-		/// <inheritdoc/>
-		public async ValueTask OnBackplaneNotificationAsync(BackplaneMessage message, CancellationToken token)
-		{
-			// IGNORE INVALID MESSAGES
-			if (message is null || message.IsValid() == false)
-			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "An invalid message has been received from cache {CacheInstanceId} for key {CacheKey} and action {Action}", message?.SourceId, message?.CacheKey, message?.Action);
-
-				return;
-			}
-
-			// IGNORE MESSAGES FROM THIS SOURCE
-			if (message.SourceId == InstanceId)
-				return;
-
-			switch (message.Action)
-			{
-				case BackplaneMessageAction.Evict:
-					Evict(message.CacheKey!);
-
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "An eviction notification has been received for {CacheKey}", message.CacheKey);
-					break;
-				default:
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "An unknown notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
-					break;
-			}
+			return SendBackplaneNotificationInternalAsync(GenerateOperationId(), message, options, token);
 		}
 	}
 }

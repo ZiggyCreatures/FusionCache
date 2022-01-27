@@ -8,8 +8,10 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -27,8 +29,10 @@ namespace ZiggyCreatures.Caching.Fusion
 		private readonly IFusionCacheReactor _reactor;
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
+		private BackplaneAccessor? _bpa;
 		private FusionCacheEventsHub _events;
 		private readonly List<IFusionCachePlugin> _plugins;
+		private readonly object _lockBackplane = new object();
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCache"/> instance.
@@ -69,10 +73,13 @@ namespace ZiggyCreatures.Caching.Fusion
 			_plugins = new List<IFusionCachePlugin>();
 
 			// MEMORY CACHE
-			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
+			_mca = new MemoryCacheAccessor(memoryCache, _logger, _events.Memory);
 
 			// DISTRIBUTED CACHE
 			_dca = null;
+
+			// BACKPLANE
+			_bpa = null;
 		}
 
 		/// <inheritdoc/>
@@ -114,6 +121,47 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION: distributed cache removed");
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
+		{
+			if (backplane is null)
+				throw new ArgumentNullException(nameof(backplane));
+
+			if (_bpa is object)
+			{
+				RemoveBackplane();
+			}
+
+			lock (_lockBackplane)
+			{
+				_bpa = new BackplaneAccessor(this, backplane, _options, _logger);
+				_bpa.Subscribe();
+
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.LogDebug("FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
+			}
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache RemoveBackplane()
+		{
+			lock (_lockBackplane)
+			{
+				if (_bpa is object)
+				{
+					_bpa.Unsubscribe();
+					_bpa = null;
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.LogDebug("FUSION: backplane removed");
+				}
+			}
 
 			return this;
 		}
@@ -285,6 +333,10 @@ namespace ZiggyCreatures.Caching.Fusion
 		public void Evict(string key)
 		{
 			ValidateCacheKey(key);
+
+			// TODO: BETTER CHECK THIS POTENTIAL NullReferenceException HERE
+			if (_mca is null)
+				return;
 
 			var operationId = GenerateOperationId();
 

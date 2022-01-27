@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
+using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
@@ -34,6 +35,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		private static readonly TimeSpan FactoryTimeout = TimeSpan.FromSeconds(2);
 		private static readonly bool UseFailSafe = true;
 		private static readonly bool UseDistributedCache = false;
+		private static readonly bool UseBackplane = false;
 		private static readonly bool UseLogger = true;
 
 		private static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
@@ -94,6 +96,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					Console.WriteLine();
 					fusionCache.SetupDistributedCache(distributedCache, serializer);
+					Console.WriteLine();
+				}
+
+				if (UseBackplane)
+				{
+					// BACKPLANE
+					var backplane = new MemoryBackplane(new MemoryBackplaneOptions());
+
+					Console.WriteLine();
+					fusionCache.SetupBackplane(backplane);
 					Console.WriteLine();
 				}
 
