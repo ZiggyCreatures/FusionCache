@@ -29,7 +29,7 @@ PM> Install-Package Microsoft.Extensions.Caching.StackExchangeRedis
 Then, to create and setup the cache manually, do this:
 
 ```csharp
-// INSTANTIATE REDIS AS A DISTRIBUTED CACHE
+// INSTANTIATE A REDIS DISTRIBUTED CACHE
 var redis = new RedisCache(new RedisCacheOptions() { Configuration = "YOUR CONNECTION STRING HERE" });
 
 // INSTANTIATE THE FUSION CACHE SERIALIZER
