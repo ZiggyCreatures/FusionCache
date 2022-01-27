@@ -8,11 +8,11 @@
 
 What follows is an example scenario on which we can reason about: we've built a **service** that handle some **requests** by retrieving some data from a **database**, that's it.
 
-The hypothetical infrastructure involved is somewhat bad on purpose, and is used just to illustrate some points like why a cache is useful in general, what FusionCache in particular can do and to have some nice round numbers to play with.
+The hypothetical infrastructure involved is somewhat bad on purpose, and is used just to illustrate some points like why a cache is useful in general, what FusionCache in particular can do, and also to have some nice round numbers to play with.
 
 | **:bulb: NOTE** |
 |:----------------|
-| It's important to say upfront that this is both **overly simplified** and **(hopefully) more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
+| It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
 
 <br/>
 <br/>
@@ -282,7 +282,6 @@ public void ConfigureServices(IServiceCollection services)
     services.AddMemoryCache();
     services.AddFusionCache(options => {
         options.DefaultEntryOptions = new FusionCacheEntryOptions {
-            // CACHE DURATION
             Duration = TimeSpan.FromMinutes(1),
             
             // FAIL-SAFE OPTIONS
@@ -329,10 +328,8 @@ public void ConfigureServices(IServiceCollection services)
     services.AddMemoryCache();
     services.AddFusionCache(options => {
         options.DefaultEntryOptions = new FusionCacheEntryOptions {
-            // CACHE DURATION
             Duration = TimeSpan.FromMinutes(1),
             
-            // FAIL-SAFE OPTIONS
             IsFailSafeEnabled = true,
             FailSafeMaxDuration = TimeSpan.FromHours(2),
             FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
@@ -396,7 +393,7 @@ public void ConfigureServices(IServiceCollection services)
 
     // ADD REDIS DISTRIBUTED CACHE SUPPORT
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = [YOUR CONNECTION STRING HERE];
+        options.Configuration = "YOUR CONNECTION STRING HERE";
     });
 
     // ADD JSON.NET BASED SERIALIZATION FOR FUSION CACHE
@@ -404,15 +401,12 @@ public void ConfigureServices(IServiceCollection services)
 
     services.AddFusionCache(options => {
         options.DefaultEntryOptions = new FusionCacheEntryOptions {
-            // CACHE DURATION
             Duration = TimeSpan.FromMinutes(1),
             
-            // FAIL-SAFE OPTIONS
             IsFailSafeEnabled = true,
             FailSafeMaxDuration = TimeSpan.FromHours(2),
             FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-            // FACTORY TIMEOUTS
             FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
             FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
         };
@@ -446,7 +440,7 @@ Since the distributed cache is a secondary system and we want it to impact our s
 
 - `DefaultEntryOptions.DistributedCacheSoftTimeout` and `DefaultEntryOptions.DistributedCacheHardTimeout` are like the ones for the factory, but for distributed cache operations
 
-- `DefaultEntryOptions.AllowBackgroundDistributedCacheOperations` set to `true` will not wait for most distributed cache operations to complete, since they typically have no effect locally (but be aware of some edge side effects, like values in the distributed cache not being immediately updated after a method call)
+- `DefaultEntryOptions.AllowBackgroundDistributedCacheOperations` set to `true` will not wait for most distributed cache operations to complete, since they typically have no effect locally (but be aware of some edge side effects, like values in the distributed cache not being immediately updated after a method call returns)
 
 - `DistributedCacheCircuitBreakerDuration` to temporarily disable the distributed cache in case of hard errors so that, if the distributed cache is having issues, it will have less requests to handle and maybe it will be able to get back on its feet
 
@@ -458,29 +452,24 @@ public void ConfigureServices(IServiceCollection services)
     [...]
     services.AddMemoryCache();
 
-    // ADD REDIS SUPPORT
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = [YOUR CONNECTION STRING HERE];
+        options.Configuration = "YOUR CONNECTION STRING HERE";
     });
 
-    // ADD JSON.NET BASED SERIALIZATION FOR FUSION CACHE
     services.AddFusionCacheJsonNetSerializer();
 
     services.AddFusionCache(options => {
         options.DefaultEntryOptions = new FusionCacheEntryOptions {
-            // CACHE DURATION
             Duration = TimeSpan.FromMinutes(1),
             
-            // FAIL-SAFE OPTIONS
             IsFailSafeEnabled = true,
             FailSafeMaxDuration = TimeSpan.FromHours(2),
             FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-            // FACTORY TIMEOUTS
             FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
             FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
-            // DISTRIBUTED CACHE
+            // DISTRIBUTED CACHE OPTIONS
             DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
             DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
             AllowBackgroundDistributedCacheOperations = true
@@ -516,29 +505,23 @@ public void ConfigureServices(IServiceCollection services)
     [...]
     services.AddMemoryCache();
 
-    // ADD REDIS SUPPORT
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = [YOUR CONNECTION STRING HERE];
+        options.Configuration = "YOUR CONNECTION STRING HERE";
     });
 
-    // ADD JSON.NET BASED SERIALIZATION FOR FUSION CACHE
     services.AddFusionCacheJsonNetSerializer();
 
     services.AddFusionCache(options => {
         options.DefaultEntryOptions = new FusionCacheEntryOptions {
-            // CACHE DURATION
             Duration = TimeSpan.FromMinutes(1),
             
-            // FAIL-SAFE OPTIONS
             IsFailSafeEnabled = true,
             FailSafeMaxDuration = TimeSpan.FromHours(2),
             FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-            // FACTORY TIMEOUTS
             FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
             FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
-            // DISTRIBUTED CACHE
             DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
             DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
             AllowBackgroundDistributedCacheOperations = true,
@@ -547,7 +530,6 @@ public void ConfigureServices(IServiceCollection services)
             JitterMaxDuration = TimeSpan.FromSeconds(2)
         };
         
-        // DISTIBUTED CACHE CIRCUIT-BREAKER
 		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
     });
     [...]
@@ -567,9 +549,87 @@ Let's say this gives us another `20%` of the original `39,000` so that (`30%` + 
 <br/>
 <br/>
 
-## 8) Logging customization
+## 8) Backplane
 
-Robustness and performance are now in a very good shape, but there's one more thing we can do to do well in a production environment: **logging** .
+Now that we are using a distributed cache we basically have a single version of each piece of data in a central place, right?
+
+Well yes, but we also have a copy of that data in each node's memory cache, and what happens when one of those pieces of data changes? The result is that after the change, each cache entry would **not be synchronized** with the most updated version, at least until each entry **expires** and gets the new version from the distributed cache or the database.
+
+One way to try to avoid this would be to have a very low cache `Duration`, but that would also mean having more requests to the distributed cache and to the database: this solution can work in some situations, but it's not a real solution to the problem or one that would work in every scenario, but mostly a mitigation.
+
+So how to to solve this issue completely? Use a [**backplane**](Backplane.md).
+
+Let's say we want to use [Redis](https://redis.io/) as a backplane infrastructure, since we are already using it as a distributed cache.
+
+We simply install the specific package:
+
+```PowerShell
+PM> Install-Package ZiggyCreatures.FusionCache.Plugins.StackExchangeRedisBackplane
+```
+
+and add the registration during startup:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    [...]
+    services.AddMemoryCache();
+
+    services.AddStackExchangeRedisCache(options => {
+        options.Configuration = "YOUR CONNECTION STRING HERE";
+    });
+
+    services.AddFusionCacheNewtonsoftJsonSerializer();
+
+    // ADD THE FUSION CACHE BACKPLANE FOR REDIS
+    services.AddFusionCacheStackExchangeRedisBackplane(options => {
+        options.Configuration = "YOUR CONNECTION STRING HERE";
+    });
+
+    services.AddFusionCache(options => {
+        options.DefaultEntryOptions = new FusionCacheEntryOptions {
+            Duration = TimeSpan.FromMinutes(1),
+            
+            IsFailSafeEnabled = true,
+            FailSafeMaxDuration = TimeSpan.FromHours(2),
+            FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+            FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+            FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
+
+            DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
+            DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
+            AllowBackgroundDistributedCacheOperations = true,
+
+            JitterMaxDuration = TimeSpan.FromSeconds(2)
+        };
+        
+		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+    });
+    [...]
+}
+```
+
+That's all we need to do: FusionCache will automatically start using it, sending eviction notifications to all other nodes as soon as something is set (via either the `Set` or `GetOrSet` methods) or removed (via the `Remove` method).
+
+### :trophy: Results
+
+The first result is that everything is beautifully synchronized.
+
+The second is that, since at every change all the other nodes will evict their local copy and get a new one only if and when needed from the distributed cache, it is possible this would consume slightly less memory on each node and also add more variation to the related cache entries expiration, making it less frequent that multiple requests to the database would be needed at the same time on different nodes.
+
+Let's say this gives us another `20%` of the original `39,000` so that (`50%` + `20%`) = `70%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
+
+**TOTAL REQUESTS IN 10 MIN**: around `12,000` (before was `19,000` + everything is now synchronized)
+
+![Backplane Results](images/stepbystep-07-backplane.png)
+
+<br/>
+<br/>
+
+## 9) Logging
+
+Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: **logging** .
 
 FusionCache supports the standard .NET `ILogger<T>` interface, so that any compatible implementation works out of the box (think Serilog, NLog, Application Insights, etc): this may help us investigate complicated situations with ease, since it can log a lot of details otherwise unavailable.
 
@@ -587,28 +647,22 @@ Here is an example where we set (somewhere else, depending of the specific logge
 ```csharp
     services.AddFusionCache(options => {
         options.DefaultEntryOptions = new FusionCacheEntryOptions {
-            // CACHE DURATION
             Duration = TimeSpan.FromMinutes(1),
             
-            // FAIL-SAFE OPTIONS
             IsFailSafeEnabled = true,
             FailSafeMaxDuration = TimeSpan.FromHours(2),
             FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-            // FACTORY TIMEOUTS
             FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
             FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
-            // DISTRIBUTED CACHE
             DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
             DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
             AllowBackgroundDistributedCacheOperations = true,
 
-            // JITTERING
             JitterMaxDuration = TimeSpan.FromSeconds(2)
         };
         
-        // DISTIBUTED CACHE CIRCUIT-BREAKER
 		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
 
         // CUSTOM LOG LEVELS
@@ -622,4 +676,4 @@ Here is an example where we set (somewhere else, depending of the specific logge
 ```
 ### :trophy: Results
 
-This will **reduce the amount of logged data** a lot, consuming less space (and spending less money) while giving us less noise when troubleshooting a production issue.
+This will **reduce the amount of logged data** a lot, consuming less bandwidth and storage (and spending less money) while giving us less background noise when troubleshooting a production issue.

@@ -4,13 +4,16 @@
 
 </div>
 
+
 # :unicorn: A Gentle Introduction
 
-FusionCache is an easy to use, high performance and robust **multi-level cache** with some advanced features.
+FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
 
-It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
+It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and, optionally, a distributed cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
 
-FusionCache includes some advanced features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep each node's memory cache perfectly synchronized, without any additional work.
+
+FusionCache also includes some advanced features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
 
 <div style="text-align:center;">
@@ -19,17 +22,7 @@ FusionCache includes some advanced features like a **fail-safe** mechanism, **ca
 
 </div>
 
-## :twisted_rightwards_arrows: Cache Levels ([more](CacheLevels.md))
 
-There are 2 caching levels, transparently handled by FusionCache for you.
-
-These are:
-- **Primary**: it's a memory cache, is always there and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
-- **Secondary**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **coordinating with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
-
-Everything is handled transparently for you.
-
-You can read more [**here**](CacheLevels.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 ## :house_with_garden: Feels Like Home
 
 FusionCache tries to feel like a native part of .NET by adhering to the naming conventions of the standard **memory** and **distributed** cache components:
@@ -43,9 +36,34 @@ FusionCache tries to feel like a native part of .NET by adhering to the naming c
 
 If you've ever used one of those you'll feel at home with FusionCache.
 
+
+## :twisted_rightwards_arrows: Cache Levels ([more](CacheLevels.md))
+
+There are 2 caching levels, transparently handled by FusionCache for you.
+
+These are:
+- **Primary**: it's a memory cache, is always there and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
+- **Secondary**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **coordinating with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
+
+Everything is handled transparently for you.
+
+You can read more [**here**](CacheLevels.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
+
+## 📢 Backplane ([more](Backplane.md))
+
+If you are in a scenario with multiple nodes, each with their own local memory cache, you typically also use a distributed cache as a secondary layer (see above).
+
+Even using that, you may find that each memory cache may not be necessarily in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.
+
+To avoid this and have everything always synchronized you can use a backplane, a shared message bus where change notifications will be automatically sent to all other connected nodes each time a value changes in the cache, without you having to do anything.
+
+You can read more [**here**](Backplane.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
+
 ## :rocket: Factory ([more](FactoryOptimization.md))
 
-A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
+A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it's needed.
 
 Here's an example:
 
@@ -61,9 +79,10 @@ var product = cache.GetOrSet<Product>(
 
 FusionCache will search for the value in the cache (*memory* and *distributed*, if available) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
 
-Special care has been put into ensuring that only 1 factory per-key will be executed concurrently, to avoid what is known as [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede).
+Special care has been put into ensuring that **only 1** factory per-key will be executed concurrently, to avoid what is known as [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede).
 
 You can read more [**here**](FactoryOptimization.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
 
 ## :bomb: Fail-Safe ([more](FailSafe.md))
 
@@ -72,6 +91,7 @@ Sometimes things can go wrong, and calling a factory for an expired cache entry 
 By enabling the fail-safe mechanism you can simply tell FusionCache to ignore those errors and **temporarily use the expired cache entry**: your website or service will remain online, and your users would not notice anything.
 
 You can read more [**here**](FailSafe.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
 
 ## :stopwatch: Timeouts ([more](Timeouts.md))
 
@@ -87,14 +107,16 @@ In both cases it is possible (and enabled *by default*, so you don't have to do 
 
 You can read more [**here**](Timeouts.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
+
 ## :level_slider: Options ([more](Options.md))
 
 There are 2 kinds of options:
  
  - `FusionCacheOptions`: cache-wide options, related to the entire FusionCache instance
- - `FusionCacheEntryOptions`: per-entry options, related to each call/entry
+ - `FusionCacheEntryOptions`: per-entry options, related to each method call/entry
 
 You can read more [**here**](Options.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
 
 ## :joystick: Core Methods ([more](CoreMethods.md))
 
@@ -114,25 +136,29 @@ Finally, most of them have a set of ♻ overloads for a better ease of use.
 
 You can read more [**here**](CoreMethods.md).
 
+
 ## :dizzy: Natively Sync and Async
 
 Everything is natively available for both the **sync** and **async** programming models.
 
 Any operation works seamlessly with any other, even if one is **sync** and the other is **async**: an example is multiple concurrent factory calls for the same cache key, some of them **sync** while others **async**, all coordinated togheter at the same time with no problems and a guarantee that only one will be executed at the same time.
 
-## :telephone_receiver: Events
+
+## :telephone_receiver: Events ([more](Events.md))
 
 There's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers).
 
 You can read more [**here**](Events.md).
 
-## :jigsaw: Plugins
+
+## :jigsaw: Plugins ([more](Plugins.md))
 
 FusionCache supports extensibility via plugins: it is possible for example to listen to [events](Events.md) and react in any way you want.
 
 In time, the most useful plugins will be listed directly in the homepage.
 
 You can read more [**here**](Plugins.md).
+
 
 ## :page_with_curl: Logging
 FusionCache can log extensively to help you pinpoint any possible problem in your production environment.
