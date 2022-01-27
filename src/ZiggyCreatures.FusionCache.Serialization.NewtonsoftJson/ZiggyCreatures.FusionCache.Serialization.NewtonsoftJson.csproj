@@ -4,12 +4,12 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.9</Version>
+		<Version>0.1.10-alpha1</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson</PackageId>
-		<Copyright>Copyright © Jody Donetti 2021</Copyright>
+		<Copyright>Copyright © Jody Donetti 2022</Copyright>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
