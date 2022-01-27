@@ -155,17 +155,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 		public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
 		{
-			var invocations = ev.GetInvocationList();
-
-			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
-			if (logger is object && logger.IsEnabled(logLevel) == false)
-				logger = null;
-
-			var e = eventArgsBuilder();
-
-			foreach (EventHandler<TEventArgs> invocation in invocations)
+			static void ExecuteInvocations(string? operationId, string? key, IFusionCache cache, string eventName, TEventArgs e, Delegate[] invocations, ILogger? logger, LogLevel logLevel)
 			{
-				if (syncExecution)
+				foreach (EventHandler<TEventArgs> invocation in invocations)
 				{
 					try
 					{
@@ -176,21 +168,23 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 						logger?.Log(logLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", operationId, key, eventName);
 					}
 				}
-				else
-				{
-					// TODO: MAYBE (PROBABLY) MOVE THE Task.Run OUTSIDE OF THE FOR LOOP
-					Task.Run(() =>
-					{
-						try
-						{
-							invocation(cache, e);
-						}
-						catch (Exception exc)
-						{
-							logger?.Log(logLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", operationId, key, eventName);
-						}
-					});
-				}
+			}
+
+			var invocations = ev.GetInvocationList();
+
+			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
+			if (logger is object && logger.IsEnabled(logLevel) == false)
+				logger = null;
+
+			var e = eventArgsBuilder();
+
+			if (syncExecution)
+			{
+				ExecuteInvocations(operationId, key, cache, eventName, e, invocations, logger, logLevel);
+			}
+			else
+			{
+				Task.Run(() => ExecuteInvocations(operationId, key, cache, eventName, e, invocations, logger, logLevel));
 			}
 		}
 
