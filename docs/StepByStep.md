@@ -564,7 +564,7 @@ Let's say we want to use [Redis](https://redis.io/) as a backplane infrastructur
 We simply install the specific package:
 
 ```PowerShell
-PM> Install-Package ZiggyCreatures.FusionCache.Plugins.StackExchangeRedisBackplane
+PM> Install-Package ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis
 ```
 
 and add the registration during startup:

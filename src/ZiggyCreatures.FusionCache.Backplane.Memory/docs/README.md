@@ -10,4 +10,4 @@ Find out [more](https://github.com/jodydonetti/ZiggyCreatures.FusionCache).
 
 ## 📦 This package
 
-This package is an in-memory [backplane](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/Backplane.md) implementation, eg: useful for testing.
+This package is an in-memory backplane implementation, eg: useful for testing.
