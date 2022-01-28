@@ -6,6 +6,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 {
 	internal partial class BackplaneAccessor
 	{
+		private readonly IFusionCache _cache;
+		private readonly IFusionCacheBackplane _backplane;
+		private readonly FusionCacheOptions _options;
+		private readonly ILogger? _logger;
+		//private readonly FusionCacheBackplaneEventsHub _events;
+		private readonly SimpleCircuitBreaker _breaker;
+
 		public BackplaneAccessor(IFusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger/*, FusionCacheBackplaneEventsHub events*/)
 		{
 			if (cache is null)
@@ -25,13 +32,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			// CIRCUIT-BREAKER
 			_breaker = new SimpleCircuitBreaker(options.BackplaneCircuitBreakerDuration);
 		}
-
-		private readonly IFusionCache _cache;
-		private readonly IFusionCacheBackplane _backplane;
-		private readonly FusionCacheOptions _options;
-		private readonly ILogger? _logger;
-		//private readonly FusionCacheBackplaneEventsHub _events;
-		private readonly SimpleCircuitBreaker _breaker;
 
 		private void UpdateLastError(string key, string operationId)
 		{

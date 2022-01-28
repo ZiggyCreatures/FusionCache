@@ -9,7 +9,6 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
-using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -50,7 +49,13 @@ namespace FusionCacheTests
 
 		private static IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane)
 		{
-			var fusionCache = new FusionCache(new FusionCacheOptions() { CacheName = cacheName, EnableSyncEventHandlersExecution = true });
+			var fusionCache = new FusionCache(new FusionCacheOptions()
+			{
+				CacheName = cacheName,
+				EnableSyncEventHandlersExecution = true
+			});
+			fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 			if (distributedCache is object && serializerType.HasValue)
 				fusionCache.SetupDistributedCache(distributedCache, GetSerializer(serializerType.Value));
 			if (backplane is object)
