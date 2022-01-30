@@ -30,6 +30,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			FactoryErrorsLogLevel = LogLevel.Warning;
 			FailSafeActivationLogLevel = LogLevel.Warning;
 			EventHandlingErrorsLogLevel = LogLevel.Warning;
+			BackplaneErrorsLogLevel = LogLevel.Warning;
 		}
 
 		/// <summary>
@@ -138,6 +139,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during the handling of an event.
 		/// </summary>
 		public LogLevel EventHandlingErrorsLogLevel { get; set; }
+
+		/// <summary>
+		/// Specify the <see cref="LogLevel"/> to use when an error occurs during a backplane operation.
+		/// </summary>
+		public LogLevel BackplaneErrorsLogLevel { get; set; }
 
 		FusionCacheOptions IOptions<FusionCacheOptions>.Value
 		{

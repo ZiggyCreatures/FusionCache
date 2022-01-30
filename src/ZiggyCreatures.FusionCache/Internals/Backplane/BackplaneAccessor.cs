@@ -81,8 +81,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 
 			UpdateLastError(key, operationId);
 
-			if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
-				_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
 		}
 
 		public void Subscribe()
@@ -103,8 +103,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			// IGNORE INVALID MESSAGES
 			if (message is null || message.IsValid() == false)
 			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "An invalid message has been received from cache {CacheInstanceId} for key {CacheKey} and action {Action}", message?.SourceId, message?.CacheKey, message?.Action);
+				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+					_logger.Log(_options.BackplaneErrorsLogLevel, "An invalid message has been received on the backplane from cache {CacheInstanceId} for key {CacheKey} and action {Action}", message?.SourceId, message?.CacheKey, message?.Action);
 
 				return;
 			}
@@ -122,8 +122,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (EVICT)", message.CacheKey);
 					break;
 				default:
-					if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-						_logger.Log(LogLevel.Warning, "An unknown backplane notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
+					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+						_logger.Log(_options.BackplaneErrorsLogLevel, "An unknown backplane notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
 					break;
 			}
 

@@ -1377,6 +1377,11 @@
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during the handling of an event.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneErrorsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during a backplane operation.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
             Represents an instance of a FusionCache.
