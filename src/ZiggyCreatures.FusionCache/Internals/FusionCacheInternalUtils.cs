@@ -155,7 +155,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 		public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
 		{
-			static void ExecuteInvocations(string? operationId, string? key, IFusionCache cache, string eventName, TEventArgs e, Delegate[] invocations, ILogger? logger, LogLevel logLevel)
+			static void ExecuteInvocations(string? operationId, string? key, IFusionCache cache, string eventName, TEventArgs e, Delegate[] invocations, ILogger? logger, LogLevel errorLogLevel)
 			{
 				foreach (EventHandler<TEventArgs> invocation in invocations)
 				{
@@ -165,7 +165,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					}
 					catch (Exception exc)
 					{
-						logger?.Log(logLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", operationId, key, eventName);
+						logger?.Log(errorLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", operationId, key, eventName);
 					}
 				}
 			}

@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 	/// The events hub for high-level events for a FusionCache instance, as a whole.
 	/// </summary>
 	public class FusionCacheEventsHub
-		: FusionCacheBaseEventsHub
+		: FusionCacheCommonEventsHub
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FusionCacheEventsHub" /> class.
@@ -21,6 +21,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		{
 			Memory = new FusionCacheMemoryEventsHub(_cache, _options, _logger);
 			Distributed = new FusionCacheDistributedEventsHub(_cache, _options, _logger);
+			Backplane = new FusionCacheBackplaneEventsHub(_cache, _options, _logger);
 		}
 
 		/// <summary>
@@ -32,6 +33,11 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		/// The events hub for the distributed layer.
 		/// </summary>
 		public FusionCacheDistributedEventsHub Distributed { get; }
+
+		/// <summary>
+		/// The events hub for the backplane.
+		/// </summary>
+		public FusionCacheBackplaneEventsHub Backplane { get; }
 
 		/// <summary>
 		/// The event for a fail-safe activation.

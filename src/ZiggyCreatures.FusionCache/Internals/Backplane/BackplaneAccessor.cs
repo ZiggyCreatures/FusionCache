@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 {
@@ -10,10 +11,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 		private readonly IFusionCacheBackplane _backplane;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
-		//private readonly FusionCacheBackplaneEventsHub _events;
+		private readonly FusionCacheBackplaneEventsHub _events;
 		private readonly SimpleCircuitBreaker _breaker;
 
-		public BackplaneAccessor(IFusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger/*, FusionCacheBackplaneEventsHub events*/)
+		public BackplaneAccessor(IFusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
 		{
 			if (cache is null)
 				throw new ArgumentNullException(nameof(cache));
@@ -27,7 +28,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			_options = options;
 
 			_logger = logger;
-			//_events = events;
+			_events = events;
 
 			// CIRCUIT-BREAKER
 			_breaker = new SimpleCircuitBreaker(options.BackplaneCircuitBreakerDuration);
@@ -46,8 +47,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 					_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
 
-				//// EVENT
-				//_events.OnCircuitBreakerChange(operationId, key, false);
+				// EVENT
+				_events.OnCircuitBreakerChange(operationId, key, false);
 			}
 		}
 
@@ -60,8 +61,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 					_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): backplane activated again", operationId, key);
 
-				//// EVENT
-				//_events.OnCircuitBreakerChange(operationId, key, true);
+				// EVENT
+				_events.OnCircuitBreakerChange(operationId, key, true);
 			}
 
 			return res;
@@ -126,6 +127,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 						_logger.Log(LogLevel.Warning, "An unknown backplane notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
 					break;
 			}
+
+			// EVENT
+			_events.OnMessage("", message.CacheKey, message);
 		}
 	}
 }

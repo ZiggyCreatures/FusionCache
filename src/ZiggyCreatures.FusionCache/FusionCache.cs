@@ -138,7 +138,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			lock (_lockBackplane)
 			{
-				_bpa = new BackplaneAccessor(this, backplane, _options, _logger);
+				_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
 				_bpa.Subscribe();
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)

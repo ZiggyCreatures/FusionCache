@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane
 {

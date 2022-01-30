@@ -63,22 +63,6 @@
             Evict (local)
             </summary>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs">
-            <summary>
-            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries (eg: with a cache key).
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
-            <summary>
-            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs"/> class.
-            </summary>
-            <param name="message">The backplane message received</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.FusionCacheBackplaneMessageEventArgs.Message">
-            <summary>
-            The backplane message received.
-            </summary>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">
             <summary>
             The core interface to create a FusionCache backplane plugin.
@@ -301,62 +285,81 @@
             <param name="maxDelay">The maximum amount of delay.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub">
             <summary>
-            A class with base events that are common to any cache layer (general, memroy or distributed)
+            An abstract class with base plumbing.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._cache">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._cache">
             <summary>
             The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._options">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._options">
             <summary>
             The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._logger">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._logger">
             <summary>
             The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._errorsLogLevel">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._errorsLogLevel">
             <summary>
             The <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> for errors during event handling.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._syncExecution">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._syncExecution">
             <summary>
             The execution mode for event handlers.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
             <summary>
-            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub"/> class.
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub"/> class.
             </summary>
             <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Hit">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub">
             <summary>
-            The event for a cache hit (either fresh or stale).
+            The events hub for events specific for the backplane.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Miss">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
             <summary>
-            The event for a cache miss.
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub"/> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.CircuitBreakerChange">
+            <summary>
+            The event for a state change in the circuit breaker.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Set">
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.Message">
             <summary>
-            The event for a cache set.
+            The event for a backplane message.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Remove">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs">
             <summary>
-            The event for a cache remove.
+            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries (eg: with a cache key).
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs"/> class.
+            </summary>
+            <param name="message">The backplane message received</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs.Message">
+            <summary>
+            The backplane message received.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs">
@@ -373,6 +376,39 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs.IsClosed">
             <summary>
             A flag that indicates if the circuit breaker has been opened or closed.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub">
+            <summary>
+            A class with base events that are common to any cache layer (general, memroy or distributed)
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub"/> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Hit">
+            <summary>
+            The event for a cache hit (either fresh or stale).
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Miss">
+            <summary>
+            The event for a cache miss.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Set">
+            <summary>
+            The event for a cache set.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Remove">
+            <summary>
+            The event for a cache remove.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub">
@@ -474,6 +510,11 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Distributed">
             <summary>
             The events hub for the distributed layer.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Backplane">
+            <summary>
+            The events hub for the backplane.
             </summary>
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FailSafeActivate">

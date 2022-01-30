@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 {

@@ -1,6 +1,7 @@
 ﻿using System;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 
-namespace ZiggyCreatures.Caching.Fusion.Backplane
+namespace ZiggyCreatures.Caching.Fusion.Events
 {
 	/// <summary>
 	/// The specific <see cref="EventArgs"/> object for events related to cache entries (eg: with a cache key).

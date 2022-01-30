@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 	/// The events hub for events specific for the distributed layer.
 	/// </summary>
 	public class FusionCacheDistributedEventsHub
-		: FusionCacheBaseEventsHub
+		: FusionCacheCommonEventsHub
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FusionCacheDistributedEventsHub" /> class.

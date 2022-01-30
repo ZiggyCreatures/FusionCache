@@ -23,7 +23,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// <summary>
 		/// The InstanceId of the source cache.
 		/// </summary>
-		public string SourceId { get; private set; }
+		public string SourceId { get; }
 
 		/// <summary>
 		/// The action to broadcast to the backplane.

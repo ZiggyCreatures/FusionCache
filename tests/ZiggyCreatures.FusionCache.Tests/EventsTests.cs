@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace FusionCacheTests
@@ -19,7 +20,8 @@ namespace FusionCacheTests
 			Set = 3,
 			Remove = 4,
 			FailSafeActivate = 5,
-			FactoryError = 6
+			FactoryError = 6,
+			BackplaneMessage = 7
 		}
 
 		public class EntryActionsStats
@@ -778,6 +780,92 @@ namespace FusionCacheTests
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(3, stats.Data.Values.Sum());
 			}
+		}
+
+		[Fact]
+		public async Task BackplaneEventsAsync()
+		{
+			var stats2 = new EntryActionsStats();
+			var stats3 = new EntryActionsStats();
+
+			var entryOptions = new FusionCacheEntryOptions
+			{
+				Duration = TimeSpan.FromMinutes(10),
+				AllowBackgroundDistributedCacheOperations = false,
+				AllowBackgroundBackplaneOperations = false
+			};
+
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+
+			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessage2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessage);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessage3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessage);
+
+			// SETUP HANDLERS
+			cache2.Events.Backplane.Message += onMessage2;
+			cache3.Events.Backplane.Message += onMessage3;
+
+			// CACHE 1
+			await cache1.SetAsync("foo", 21);
+			await cache1.SetAsync("foo", 42);
+
+			// CACHE 2
+			await cache2.RemoveAsync("foo");
+
+			// REMOVE HANDLERS
+			cache2.Events.Backplane.Message -= onMessage2;
+			cache3.Events.Backplane.Message -= onMessage3;
+
+			Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessage]);
+			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessage]);
+		}
+
+		[Fact]
+		public void BackplaneEvents()
+		{
+			var stats2 = new EntryActionsStats();
+			var stats3 = new EntryActionsStats();
+
+			var entryOptions = new FusionCacheEntryOptions
+			{
+				Duration = TimeSpan.FromMinutes(10),
+				AllowBackgroundDistributedCacheOperations = false,
+				AllowBackgroundBackplaneOperations = false
+			};
+
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+
+			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessage2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessage);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessage3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessage);
+
+			// SETUP HANDLERS
+			cache2.Events.Backplane.Message += onMessage2;
+			cache3.Events.Backplane.Message += onMessage3;
+
+			// CACHE 1
+			cache1.Set("foo", 21);
+			cache1.Set("foo", 42);
+
+			// CACHE 2
+			cache2.Remove("foo");
+
+			// REMOVE HANDLERS
+			cache2.Events.Backplane.Message -= onMessage2;
+			cache3.Events.Backplane.Message -= onMessage3;
+
+			Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessage]);
+			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessage]);
 		}
 	}
 }
