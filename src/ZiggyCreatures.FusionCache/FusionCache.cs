@@ -228,8 +228,8 @@ namespace ZiggyCreatures.Caching.Fusion
 				}
 				else
 				{
-					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
 					return null;
 				}
 			}
