@@ -188,7 +188,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			}
 		}
 
-		public static string GetBackplaneChannelName(FusionCacheOptions options)
+		public static string GetBackplaneChannelName(this FusionCacheOptions options)
 		{
 			var prefix = options.BackplaneChannelPrefix;
 			if (string.IsNullOrWhiteSpace(prefix))

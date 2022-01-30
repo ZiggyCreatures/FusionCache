@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
-using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 {
@@ -18,13 +17,13 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		private const char _messageSeparator = ':';
 		private static readonly char[] _messageSeparatorArray = new char[] { _messageSeparator };
 
-		//private IFusionCache? _cache;
 		private readonly RedisBackplaneOptions _options;
 		private readonly SemaphoreSlim _connectionLock;
 		private readonly ILogger? _logger;
 		private IConnectionMultiplexer? _connection;
 		private ISubscriber? _subscriber;
 		private RedisChannel _channel;
+		private Action<BackplaneMessage>? _handler;
 
 		/// <summary>
 		/// Initializes a new instance of the RedisBackplanePlugin class.
@@ -117,31 +116,6 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 				_subscriber = _connection!.GetSubscriber();
 		}
 
-		///// <inheritdoc/>
-		//public void Start(IFusionCache cache)
-		//{
-		//	_ = Task.Run(async () =>
-		//	{
-		//		// CONNECTION
-		//		await EnsureConnectionAsync().ConfigureAwait(false);
-
-		//		// CHANNEL
-		//		var _prefix = _options.ChannelPrefix;
-		//		if (string.IsNullOrWhiteSpace(_prefix))
-		//			_prefix = cache.CacheName;
-		//		_channel = $"{_prefix}.Notifications";
-
-		//		// LISTEN FOR REMOTE EVENTS TO PROPAGATE LOCALLY
-		//		await SubscribeAsync(cache).ConfigureAwait(false);
-		//	}).ConfigureAwait(false);
-		//}
-
-		///// <inheritdoc/>
-		//public void Stop(IFusionCache cache)
-		//{
-		//	_ = Task.Run(() => Disconnect());
-		//}
-
 		private void Disconnect()
 		{
 			if (_connection is null)
@@ -195,63 +169,29 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 			return BackplaneMessage.Create(parts[0], ParseAction(parts[1]), parts[2]);
 		}
 
-		//private async Task SubscribeAsync(IFusionCache cache)
-		//{
-		//	await EnsureConnectionAsync().ConfigureAwait(false);
-
-		//	try
-		//	{
-		//		await _subscriber!.SubscribeAsync(_channel, (c, m) =>
-		//		{
-		//			var message = ParseMessage(m);
-		//			if (message is object)
-		//			{
-		//				//cache.OnBackplaneNotification(message);
-		//				OnMessage(message);
-		//			}
-		//		}).ConfigureAwait(false);
-		//	}
-		//	//catch (Exception exc)
-		//	catch
-		//	{
-		//		//if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-		//		//	_logger.Log(LogLevel.Error, exc, "An error occurred while trying to subscribe for notifications to the Redis backplane");
-		//	}
-		//}
-
 		/// <inheritdoc/>
-		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? Message;
-
-		internal void OnMessage(BackplaneMessage message)
+		public void Subscribe(string channelName, Action<BackplaneMessage> handler)
 		{
-			Message?.Invoke(this, new FusionCacheBackplaneMessageEventArgs(message));
-		}
+			if (channelName is null)
+				throw new ArgumentNullException(nameof(channelName));
 
-		/// <inheritdoc/>
-		public void Subscribe(string channelName)
-		{
-			//_cache = cache;
-
-			//// CHANNEL
-			//var _prefix = _options.ChannelPrefix;
-			//if (string.IsNullOrWhiteSpace(_prefix))
-			//	_prefix = _cache.CacheName;
-			//_channel = $"{_prefix}.Notifications";
+			if (handler is null)
+				throw new ArgumentNullException(nameof(handler));
 
 			_channel = channelName;
+			_handler = handler;
 
 			_ = Task.Run(async () =>
 			{
 				// CONNECTION
 				await EnsureConnectionAsync().ConfigureAwait(false);
 
-				await _subscriber!.SubscribeAsync(_channel, (c, m) =>
+				await _subscriber!.SubscribeAsync(_channel, (_, m) =>
 				{
 					var message = ParseMessage(m);
 					if (message is object)
 					{
-						//cache.OnBackplaneNotification(message);
-						OnMessage(message);
+						_handler(message);
 					}
 				}).ConfigureAwait(false);
 			}).ConfigureAwait(false);

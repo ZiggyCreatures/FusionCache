@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane
 {
@@ -14,7 +13,8 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// Start receiving notifications.
 		/// </summary>
 		/// <param name="channelName">The channel name to use.</param>
-		void Subscribe(string channelName);
+		/// <param name="handler">The backplane message handler.</param>
+		void Subscribe(string channelName, Action<BackplaneMessage> handler);
 
 		/// <summary>
 		/// Stop receiving notifications.
@@ -35,10 +35,5 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// <param name="message">The message to send.</param>
 		/// <param name="options">The options to use.</param>
 		void SendNotification(BackplaneMessage message, FusionCacheEntryOptions options);
-
-		/// <summary>
-		/// The event for a new message.
-		/// </summary>
-		event EventHandler<FusionCacheBackplaneMessageEventArgs>? Message;
 	}
 }

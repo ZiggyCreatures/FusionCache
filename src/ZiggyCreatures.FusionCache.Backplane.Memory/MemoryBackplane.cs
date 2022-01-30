@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 {
@@ -21,6 +20,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 		private readonly MemoryBackplaneOptions _options;
 		private readonly ILogger? _logger;
 		private string _channelName = "FusionCache.Notifications";
+		private Action<BackplaneMessage>? _handler;
 		private List<MemoryBackplane>? _backplanes;
 
 		/// <summary>
@@ -49,9 +49,10 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 		}
 
 		/// <inheritdoc/>
-		public void Subscribe(string channelName)
+		public void Subscribe(string channelName, Action<BackplaneMessage> handler)
 		{
 			_channelName = channelName;
+			_handler = handler;
 
 			_backplanes = _channels.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
 
@@ -69,6 +70,8 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 		{
 			if (_backplanes is null)
 				return;
+
+			_handler = null;
 
 			lock (_backplanes)
 			{
@@ -106,12 +109,9 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 			}
 		}
 
-		/// <inheritdoc/>
-		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? Message;
-
 		internal void OnMessage(BackplaneMessage message)
 		{
-			Message?.Invoke(this, new FusionCacheBackplaneMessageEventArgs(message));
+			_handler?.Invoke(message);
 		}
 	}
 }

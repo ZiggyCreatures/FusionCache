@@ -68,11 +68,12 @@
             The core interface to create a FusionCache backplane plugin.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
             <summary>
             Start receiving notifications.
             </summary>
             <param name="channelName">The channel name to use.</param>
+            <param name="handler">The backplane message handler.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Unsubscribe">
             <summary>
@@ -93,11 +94,6 @@
             </summary>
             <param name="message">The message to send.</param>
             <param name="options">The options to use.</param>
-        </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Message">
-            <summary>
-            The event for a new message.
-            </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode">
             <summary>

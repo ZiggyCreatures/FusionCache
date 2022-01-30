@@ -16,7 +16,7 @@
             <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Subscribe(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Subscribe(System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Unsubscribe">
@@ -26,9 +26,6 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.SendNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
-            <inheritdoc/>
-        </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Message">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions">

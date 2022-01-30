@@ -87,20 +87,19 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 
 		public void Subscribe()
 		{
-			_backplane.Message += ProcessMessage;
-			_backplane.Subscribe(FusionCacheInternalUtils.GetBackplaneChannelName(_options));
+			_backplane.Subscribe(
+				_options.GetBackplaneChannelName(),
+				ProcessMessage
+			);
 		}
 
 		public void Unsubscribe()
 		{
-			_backplane.Message -= ProcessMessage;
 			_backplane.Unsubscribe();
 		}
 
-		private void ProcessMessage(object sender, FusionCacheBackplaneMessageEventArgs e)
+		private void ProcessMessage(BackplaneMessage message)
 		{
-			var message = e.Message;
-
 			// IGNORE INVALID MESSAGES
 			if (message is null || message.IsValid() == false)
 			{
