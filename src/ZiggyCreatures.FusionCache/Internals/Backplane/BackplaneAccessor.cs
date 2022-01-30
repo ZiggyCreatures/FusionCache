@@ -128,7 +128,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			}
 
 			// EVENT
-			_events.OnMessage("", message.CacheKey, message);
+			_events.OnMessageReceived("", message.CacheKey, message);
 		}
 	}
 }

@@ -29,18 +29,28 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		public event EventHandler<FusionCacheCircuitBreakerChangeEventArgs>? CircuitBreakerChange;
 
 		/// <summary>
-		/// The event for a backplane message.
+		/// The event for a sent backplane message.
 		/// </summary>
-		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? Message;
+		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? MessageSent;
+
+		/// <summary>
+		/// The event for a received backplane message.
+		/// </summary>
+		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? MessageReceived;
 
 		internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 		{
 			CircuitBreakerChange?.SafeExecute(operationId, key, _cache, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 		}
 
-		internal void OnMessage(string operationId, string key, BackplaneMessage message)
+		internal void OnMessageReceived(string operationId, string key, BackplaneMessage message)
 		{
-			Message?.SafeExecute(operationId, key, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(Message), _logger, _errorsLogLevel, _syncExecution);
+			MessageReceived?.SafeExecute(operationId, key, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);
+		}
+
+		internal void OnMessageSent(string operationId, string key, BackplaneMessage message)
+		{
+			MessageSent?.SafeExecute(operationId, key, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageSent), _logger, _errorsLogLevel, _syncExecution);
 		}
 	}
 }

@@ -45,6 +45,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				_ =>
 				{
 					_backplane.SendNotification(message, options);
+
+					// EVENT
+					_events.OnMessageSent(operationId, message.CacheKey, message);
 				},
 				"sending backplane notification",
 				options,

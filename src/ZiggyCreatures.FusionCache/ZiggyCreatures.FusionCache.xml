@@ -337,9 +337,14 @@
             The event for a state change in the circuit breaker.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.Message">
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.MessageSent">
             <summary>
-            The event for a backplane message.
+            The event for a sent backplane message.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.MessageReceived">
+            <summary>
+            The event for a received backplane message.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs">
