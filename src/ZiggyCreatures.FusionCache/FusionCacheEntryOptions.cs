@@ -148,7 +148,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")}]";
+			return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")} BN={(EnableBackplaneNotifications ? "Y" : "N")} BBO={(AllowBackgroundBackplaneOperations ? "Y" : "N")}]";
 		}
 
 		/// <summary>
