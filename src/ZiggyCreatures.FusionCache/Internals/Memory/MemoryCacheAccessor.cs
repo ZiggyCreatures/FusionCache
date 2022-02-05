@@ -102,7 +102,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			_cache.Remove(key);
 
 			// EVENT
-			_events.OnEviction(operationId, key, EvictionReason.None);
+			_events.OnRemove(operationId, key);
 		}
 
 		// IDISPOSABLE
