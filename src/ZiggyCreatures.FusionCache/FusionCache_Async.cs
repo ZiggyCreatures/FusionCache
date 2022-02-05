@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options, token).ConfigureAwait(false);
+					await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, key), options, token).ConfigureAwait(false);
 			}
 			else if (entry is object)
 			{
@@ -361,7 +361,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options, token).ConfigureAwait(false);
+				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, key), options, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
@@ -393,7 +393,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options, token).ConfigureAwait(false);
+				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, key), options, token).ConfigureAwait(false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -617,12 +617,9 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				var removeCalled = false;
-				var evictCalled = false;
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
-				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => evictCalled = true;
 
 				cache.Events.Memory.Remove += onRemove;
-				cache.Events.Memory.Eviction += onEvict;
 
 				var duration = TimeSpan.FromMinutes(1);
 
@@ -632,14 +629,12 @@ namespace FusionCacheTests
 				// EVICT
 				cache.Evict("foo");
 
-				var res = await cache.TryGetAsync<int>("foo").ConfigureAwait(false);
+				var res = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true)).ConfigureAwait(false);
 
 				cache.Events.Memory.Remove -= onRemove;
-				cache.Events.Memory.Eviction -= onEvict;
 
-				Assert.False(removeCalled, "Remove event has been fired");
-				Assert.True(evictCalled, "Evict event has not been fired");
-				Assert.False(res.HasValue, "The cache entry is still there");
+				Assert.True(removeCalled);
+				Assert.False(res.HasValue);
 			}
 		}
 
@@ -649,12 +644,9 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
 				var removeCalled = false;
-				var evictCalled = false;
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
-				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => evictCalled = true;
 
 				cache.Events.Memory.Remove += onRemove;
-				cache.Events.Memory.Eviction += onEvict;
 
 				var duration = TimeSpan.FromMinutes(1);
 
@@ -664,14 +656,12 @@ namespace FusionCacheTests
 				// EVICT
 				cache.Evict("foo");
 
-				var res = cache.TryGet<int>("foo");
+				var res = cache.TryGet<int>("foo", opt => opt.SetFailSafe(true));
 
 				cache.Events.Memory.Remove -= onRemove;
-				cache.Events.Memory.Eviction -= onEvict;
 
-				Assert.False(removeCalled, "Remove event has been fired");
-				Assert.True(evictCalled, "Evict event has not been fired");
-				Assert.False(res.HasValue, "The cache entry is still there");
+				Assert.True(removeCalled);
+				Assert.False(res.HasValue);
 			}
 		}
 	}

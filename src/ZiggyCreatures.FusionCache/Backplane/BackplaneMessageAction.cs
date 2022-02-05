@@ -6,8 +6,12 @@
 	public enum BackplaneMessageAction
 	{
 		/// <summary>
-		/// Evict (local)
+		/// A cache entry has been set (via either a Set or a GetOrSet method call).
 		/// </summary>
-		Evict = 0
+		EntrySet = 0,
+		/// <summary>
+		/// A cache entry has been removed (via a Remove method call).
+		/// </summary>
+		EntryRemove = 1
 	}
 }

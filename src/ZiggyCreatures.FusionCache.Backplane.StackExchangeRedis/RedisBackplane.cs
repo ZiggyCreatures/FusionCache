@@ -138,8 +138,10 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		{
 			switch (action)
 			{
-				case BackplaneMessageAction.Evict:
-					return string.Empty;
+				case BackplaneMessageAction.EntrySet:
+					return "S";
+				case BackplaneMessageAction.EntryRemove:
+					return "R";
 				default:
 					throw new InvalidOperationException($"Unknown backplane action {action}");
 			}
@@ -147,8 +149,11 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 
 		private static BackplaneMessageAction ParseAction(string? s)
 		{
-			if (string.IsNullOrEmpty(s))
-				return BackplaneMessageAction.Evict;
+			if (s == "S")
+				return BackplaneMessageAction.EntrySet;
+
+			if (s == "R")
+				return BackplaneMessageAction.EntryRemove;
 
 			throw new InvalidOperationException($"Unknown backplane action \"{s}\"");
 		}

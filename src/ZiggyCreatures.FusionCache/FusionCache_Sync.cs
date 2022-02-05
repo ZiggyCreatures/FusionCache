@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options);
+					SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, key), options);
 			}
 			else if (entry is object)
 			{
@@ -361,7 +361,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options);
+				SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, key), options);
 		}
 
 		/// <inheritdoc/>
@@ -393,7 +393,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEviction(this.InstanceId, key), options);
+				SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, key), options);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

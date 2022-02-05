@@ -45,12 +45,20 @@
             <param name="cacheKey">The cache key related to the message.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEviction(System.String,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.String)">
             <summary>
-            Creates a message for a single key eviction.
+            Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
             </summary>
             <param name="sourceId">The InstanceId of the source cache.</param>
-            <param name="cacheKey">The cache key related to the eviction.</param>
+            <param name="cacheKey">The cache key.</param>
+            <returns>The message.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.String)">
+            <summary>
+            Creates a message for a single cache entry remove (via a Remove method call).
+            </summary>
+            <param name="sourceId">The InstanceId of the source cache.</param>
+            <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction">
@@ -58,9 +66,14 @@
             The type of action for a backplane message.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.Evict">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntrySet">
             <summary>
-            Evict (local)
+            A cache entry has been set (via either a Set or a GetOrSet method call).
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntryRemove">
+            <summary>
+            A cache entry has been removed (via a Remove method call).
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">

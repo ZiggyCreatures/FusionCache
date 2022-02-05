@@ -43,14 +43,14 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			CircuitBreakerChange?.SafeExecute(operationId, key, _cache, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 		}
 
-		internal void OnMessageReceived(string operationId, string key, BackplaneMessage message)
+		internal void OnMessageReceived(string operationId, BackplaneMessage message)
 		{
-			MessageReceived?.SafeExecute(operationId, key, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);
+			MessageReceived?.SafeExecute(operationId, message.CacheKey, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);
 		}
 
-		internal void OnMessageSent(string operationId, string key, BackplaneMessage message)
+		internal void OnMessageSent(string operationId, BackplaneMessage message)
 		{
-			MessageSent?.SafeExecute(operationId, key, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageSent), _logger, _errorsLogLevel, _syncExecution);
+			MessageSent?.SafeExecute(operationId, message.CacheKey, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageSent), _logger, _errorsLogLevel, _syncExecution);
 		}
 	}
 }

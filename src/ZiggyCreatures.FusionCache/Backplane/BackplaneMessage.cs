@@ -12,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// Creates a new instance of a backplane message.
 		/// </summary>
 		/// <param name="sourceId">The InstanceId of the source cache.</param>
-		public BackplaneMessage(string sourceId)
+		private BackplaneMessage(string sourceId)
 		{
 			if (string.IsNullOrEmpty(sourceId))
 				throw new ArgumentException("The sourceId cannot be null nor empty", nameof(sourceId));
@@ -46,7 +46,8 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 
 			switch (Action)
 			{
-				case BackplaneMessageAction.Evict:
+				case BackplaneMessageAction.EntrySet:
+				case BackplaneMessageAction.EntryRemove:
 					if (string.IsNullOrEmpty(CacheKey))
 						return false;
 					return true;
@@ -72,19 +73,37 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		}
 
 		/// <summary>
-		/// Creates a message for a single key eviction.
+		/// Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
 		/// </summary>
 		/// <param name="sourceId">The InstanceId of the source cache.</param>
-		/// <param name="cacheKey">The cache key related to the eviction.</param>
+		/// <param name="cacheKey">The cache key.</param>
 		/// <returns>The message.</returns>
-		public static BackplaneMessage CreateForEviction(string sourceId, string cacheKey)
+		public static BackplaneMessage CreateForEntrySet(string sourceId, string cacheKey)
 		{
 			if (string.IsNullOrEmpty(cacheKey))
 				throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
 			return new BackplaneMessage(sourceId)
 			{
-				Action = BackplaneMessageAction.Evict,
+				Action = BackplaneMessageAction.EntrySet,
+				CacheKey = cacheKey
+			};
+		}
+
+		/// <summary>
+		/// Creates a message for a single cache entry remove (via a Remove method call).
+		/// </summary>
+		/// <param name="sourceId">The InstanceId of the source cache.</param>
+		/// <param name="cacheKey">The cache key.</param>
+		/// <returns>The message.</returns>
+		public static BackplaneMessage CreateForEntryRemove(string sourceId, string cacheKey)
+		{
+			if (string.IsNullOrEmpty(cacheKey))
+				throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
+
+			return new BackplaneMessage(sourceId)
+			{
+				Action = BackplaneMessageAction.EntryRemove,
 				CacheKey = cacheKey
 			};
 		}

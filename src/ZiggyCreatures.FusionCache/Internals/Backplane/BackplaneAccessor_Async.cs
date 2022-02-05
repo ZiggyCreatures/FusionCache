@@ -49,7 +49,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 					await _backplane.SendNotificationAsync(message, options, ct).ConfigureAwait(false);
 
 					// EVENT
-					_events.OnMessageSent(operationId, message.CacheKey, message);
+					_events.OnMessageSent(operationId, message);
 				},
 				"sending backplane notification",
 				options,

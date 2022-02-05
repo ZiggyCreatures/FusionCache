@@ -115,11 +115,17 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 
 			switch (message.Action)
 			{
-				case BackplaneMessageAction.Evict:
+				case BackplaneMessageAction.EntrySet:
 					_cache.Evict(message.CacheKey!);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (EVICT)", message.CacheKey);
+					break;
+				case BackplaneMessageAction.EntryRemove:
+					_cache.Evict(message.CacheKey!);
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (REMOVE)", message.CacheKey);
 					break;
 				default:
 					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
@@ -128,7 +134,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			}
 
 			// EVENT
-			_events.OnMessageReceived("", message.CacheKey, message);
+			_events.OnMessageReceived("", message);
 		}
 	}
 }
