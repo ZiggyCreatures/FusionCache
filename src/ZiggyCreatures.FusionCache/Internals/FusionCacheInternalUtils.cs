@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -25,11 +24,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		public static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
-
-		public static string GetCurrentMemberName([CallerMemberName] string name = "")
-		{
-			return name;
-		}
 
 		public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
 		{
