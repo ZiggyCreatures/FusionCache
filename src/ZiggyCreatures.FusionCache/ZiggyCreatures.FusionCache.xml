@@ -9,15 +9,21 @@
             Represents a message on a backplane.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor(System.String,System.Int64)">
             <summary>
             Creates a new instance of a backplane message.
             </summary>
             <param name="sourceId">The InstanceId of the source cache.</param>
+            <param name="instantTicks">The instant this message is related to, expressed as ticks amount.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.SourceId">
             <summary>
             The InstanceId of the source cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.InstantTicks">
+            <summary>
+            The instant a message was related to, expressed as ticks amount.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Action">
@@ -36,28 +42,31 @@
             </summary>
             <returns>True if it seems valid, false otherwise.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Create(System.String,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Create(System.String,System.Int64,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction,System.String)">
             <summary>
             Creates a message.
             </summary>
             <param name="sourceId">The InstanceId of the source cache.</param>
+            <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
             <param name="action">The action related to the message.</param>
             <param name="cacheKey">The cache key related to the message.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.Int64,System.String)">
             <summary>
             Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
             </summary>
             <param name="sourceId">The InstanceId of the source cache.</param>
+            <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.Int64,System.String)">
             <summary>
             Creates a message for a single cache entry remove (via a Remove method call).
             </summary>
             <param name="sourceId">The InstanceId of the source cache.</param>
+            <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>

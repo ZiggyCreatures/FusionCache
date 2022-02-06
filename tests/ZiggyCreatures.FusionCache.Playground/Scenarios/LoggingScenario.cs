@@ -83,7 +83,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					FactorySoftTimeout = FactoryTimeout,
 
-					AllowBackgroundDistributedCacheOperations = true
+					AllowBackgroundDistributedCacheOperations = false,
+					AllowBackgroundBackplaneOperations = false
 				},
 			};
 			using (var fusionCache = new FusionCache(options, logger: logger))

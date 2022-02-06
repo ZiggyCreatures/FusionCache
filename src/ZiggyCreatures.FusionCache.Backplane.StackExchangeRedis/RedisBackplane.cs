@@ -160,18 +160,18 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 
 		private static RedisValue CreateRedisMessage(BackplaneMessage message)
 		{
-			return message.SourceId + _messageSeparator + GetActionString(message.Action) + _messageSeparator + message.CacheKey;
+			return message.SourceId + _messageSeparator + message.InstantTicks.ToString() + _messageSeparator + GetActionString(message.Action) + _messageSeparator + message.CacheKey;
 		}
 
 		private static BackplaneMessage? ParseMessage(RedisValue redisMessage)
 		{
 			var payload = (string)redisMessage;
-			var parts = payload.Split(_messageSeparatorArray, 3, StringSplitOptions.None);
+			var parts = payload.Split(_messageSeparatorArray, 4, StringSplitOptions.None);
 
-			if (parts.Length < 3)
+			if (parts.Length < 4)
 				return null;
 
-			return BackplaneMessage.Create(parts[0], ParseAction(parts[1]), parts[2]);
+			return BackplaneMessage.Create(parts[0], Int64.Parse(parts[1]), ParseAction(parts[2]), parts[3]);
 		}
 
 		/// <inheritdoc/>
