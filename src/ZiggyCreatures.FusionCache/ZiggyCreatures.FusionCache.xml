@@ -359,7 +359,7 @@
             The event for a state change in the circuit breaker.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.MessageSent">
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.MessagePublished">
             <summary>
             The event for a sent backplane message.
             </summary>
@@ -626,6 +626,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.HasBackplane">
             <inheritdoc/>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.Events">
@@ -1591,6 +1594,11 @@
             Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
             </summary>
             <param name="key">The cache key which identifies the entry in the cache.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.HasBackplane">
+            <summary>
+            Gets whether there is a backplane configured.
+            </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>

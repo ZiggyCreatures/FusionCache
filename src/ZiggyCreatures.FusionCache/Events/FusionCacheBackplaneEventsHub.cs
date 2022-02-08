@@ -31,7 +31,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		/// <summary>
 		/// The event for a sent backplane message.
 		/// </summary>
-		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? MessageSent;
+		public event EventHandler<FusionCacheBackplaneMessageEventArgs>? MessagePublished;
 
 		/// <summary>
 		/// The event for a received backplane message.
@@ -43,14 +43,14 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 			CircuitBreakerChange?.SafeExecute(operationId, key, _cache, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 		}
 
+		internal void OnMessagePublished(string operationId, BackplaneMessage message)
+		{
+			MessagePublished?.SafeExecute(operationId, message.CacheKey, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessagePublished), _logger, _errorsLogLevel, _syncExecution);
+		}
+
 		internal void OnMessageReceived(string operationId, BackplaneMessage message)
 		{
 			MessageReceived?.SafeExecute(operationId, message.CacheKey, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);
-		}
-
-		internal void OnMessageSent(string operationId, BackplaneMessage message)
-		{
-			MessageSent?.SafeExecute(operationId, message.CacheKey, _cache, () => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageSent), _logger, _errorsLogLevel, _syncExecution);
 		}
 	}
 }

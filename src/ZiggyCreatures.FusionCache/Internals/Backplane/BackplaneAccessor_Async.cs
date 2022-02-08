@@ -34,7 +34,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			;
 		}
 
-		public async ValueTask<bool> SendNotificationAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		public async ValueTask<bool> PublishAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			if (IsCurrentlyUsable(operationId, message.CacheKey) == false)
 				return false;
@@ -49,7 +49,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 					await _backplane.PublishAsync(message, options, ct).ConfigureAwait(false);
 
 					// EVENT
-					_events.OnMessageSent(operationId, message);
+					_events.OnMessagePublished(operationId, message);
 				},
 				"sending backplane notification",
 				options,

@@ -402,7 +402,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_bpa is null)
 				return false;
 
-			return _bpa.SendNotification(operationId, message, options, default);
+			return _bpa.Publish(operationId, message, options, default);
 		}
 
 		/// <inheritdoc/>

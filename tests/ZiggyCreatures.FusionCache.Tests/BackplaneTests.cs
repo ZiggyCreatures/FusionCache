@@ -24,8 +24,8 @@ namespace FusionCacheTests
 
 	public class BackplaneTests
 	{
-		//private static string? RedisConnection = null;
-		private static string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
+		private static string? RedisConnection = null;
+		//private static string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
 
 		private static IFusionCacheSerializer GetSerializer(SerializerType serializerType)
 		{

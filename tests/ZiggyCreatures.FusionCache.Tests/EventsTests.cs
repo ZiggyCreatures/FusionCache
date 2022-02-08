@@ -804,15 +804,15 @@ namespace FusionCacheTests
 			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageSent2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageSent);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageSent3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageSent);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageReceived);
 
 			// SETUP HANDLERS
-			cache2.Events.Backplane.MessageSent += onMessageSent2;
+			cache2.Events.Backplane.MessagePublished += onMessagePublished2;
 			cache2.Events.Backplane.MessageReceived += onMessageReceived2;
-			cache3.Events.Backplane.MessageSent += onMessageSent3;
+			cache3.Events.Backplane.MessagePublished += onMessagePublished3;
 			cache3.Events.Backplane.MessageReceived += onMessageReceived3;
 
 			// CACHE 1
@@ -823,9 +823,9 @@ namespace FusionCacheTests
 			await cache2.RemoveAsync("foo");
 
 			// REMOVE HANDLERS
-			cache2.Events.Backplane.MessageSent -= onMessageSent2;
+			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
 			cache2.Events.Backplane.MessageReceived -= onMessageReceived2;
-			cache3.Events.Backplane.MessageSent -= onMessageSent3;
+			cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
 			cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
 
 			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessageSent]);
@@ -855,15 +855,15 @@ namespace FusionCacheTests
 			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageSent2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageSent);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageSent3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageSent);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageReceived);
 
 			// SETUP HANDLERS
-			cache2.Events.Backplane.MessageSent += onMessageSent2;
+			cache2.Events.Backplane.MessagePublished += onMessagePublished2;
 			cache2.Events.Backplane.MessageReceived += onMessageReceived2;
-			cache3.Events.Backplane.MessageSent += onMessageSent3;
+			cache3.Events.Backplane.MessagePublished += onMessagePublished3;
 			cache3.Events.Backplane.MessageReceived += onMessageReceived3;
 
 			// CACHE 1
@@ -874,9 +874,9 @@ namespace FusionCacheTests
 			cache2.Remove("foo");
 
 			// REMOVE HANDLERS
-			cache2.Events.Backplane.MessageSent -= onMessageSent2;
+			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
 			cache2.Events.Backplane.MessageReceived -= onMessageReceived2;
-			cache3.Events.Backplane.MessageSent -= onMessageSent3;
+			cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
 			cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
 
 			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessageSent]);

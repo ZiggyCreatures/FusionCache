@@ -32,7 +32,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			;
 		}
 
-		public bool SendNotification(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		public bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			if (IsCurrentlyUsable(operationId, message.CacheKey) == false)
 				return false;
@@ -47,7 +47,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 					_backplane.Publish(message, options);
 
 					// EVENT
-					_events.OnMessageSent(operationId, message);
+					_events.OnMessagePublished(operationId, message);
 				},
 				"sending backplane notification",
 				options,
