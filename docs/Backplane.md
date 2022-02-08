@@ -117,8 +117,8 @@ Redis has a couple of specific design and implementation details that you should
 
 This idea seems like a nice one: in a multi-node scenario we may would like to use only memory caches on each node + the backplane for cache synchronization, without having to use a shared distributed cache.
 
-Well, [not so fast](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/36).
+<s>Well, [not so fast](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/36).</s>
 
-But also, yes!
+Actually, yes!
 
-**TODO:** finish this and explain manual backplane notifications, etc...
+**TODO:** finish this and explain how to disable automatic backplane publish on set/remove + manual publish, etc...
