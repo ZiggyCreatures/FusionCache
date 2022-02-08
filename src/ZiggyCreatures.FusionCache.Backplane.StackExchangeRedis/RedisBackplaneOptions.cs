@@ -20,13 +20,6 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		/// </summary>
 		public ConfigurationOptions? ConfigurationOptions { get; set; }
 
-		/// <summary>
-		/// The prefix that will be used to construct the Redis pub/sub channel name.
-		/// <br/><br/>
-		/// NOTE: if not specified, the <see cref="IFusionCache.CacheName"/> will be used.
-		/// </summary>
-		public string? ChannelPrefix { get; set; }
-
 		RedisBackplaneOptions IOptions<RedisBackplaneOptions>.Value
 		{
 			get { return this; }
