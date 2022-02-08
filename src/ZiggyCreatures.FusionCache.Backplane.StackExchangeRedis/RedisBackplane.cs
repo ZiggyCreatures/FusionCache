@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,9 +15,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 	public class RedisBackplane
 		: IFusionCacheBackplane
 	{
-		private const char _messageSeparator = ':';
-		private static readonly char[] _messageSeparatorArray = new char[] { _messageSeparator };
-
+		private static readonly Encoding _encoding = Encoding.UTF8;
 		private readonly RedisBackplaneOptions _options;
 		private readonly SemaphoreSlim _connectionLock;
 		private readonly ILogger? _logger;
@@ -134,46 +133,6 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 			_connection = null;
 		}
 
-		private static string GetActionString(BackplaneMessageAction action)
-		{
-			switch (action)
-			{
-				case BackplaneMessageAction.EntrySet:
-					return "S";
-				case BackplaneMessageAction.EntryRemove:
-					return "R";
-				default:
-					throw new InvalidOperationException($"Unknown backplane action {action}");
-			}
-		}
-
-		private static BackplaneMessageAction ParseAction(string? s)
-		{
-			if (s == "S")
-				return BackplaneMessageAction.EntrySet;
-
-			if (s == "R")
-				return BackplaneMessageAction.EntryRemove;
-
-			throw new InvalidOperationException($"Unknown backplane action \"{s}\"");
-		}
-
-		private static RedisValue CreateRedisMessage(BackplaneMessage message)
-		{
-			return message.SourceId + _messageSeparator + message.InstantTicks.ToString() + _messageSeparator + GetActionString(message.Action) + _messageSeparator + message.CacheKey;
-		}
-
-		private static BackplaneMessage? ParseMessage(RedisValue redisMessage)
-		{
-			var payload = (string)redisMessage;
-			var parts = payload.Split(_messageSeparatorArray, 4, StringSplitOptions.None);
-
-			if (parts.Length < 4)
-				return null;
-
-			return BackplaneMessage.Create(parts[0], Int64.Parse(parts[1]), ParseAction(parts[2]), parts[3]);
-		}
-
 		/// <inheritdoc/>
 		public void Subscribe(string channelName, Action<BackplaneMessage> handler)
 		{
@@ -191,9 +150,9 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 				// CONNECTION
 				await EnsureConnectionAsync().ConfigureAwait(false);
 
-				await _subscriber!.SubscribeAsync(_channel, (_, m) =>
+				await _subscriber!.SubscribeAsync(_channel, (_, v) =>
 				{
-					var message = ParseMessage(m);
+					var message = FromRedisValue(v);
 					if (message is object)
 					{
 						_handler(message);
@@ -213,12 +172,12 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		{
 			await EnsureConnectionAsync().ConfigureAwait(false);
 
-			var redisMessage = CreateRedisMessage(message);
+			var v = ToRedisValue(message);
 
 			try
 			{
-				var receivedAmount = await _subscriber!.PublishAsync(_channel, redisMessage).ConfigureAwait(false);
-				if (receivedAmount == 0)
+				var receivedCount = await _subscriber!.PublishAsync(_channel, v).ConfigureAwait(false);
+				if (receivedCount == 0)
 				{
 					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 						_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
@@ -242,12 +201,12 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		{
 			EnsureConnection();
 
-			var redisMessage = CreateRedisMessage(message);
+			var v = ToRedisValue(message);
 
 			try
 			{
-				var receivedAmount = _subscriber!.Publish(_channel, redisMessage);
-				if (receivedAmount == 0)
+				var receivedCount = _subscriber!.Publish(_channel, v);
+				if (receivedCount == 0)
 				{
 					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 						_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
@@ -264,6 +223,93 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 				//if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 				//	_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
 			}
+		}
+
+
+		private static BackplaneMessage? FromRedisValue(RedisValue value)
+		{
+			byte[] data = value;
+			var res = new BackplaneMessage();
+			var pos = 0;
+
+			// VERSION
+			var version = data[pos];
+			if (version != 0)
+			{
+				//throw new Exception("The version header does not have the expected value of 0 (zero): instead the value is " + version);
+				return null;
+			}
+			pos++;
+
+			// SOURCE ID
+			var sourceIdByteCount = BitConverter.ToInt32(data, pos);
+			pos += 4;
+			res.SourceId = _encoding.GetString(data, pos, sourceIdByteCount);
+			pos += sourceIdByteCount;
+
+			// INSTANT TICKS
+			res.InstantTicks = BitConverter.ToInt64(data, pos);
+			pos += 8;
+
+			// ACTION
+			res.Action = (BackplaneMessageAction)data[pos];
+			pos++;
+
+			// CACHE KEY
+			var cacheKeyByteCount = BitConverter.ToInt32(data, pos);
+			pos += 4;
+			res.CacheKey = _encoding.GetString(data, pos, cacheKeyByteCount);
+			//pos += cacheKeyByteCount;
+
+			return res;
+		}
+
+		private static RedisValue ToRedisValue(BackplaneMessage message)
+		{
+			var sourceIdByteCount = _encoding.GetByteCount(message.SourceId);
+			var cacheKeyByteCount = _encoding.GetByteCount(message.CacheKey);
+
+			var size =
+				1 // VERSION
+				+ 4 + sourceIdByteCount // SOURCE ID
+				+ 8 // INSTANCE TICKS
+				+ 1 // ACTION
+				+ 4 + cacheKeyByteCount // CACHE KEY
+			;
+
+			var pos = 0;
+			var res = new byte[size];
+			byte[] tmpBuffer;
+
+			// VERSION
+			res[pos] = 0;
+			pos++;
+
+
+			// SOURCE ID
+			tmpBuffer = BitConverter.GetBytes(sourceIdByteCount);
+			Array.Copy(tmpBuffer, 0, res, pos, tmpBuffer.Length);
+			pos += tmpBuffer.Length;
+			_encoding.GetBytes(message.SourceId!, 0, message.SourceId!.Length, res, pos);
+			pos += sourceIdByteCount;
+
+			// INSTANT TICKS
+			tmpBuffer = BitConverter.GetBytes(message.InstantTicks);
+			Array.Copy(tmpBuffer, 0, res, pos, tmpBuffer.Length);
+			pos += tmpBuffer.Length;
+
+			// ACTION
+			res[pos] = (byte)message.Action;
+			pos++;
+
+			// CACHE KEY
+			tmpBuffer = BitConverter.GetBytes(cacheKeyByteCount);
+			Array.Copy(tmpBuffer, 0, res, pos, tmpBuffer.Length);
+			pos += tmpBuffer.Length;
+			_encoding.GetBytes(message.CacheKey, 0, message.CacheKey!.Length, res, pos);
+			//pos += cacheKeyByteCount;
+
+			return res;
 		}
 	}
 }
