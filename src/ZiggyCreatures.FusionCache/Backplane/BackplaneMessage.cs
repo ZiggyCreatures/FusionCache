@@ -7,39 +7,39 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 	/// </summary>
 	public class BackplaneMessage
 	{
-		/// <summary>
-		/// Creates a new instance of a backplane message.
-		/// </summary>
-		/// <param name="sourceId">The InstanceId of the source cache.</param>
-		/// <param name="instantTicks">The instant this message is related to, expressed as ticks amount.</param>
-		private BackplaneMessage(string sourceId, long instantTicks)
-		{
-			if (string.IsNullOrEmpty(sourceId))
-				throw new ArgumentException("The sourceId cannot be null nor empty", nameof(sourceId));
+		///// <summary>
+		///// Creates a new instance of a backplane message.
+		///// </summary>
+		///// <param name="sourceId">The InstanceId of the source cache.</param>
+		///// <param name="instantTicks">The instant this message is related to, expressed as ticks amount.</param>
+		//private BackplaneMessage(string sourceId, long instantTicks)
+		//{
+		//	if (string.IsNullOrEmpty(sourceId))
+		//		throw new ArgumentException("The sourceId cannot be null nor empty", nameof(sourceId));
 
-			SourceId = sourceId;
-			InstantTicks = instantTicks;
-		}
+		//	SourceId = sourceId;
+		//	InstantTicks = instantTicks;
+		//}
 
 		/// <summary>
 		/// The InstanceId of the source cache.
 		/// </summary>
-		public string SourceId { get; }
+		public string SourceId { get; set; }
 
 		/// <summary>
 		/// The instant a message was related to, expressed as ticks amount.
 		/// </summary>
-		public long InstantTicks { get; }
+		public long InstantTicks { get; set; }
 
 		/// <summary>
 		/// The action to broadcast to the backplane.
 		/// </summary>
-		public BackplaneMessageAction Action { get; private set; }
+		public BackplaneMessageAction Action { get; set; }
 
 		/// <summary>
 		/// The cache key related to the action, if any.
 		/// </summary>
-		public string? CacheKey { get; private set; }
+		public string? CacheKey { get; set; }
 
 		/// <summary>
 		/// Checks if a message is valid.
@@ -75,8 +75,10 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// <returns>The message.</returns>
 		public static BackplaneMessage Create(string sourceId, long instantTicks, BackplaneMessageAction action, string? cacheKey)
 		{
-			return new BackplaneMessage(sourceId, instantTicks)
+			return new BackplaneMessage()
 			{
+				SourceId = sourceId,
+				InstantTicks = instantTicks,
 				Action = action,
 				CacheKey = cacheKey
 			};
@@ -94,8 +96,10 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 			if (string.IsNullOrEmpty(cacheKey))
 				throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
-			return new BackplaneMessage(sourceId, instantTicks)
+			return new BackplaneMessage()
 			{
+				SourceId = sourceId,
+				InstantTicks = instantTicks,
 				Action = BackplaneMessageAction.EntrySet,
 				CacheKey = cacheKey
 			};
@@ -113,8 +117,10 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 			if (string.IsNullOrEmpty(cacheKey))
 				throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
-			return new BackplaneMessage(sourceId, instantTicks)
+			return new BackplaneMessage()
 			{
+				SourceId = sourceId,
+				InstantTicks = instantTicks,
 				Action = BackplaneMessageAction.EntryRemove,
 				CacheKey = cacheKey
 			};

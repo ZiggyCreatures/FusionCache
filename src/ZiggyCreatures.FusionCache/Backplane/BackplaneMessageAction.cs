@@ -3,7 +3,7 @@
 	/// <summary>
 	/// The type of action for a backplane message.
 	/// </summary>
-	public enum BackplaneMessageAction
+	public enum BackplaneMessageAction : byte
 	{
 		/// <summary>
 		/// Unknown action.
