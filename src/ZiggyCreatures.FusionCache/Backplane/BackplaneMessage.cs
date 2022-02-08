@@ -7,7 +7,6 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 	/// </summary>
 	public class BackplaneMessage
 	{
-
 		/// <summary>
 		/// Creates a new instance of a backplane message.
 		/// </summary>
@@ -49,6 +48,9 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		public bool IsValid()
 		{
 			if (string.IsNullOrEmpty(SourceId))
+				return false;
+
+			if (InstantTicks <= 0)
 				return false;
 
 			switch (Action)
