@@ -22,10 +22,10 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.Unsubscribe">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.SendNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.SendNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions">

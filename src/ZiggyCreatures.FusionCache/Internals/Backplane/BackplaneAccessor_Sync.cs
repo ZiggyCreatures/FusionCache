@@ -44,7 +44,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				message.CacheKey!,
 				_ =>
 				{
-					_backplane.SendNotification(message, options);
+					_backplane.Publish(message, options);
 
 					// EVENT
 					_events.OnMessageSent(operationId, message);

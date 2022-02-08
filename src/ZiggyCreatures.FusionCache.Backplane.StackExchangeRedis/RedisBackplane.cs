@@ -209,7 +209,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		}
 
 		/// <inheritdoc/>
-		public async ValueTask SendNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			await EnsureConnectionAsync().ConfigureAwait(false);
 
@@ -238,7 +238,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		}
 
 		/// <inheritdoc/>
-		public void SendNotification(BackplaneMessage message, FusionCacheEntryOptions options)
+		public void Publish(BackplaneMessage message, FusionCacheEntryOptions options)
 		{
 			EnsureConnection();
 

@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
+					PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
 			}
 			else if (entry is object)
 			{
@@ -361,7 +361,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
+				PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
 		}
 
 		/// <inheritdoc/>
@@ -393,11 +393,11 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				SendBackplaneNotificationInternal(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
+				PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private bool SendBackplaneNotificationInternal(string operationId, BackplaneMessage message, FusionCacheEntryOptions options)
+		private bool PublishInternal(string operationId, BackplaneMessage message, FusionCacheEntryOptions options)
 		{
 			if (_bpa is null)
 				return false;
@@ -406,12 +406,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public bool SendBackplaneNotification(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
 
-			return SendBackplaneNotificationInternal(GenerateOperationId(), message, options);
+			return PublishInternal(GenerateOperationId(), message, options);
 		}
 	}
 }

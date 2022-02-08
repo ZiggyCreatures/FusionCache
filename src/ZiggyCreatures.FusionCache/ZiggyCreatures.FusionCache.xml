@@ -92,27 +92,27 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
             <summary>
-            Start receiving notifications.
+            Subscribe to receive messages from other nodes.
             </summary>
             <param name="channelName">The channel name to use.</param>
             <param name="handler">The backplane message handler.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Unsubscribe">
             <summary>
-            Stop receiving notifications.
+            Unsubscribe from receiving messages from other nodes.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.SendNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Tries to send a notification to other nodes connected to the same backplane, if any.
+            Send a notification to the other connected nodes, if any.
             </summary>
             <param name="message">The message to send.</param>
             /// <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.SendNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
             <summary>
-            Tries to send a notification to other nodes connected to the same backplane, if any.
+            Send a notification to the other connected nodes, if any.
             </summary>
             <param name="message">The message to send.</param>
             <param name="options">The options to use.</param>
@@ -666,7 +666,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SendBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
@@ -687,7 +687,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SendBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
@@ -1592,18 +1592,18 @@
             </summary>
             <param name="key">The cache key which identifies the entry in the cache.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SendBackplaneNotificationAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Tries to send a notification to other nodes connected to the same backplane, if any.
+            Tries to send a message to other nodes connected to the same backplane, if any.
             </summary>
             <param name="message">The message to send.</param>
             <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SendBackplaneNotification(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
-            Tries to send a notification to other nodes connected to the same backplane, if any.
+            Tries to send a message to other nodes connected to the same backplane, if any.
             </summary>
             <param name="message">The message to send.</param>
             <param name="options">The options to use.</param>

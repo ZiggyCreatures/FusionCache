@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
+					await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
 			}
 			else if (entry is object)
 			{
@@ -361,7 +361,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
+				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
@@ -393,11 +393,11 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await SendBackplaneNotificationInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
+				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private async ValueTask<bool> SendBackplaneNotificationInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		private async ValueTask<bool> PublishInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
 		{
 			if (_bpa is null)
 				return false;
@@ -406,12 +406,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
 
-			return SendBackplaneNotificationInternalAsync(GenerateOperationId(), message, options, token);
+			return PublishInternalAsync(GenerateOperationId(), message, options, token);
 		}
 	}
 }

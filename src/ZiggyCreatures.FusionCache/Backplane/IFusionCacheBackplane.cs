@@ -10,30 +10,30 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 	public interface IFusionCacheBackplane
 	{
 		/// <summary>
-		/// Start receiving notifications.
+		/// Subscribe to receive messages from other nodes.
 		/// </summary>
 		/// <param name="channelName">The channel name to use.</param>
 		/// <param name="handler">The backplane message handler.</param>
 		void Subscribe(string channelName, Action<BackplaneMessage> handler);
 
 		/// <summary>
-		/// Stop receiving notifications.
+		/// Unsubscribe from receiving messages from other nodes.
 		/// </summary>
 		void Unsubscribe();
 
 		/// <summary>
-		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// Send a notification to the other connected nodes, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
 		/// /// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		ValueTask SendNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token);
+		ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token);
 
 		/// <summary>
-		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// Send a notification to the other connected nodes, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
 		/// <param name="options">The options to use.</param>
-		void SendNotification(BackplaneMessage message, FusionCacheEntryOptions options);
+		void Publish(BackplaneMessage message, FusionCacheEntryOptions options);
 	}
 }

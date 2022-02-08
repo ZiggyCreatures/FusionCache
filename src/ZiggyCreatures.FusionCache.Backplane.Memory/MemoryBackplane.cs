@@ -80,13 +80,14 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 		}
 
 		/// <inheritdoc/>
-		public async ValueTask SendNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		public ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			SendNotification(message, options);
+			Publish(message, options);
+			return new ValueTask();
 		}
 
 		/// <inheritdoc/>
-		public void SendNotification(BackplaneMessage message, FusionCacheEntryOptions options)
+		public void Publish(BackplaneMessage message, FusionCacheEntryOptions options)
 		{
 			if (message is null)
 				throw new ArgumentNullException(nameof(message));

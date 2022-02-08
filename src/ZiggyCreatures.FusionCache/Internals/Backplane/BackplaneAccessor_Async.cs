@@ -46,7 +46,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				message.CacheKey!,
 				async ct =>
 				{
-					await _backplane.SendNotificationAsync(message, options, ct).ConfigureAwait(false);
+					await _backplane.PublishAsync(message, options, ct).ConfigureAwait(false);
 
 					// EVENT
 					_events.OnMessageSent(operationId, message);

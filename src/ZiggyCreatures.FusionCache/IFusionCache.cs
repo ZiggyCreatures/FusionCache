@@ -194,22 +194,22 @@ namespace ZiggyCreatures.Caching.Fusion
 		void Evict(string key);
 
 		/// <summary>
-		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// Tries to send a message to other nodes connected to the same backplane, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
 		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-		ValueTask<bool> SendBackplaneNotificationAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
-		/// Tries to send a notification to other nodes connected to the same backplane, if any.
+		/// Tries to send a message to other nodes connected to the same backplane, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
 		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-		bool SendBackplaneNotification(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// The central place for all events handling of this FusionCache instance.
