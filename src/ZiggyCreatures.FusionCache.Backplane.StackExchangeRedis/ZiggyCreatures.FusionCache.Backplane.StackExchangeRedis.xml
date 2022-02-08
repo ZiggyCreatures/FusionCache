@@ -44,13 +44,6 @@
             This is preferred over Configuration.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions.ChannelPrefix">
-            <summary>
-            The prefix that will be used to construct the Redis pub/sub channel name.
-            <br/><br/>
-            NOTE: if not specified, the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/> will be used.
-            </summary>
-        </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.StackExchangeRedisBackplaneServiceCollectionExtensions">
             <summary>
             Extension methods for setting up FusionCache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
