@@ -194,6 +194,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		void Evict(string key);
 
 		/// <summary>
+		/// Gets whether there is a backplane configured.
+		/// </summary>
+		bool HasBackplane { get; }
+
+		/// <summary>
 		/// Tries to send a message to other nodes connected to the same backplane, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>

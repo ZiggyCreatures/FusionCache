@@ -347,6 +347,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
+		public bool HasBackplane
+		{
+			get { return _bpa is object; }
+		}
+
+		/// <inheritdoc/>
 		public FusionCacheEventsHub Events { get { return _events; } }
 
 		/// <inheritdoc/>
