@@ -35,8 +35,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static readonly int GroupsCount = 4;
 		public static readonly int NodesPerGroupCount = 10;
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
-		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Redis;
-		public static readonly BackplaneType BackplaneType = BackplaneType.Redis;
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
+		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
 
 		// DISTRIBUTED CACHE
 		public static readonly bool AllowBackgroundDistributedCacheOperations = false;
