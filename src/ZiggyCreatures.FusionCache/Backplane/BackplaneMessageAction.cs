@@ -6,12 +6,16 @@
 	public enum BackplaneMessageAction
 	{
 		/// <summary>
+		/// Unknown action.
+		/// </summary>
+		Unknown = 0,
+		/// <summary>
 		/// A cache entry has been set (via either a Set or a GetOrSet method call).
 		/// </summary>
-		EntrySet = 0,
+		EntrySet = 1,
 		/// <summary>
 		/// A cache entry has been removed (via a Remove method call).
 		/// </summary>
-		EntryRemove = 1
+		EntryRemove = 2
 	}
 }
