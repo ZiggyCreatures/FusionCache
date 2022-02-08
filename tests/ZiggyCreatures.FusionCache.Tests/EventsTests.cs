@@ -21,7 +21,7 @@ namespace FusionCacheTests
 			Remove = 4,
 			FailSafeActivate = 5,
 			FactoryError = 6,
-			BackplaneMessageSent = 7,
+			BackplaneMessagePublished = 7,
 			BackplaneMessageReceived = 8
 		}
 
@@ -804,9 +804,9 @@ namespace FusionCacheTests
 			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessagePublished);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageReceived);
 
 			// SETUP HANDLERS
@@ -828,9 +828,9 @@ namespace FusionCacheTests
 			cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
 			cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
 
-			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessageSent]);
+			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessagePublished]);
 			Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessageReceived]);
-			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessageSent]);
+			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessagePublished]);
 			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessageReceived]);
 		}
 
@@ -855,9 +855,9 @@ namespace FusionCacheTests
 			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
-			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageSent);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessagePublished);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageReceived);
 
 			// SETUP HANDLERS
@@ -879,9 +879,9 @@ namespace FusionCacheTests
 			cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
 			cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
 
-			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessageSent]);
+			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessagePublished]);
 			Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessageReceived]);
-			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessageSent]);
+			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessagePublished]);
 			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessageReceived]);
 		}
 	}

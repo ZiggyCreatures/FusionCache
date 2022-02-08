@@ -75,6 +75,11 @@
             The type of action for a backplane message.
             </summary>
         </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.Unknown">
+            <summary>
+            Unknown action.
+            </summary>
+        </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntrySet">
             <summary>
             A cache entry has been set (via either a Set or a GetOrSet method call).
