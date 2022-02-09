@@ -188,7 +188,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			if (string.IsNullOrWhiteSpace(prefix))
 				prefix = options.CacheName;
 
-			return $"{prefix}.Notifications";
+			// TODO: REMEMBER TO CHANGE THIS BEFORE THE FINAL RELEASE
+			return $"{prefix}.Backplane-Beta";
 		}
 	}
 }
