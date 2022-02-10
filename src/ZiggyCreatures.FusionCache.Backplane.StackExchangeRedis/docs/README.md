@@ -10,4 +10,4 @@ Find out [more](https://github.com/jodydonetti/ZiggyCreatures.FusionCache).
 
 ## 📦 This package
 
-This package is a backplane implementation based on Redis.
+This package is a backplane implementation on [Redis](https://redis.io/) based on the awesome [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) library.
