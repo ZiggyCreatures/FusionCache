@@ -165,7 +165,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 						_handler(message);
 					}
 				}).ConfigureAwait(false);
-			}).ConfigureAwait(false);
+			});
 		}
 
 		/// <inheritdoc/>
