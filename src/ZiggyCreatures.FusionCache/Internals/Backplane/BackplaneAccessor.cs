@@ -88,8 +88,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 		public void Subscribe()
 		{
 			_backplane.Subscribe(
-				_options.GetBackplaneChannelName(),
-				ProcessMessage
+				new BackplaneSubscriptionOptions
+				{
+					ChannelName = _options.GetBackplaneChannelName(),
+					Handler = ProcessMessage
+				}
 			);
 		}
 

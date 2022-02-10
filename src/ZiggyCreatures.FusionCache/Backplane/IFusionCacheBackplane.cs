@@ -12,9 +12,8 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// <summary>
 		/// Subscribe to receive messages from other nodes.
 		/// </summary>
-		/// <param name="channelName">The channel name to use.</param>
-		/// <param name="handler">The backplane message handler.</param>
-		void Subscribe(string channelName, Action<BackplaneMessage> handler);
+		/// <param name="options">The backplane subscription options.</param>
+		void Subscribe(BackplaneSubscriptionOptions options);
 
 		/// <summary>
 		/// Unsubscribe from receiving messages from other nodes.

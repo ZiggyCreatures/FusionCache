@@ -31,6 +31,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="StackExchange.Redis" Version="2.2.88" />
+		<PackageReference Include="System.Memory" Version="4.5.4" />
 	</ItemGroup>
 
 	<ItemGroup>

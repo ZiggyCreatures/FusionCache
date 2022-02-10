@@ -18,6 +18,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 		private static readonly ConcurrentDictionary<string, List<MemoryBackplane>> _channels = new ConcurrentDictionary<string, List<MemoryBackplane>>();
 
 		private readonly MemoryBackplaneOptions _options;
+		private BackplaneSubscriptionOptions? _subscriptionOptions;
 		private readonly ILogger? _logger;
 		private string _channelName = "FusionCache.Notifications";
 		private Action<BackplaneMessage>? _handler;
@@ -49,10 +50,21 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory
 		}
 
 		/// <inheritdoc/>
-		public void Subscribe(string channelName, Action<BackplaneMessage> handler)
+		public void Subscribe(BackplaneSubscriptionOptions subscriptionOptions)
 		{
-			_channelName = channelName;
-			_handler = handler;
+			if (subscriptionOptions is null)
+				throw new ArgumentNullException(nameof(subscriptionOptions));
+
+			if (subscriptionOptions.ChannelName is null)
+				throw new NullReferenceException("The ChannelName cannot be null");
+
+			if (subscriptionOptions.Handler is null)
+				throw new NullReferenceException("The BackplaneSubscriptionOptions.Handler cannot be null");
+
+			_subscriptionOptions = subscriptionOptions;
+
+			_channelName = _subscriptionOptions.ChannelName;
+			_handler = _subscriptionOptions.Handler;
 
 			_backplanes = _channels.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
 

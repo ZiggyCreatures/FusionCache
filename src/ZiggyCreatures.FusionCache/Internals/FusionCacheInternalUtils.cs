@@ -189,7 +189,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 				prefix = options.CacheName;
 
 			// TODO: REMEMBER TO CHANGE THIS BEFORE THE FINAL RELEASE
-			return $"{prefix}.Backplane-Beta";
+			return $"{prefix}.Backplane-Beta2";
 		}
 	}
 }

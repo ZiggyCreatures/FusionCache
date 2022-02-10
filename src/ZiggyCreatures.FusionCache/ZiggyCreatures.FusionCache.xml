@@ -9,6 +9,13 @@
             Represents a message on a backplane.
             </summary>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor(System.String,System.Nullable{System.Int64})">
+            <summary>
+            Creates a new instance of a backplane message.
+            </summary>
+            <param name="sourceId">The InstanceId of the source cache.</param>
+            <param name="instantTicks">The instant this message is related to, expressed as ticks amount. If null, DateTimeOffset.UtcNow.Ticks will be used.</param>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.SourceId">
             <summary>
             The InstanceId of the source cache.
@@ -83,17 +90,31 @@
             A cache entry has been removed (via a Remove method call).
             </summary>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions">
+            <summary>
+            Represents the options available for subscribing to a backplane.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ChannelName">
+            <summary>
+            The channel name to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.Handler">
+            <summary>
+            The backplane message handler that will be used to process incoming messages.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">
             <summary>
             The core interface to create a FusionCache backplane plugin.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions)">
             <summary>
             Subscribe to receive messages from other nodes.
             </summary>
-            <param name="channelName">The channel name to use.</param>
-            <param name="handler">The backplane message handler.</param>
+            <param name="options">The backplane subscription options.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Unsubscribe">
             <summary>
