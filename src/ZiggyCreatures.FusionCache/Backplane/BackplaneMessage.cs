@@ -66,23 +66,6 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		}
 
 		/// <summary>
-		/// Creates a message.
-		/// </summary>
-		/// <param name="sourceId">The InstanceId of the source cache.</param>
-		/// <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
-		/// <param name="action">The action related to the message.</param>
-		/// <param name="cacheKey">The cache key related to the message.</param>
-		/// <returns>The message.</returns>
-		public static BackplaneMessage Create(string sourceId, long instantTicks, BackplaneMessageAction action, string? cacheKey)
-		{
-			return new BackplaneMessage(sourceId, instantTicks)
-			{
-				Action = action,
-				CacheKey = cacheKey
-			};
-		}
-
-		/// <summary>
 		/// Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
 		/// </summary>
 		/// <param name="sourceId">The InstanceId of the source cache.</param>

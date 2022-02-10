@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Tries to send a message to other nodes connected to the same backplane, if any.
 		/// </summary>
-		/// <param name="message">The message to send.</param>
+		/// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
 		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
@@ -210,7 +210,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Tries to send a message to other nodes connected to the same backplane, if any.
 		/// </summary>
-		/// <param name="message">The message to send.</param>
+		/// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
 		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>

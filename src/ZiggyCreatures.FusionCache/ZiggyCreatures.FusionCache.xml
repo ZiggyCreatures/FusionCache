@@ -42,16 +42,6 @@
             </summary>
             <returns>True if it seems valid, false otherwise.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Create(System.String,System.Int64,ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction,System.String)">
-            <summary>
-            Creates a message.
-            </summary>
-            <param name="sourceId">The InstanceId of the source cache.</param>
-            <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
-            <param name="action">The action related to the message.</param>
-            <param name="cacheKey">The cache key related to the message.</param>
-            <returns>The message.</returns>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.Int64,System.String)">
             <summary>
             Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
@@ -1623,7 +1613,7 @@
             <summary>
             Tries to send a message to other nodes connected to the same backplane, if any.
             </summary>
-            <param name="message">The message to send.</param>
+            <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
             <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
@@ -1632,7 +1622,7 @@
             <summary>
             Tries to send a message to other nodes connected to the same backplane, if any.
             </summary>
-            <param name="message">The message to send.</param>
+            <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
             <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
