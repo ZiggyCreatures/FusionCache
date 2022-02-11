@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>8.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.1.10-beta1</Version>
+		<Version>0.1.10-beta2</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
