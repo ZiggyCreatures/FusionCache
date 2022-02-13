@@ -6,3 +6,4 @@
 using System.Diagnostics.CodeAnalysis;
 
 [assembly: SuppressMessage("AsyncUsage", "AsyncFixer01:Unnecessary async/await usage", Justification = "<Pending>")]
+[assembly: SuppressMessage("Simplification", "RCS1049:Simplify boolean comparison.", Justification = "<Pending>")]
