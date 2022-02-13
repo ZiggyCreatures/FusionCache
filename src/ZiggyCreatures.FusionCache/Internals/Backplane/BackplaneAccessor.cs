@@ -119,13 +119,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			switch (message.Action)
 			{
 				case BackplaneMessageAction.EntrySet:
-					_cache.Evict(message.CacheKey!, true);
+					_cache.EvictInternal(message.CacheKey!, true);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (SET)", message.CacheKey);
 					break;
 				case BackplaneMessageAction.EntryRemove:
-					_cache.Evict(message.CacheKey!, false);
+					_cache.EvictInternal(message.CacheKey!, false);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (REMOVE)", message.CacheKey);

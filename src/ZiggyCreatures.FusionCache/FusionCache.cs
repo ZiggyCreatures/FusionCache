@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -261,7 +262,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		internal void Evict(string key, bool allowFailSafe)
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
+		public void Evict(string key, bool allowFailSafe)
+		{
+			// EMPTY
+		}
+
+		internal void EvictInternal(string key, bool allowFailSafe)
 		{
 			ValidateCacheKey(key);
 
