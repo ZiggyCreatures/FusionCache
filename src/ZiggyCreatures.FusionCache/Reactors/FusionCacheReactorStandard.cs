@@ -12,8 +12,8 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 	{
 		private MemoryCache _lockCache;
 
-		private int _lockPoolSize;
-		private object[] _lockPool;
+		private readonly int _lockPoolSize;
+		private readonly object[] _lockPool;
 		private TimeSpan _slidingExpiration = TimeSpan.FromMinutes(5);
 
 		public FusionCacheReactorStandard(int reactorSize = 8_440)

@@ -9,9 +9,9 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 	internal sealed class FusionCacheReactorProbabilistic
 		: IFusionCacheReactor
 	{
-		private int _lockPoolSize;
+		private readonly int _lockPoolSize;
 		private SemaphoreSlim[] _lockPool;
-		private string?[] _lockPoolKeys;
+		private readonly string?[] _lockPoolKeys;
 		private int _lockPoolCollisions;
 
 		public FusionCacheReactorProbabilistic(int reactorSize = 8_440)

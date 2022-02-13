@@ -24,7 +24,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		}
 
 		private IMemoryCache _cache;
-		private bool _cacheShouldBeDisposed;
+		private readonly bool _cacheShouldBeDisposed;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheMemoryEventsHub _events;
 

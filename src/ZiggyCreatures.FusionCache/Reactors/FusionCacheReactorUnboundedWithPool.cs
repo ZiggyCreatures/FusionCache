@@ -12,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 	{
 		private Dictionary<string, SemaphoreSlim> _lockCache;
 
-		private int _lockPoolSize;
+		private readonly int _lockPoolSize;
 		private object[] _lockPool;
 
 		public FusionCacheReactorUnboundedWithPool(int reactorSize = 100)
