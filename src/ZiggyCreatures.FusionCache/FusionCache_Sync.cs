@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
+					PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
 			}
 			else if (entry is object)
 			{
@@ -361,7 +361,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
+				PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
 		}
 
 		/// <inheritdoc/>
@@ -393,7 +393,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, DateTime.UtcNow.Ticks, key), options);
+				PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

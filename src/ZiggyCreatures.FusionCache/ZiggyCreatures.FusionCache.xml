@@ -9,12 +9,10 @@
             Represents a message on a backplane.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor(System.String,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor">
             <summary>
             Creates a new instance of a backplane message.
             </summary>
-            <param name="sourceId">The InstanceId of the source cache.</param>
-            <param name="instantTicks">The instant this message is related to, expressed as ticks amount. If null, DateTimeOffset.UtcNow.Ticks will be used.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.SourceId">
             <summary>
@@ -42,21 +40,17 @@
             </summary>
             <returns>True if it seems valid, false otherwise.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.Int64,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String)">
             <summary>
             Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
             </summary>
-            <param name="sourceId">The InstanceId of the source cache.</param>
-            <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.Int64,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String)">
             <summary>
             Creates a message for a single cache entry remove (via a Remove method call).
             </summary>
-            <param name="sourceId">The InstanceId of the source cache.</param>
-            <param name="instantTicks">The instant a message was related to, expressed as ticks amount.</param>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
@@ -805,7 +799,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications">
             <summary>
-            Sends notifications on the backplane to other nodes after some operations on cache entries, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
+            Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations">
@@ -893,6 +887,13 @@
             <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/> property.</param>
             <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheHardTimeout"/> property.</param>
             <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetBackplane(System.Boolean)">
+            <summary>
+            Set the duration to the specified <see cref="T:System.TimeSpan"/> value.
+            </summary>
+            <param name="enableBackplaneNotifications">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub)">

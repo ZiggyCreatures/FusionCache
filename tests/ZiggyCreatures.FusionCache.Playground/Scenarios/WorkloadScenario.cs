@@ -333,7 +333,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 				// MAYBE MANUALLY NOTIFY BACKPLANE
 				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
-					cache.Publish(BackplaneMessage.CreateForEntrySet(cache.InstanceId, DateTime.UtcNow.Ticks, CacheKey));
+					cache.Publish(BackplaneMessage.CreateForEntrySet(CacheKey));
 
 				// SAVE LAST XYZ
 				LastUpdatedGroupIdx = groupIdx;

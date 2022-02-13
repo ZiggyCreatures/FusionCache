@@ -133,7 +133,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		public bool AllowBackgroundDistributedCacheOperations { get; set; }
 
 		/// <summary>
-		/// Sends notifications on the backplane to other nodes after some operations on cache entries, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
+		/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
 		/// </summary>
 		public bool EnableBackplaneNotifications { get; set; }
 
@@ -277,6 +277,17 @@ namespace ZiggyCreatures.Caching.Fusion
 				DistributedCacheHardTimeout = hardTimeout.Value;
 			if (allowBackgroundDistributedCacheOperations is object)
 				AllowBackgroundDistributedCacheOperations = allowBackgroundDistributedCacheOperations.Value;
+			return this;
+		}
+
+		/// <summary>
+		/// Set the duration to the specified <see cref="TimeSpan"/> value.
+		/// </summary>
+		/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
+		/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+		public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
+		{
+			EnableBackplaneNotifications = enableBackplaneNotifications;
 			return this;
 		}
 

@@ -244,6 +244,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 			{
 				byte[] data = value;
 				var pos = 0;
+				var res = new BackplaneMessage();
 
 				// VERSION
 				var version = data[pos];
@@ -258,7 +259,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 				// SOURCE ID
 				var tmp = BinaryPrimitives.ReadInt32LittleEndian(new ReadOnlySpan<byte>(data, pos, 4));
 				pos += 4;
-				var res = new BackplaneMessage(_encoding.GetString(data, pos, tmp));
+				res.SourceId = _encoding.GetString(data, pos, tmp);
 				pos += tmp;
 
 				// INSTANT TICKS

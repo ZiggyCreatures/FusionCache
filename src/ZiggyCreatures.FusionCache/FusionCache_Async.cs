@@ -201,7 +201,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				// BACKPLANE
 				if (options.EnableBackplaneNotifications)
-					await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
+					await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token).ConfigureAwait(false);
 			}
 			else if (entry is object)
 			{
@@ -361,7 +361,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
+				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
@@ -393,7 +393,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// BACKPLANE
 			if (options.EnableBackplaneNotifications)
-				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(this.InstanceId, DateTime.UtcNow.Ticks, key), options, token).ConfigureAwait(false);
+				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token).ConfigureAwait(false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
