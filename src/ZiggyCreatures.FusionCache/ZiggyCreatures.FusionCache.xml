@@ -622,7 +622,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
@@ -1571,12 +1571,11 @@
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Evict(System.String,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Evict(System.String)">
             <summary>
             Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
             </summary>
             <param name="key">The cache key which identifies the entry in the cache.</param>
-            <param name="allowFailSafe">Allows the cache entry to be eventually used in a fail-safe scenario: in other words, if the entry identified by the <paramref name="key"/> exists and this is set to true, it will be marked as expired, otherwise it will be removed.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>

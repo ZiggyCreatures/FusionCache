@@ -165,10 +165,9 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
 		/// </summary>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		/// <param name="allowFailSafe">Allows the cache entry to be eventually used in a fail-safe scenario: in other words, if the entry identified by the <paramref name="key"/> exists and this is set to true, it will be marked as expired, otherwise it will be removed.</param>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
-		void Evict(string key, bool allowFailSafe = false);
+		void Evict(string key);
 
 		/// <summary>
 		/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.

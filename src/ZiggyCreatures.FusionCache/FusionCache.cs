@@ -264,7 +264,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <inheritdoc/>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
-		public void Evict(string key, bool allowFailSafe)
+		public void Evict(string key)
 		{
 			// EMPTY
 		}
