@@ -7,13 +7,11 @@
 
 # 📢 Backplane
 
-If you are in a scenario with multiple nodes, each with their own local memory cache, you typically also use a distributed cache as a secondary layer (see [here](CacheLevels.md)).
+If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary layer (see [here](CacheLevels.md)).
 
-Even using that, you may find that each memory cache may not be necessarily in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.
+But even when using that, we may find that each memory cache on each node may not be in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.
 
-To avoid this and have everything always synchronized you can use a **backplane**, a shared message bus where change notifications will be automatically sent to all other connected nodes each time a value changes in the cache, without you having to do anything.
-
-Everything is handled transparently for you.
+Luckily, there's an easy solution to this synchronization problem: use a **backplane**.
 
 <div align="center">
 
@@ -21,15 +19,38 @@ Everything is handled transparently for you.
 
 </div>
 
-Currently there are 2 official packages you can use:
+A backplane is like a message bus where change notifications will be published to all other connected nodes each time something happens to a cache entry, all automatically without us having to do anything.
+
+By default, everything is handled transparently for us 🎉
+
+## How it works
+
+As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N1`, `N2`, `N3`):
+
+- `GetOrSet` is called on `N1`
+- no data is found in the memory on `N1` or in the distributed cache (or it is expired): call to the database to grab fresh data
+- fresh data saved in memory cache on `N1` + distributed cache
+- a backplane notification is sent to notify the other nodes
+- the notification is received on `N2` and `N3` and they evict the entry from their own respective memory cache
+- as soon as a new request for the same cache entry arrives on `N2` or `N3`, the new version is taken from the distributed cache and saved locally on their memory cache
+- `N1`, `N2`, `N3` live happily synchronized ever after
+
+As we can see we didn't have to do anything more than usual: everything else is done automatically for us.
+
+
+## Packages
+
+Currently there are 2 official packages we can use:
 
 - [**Memory**](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.Memory/): this is a simple in-memory implementation (typically used only for testing)
-- [**Redis**](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/): this is the real deal, and is based on the awesome [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) library and the [pub/sub](https://redis.io/topics/pubsub) feature of Redis itself. If you are already using a Redis instance as a distributed cache, you just have to point the backplane to the same instance and you'll be good to go (but if you share the same Redis instance with multiple caches, please read below)
+- [**Redis**](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/): this is the real deal, and is based on the awesome [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) library and the [pub/sub](https://redis.io/topics/pubsub) feature of Redis itself. If we are already using a Redis instance as a distributed cache, we just have to point the backplane to the same instance and we'll be good to go (but if we share the same Redis instance with multiple caches, please read [some notes](RedisNotes.md))
+
+To use a backplane just install the package and register the backplane.
 
 
 ## Example
 
-As an example, we'll use FusionCache with [Redis](https://redis.io/), as both a distributed cache and a backplane.
+As an example, we'll use FusionCache with [Redis](https://redis.io/), as both a **distributed cache** and a **backplane**.
 
 To start, just install the Nuget packages:
 
@@ -50,35 +71,35 @@ PM> Install-Package ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis
 Then, to create and setup the cache manually, do this:
 
 ```csharp
+// INSTANTIATE FUSION CACHE
+var cache = new FusionCache(new FusionCacheOptions());
+
 // INSTANTIATE A REDIS DISTRIBUTED CACHE (IDistributedCache)
 var redis = new RedisCache(new RedisCacheOptions() {
-    Configuration = "YOUR CONNECTION STRING HERE"
+    Configuration = "OUR CONNECTION STRING HERE"
 });
 
 // INSTANTIATE THE FUSION CACHE SERIALIZER
 var serializer = new FusionCacheNewtonsoftJsonSerializer();
-
-// INSTANTIATE FUSION CACHE
-var cache = new FusionCache(new FusionCacheOptions());
 
 // SETUP THE DISTRIBUTED 2ND LAYER
 cache.SetupDistributedCache(redis, serializer);
 
 // CREATE THE BACKPLANE
 var backplane = new RedisBackplane(new RedisBackplaneOptions() {
-    Configuration = "YOUR CONNECTION STRING HERE"
+    Configuration = "OUR CONNECTION STRING HERE"
 });
 
 // SETUP THE BACKPLANE
 cache.SetupBackplane(backplane);
 ```
 
-If instead you prefer a **DI (Dependency Injection)** approach you can do this:
+If instead we prefer a **DI (Dependency Injection)** approach we can do this:
 
 ```csharp
 // REGISTER REDIS AS A DISTRIBUTED CACHE
 services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "YOUR CONNECTION STRING HERE";
+    options.Configuration = "OUR CONNECTION STRING HERE";
 });
 
 // REGISTER THE FUSION CACHE SERIALIZER
@@ -86,7 +107,7 @@ services.AddFusionCacheNewtonsoftJsonSerializer();
 
 // REGISTER THE FUSION CACHE BACKPLANE
 services.AddFusionCacheStackExchangeRedisBackplane(options => {
-    options.Configuration = "YOUR CONNECTION STRING HERE";
+    options.Configuration = "OUR CONNECTION STRING HERE";
 });
 
 // REGISTER FUSION CACHE
@@ -95,30 +116,83 @@ services.AddFusionCache();
 
 and FusionCache will automatically discover the **distributed cache** and the **backplane** and immediately starts using them.
 
+The most common scenario is probably to use both a distributed cache and a backplane, working together: the former used as a shared state that all nodes can use, and the latter used to notify all the nodes about synchronization events so that every node is perfectly updated.
 
-## Redis: a couple of details
+But is it really necessary to use a distributed cache at all?
 
-<div align="center">
-
-![Redis logo](images/redis-logo.png)
-
-</div>
-
-Redis has a couple of specific design and implementation details that you should be aware of:
-
-- **multiple databases**: Redis has the concept of multiple databases. A single Redis instance can (almost, see below) completely separate data in different isolated database. This is the feature you should use if you want a single Redis instance to manage data about completely different caches, so that the same cache key can be used without collisions. An example may be 2 logical caches, one for your CMS website and one for your Consumer website, where the cache entry for the key "user/123" may contain different values and they should not confilct with one another because they are from very different logical domains (see [here](https://stackexchange.github.io/StackExchange.Redis/Configuration.html))
-
-- **pub/sub scoping**: even though the cache entries in different databases inside the same Redis instance are completely isolated, the same cannot be said about the pub/sub messages. For whatever design decision they are received by any connected client on the same **channel** (a Redis concept to isolate different kind of messages). In theory you should specify different channel names for different logical caches sharing the same Redis instance (when you use more than one), but this is already taken care of for you thanks to the use of the `CacheName` option in the `FusionCacheOptions` object, because by default the channel name uses the cache name as a **prefix**. Having said that, if instead you are using a single Redis instance for the same deployed app twice in different environments (like dev/test), you will probably have the same cache name and, so, the same channel name. In that case you can specify a different channel prefix via the `ChannelPrefix` option in the `FusionCacheOptions` object
-
-- **notifications sender**: in Redis, when a message is sent on a channel, all connected clients will receive it, **including the sender itself**. This would normally be a problem because setting an entry in the cache would evict that entry in all nodes including the one that just set it and that would be a waste or, even worse, a problem. But FusionCache automatically handles this by using a globally unique instance identifier (the `IFusionCache.InstanceId` property) so that the sender will automatically ignore its own notifications, without you having to do anything
+Let's find out.
 
 
-## Only memory cache + backplane, but no distributed cache?
+## 🤔 Distributed cache: is it really necessary?
 
-This idea seems like a nice one: in a multi-node scenario we may would like to use only memory caches on each node + the backplane for cache synchronization, without having to use a shared distributed cache.
+The idea seems like a nice one: in a multi-node scenario we may want to use only memory caches on each node + the backplane for cache synchronization, without having to use a shared distributed cache.
 
-<s>Well, [not so fast](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/36).</s>
+But remember: when using a backplane, FusionCache automatically publish notifications everytime something "changes" in the cache, namely when we directly call `Set` or `Remove` (of course) but also when calling `GetOrSet` AND the factory actually go to the database (or whatever) to get the fresh piece of data.
 
-Actually, yes!
+So, without the distributed cache as a shared state, every notification would end up requiring a new call to the database, again and again, every single time a new request comes in.
 
-**TODO:** finish this and explain how to disable automatic backplane publish on set/remove + manual publish, etc...
+Why? Let's look at an example flow of a `GetOrSet` operation with 3 nodes (`N1`, `N2`, `N3`), without a distributed cache:
+
+- `GetOrSet` is called on `N1`
+- no data is found in the memory on `N1` (or it is expired): call to the database to grab fresh data
+- fresh data saved in memory cache on `N1`
+- a backplane notification is sent to notify the other nodes
+- the notification is received on `N2` and `N3` and they evict the entry from their own respective memory cache
+- a new request for the same cache entry arrives on `N2` or `N3`
+- no data is found in the memory on `N2`: call to the database to grab fresh data
+- fresh data saved in memory cache on `N2`
+- a backplane notification is sent to notify the other nodes
+- the notification is received on `N1` and `N3` and they evict the entry from their own respective memory cache
+- so `N1` just erased the entry in the memory cache
+
+As we can see this would basically make the entire cache useless.
+
+This is because not having a shared state means we don't know when something actually changed, since when we get fresh data from the database it may be changed since the last time, so we need to notify the other nodes, etc going into an infinite loop.
+
+So how can we solve this?
+
+
+## 🙋‍♂️ Look ma: no distributed cache!
+
+The solution is to **disable automatic backplane notifications** and publish them only when we want to signal an actual change.
+
+And how can we do this, in practice?
+
+To decide if notifications should be published on the backplane FusionCache looks at the `EnableBackplaneNotifications` option on the `FusionCacheEntryOptions` object: this means that we can be granular and specify it for every single operation, but as we know this also means that we can set it to `false` in the global `DefaultEntryOptions` once, and not having to disable it every time.
+
+But then, when we **want** to publish a notification, how can we do it? Easy peasy, simply enable it only for that specific operation.
+
+Let's look at a concrete example.
+
+
+## Example
+
+```csharp
+// INITIAL SETUP: DISABLE AUTOMATIC NOTIFICATIONS
+cache.DefaultEntryOptions.EnableBackplaneNotifications = false;
+
+// [...]
+
+// LATER ON, SUPPOSE WE JUST SAVED THE PRODUCT IN THE DATABASE, SO WE NEED TO UPDATE THE CACHE
+cache.Set(
+    $"product:{product.Id}",
+    product,
+    options => options.SetDuration(TimeSpan.FromMinutes(5)).SetBackplane(true)
+);
+
+// LATER ON, SUPPOSE WE JUST REMOVED THE PRODUCT FROM THE DATABASE, SO WE NEED TO REMOVE IT FROM THE CACHE TOO
+cache.Remove(
+    $"product:{product.Id}",
+    options => options.SetBackplane(true)
+);
+```
+
+
+## Conclusion
+
+As we saw there are basically 2 ways of using a backplane:
+
+- **MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything and everything just works
+- **MEMORY + BACKPLANE**: probably the less common, where we have to disable automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes
+
+So remember: without a distributed cache we should **⚠ DISABLE** backplane notifications by default, otherwise your system may suffer.
