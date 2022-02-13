@@ -31,33 +31,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		FusionCacheEntryOptions DefaultEntryOptions { get; }
 
 		/// <summary>
-		/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
-		/// </summary>
-		/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
-		/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
-		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
-		IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer);
-
-		/// <summary>
-		/// Removes the secondary caching layer.
-		/// </summary>
-		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
-		IFusionCache RemoveDistributedCache();
-
-		/// <summary>
-		/// Sets a backplane, by providing an <see cref="IFusionCacheBackplane"/> instance.
-		/// </summary>
-		/// <param name="backplane">The <see cref="IFusionCacheBackplane"/> instance to use.</param>
-		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
-		IFusionCache SetupBackplane(IFusionCacheBackplane backplane);
-
-		/// <summary>
-		/// Removes the backplane.
-		/// </summary>
-		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
-		IFusionCache RemoveBackplane();
-
-		/// <summary>
 		/// Creates a new <see cref="FusionCacheEntryOptions"/> instance by duplicating the <see cref="DefaultEntryOptions"/> and optionally applying a setup action.
 		/// </summary>
 		/// <param name="setupAction">An optional setup action to further configure the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
@@ -187,11 +160,39 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
+		///// <summary>
+		///// Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
+		///// </summary>
+		///// <param name="key">The cache key which identifies the entry in the cache.</param>
+		///// <param name="allowFailSafe">Allows the cache entry to be eventually used in a fail-safe scenario: in other words, if the entry identified by the <paramref name="key"/> exists and this is set to true, it will be marked as expired, otherwise it will be removed.</param>
+		//void Evict(string key, bool allowFailSafe = false);
+
 		/// <summary>
-		/// Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
+		/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
 		/// </summary>
-		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		void Evict(string key);
+		/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
+		/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer);
+
+		/// <summary>
+		/// Removes the secondary caching layer.
+		/// </summary>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache RemoveDistributedCache();
+
+		/// <summary>
+		/// Sets a backplane, by providing an <see cref="IFusionCacheBackplane"/> instance.
+		/// </summary>
+		/// <param name="backplane">The <see cref="IFusionCacheBackplane"/> instance to use.</param>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache SetupBackplane(IFusionCacheBackplane backplane);
+
+		/// <summary>
+		/// Removes the backplane.
+		/// </summary>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache RemoveBackplane();
 
 		/// <summary>
 		/// Gets whether there is a backplane configured.

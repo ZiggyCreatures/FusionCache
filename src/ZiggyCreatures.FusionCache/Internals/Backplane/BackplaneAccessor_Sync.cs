@@ -37,6 +37,15 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			if (IsCurrentlyUsable(operationId, message.CacheKey) == false)
 				return false;
 
+			// IGNORE MESSAGES -NOT- FROM THIS SOURCE
+			if (message.SourceId != _cache.InstanceId)
+			{
+				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send a backplane message with a SourceId different than the local one (IFusionCache.InstanceId)", operationId, message.CacheKey);
+
+				return false;
+			}
+
 			token.ThrowIfCancellationRequested();
 
 			ExecuteOperation(

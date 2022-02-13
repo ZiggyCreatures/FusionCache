@@ -5,7 +5,7 @@ using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
-	internal class MemoryCacheAccessor
+	internal sealed class MemoryCacheAccessor
 		: IDisposable
 	{
 		public MemoryCacheAccessor(IMemoryCache? memoryCache, ILogger? logger, FusionCacheMemoryEventsHub events)
@@ -94,20 +94,41 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			_events.OnRemove(operationId, key);
 		}
 
-		public void EvictEntry(string operationId, string key)
+		public void EvictEntry(string operationId, string key, bool allowFailSafe)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): evicting data (from memory)", operationId, key);
 
-			_cache.Remove(key);
+			if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry) == false)
+				return;
 
-			// EVENT
-			_events.OnRemove(operationId, key);
+			if (entry is null)
+				return;
+
+			if (allowFailSafe && entry.Metadata is object && entry.Metadata.IsLogicallyExpired() == false)
+			{
+				// MAKE THE ENTRY LOGICALLY EXPIRE
+				entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
+
+				// NOTE: WE DON'T FIRE THIS BECAUSE NORMALLY WE ALREADY DON'T FIRE IT WHEN AN ENTRY "LOGICALLY" EXPIRES
+				//
+				//// EVENT
+				//_events.OnEviction(operationId, key, EvictionReason.None);
+			}
+			else
+			{
+				// REMOVE THE ENTRY
+				_cache.Remove(key);
+
+				// EVENT
+				_events.OnRemove(operationId, key);
+			}
 		}
 
 		// IDISPOSABLE
 		private bool disposedValue = false;
-		protected virtual void Dispose(bool disposing)
+		//protected virtual void Dispose(bool disposing)
+		private void Dispose(bool disposing)
 		{
 			if (!disposedValue)
 			{

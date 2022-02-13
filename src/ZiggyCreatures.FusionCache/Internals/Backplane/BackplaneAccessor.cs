@@ -7,14 +7,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 {
 	internal partial class BackplaneAccessor
 	{
-		private readonly IFusionCache _cache;
+		private readonly FusionCache _cache;
 		private readonly IFusionCacheBackplane _backplane;
 		private readonly FusionCacheOptions _options;
 		private readonly ILogger? _logger;
 		private readonly FusionCacheBackplaneEventsHub _events;
 		private readonly SimpleCircuitBreaker _breaker;
 
-		public BackplaneAccessor(IFusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
+		public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
 		{
 			if (cache is null)
 				throw new ArgumentNullException(nameof(cache));
@@ -119,13 +119,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			switch (message.Action)
 			{
 				case BackplaneMessageAction.EntrySet:
-					_cache.Evict(message.CacheKey!);
+					_cache.Evict(message.CacheKey!, true);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (SET)", message.CacheKey);
 					break;
 				case BackplaneMessageAction.EntryRemove:
-					_cache.Evict(message.CacheKey!);
+					_cache.Evict(message.CacheKey!, false);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (REMOVE)", message.CacheKey);

@@ -619,6 +619,12 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.DefaultEntryOptions">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String,System.Boolean)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <inheritdoc/>
         </member>
@@ -629,12 +635,6 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveBackplane">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
             <inheritdoc/>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.HasBackplane">
@@ -1441,33 +1441,6 @@
             The default set of options that will be used either when none are provided or as a starting point for creating a new one with the fluent api.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
-            <summary>
-            Sets a secondary caching layer, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
-            </summary>
-            <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
-            <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
-            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
-            <summary>
-            Removes the secondary caching layer.
-            </summary>
-            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
-            <summary>
-            Sets a backplane, by providing an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance.
-            </summary>
-            <param name="backplane">The <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance to use.</param>
-            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveBackplane">
-            <summary>
-            Removes the backplane.
-            </summary>
-            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance by duplicating the <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> and optionally applying a setup action.
@@ -1598,11 +1571,32 @@
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Evict(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>
-            Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
+            Sets a secondary caching layer, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
             </summary>
-            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
+            <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
+            <summary>
+            Removes the secondary caching layer.
+            </summary>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
+            <summary>
+            Sets a backplane, by providing an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance.
+            </summary>
+            <param name="backplane">The <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveBackplane">
+            <summary>
+            Removes the backplane.
+            </summary>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.HasBackplane">
             <summary>

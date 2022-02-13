@@ -98,75 +98,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
-		{
-			if (distributedCache is null)
-				throw new ArgumentNullException(nameof(distributedCache));
-
-			if (serializer is null)
-				throw new ArgumentNullException(nameof(serializer));
-
-			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
-
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
-
-			return this;
-		}
-
-		/// <inheritdoc/>
-		public IFusionCache RemoveDistributedCache()
-		{
-			_dca = null;
-
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION: distributed cache removed");
-
-			return this;
-		}
-
-		/// <inheritdoc/>
-		public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
-		{
-			if (backplane is null)
-				throw new ArgumentNullException(nameof(backplane));
-
-			if (_bpa is object)
-			{
-				RemoveBackplane();
-			}
-
-			lock (_lockBackplane)
-			{
-				_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
-				_bpa.Subscribe();
-
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
-			}
-
-			return this;
-		}
-
-		/// <inheritdoc/>
-		public IFusionCache RemoveBackplane()
-		{
-			lock (_lockBackplane)
-			{
-				if (_bpa is object)
-				{
-					_bpa.Unsubscribe();
-					_bpa = null;
-
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION: backplane removed");
-				}
-			}
-
-			return this;
-		}
-
-		/// <inheritdoc/>
 		public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 		{
 			var res = _options.DefaultEntryOptions.Duplicate(duration);
@@ -330,7 +261,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public void Evict(string key)
+		internal void Evict(string key, bool allowFailSafe)
 		{
 			ValidateCacheKey(key);
 
@@ -343,7 +274,76 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling Evict", operationId, key);
 
-			_mca.EvictEntry(operationId, key);
+			_mca.EvictEntry(operationId, key, allowFailSafe);
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+		{
+			if (distributedCache is null)
+				throw new ArgumentNullException(nameof(distributedCache));
+
+			if (serializer is null)
+				throw new ArgumentNullException(nameof(serializer));
+
+			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache RemoveDistributedCache()
+		{
+			_dca = null;
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION: distributed cache removed");
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
+		{
+			if (backplane is null)
+				throw new ArgumentNullException(nameof(backplane));
+
+			if (_bpa is object)
+			{
+				RemoveBackplane();
+			}
+
+			lock (_lockBackplane)
+			{
+				_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
+				_bpa.Subscribe();
+
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.LogDebug("FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
+			}
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache RemoveBackplane()
+		{
+			lock (_lockBackplane)
+			{
+				if (_bpa is object)
+				{
+					_bpa.Unsubscribe();
+					_bpa = null;
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.LogDebug("FUSION: backplane removed");
+				}
+			}
+
+			return this;
 		}
 
 		/// <inheritdoc/>
