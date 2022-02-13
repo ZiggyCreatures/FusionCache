@@ -52,7 +52,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		// OTHERS
 		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
 		public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
-		public static readonly bool UpdateCacheOnSaveToDb = false;
+		public static readonly bool UpdateCacheOnSaveToDb = true;
 		public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(100);
 	}
 
@@ -326,14 +326,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				{
 					cache.Set(CacheKey, LastValue);
 				}
-				else
-				{
-					cache.Remove(CacheKey);
-				}
-
-				// MAYBE MANUALLY NOTIFY BACKPLANE
-				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
-					cache.Publish(BackplaneMessage.CreateForEntrySet(CacheKey));
+				//else
+				//{
+				//	cache.Remove(CacheKey, options => options.SetBackplane(false));
+				//}
 
 				// SAVE LAST XYZ
 				LastUpdatedGroupIdx = groupIdx;
