@@ -42,10 +42,12 @@ As we can see we didn't have to do anything more than usual: everything else is 
 
 Currently there are 2 official packages we can use:
 
-- [**Memory**](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.Memory/): this is a simple in-memory implementation (typically used only for testing)
-- [**Redis**](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/): this is the real deal, and is based on the awesome [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) library and the [pub/sub](https://redis.io/topics/pubsub) feature of Redis itself. If we are already using a Redis instance as a distributed cache, we just have to point the backplane to the same instance and we'll be good to go (but if we share the same Redis instance with multiple caches, please read [some notes](RedisNotes.md))
+| Package Name                   | Version | Downloads |
+|--------------------------------|:---------------:|:---------:|
+| [ZiggyCreatures.FusionCache.Backplane.Memory](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.Memory/) <br/> A simple in-memory implementation (typically used only for testing) | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Backplane.Memory.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.Memory/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Backplane.Memory) |
+| [ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/) <br/> A [Redis](https://redis.io/) implementation based on the awesome [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) library | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis) |
 
-To use a backplane just install the package and register the backplane.
+If we are already using a Redis instance as a distributed cache, we just have to point the backplane to the same instance and we'll be good to go (but if we share the same Redis instance with multiple caches, please read [some notes](RedisNotes.md)).
 
 
 ## Example
@@ -192,7 +194,7 @@ cache.Remove(
 
 As we saw there are basically 2 ways of using a backplane:
 
-- **MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything and everything just works
-- **MEMORY + BACKPLANE**: probably the less common, where we have to disable automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes
+- **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything and everything just works
+- **2️⃣ MEMORY + BACKPLANE**: probably the less common, where we have to disable automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes
 
 So remember: without a distributed cache we should **⚠ DISABLE** backplane notifications by default, otherwise your system may suffer.
