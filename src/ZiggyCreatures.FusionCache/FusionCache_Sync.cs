@@ -406,7 +406,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		internal bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;

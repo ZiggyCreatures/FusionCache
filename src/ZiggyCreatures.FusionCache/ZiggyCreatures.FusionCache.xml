@@ -1610,24 +1610,6 @@
             Gets whether there is a backplane configured.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <summary>
-            Tries to send a message to other nodes connected to the same backplane, if any.
-            </summary>
-            <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
-            <param name="options">The options to use.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <summary>
-            Tries to send a message to other nodes connected to the same backplane, if any.
-            </summary>
-            <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
-            <param name="options">The options to use.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.Events">
             <summary>
             The central place for all events handling of this FusionCache instance.

@@ -201,23 +201,23 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		bool HasBackplane { get; }
 
-		/// <summary>
-		/// Tries to send a message to other nodes connected to the same backplane, if any.
-		/// </summary>
-		/// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
-		/// <param name="options">The options to use.</param>
-		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-		ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		///// <summary>
+		///// Tries to send a message to other nodes connected to the same backplane, if any.
+		///// </summary>
+		///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
+		///// <param name="options">The options to use.</param>
+		///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		///// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		//ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
-		/// <summary>
-		/// Tries to send a message to other nodes connected to the same backplane, if any.
-		/// </summary>
-		/// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
-		/// <param name="options">The options to use.</param>
-		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
-		bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+		///// <summary>
+		///// Tries to send a message to other nodes connected to the same backplane, if any.
+		///// </summary>
+		///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
+		///// <param name="options">The options to use.</param>
+		///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		///// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		//bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// The central place for all events handling of this FusionCache instance.
