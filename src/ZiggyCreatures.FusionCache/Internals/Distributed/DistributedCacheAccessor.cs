@@ -7,7 +7,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 {
-	internal partial class DistributedCacheAccessor
+	internal sealed partial class DistributedCacheAccessor
 	{
 		private const string WireFormatVersion = "v1";
 		private const char WireFormatSeparator = ':';

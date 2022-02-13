@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	sealed internal class FusionCacheReactorProbabilistic
+	internal sealed class FusionCacheReactorProbabilistic
 		: IFusionCacheReactor
 	{
 		private int _lockPoolSize;

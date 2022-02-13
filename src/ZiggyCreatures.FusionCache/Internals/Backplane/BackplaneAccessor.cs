@@ -5,7 +5,7 @@ using ZiggyCreatures.Caching.Fusion.Events;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 {
-	internal partial class BackplaneAccessor
+	internal sealed partial class BackplaneAccessor
 	{
 		private readonly FusionCache _cache;
 		private readonly IFusionCacheBackplane _backplane;

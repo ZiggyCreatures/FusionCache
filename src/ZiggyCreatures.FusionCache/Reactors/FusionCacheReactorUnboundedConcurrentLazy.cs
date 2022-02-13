@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	sealed internal class FusionCacheReactorUnboundedConcurrentLazy
+	internal sealed class FusionCacheReactorUnboundedConcurrentLazy
 		: IFusionCacheReactor
 	{
 		private ConcurrentDictionary<string, Lazy<SemaphoreSlim>> _lockCache;
