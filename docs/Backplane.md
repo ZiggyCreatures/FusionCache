@@ -125,7 +125,7 @@ But is it really necessary to use a distributed cache at all?
 Let's find out.
 
 
-## 🤔 Distributed cache: is it really necessary?
+## Distributed cache: is it really necessary?
 
 The idea seems like a nice one: in a multi-node scenario we may want to use only memory caches on each node + the backplane for cache synchronization, without having to use a shared distributed cache.
 
@@ -154,7 +154,7 @@ This is because not having a shared state means we don't know when something act
 So how can we solve this?
 
 
-## 🙋‍♂️ Look ma: no distributed cache!
+## Look ma: no distributed cache!
 
 The solution is to **disable automatic backplane notifications** and publish them only when we want to signal an actual change.
 
