@@ -368,7 +368,7 @@ Now everything is great on every node, but each node goes to the database for th
 
 We can do better: we can add a **distributed cache**.
 
-On premise or in the cloud, you can choose whichever you want (Redis, Memcached, MongoDB, etc) as long as an implementation of the standard `IDistributedCache` interface exists, and there are a lot of them.
+On premise or in the cloud, you can choose whichever you want (Redis, Memcached, MongoDB, etc) as long as an implementation of the standard `IDistributedCache` interface exists, and there are [a lot of them](CacheLevels.md).
 
 But distributed caches do not work with *object instances* like memory caches, they work with *binary data* where the value you get/set is of type `byte[]` so FusionCache also needs a **serializer** to be able to integrate with them.
 
@@ -425,7 +425,7 @@ Let's say this happens 30% of the time, this means 30% less requests than before
 
 **TOTAL REQUESTS IN 10 MIN**: around `27,000` (before was `39,000`)
 
-We can also observe that, even though when the distributed cache is down it does not take down the service (since it is considered a secondary layer) we can see that our latency got impacted by it and some some parts of our nice graph **became yellow again**.
+We can also observe that, even though when the distributed cache is down it does not take down the service (since it is considered a secondary layer) we can see that our latency got impacted by it and some parts of our nice graph **became yellow again**.
 
 Keep reading to find out how to easily solve that.
 
@@ -476,7 +476,7 @@ public void ConfigureServices(IServiceCollection services)
         };
 
         // DISTIBUTED CACHE CIRCUIT-BREAKER
-		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
     });
     [...]
 }
@@ -530,7 +530,7 @@ public void ConfigureServices(IServiceCollection services)
             JitterMaxDuration = TimeSpan.FromSeconds(2)
         };
         
-		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
     });
     [...]
 }
@@ -604,7 +604,7 @@ public void ConfigureServices(IServiceCollection services)
             JitterMaxDuration = TimeSpan.FromSeconds(2)
         };
         
-		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
     });
     [...]
 }
@@ -663,7 +663,7 @@ Here is an example where we set (somewhere else, depending of the specific logge
             JitterMaxDuration = TimeSpan.FromSeconds(2)
         };
         
-		options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
 
         // CUSTOM LOG LEVELS
         options.FailSafeActivationLogLevel = LogLevel.Debug;
