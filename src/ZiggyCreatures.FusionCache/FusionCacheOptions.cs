@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -80,6 +81,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// An optional <see cref="string"/> prefix to prepend to any cache key passed to the cache methods.
 		/// </summary>
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("This feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore. For more info see https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33", true)]
 		public string? CacheKeyPrefix { get; set; }
 

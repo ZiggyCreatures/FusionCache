@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -68,12 +69,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// A function to apply when creating a <see cref="MemoryCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
 		/// </summary>
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("Please stop using this, it was an undocumented work in progress", true)]
 		public Action<MemoryCacheEntryOptions, object?>? MemoryOptionsModifier { get; set; }
 
 		/// <summary>
 		/// A function to apply when creating a <see cref="DistributedCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
 		/// </summary>
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("Please stop using this, it was an undocumented work in progress", true)]
 		public Action<DistributedCacheEntryOptions, object?>? DistributedOptionsModifier { get; set; }
 
@@ -416,6 +419,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="duration">A custom <see cref="Duration"/> that, if specified, will overwrite the current one.</param>
 		/// <param name="includeOptionsModifiers">If false, the <see cref="MemoryOptionsModifier"/> and <see cref="DistributedOptionsModifier"/> will not be duplicated.</param>
 		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/> object.</returns>
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("Please stop using this, it was an undocumented work in progress: instead use Duplicate(TimeSpan? duration)", true)]
 		public FusionCacheEntryOptions Duplicate(TimeSpan? duration, bool includeOptionsModifiers)
 		{

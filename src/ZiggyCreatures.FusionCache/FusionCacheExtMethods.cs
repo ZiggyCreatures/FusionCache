@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -432,6 +433,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="duration">An optional duration to directly change the <see cref="FusionCacheEntryOptions.Duration"/> of the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
 		/// <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
 		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/>.</returns>		
+		[EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("Please use the signature without the last bool param", true)]
 		public static FusionCacheEntryOptions CreateEntryOptions(this IFusionCache cache, Action<FusionCacheEntryOptions>? setupAction, TimeSpan? duration, bool includeOptionsModifiers)
 		{
