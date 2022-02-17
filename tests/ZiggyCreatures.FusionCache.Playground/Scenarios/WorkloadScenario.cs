@@ -40,8 +40,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		// DISTRIBUTED CACHE
 		public static readonly bool AllowBackgroundDistributedCacheOperations = false;
-		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
-		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheSoftTimeout = TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(100);
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
 		// BACKPLANE
