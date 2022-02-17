@@ -78,7 +78,7 @@ var cache = new FusionCache(new FusionCacheOptions());
 
 // INSTANTIATE A REDIS DISTRIBUTED CACHE (IDistributedCache)
 var redis = new RedisCache(new RedisCacheOptions() {
-    Configuration = "OUR CONNECTION STRING HERE"
+    Configuration = "CONNECTION STRING"
 });
 
 // INSTANTIATE THE FUSION CACHE SERIALIZER
@@ -89,7 +89,7 @@ cache.SetupDistributedCache(redis, serializer);
 
 // CREATE THE BACKPLANE
 var backplane = new RedisBackplane(new RedisBackplaneOptions() {
-    Configuration = "OUR CONNECTION STRING HERE"
+    Configuration = "CONNECTION STRING"
 });
 
 // SETUP THE BACKPLANE
@@ -101,7 +101,7 @@ If instead we prefer a **DI (Dependency Injection)** approach we can do this:
 ```csharp
 // REGISTER REDIS AS A DISTRIBUTED CACHE
 services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "OUR CONNECTION STRING HERE";
+    options.Configuration = "CONNECTION STRING";
 });
 
 // REGISTER THE FUSION CACHE SERIALIZER
@@ -109,7 +109,7 @@ services.AddFusionCacheNewtonsoftJsonSerializer();
 
 // REGISTER THE FUSION CACHE BACKPLANE
 services.AddFusionCacheStackExchangeRedisBackplane(options => {
-    options.Configuration = "OUR CONNECTION STRING HERE";
+    options.Configuration = "CONNECTION STRING";
 });
 
 // REGISTER FUSION CACHE
