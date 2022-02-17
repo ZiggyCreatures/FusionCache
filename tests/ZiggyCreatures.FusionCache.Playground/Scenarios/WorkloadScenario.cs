@@ -53,7 +53,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
 		public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
 		public static readonly bool UpdateCacheOnSaveToDb = true;
-		public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(150);
 	}
 
 	public static class WorkloadScenario
