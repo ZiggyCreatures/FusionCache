@@ -4,20 +4,25 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Events;
 
-namespace ZiggyCreatures.Caching.Fusion.Tests
+namespace FusionCacheTests
 {
 	public class EventsTests
 	{
 		public enum EntryActionKind
 		{
 			Miss = 0,
-			Hit = 1,
-			StaleHit = 2,
+			HitNormal = 1,
+			HitStale = 2,
 			Set = 3,
 			Remove = 4,
 			FailSafeActivate = 5,
+			FactoryError = 6,
+			BackplaneMessagePublished = 7,
+			BackplaneMessageReceived = 8
 		}
 
 		public class EntryActionsStats
@@ -55,10 +60,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+				EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
 
 				// SETUP HANDLERS
 				cache.Events.Miss += onMiss;
@@ -66,6 +72,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Set += onSet;
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
+				cache.Events.FactoryError += onFactoryError;
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("foo");
@@ -86,7 +93,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// SET: +1
+				// FACTORY ERROR: +1
 				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
@@ -97,7 +104,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// SET: +1
+				// FACTORY ERROR: +1
 				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
@@ -114,13 +121,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Set -= onSet;
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
+				cache.Events.FactoryError -= onFactoryError;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
-				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
-				Assert.Equal(3, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
+				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
+				Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
 			}
 		}
 
@@ -141,10 +150,11 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+				EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
 
 				// SETUP HANDLERS
 				cache.Events.Miss += onMiss;
@@ -152,6 +162,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Set += onSet;
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
+				cache.Events.FactoryError += onFactoryError;
 
 				// MISS: +1
 				cache.TryGet<int>("foo");
@@ -172,7 +183,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// SET: +1
+				// FACTORY ERROR: +1
 				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
@@ -183,7 +194,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
-				// SET: +1
+				// FACTORY ERROR: +1
 				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
@@ -200,13 +211,15 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Set -= onSet;
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
+				cache.Events.FactoryError -= onFactoryError;
 
 				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(2, stats.Data[EntryActionKind.Hit]);
-				Assert.Equal(2, stats.Data[EntryActionKind.StaleHit]);
-				Assert.Equal(3, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
+				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
+				Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
 			}
 		}
 
@@ -227,7 +240,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -239,7 +252,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
-				// MISS: +1
 				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
 
@@ -250,9 +262,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(0, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(2, stats.Data.Values.Sum());
+				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
 
@@ -273,7 +285,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -285,7 +297,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
-				// MISS: +1
 				// SET: +1
 				cache.GetOrSet<int>("foo", _ => 42);
 
@@ -296,9 +307,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(0, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(2, stats.Data.Values.Sum());
+				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
 
@@ -319,7 +330,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -337,7 +348,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				// LET IT BECOME STALE
 				await Task.Delay(duration);
 
-				// HIT (STALE): +1
 				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
 
@@ -348,9 +358,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(2, stats.Data.Values.Sum());
+				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
 
@@ -371,7 +381,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -389,7 +399,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				// LET IT BECOME STALE
 				Thread.Sleep(duration);
 
-				// HIT (STALE): +1
 				// SET: +1
 				cache.GetOrSet<int>("foo", _ => 42);
 
@@ -400,9 +409,9 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(2, stats.Data.Values.Sum());
+				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
 
@@ -423,7 +432,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -467,7 +476,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -511,7 +520,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -539,7 +548,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
@@ -561,7 +570,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -589,7 +598,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(1, stats.Data[EntryActionKind.StaleHit]);
+				Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
 				Assert.Equal(1, stats.Data.Values.Sum());
 			}
 		}
@@ -611,7 +620,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -661,7 +670,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
@@ -711,7 +720,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 
 				// SETUP HANDLERS
@@ -751,7 +760,7 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 
 				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
-				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.StaleHit : EntryActionKind.Hit);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
 				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
 
 				// SETUP HANDLERS
@@ -772,6 +781,108 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(3, stats.Data.Values.Sum());
 			}
+		}
+
+		[Fact]
+		public async Task BackplaneEventsAsync()
+		{
+			var stats2 = new EntryActionsStats();
+			var stats3 = new EntryActionsStats();
+
+			var entryOptions = new FusionCacheEntryOptions
+			{
+				Duration = TimeSpan.FromMinutes(10),
+				AllowBackgroundDistributedCacheOperations = false,
+				AllowBackgroundBackplaneOperations = false
+			};
+
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+
+			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessagePublished);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageReceived);
+
+			// SETUP HANDLERS
+			cache2.Events.Backplane.MessagePublished += onMessagePublished2;
+			cache2.Events.Backplane.MessageReceived += onMessageReceived2;
+			cache3.Events.Backplane.MessagePublished += onMessagePublished3;
+			cache3.Events.Backplane.MessageReceived += onMessageReceived3;
+
+			// CACHE 1
+			await cache1.SetAsync("foo", 21);
+			await cache1.SetAsync("foo", 42);
+
+			// CACHE 2
+			await cache2.RemoveAsync("foo");
+
+			// REMOVE HANDLERS
+			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
+			cache2.Events.Backplane.MessageReceived -= onMessageReceived2;
+			cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
+			cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
+
+			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessagePublished]);
+			Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessageReceived]);
+			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessagePublished]);
+			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessageReceived]);
+		}
+
+		[Fact]
+		public void BackplaneEvents()
+		{
+			var stats2 = new EntryActionsStats();
+			var stats3 = new EntryActionsStats();
+
+			var entryOptions = new FusionCacheEntryOptions
+			{
+				Duration = TimeSpan.FromMinutes(10),
+				AllowBackgroundDistributedCacheOperations = false,
+				AllowBackgroundBackplaneOperations = false
+			};
+
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+
+			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessagePublished);
+			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived3 = (s, e) => stats3.RecordAction(EntryActionKind.BackplaneMessageReceived);
+
+			// SETUP HANDLERS
+			cache2.Events.Backplane.MessagePublished += onMessagePublished2;
+			cache2.Events.Backplane.MessageReceived += onMessageReceived2;
+			cache3.Events.Backplane.MessagePublished += onMessagePublished3;
+			cache3.Events.Backplane.MessageReceived += onMessageReceived3;
+
+			// CACHE 1
+			cache1.Set("foo", 21);
+			cache1.Set("foo", 42);
+
+			// CACHE 2
+			cache2.Remove("foo");
+
+			// REMOVE HANDLERS
+			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
+			cache2.Events.Backplane.MessageReceived -= onMessageReceived2;
+			cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
+			cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
+
+			Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessagePublished]);
+			Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessageReceived]);
+			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessagePublished]);
+			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessageReceived]);
 		}
 	}
 }

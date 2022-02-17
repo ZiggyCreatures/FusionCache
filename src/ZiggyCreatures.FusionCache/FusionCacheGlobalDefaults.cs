@@ -78,5 +78,15 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// The global default <see cref="FusionCacheEntryOptions.FailSafeThrottleDuration"/>.
 		/// </summary>
 		public static TimeSpan EntryOptionsFailSafeThrottleDuration { get; set; } = TimeSpan.FromSeconds(30);
+
+		/// <summary>
+		/// The global default <see cref="FusionCacheEntryOptions.EnableBackplaneNotifications"/>.
+		/// </summary>
+		public static bool EntryOptionsEnableBackplaneNotifications { get; set; } = true;
+
+		/// <summary>
+		/// The global default <see cref="FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
+		/// </summary>
+		public static bool EntryOptionsAllowBackgroundBackplaneOperations { get; set; } = true;
 	}
 }

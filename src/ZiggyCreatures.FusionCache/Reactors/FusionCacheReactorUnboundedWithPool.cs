@@ -7,12 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	sealed internal class FusionCacheReactorUnboundedWithPool
+	internal sealed class FusionCacheReactorUnboundedWithPool
 		: IFusionCacheReactor
 	{
 		private Dictionary<string, SemaphoreSlim> _lockCache;
 
-		private int _lockPoolSize;
+		private readonly int _lockPoolSize;
 		private object[] _lockPool;
 
 		public FusionCacheReactorUnboundedWithPool(int reactorSize = 100)

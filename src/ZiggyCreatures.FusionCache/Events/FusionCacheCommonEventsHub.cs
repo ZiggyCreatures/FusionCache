@@ -7,47 +7,19 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 	/// <summary>
 	/// A class with base events that are common to any cache layer (general, memroy or distributed)
 	/// </summary>
-	public class FusionCacheBaseEventsHub
+	public abstract class FusionCacheCommonEventsHub
+		: FusionCacheAbstractEventsHub
 	{
 		/// <summary>
-		/// The <see cref="IFusionCache"/> instance.
-		/// </summary>
-		protected IFusionCache _cache;
-
-		/// <summary>
-		/// The <see cref="FusionCacheOptions"/> instance.
-		/// </summary>
-		protected readonly FusionCacheOptions _options;
-
-		/// <summary>
-		/// The <see cref="ILogger"/> instance.
-		/// </summary>
-		protected readonly ILogger? _logger;
-
-		/// <summary>
-		/// The <see cref="LogLevel"/> for errors during event handling.
-		/// </summary>
-		protected LogLevel _errorsLogLevel;
-
-		/// <summary>
-		/// The execution mode for event handlers.
-		/// </summary>
-		protected bool _syncExecution;
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FusionCacheBaseEventsHub"/> class.
+		/// Initializes a new instance of the <see cref="FusionCacheCommonEventsHub"/> class.
 		/// </summary>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="options">The <see cref="FusionCacheOptions"/> instance.</param>
 		/// <param name="logger">The <see cref="ILogger"/> instance.</param>
-		public FusionCacheBaseEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
+		protected FusionCacheCommonEventsHub(IFusionCache cache, FusionCacheOptions options, ILogger? logger)
+			: base(cache, options, logger)
 		{
-			_cache = cache;
-			_options = options;
-			_logger = logger;
-
-			_errorsLogLevel = _options.EventHandlingErrorsLogLevel;
-			_syncExecution = _options.EnableSyncEventHandlersExecution;
+			// EMPTY
 		}
 
 		/// <summary>

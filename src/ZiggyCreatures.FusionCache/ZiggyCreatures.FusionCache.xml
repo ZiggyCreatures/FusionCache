@@ -4,6 +4,122 @@
         <name>ZiggyCreatures.FusionCache</name>
     </assembly>
     <members>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage">
+            <summary>
+            Represents a message on a backplane.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor">
+            <summary>
+            Creates a new instance of a backplane message.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.SourceId">
+            <summary>
+            The InstanceId of the source cache.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.InstantTicks">
+            <summary>
+            The instant a message was related to, expressed as ticks amount.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Action">
+            <summary>
+            The action to broadcast to the backplane.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CacheKey">
+            <summary>
+            The cache key related to the action, if any.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.IsValid">
+            <summary>
+            Checks if a message is valid.
+            </summary>
+            <returns>True if it seems valid, false otherwise.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String)">
+            <summary>
+            Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
+            </summary>
+            <param name="cacheKey">The cache key.</param>
+            <returns>The message.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String)">
+            <summary>
+            Creates a message for a single cache entry remove (via a Remove method call).
+            </summary>
+            <param name="cacheKey">The cache key.</param>
+            <returns>The message.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction">
+            <summary>
+            The type of action for a backplane message.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.Unknown">
+            <summary>
+            Unknown action.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntrySet">
+            <summary>
+            A cache entry has been set (via either a Set or a GetOrSet method call).
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntryRemove">
+            <summary>
+            A cache entry has been removed (via a Remove method call).
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions">
+            <summary>
+            Represents the options available for subscribing to a backplane.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ChannelName">
+            <summary>
+            The channel name to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.Handler">
+            <summary>
+            The backplane message handler that will be used to process incoming messages.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">
+            <summary>
+            The core interface to create a FusionCache backplane plugin.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Subscribe(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions)">
+            <summary>
+            Subscribe to receive messages from other nodes.
+            </summary>
+            <param name="options">The backplane subscription options.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Unsubscribe">
+            <summary>
+            Unsubscribe from receiving messages from other nodes.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Send a notification to the other connected nodes, if any.
+            </summary>
+            <param name="message">The message to send.</param>
+            /// <param name="options">The options to use.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+            <summary>
+            Send a notification to the other connected nodes, if any.
+            </summary>
+            <param name="message">The message to send.</param>
+            <param name="options">The options to use.</param>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode">
             <summary>
             The mode in which a cache modifier should be used to produce a cache key.
@@ -26,14 +142,14 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache">
             <summary>
-            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but a (controllable) little chaos in-between.
+            An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but with a (controllable) little chaos in-between.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.#ctor(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
             <summary>
-            The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.
+            Initializes a new instance of the ChaosDistributedCache class.
             </summary>
-            <param name="innerCache"></param>
+            <param name="innerCache">The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.ChaosThrowProbability">
             <summary>
@@ -190,62 +306,86 @@
             <param name="maxDelay">The maximum amount of delay.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub">
             <summary>
-            A class with base events that are common to any cache layer (general, memroy or distributed)
+            An abstract class with base plumbing.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._cache">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._cache">
             <summary>
             The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._options">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._options">
             <summary>
             The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._logger">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._logger">
             <summary>
             The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._errorsLogLevel">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._errorsLogLevel">
             <summary>
             The <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> for errors during event handling.
             </summary>
         </member>
-        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub._syncExecution">
+        <member name="F:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub._syncExecution">
             <summary>
             The execution mode for event handlers.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
             <summary>
-            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub"/> class.
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheAbstractEventsHub"/> class.
             </summary>
             <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Hit">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub">
             <summary>
-            The event for a cache hit (either fresh or stale).
+            The events hub for events specific for the backplane.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Miss">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
             <summary>
-            The event for a cache miss.
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub"/> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.CircuitBreakerChange">
+            <summary>
+            The event for a state change in the circuit breaker.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Set">
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.MessagePublished">
             <summary>
-            The event for a cache set.
+            The event for a sent backplane message.
             </summary>
         </member>
-        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBaseEventsHub.Remove">
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneEventsHub.MessageReceived">
             <summary>
-            The event for a cache remove.
+            The event for a received backplane message.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs">
+            <summary>
+            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries (eg: with a cache key).
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs"/> class.
+            </summary>
+            <param name="message">The backplane message received</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs.Message">
+            <summary>
+            The backplane message received.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs">
@@ -262,6 +402,39 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs.IsClosed">
             <summary>
             A flag that indicates if the circuit breaker has been opened or closed.
+            </summary>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub">
+            <summary>
+            A class with base events that are common to any cache layer (general, memroy or distributed)
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub"/> class.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> instance.</param>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Hit">
+            <summary>
+            The event for a cache hit (either fresh or stale).
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Miss">
+            <summary>
+            The event for a cache miss.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Set">
+            <summary>
+            The event for a cache set.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.Remove">
+            <summary>
+            The event for a cache remove.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub">
@@ -365,6 +538,11 @@
             The events hub for the distributed layer.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Backplane">
+            <summary>
+            The events hub for the backplane.
+            </summary>
+        </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FailSafeActivate">
             <summary>
             The event for a fail-safe activation.
@@ -435,16 +613,25 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.DefaultEntryOptions">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveDistributedCache">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveBackplane">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.HasBackplane">
             <inheritdoc/>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.Events">
@@ -485,6 +672,9 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.GetOrSet``1(System.String,System.Func{System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -501,6 +691,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
@@ -604,6 +797,19 @@
             <para>TL/DR: set this flag to true for a perf boost, but watch out for rare side effects.</para>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications">
+            <summary>
+            Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations">
+            <summary>
+            By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
+            <br/>
+            Setting this flag to false will execute these operations in a blocking fashion, typically resulting in worse performance.
+            <para>TL/DR: if you want to wait for backplane operations to complete, set this flag to false.</para>
+            </summary>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToString">
             <inheritdoc/>
         </member>
@@ -681,6 +887,13 @@
             <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/> property.</param>
             <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheHardTimeout"/> property.</param>
             <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetBackplane(System.Boolean)">
+            <summary>
+            Set the duration to the specified <see cref="T:System.TimeSpan"/> value.
+            </summary>
+            <param name="enableBackplaneNotifications">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub)">
@@ -1101,6 +1314,16 @@
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeThrottleDuration"/>.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsEnableBackplaneNotifications">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions">
             <summary>
             Represents all the options available for the entire <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
@@ -1130,7 +1353,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix">
             <summary>
-            <strong>WARNING:</strong> this feature is being removed, probably in the next version: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
+            <strong>WARNING:</strong> this feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
             <br/>
             For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
             <br/><br/>
@@ -1147,6 +1370,16 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
             Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneCircuitBreakerDuration">
+            <summary>
+            The duration of the circuit-breaker used when working with the backplane. Defaults to <see cref="F:System.TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneChannelPrefix">
+            <summary>
+            The prefix to use in the backplane channel name: if not specified the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/> will be used.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">
@@ -1184,6 +1417,11 @@
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during the handling of an event.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneErrorsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during a backplane operation.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
             Represents an instance of a FusionCache.
@@ -1203,20 +1441,6 @@
             <summary>
             The default set of options that will be used either when none are provided or as a starting point for creating a new one with the fluent api.
             </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
-            <summary>
-            Sets a secondary caching layer, by providing a <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and a <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
-            </summary>
-            <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
-            <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
-            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
-            <summary>
-            Removes the secondary caching layer.
-            </summary>
-            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <summary>
@@ -1353,6 +1577,38 @@
             Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
             </summary>
             <param name="key">The cache key which identifies the entry in the cache.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+            <summary>
+            Sets a secondary caching layer, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+            </summary>
+            <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
+            <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
+            <summary>
+            Removes the secondary caching layer.
+            </summary>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
+            <summary>
+            Sets a backplane, by providing an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance.
+            </summary>
+            <param name="backplane">The <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveBackplane">
+            <summary>
+            Removes the backplane.
+            </summary>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.HasBackplane">
+            <summary>
+            Gets whether there is a backplane configured.
+            </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.Events">
             <summary>
@@ -1654,6 +1910,36 @@
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
             <returns>The newly created entry.</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker">
+            <summary>
+            A simple, reusable circuit-breaker.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.#ctor(System.TimeSpan)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker"/> instance.
+            </summary>
+            <param name="breakDuration">The amount of time the circuit will remain open, when told to.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.BreakDuration">
+            <summary>
+            The amount of time the circuit will remain open, when told to.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.TryOpen(System.Boolean@)">
+            <summary>
+            Tries to pen the circuit.
+            </summary>
+            <param name="isStateChanged">Indicates if the circuit has been opened with this operation.</param>
+            <returns>True if the circuit is open, either because it was already or because it has been opened with this operation. False otherwise.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.IsClosed(System.Boolean@)">
+            <summary>
+            Check if the circuit is closed, or has been closed with this operation.
+            </summary>
+            <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
+            <returns>True if the circuit is close, either because it was already or because it has been closed with this operation. False otherwise.</returns>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1">
             <summary>
             Represents maybe a value, maybe not.
@@ -1719,13 +2005,13 @@
             <summary>
             This method is called right after adding the plugin to a FusionCache instance. If it throws, the plugin will be automatically removed.
             </summary>
-            <param name="cache">The FusionCache instance this plugin is being added to.</param>
+            <param name="cache">The FusionCache instance on which to operate.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
             <summary>
             This method is called right before removing the plugin from a FusionCache instance.
             </summary>
-            <param name="cache">The FusionCache instance this plugin is being added to.</param>
+            <param name="cache">The FusionCache instance on which to operate.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor">
             <summary>

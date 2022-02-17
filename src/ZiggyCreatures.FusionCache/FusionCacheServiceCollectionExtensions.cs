@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -68,6 +69,14 @@ namespace Microsoft.Extensions.DependencyInjection
 							cache.SetupDistributedCache(distributedCache, serializer);
 						}
 					}
+				}
+
+				// BACKPLANE
+				var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+
+				if (backplane is object)
+				{
+					cache.SetupBackplane(backplane);
 				}
 
 				// PLUGINS

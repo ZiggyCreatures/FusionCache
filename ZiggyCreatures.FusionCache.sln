@@ -19,12 +19,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Tests", "tests\ZiggyCreatures.FusionCache.Tests\ZiggyCreatures.FusionCache.Tests.csproj", "{25C0D76C-E7D2-43CC-8D0E-BECB0438527B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.LoggingVisualTester", "tests\ZiggyCreatures.FusionCache.LoggingVisualTester\ZiggyCreatures.FusionCache.LoggingVisualTester.csproj", "{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BDC18C05-F0DF-4B40-90D8-4BE559EA0C23}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Playground", "tests\ZiggyCreatures.FusionCache.Playground\ZiggyCreatures.FusionCache.Playground.csproj", "{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Backplane.Memory", "src\ZiggyCreatures.FusionCache.Backplane.Memory\ZiggyCreatures.FusionCache.Backplane.Memory.csproj", "{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis", "src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj", "{5659A831-8170-4398-A130-D521844BB4C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,10 +56,18 @@ Global
 		{25C0D76C-E7D2-43CC-8D0E-BECB0438527B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{25C0D76C-E7D2-43CC-8D0E-BECB0438527B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{25C0D76C-E7D2-43CC-8D0E-BECB0438527B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F29AD55C-39F3-47B3-80AE-04130DB5F1ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5659A831-8170-4398-A130-D521844BB4C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5659A831-8170-4398-A130-D521844BB4C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5659A831-8170-4398-A130-D521844BB4C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5659A831-8170-4398-A130-D521844BB4C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,7 +78,9 @@ Global
 		{ED5B2080-C706-4150-897D-59482F41BC34} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{EA8020A5-B936-415A-8A1B-0DC8CA7914B1} = {407E264A-43D3-4139-BF62-D505EECA36F8}
 		{25C0D76C-E7D2-43CC-8D0E-BECB0438527B} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
-		{F29AD55C-39F3-47B3-80AE-04130DB5F1ED} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
+		{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
+		{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
+		{5659A831-8170-4398-A130-D521844BB4C0} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {92916FA2-FCAC-406E-BF3F-0A2CE9512EF0}

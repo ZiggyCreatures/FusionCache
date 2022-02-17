@@ -5,7 +5,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 	/// <summary>
 	/// An entry in a <see cref="FusionCache"/> memory layer.
 	/// </summary>
-	sealed internal class FusionCacheMemoryEntry
+	internal sealed class FusionCacheMemoryEntry
 		: IFusionCacheEntry
 	{
 		/// <summary>

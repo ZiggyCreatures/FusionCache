@@ -3,8 +3,9 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 
-namespace ZiggyCreatures.Caching.Fusion.Tests
+namespace FusionCacheTests
 {
 	public static class SingleLevelTestsExtMethods
 	{
@@ -418,7 +419,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				// TODO: MAYBE DON'T RELY ON ELAPSED TIME
 				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is lower or equal than outer cancel");
 				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is greater or equal than factory delay");
 			}
@@ -441,7 +441,6 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				// TODO: MAYBE DON'T RELY ON ELAPSED TIME
 				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is lower or equal than outer cancel");
 				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is greater or equal than factory delay");
 			}
@@ -610,5 +609,59 @@ namespace ZiggyCreatures.Caching.Fusion.Tests
 				Assert.Equal(3, default3);
 			}
 		}
+
+		//[Fact]
+		//public async Task DirectEvictionWorksAsync()
+		//{
+		//	using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+		//	{
+		//		var removeCalled = false;
+		//		EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
+
+		//		cache.Events.Memory.Remove += onRemove;
+
+		//		var duration = TimeSpan.FromMinutes(1);
+
+		//		// SET THE VALUE (WITH FAIL-SAFE ENABLED)
+		//		await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true)).ConfigureAwait(false);
+
+		//		// EVICT
+		//		cache.Evict("foo", false);
+
+		//		var res = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true)).ConfigureAwait(false);
+
+		//		cache.Events.Memory.Remove -= onRemove;
+
+		//		Assert.True(removeCalled);
+		//		Assert.False(res.HasValue);
+		//	}
+		//}
+
+		//[Fact]
+		//public void DirectEvictionWorks()
+		//{
+		//	using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+		//	{
+		//		var removeCalled = false;
+		//		EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => removeCalled = true;
+
+		//		cache.Events.Memory.Remove += onRemove;
+
+		//		var duration = TimeSpan.FromMinutes(1);
+
+		//		// SET THE VALUE (WITH FAIL-SAFE ENABLED)
+		//		cache.Set("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true));
+
+		//		// EVICT
+		//		cache.Evict("foo", false);
+
+		//		var res = cache.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+		//		cache.Events.Memory.Remove -= onRemove;
+
+		//		Assert.True(removeCalled);
+		//		Assert.False(res.HasValue);
+		//	}
+		//}
 	}
 }

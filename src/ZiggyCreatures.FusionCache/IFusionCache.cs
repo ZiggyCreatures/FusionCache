@@ -1,7 +1,9 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -28,20 +30,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// The default set of options that will be used either when none are provided or as a starting point for creating a new one with the fluent api.
 		/// </summary>
 		FusionCacheEntryOptions DefaultEntryOptions { get; }
-
-		/// <summary>
-		/// Sets a secondary caching layer, by providing a <see cref="IDistributedCache"/> instance and a <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
-		/// </summary>
-		/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
-		/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
-		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
-		IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer);
-
-		/// <summary>
-		/// Removes the secondary caching layer.
-		/// </summary>
-		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
-		IFusionCache RemoveDistributedCache();
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCacheEntryOptions"/> instance by duplicating the <see cref="DefaultEntryOptions"/> and optionally applying a setup action.
@@ -177,7 +165,59 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
 		/// </summary>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
 		void Evict(string key);
+
+		/// <summary>
+		/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+		/// </summary>
+		/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
+		/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer);
+
+		/// <summary>
+		/// Removes the secondary caching layer.
+		/// </summary>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache RemoveDistributedCache();
+
+		/// <summary>
+		/// Sets a backplane, by providing an <see cref="IFusionCacheBackplane"/> instance.
+		/// </summary>
+		/// <param name="backplane">The <see cref="IFusionCacheBackplane"/> instance to use.</param>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache SetupBackplane(IFusionCacheBackplane backplane);
+
+		/// <summary>
+		/// Removes the backplane.
+		/// </summary>
+		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+		IFusionCache RemoveBackplane();
+
+		/// <summary>
+		/// Gets whether there is a backplane configured.
+		/// </summary>
+		bool HasBackplane { get; }
+
+		///// <summary>
+		///// Tries to send a message to other nodes connected to the same backplane, if any.
+		///// </summary>
+		///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
+		///// <param name="options">The options to use.</param>
+		///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		///// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		//ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+		///// <summary>
+		///// Tries to send a message to other nodes connected to the same backplane, if any.
+		///// </summary>
+		///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
+		///// <param name="options">The options to use.</param>
+		///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+		///// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		//bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
 		/// The central place for all events handling of this FusionCache instance.

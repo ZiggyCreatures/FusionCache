@@ -7,13 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Reactors
 {
-	sealed internal class FusionCacheReactorStandard
+	internal sealed class FusionCacheReactorStandard
 		: IFusionCacheReactor
 	{
 		private MemoryCache _lockCache;
 
-		private int _lockPoolSize;
-		private object[] _lockPool;
+		private readonly int _lockPoolSize;
+		private readonly object[] _lockPool;
 		private TimeSpan _slidingExpiration = TimeSpan.FromMinutes(5);
 
 		public FusionCacheReactorStandard(int reactorSize = 8_440)
@@ -86,8 +86,18 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 			var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			if (acquired)
+			{
+				// LOCK ACQUIRED
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			}
+			else
+			{
+				// LOCK TIMEOUT
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
+			}
 
 			return acquired ? semaphore : null;
 		}
@@ -102,8 +112,18 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 
 			var acquired = semaphore.Wait(timeout);
 
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			if (acquired)
+			{
+				// LOCK ACQUIRED
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			}
+			else
+			{
+				// LOCK TIMEOUT
+				if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+					logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
+			}
 
 			return acquired ? semaphore : null;
 		}

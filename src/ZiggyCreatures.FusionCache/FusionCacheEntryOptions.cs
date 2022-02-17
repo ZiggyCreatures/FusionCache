@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -35,6 +36,9 @@ namespace ZiggyCreatures.Caching.Fusion
 			IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
 			FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
 			FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
+
+			EnableBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsEnableBackplaneNotifications;
+			AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
 		}
 
 		/// <summary>
@@ -62,19 +66,18 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public CacheItemPriority Priority { get; set; }
 
-		// DYNAMIC
-		//public Action<FusionCacheEntryOptions, object?>? Modifier { get; set; }
-
 		/// <summary>
 		/// A function to apply when creating a <see cref="MemoryCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
 		/// </summary>
-		[Obsolete("Please stop using this, it was an undocumented work in progress")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please stop using this, it was an undocumented work in progress", true)]
 		public Action<MemoryCacheEntryOptions, object?>? MemoryOptionsModifier { get; set; }
 
 		/// <summary>
 		/// A function to apply when creating a <see cref="DistributedCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
 		/// </summary>
-		[Obsolete("Please stop using this, it was an undocumented work in progress")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please stop using this, it was an undocumented work in progress", true)]
 		public Action<DistributedCacheEntryOptions, object?>? DistributedOptionsModifier { get; set; }
 
 		/// <summary>
@@ -132,10 +135,23 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public bool AllowBackgroundDistributedCacheOperations { get; set; }
 
+		/// <summary>
+		/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
+		/// </summary>
+		public bool EnableBackplaneNotifications { get; set; }
+
+		/// <summary>
+		/// By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
+		/// <br/>
+		/// Setting this flag to false will execute these operations in a blocking fashion, typically resulting in worse performance.
+		/// <para>TL/DR: if you want to wait for backplane operations to complete, set this flag to false.</para>
+		/// </summary>
+		public bool AllowBackgroundBackplaneOperations { get; set; }
+
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")}]";
+			return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")} BN={(EnableBackplaneNotifications ? "Y" : "N")} BBO={(AllowBackgroundBackplaneOperations ? "Y" : "N")}]";
 		}
 
 		/// <summary>
@@ -268,6 +284,17 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
+		/// Set the duration to the specified <see cref="TimeSpan"/> value.
+		/// </summary>
+		/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
+		/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+		public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
+		{
+			EnableBackplaneNotifications = enableBackplaneNotifications;
+			return this;
+		}
+
+		/// <summary>
 		/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 		/// </summary>
 		/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
@@ -291,7 +318,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (events.HasEvictionSubscribers())
 			{
 				res.RegisterPostEvictionCallback(
-					(key, value, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
+					(key, _, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
 					events
 				);
 			}
@@ -379,7 +406,10 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
-				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations
+				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
+
+				EnableBackplaneNotifications = EnableBackplaneNotifications,
+				AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations
 			};
 		}
 
@@ -389,39 +419,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="duration">A custom <see cref="Duration"/> that, if specified, will overwrite the current one.</param>
 		/// <param name="includeOptionsModifiers">If false, the <see cref="MemoryOptionsModifier"/> and <see cref="DistributedOptionsModifier"/> will not be duplicated.</param>
 		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/> object.</returns>
-		[Obsolete("Please stop using this, it was an undocumented work in progress")]
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please stop using this, it was an undocumented work in progress: instead use Duplicate(TimeSpan? duration)", true)]
 		public FusionCacheEntryOptions Duplicate(TimeSpan? duration, bool includeOptionsModifiers)
 		{
 			return Duplicate(duration);
-
-			//var res = new FusionCacheEntryOptions()
-			//{
-			//	Duration = duration ?? Duration,
-			//	LockTimeout = LockTimeout,
-			//	Size = Size,
-			//	Priority = Priority,
-			//	JitterMaxDuration = JitterMaxDuration,
-
-			//	IsFailSafeEnabled = IsFailSafeEnabled,
-			//	FailSafeMaxDuration = FailSafeMaxDuration,
-			//	FailSafeThrottleDuration = FailSafeThrottleDuration,
-
-			//	FactorySoftTimeout = FactorySoftTimeout,
-			//	FactoryHardTimeout = FactoryHardTimeout,
-			//	AllowTimedOutFactoryBackgroundCompletion = AllowTimedOutFactoryBackgroundCompletion,
-
-			//	DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
-			//	DistributedCacheHardTimeout = DistributedCacheHardTimeout,
-			//	AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations
-			//};
-
-			//if (includeOptionsModifiers)
-			//{
-			//	res.MemoryOptionsModifier = MemoryOptionsModifier;
-			//	res.DistributedOptionsModifier = DistributedOptionsModifier;
-			//}
-
-			//return res;
 		}
 	}
 }

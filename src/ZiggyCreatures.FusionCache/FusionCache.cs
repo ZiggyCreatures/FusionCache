@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,8 +9,10 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -27,8 +30,10 @@ namespace ZiggyCreatures.Caching.Fusion
 		private readonly IFusionCacheReactor _reactor;
 		private MemoryCacheAccessor _mca;
 		private DistributedCacheAccessor? _dca;
+		private BackplaneAccessor? _bpa;
 		private FusionCacheEventsHub _events;
 		private readonly List<IFusionCachePlugin> _plugins;
+		private readonly object _lockBackplane = new object();
 
 		/// <summary>
 		/// Creates a new <see cref="FusionCache"/> instance.
@@ -69,10 +74,13 @@ namespace ZiggyCreatures.Caching.Fusion
 			_plugins = new List<IFusionCachePlugin>();
 
 			// MEMORY CACHE
-			_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
+			_mca = new MemoryCacheAccessor(memoryCache, _logger, _events.Memory);
 
 			// DISTRIBUTED CACHE
 			_dca = null;
+
+			// BACKPLANE
+			_bpa = null;
 		}
 
 		/// <inheritdoc/>
@@ -91,34 +99,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
-		{
-			if (distributedCache is null)
-				throw new ArgumentNullException(nameof(distributedCache));
-
-			if (serializer is null)
-				throw new ArgumentNullException(nameof(serializer));
-
-			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
-
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
-
-			return this;
-		}
-
-		/// <inheritdoc/>
-		public IFusionCache RemoveDistributedCache()
-		{
-			_dca = null;
-
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION: distributed cache removed");
-
-			return this;
-		}
-
-		/// <inheritdoc/>
 		public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 		{
 			var res = _options.DefaultEntryOptions.Duplicate(duration);
@@ -130,14 +110,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			if (key is null)
 				throw new ArgumentNullException(nameof(key));
-		}
-
-		private void MaybeProcessCacheKey(ref string key)
-		{
-			if (string.IsNullOrEmpty(_options.CacheKeyPrefix))
-				return;
-
-			key = _options.CacheKeyPrefix + key;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -188,8 +160,8 @@ namespace ZiggyCreatures.Caching.Fusion
 				}
 				else
 				{
-					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
 					return null;
 				}
 			}
@@ -236,6 +208,8 @@ namespace ZiggyCreatures.Caching.Fusion
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 					_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
+
+					_events.OnSet(operationId, key);
 
 					// EVENT
 					_events.OnBackgroundFactorySuccess(operationId, key);
@@ -288,18 +262,102 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
 		public void Evict(string key)
+		{
+			// EMPTY
+		}
+
+		internal void EvictInternal(string key, bool allowFailSafe)
 		{
 			ValidateCacheKey(key);
 
-			MaybeProcessCacheKey(ref key);
+			// TODO: BETTER CHECK THIS POTENTIAL NullReferenceException HERE
+			if (_mca is null)
+				return;
 
 			var operationId = GenerateOperationId();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling Evict", operationId, key);
 
-			_mca.EvictEntry(operationId, key);
+			_mca.EvictEntry(operationId, key, allowFailSafe);
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+		{
+			if (distributedCache is null)
+				throw new ArgumentNullException(nameof(distributedCache));
+
+			if (serializer is null)
+				throw new ArgumentNullException(nameof(serializer));
+
+			_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache RemoveDistributedCache()
+		{
+			_dca = null;
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.LogDebug("FUSION: distributed cache removed");
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
+		{
+			if (backplane is null)
+				throw new ArgumentNullException(nameof(backplane));
+
+			if (_bpa is object)
+			{
+				RemoveBackplane();
+			}
+
+			lock (_lockBackplane)
+			{
+				_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
+				_bpa.Subscribe();
+
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.LogDebug("FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
+			}
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public IFusionCache RemoveBackplane()
+		{
+			lock (_lockBackplane)
+			{
+				if (_bpa is object)
+				{
+					_bpa.Unsubscribe();
+					_bpa = null;
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.LogDebug("FUSION: backplane removed");
+				}
+			}
+
+			return this;
+		}
+
+		/// <inheritdoc/>
+		public bool HasBackplane
+		{
+			get { return _bpa is object; }
 		}
 
 		/// <inheritdoc/>
