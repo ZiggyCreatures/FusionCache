@@ -62,7 +62,7 @@ Then, to create and setup the cache manually, do this:
 
 ```csharp
 // INSTANTIATE A REDIS DISTRIBUTED CACHE
-var redis = new RedisCache(new RedisCacheOptions() { Configuration = "YOUR CONNECTION STRING HERE" });
+var redis = new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" });
 
 // INSTANTIATE THE FUSION CACHE SERIALIZER
 var serializer = new FusionCacheNewtonsoftJsonSerializer();
@@ -79,7 +79,7 @@ If instead you prefer a **DI (Dependency Injection)** approach you can do this:
 ```csharp
 // REGISTER REDIS AS A DISTRIBUTED CACHE
 services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "YOUR CONNECTION STRING HERE";
+    options.Configuration = "CONNECTION STRING";
 });
 
 // REGISTER THE FUSION CACHE SERIALIZER

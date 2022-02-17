@@ -83,7 +83,9 @@ Here's an example of such a particular scenario:
 
 ```csharp
 // INSTANTIATE REDIS AS A DISTRIBUTED CACHE
-var redis = new RedisCache(new RedisCacheOptions() { Configuration = "YOUR CONNECTION STRING HERE" });
+var redis = new RedisCache(new RedisCacheOptions() {
+    Configuration = "CONNECTION STRING"
+});
 
 // INSTANTIATE THE FUSION CACHE SERIALIZER
 var serializer = new FusionCacheNewtonsoftJsonSerializer();

@@ -393,7 +393,7 @@ public void ConfigureServices(IServiceCollection services)
 
     // ADD REDIS DISTRIBUTED CACHE SUPPORT
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = "YOUR CONNECTION STRING HERE";
+        options.Configuration = "CONNECTION STRING";
     });
 
     // ADD JSON.NET BASED SERIALIZATION FOR FUSION CACHE
@@ -453,7 +453,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddMemoryCache();
 
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = "YOUR CONNECTION STRING HERE";
+        options.Configuration = "CONNECTION STRING";
     });
 
     services.AddFusionCacheJsonNetSerializer();
@@ -506,7 +506,7 @@ public void ConfigureServices(IServiceCollection services)
     services.AddMemoryCache();
 
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = "YOUR CONNECTION STRING HERE";
+        options.Configuration = "CONNECTION STRING";
     });
 
     services.AddFusionCacheJsonNetSerializer();
@@ -576,14 +576,14 @@ public void ConfigureServices(IServiceCollection services)
     services.AddMemoryCache();
 
     services.AddStackExchangeRedisCache(options => {
-        options.Configuration = "YOUR CONNECTION STRING HERE";
+        options.Configuration = "CONNECTION STRING";
     });
 
     services.AddFusionCacheNewtonsoftJsonSerializer();
 
     // ADD THE FUSION CACHE BACKPLANE FOR REDIS
     services.AddFusionCacheStackExchangeRedisBackplane(options => {
-        options.Configuration = "YOUR CONNECTION STRING HERE";
+        options.Configuration = "CONNECTION STRING";
     });
 
     services.AddFusionCache(options => {
