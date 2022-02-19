@@ -149,7 +149,7 @@ Why? Let's look at an example flow of a `GetOrSet` operation with 3 nodes (`N1`,
 
 As we can see this would basically make the entire cache useless.
 
-This is because not having a shared state means we don't know when something actually changed, since when we get fresh data from the database it may be changed since the last time, so we need to notify the other nodes, etc going into an infinite loop.
+This is because not having a **shared state** means we don't know when something actually changed, since when we get fresh data from the database it may be changed since the last time, so we need to notify the other nodes, etc going into an infinite loop.
 
 So how can we solve this?
 
@@ -189,12 +189,31 @@ cache.Remove(
 );
 ```
 
+## ⚠ External changes
+
+Just to reiterate, because it's very important: when using the backplane **without** a distributed cache, any change not manually published by you would result in different nodes not being synched.
+
+This means that, if you want to use the backplane without the distributed cache, you should be confident of the fact that **ALL** changes will be notified by you manually.
+
+To better understand what would happen otherwise let's look at an example, again with a couple of `GetOrSet` operations on 3 nodes (`N1`, `N2`, `N3`):
+
+- `GetOrSet` is called on `N1`
+- no data is found in the memory on `N1` (or it is expired): call to the database to grab fresh data
+- fresh data saved in memory cache on `N1` for `5 min`
+- a background job/cron/whatever changes the data in the database
+- a new request for the same cache entry arrives on `N2`
+- no data is found in the memory on `N2`: call to the database to grab fresh data
+- fresh data saved in memory cache on `N2` for `5 min`
+
+Now `N1` and `N2` will have different data cached for `5 min`, see the problem?
+
+So when using a backplane I would **really** suggest using a distributed cache too, otherwise the system may become a little bit too fragile. If, on the other hand, you are comfortable with such a situation, by all means use it.
 
 ## Conclusion
 
 As we saw there are basically 2 ways of using a backplane:
 
-- **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything and everything just works
-- **2️⃣ MEMORY + BACKPLANE**: probably the less common, where we have to disable automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes
+- **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything, everything just works and it's hard to have inconsistencies between different nodes
+- **2️⃣ MEMORY + BACKPLANE (NO DISTRIBUTED)**: probably the less common, where we have to disable automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes. It's easier to have inconsistencies between different nodes
 
 So remember: without a distributed cache we should **⚠ DISABLE** backplane notifications by default, otherwise your system may suffer.
