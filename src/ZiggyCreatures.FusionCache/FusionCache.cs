@@ -337,6 +337,17 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogDebug("FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
 			}
 
+			// CHECK: WARN THE USER IN CASE OF
+			// - HAS A MEMORY CACHE (ALWAYS)
+			// - HAS BACKPLANE
+			// - DOES *NOT* HAVE A DISTRIBUTED CACHE
+			// - THE OPTION DefaultEntryOptions.EnableBackplaneNotifications IS TRUE
+			if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.EnableBackplaneNotifications)
+			{
+				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+					_logger.LogWarning("FUSION: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.EnableBackplaneNotifications option is set to true. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.EnableBackplaneNotifications to false.", backplane.GetType().FullName);
+			}
+
 			return this;
 		}
 
