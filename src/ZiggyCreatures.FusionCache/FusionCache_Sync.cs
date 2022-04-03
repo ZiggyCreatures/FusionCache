@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	public partial class FusionCache
 		: IFusionCache
 	{
-		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<CancellationToken, TValue>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -102,7 +102,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				}
 				else
 				{
-					TValue value;
+					TValue? value;
 					bool failSafeActivated = false;
 
 					if (factory is null)
@@ -128,22 +128,28 @@ namespace ZiggyCreatures.Caching.Fusion
 
 						Task<TValue>? factoryTask = null;
 
+						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
+
+						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+							_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
+
+						var ctx = new FusionCacheFactoryExecutionContext(options);
+
 						try
 						{
-							var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
-
-							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-								_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
-
 							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 							{
-								value = factory(CancellationToken.None);
+								value = factory(ctx, CancellationToken.None);
 							}
 							else
 							{
-								value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
+								value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
 							}
 							factoryCompletedSuccessfully = true;
+
+							// UPDATE ADAPTIVE OPTIONS
+							if (ctx.Options is object)
+								options = ctx.Options;
 						}
 						catch (OperationCanceledException)
 						{
@@ -153,7 +159,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						{
 							ProcessFactoryError(operationId, key, exc);
 
-							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, factoryTask, options, dca, token);
+							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
 
 							var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, out failSafeActivated);
 							if (fallbackEntry is object)
@@ -216,7 +222,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue GetOrSet<TValue>(string key, Func<CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -258,7 +264,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
 			// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, _ => defaultValue, default, options, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, default, options, token);
 
 			if (entry is null)
 			{

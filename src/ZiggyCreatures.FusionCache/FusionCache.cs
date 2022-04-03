@@ -174,7 +174,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, Task<TValue>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
+		private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
 		{
 			if (options.AllowTimedOutFactoryBackgroundCompletion == false || factoryTask is null)
 				return;
@@ -204,6 +204,10 @@ namespace ZiggyCreatures.Caching.Fusion
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): a timed-out factory successfully completed in the background: keeping the result", operationId, key);
+
+					// UPDATE ADAPTIVE OPTIONS
+					if (ctx.Options is object)
+						options = ctx.Options;
 
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
