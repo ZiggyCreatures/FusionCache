@@ -60,7 +60,7 @@ namespace FusionCacheTests
 		{
 			var fusionCache = new FusionCache(new FusionCacheOptions()
 			{
-				CacheName = cacheName,
+				CacheName = cacheName!,
 				EnableSyncEventHandlersExecution = true
 			});
 			fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
