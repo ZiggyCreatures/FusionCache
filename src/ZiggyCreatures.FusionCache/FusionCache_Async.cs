@@ -64,10 +64,32 @@ namespace ZiggyCreatures.Caching.Fusion
 				return null;
 			}
 
-			IFusionCacheEntry? entry;
-
 			// LOCK
-			var lockObj = await _reactor.AcquireLockAsync(key, operationId, options.LockTimeout, _logger, token).ConfigureAwait(false);
+			var lto = options.LockTimeout;
+			if (lto == Timeout.InfiniteTimeSpan && memoryEntry is object && options.IsFailSafeEnabled && options.FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+			{
+				// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+				// + THERE IS A FALLBACK ENTRY
+				// + FAILSAFE IS ENABLED
+				// + THERE IS A FACTORY SOFT TIMEOUT
+				// --> USE IT AS A LOCK TIMEOUT
+				lto = options.FactorySoftTimeout;
+			}
+			var lockObj = await _reactor.AcquireLockAsync(key, operationId, lto, _logger, token).ConfigureAwait(false);
+
+			if (lockObj is null && memoryEntry is object)
+			{
+				// IF THE LOCK HAS NOT BEEN ACQUIRED
+				// + THERE IS A FALLBACK ENTRY
+				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
+
+				// EVENT
+				_events.OnHit(operationId, key, memoryEntryIsValid == false);
+
+				return memoryEntry;
+			}
+
+			IFusionCacheEntry? entry;
 			bool isStale;
 			bool factoryCompletedSuccessfully = false;
 
