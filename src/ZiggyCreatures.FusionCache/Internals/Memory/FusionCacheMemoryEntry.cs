@@ -30,15 +30,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		public FusionCacheEntryMetadata? Metadata { get; }
 
 		/// <inheritdoc/>
-		public TValue GetValue<TValue>()
+		public TValue? GetValue<TValue>()
 		{
-#pragma warning disable CS8603 // Possible null reference return.
-			return (TValue)Value;
-#pragma warning restore CS8603 // Possible null reference return.
+			return (TValue?)Value;
 		}
 
 		/// <inheritdoc/>
-		public void SetValue<TValue>(TValue value)
+		public void SetValue<TValue>(TValue? value)
 		{
 			Value = value;
 		}

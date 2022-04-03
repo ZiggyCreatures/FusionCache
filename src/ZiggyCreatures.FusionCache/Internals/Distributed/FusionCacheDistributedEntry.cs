@@ -16,29 +16,25 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		/// </summary>
 		/// <param name="value">The actual value.</param>
 		/// <param name="metadata">The metadata for the entry</param>
-		public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata)
+		public FusionCacheDistributedEntry(TValue? value, FusionCacheEntryMetadata? metadata)
 		{
 			Value = value;
 			Metadata = metadata;
 		}
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		protected FusionCacheDistributedEntry()
+		public FusionCacheDistributedEntry()
 		{
-#pragma warning disable CS8601 // Possible null reference assignment.
 			Value = default;
-#pragma warning restore CS8601 // Possible null reference assignment.
 		}
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
 		/// <summary>
 		/// The value inside the entry.
 		/// </summary>
 		[DataMember(Name = "v", EmitDefaultValue = false)]
-		public TValue Value { get; set; }
+		public TValue? Value { get; set; }
 
 		/// <summary>
 		/// Metadata about the cache entry.
@@ -47,23 +43,15 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		public FusionCacheEntryMetadata? Metadata { get; set; }
 
 		/// <inheritdoc/>
-		public TValue1 GetValue<TValue1>()
+		public TValue1? GetValue<TValue1>()
 		{
-#pragma warning disable CS8603 // Possible null reference return.
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-			return (TValue1)(object)Value;
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-#pragma warning restore CS8603 // Possible null reference return.
+			return (TValue1?)(object?)Value;
 		}
 
 		/// <inheritdoc/>
-		public void SetValue<TValue1>(TValue1 value)
+		public void SetValue<TValue1>(TValue1? value)
 		{
-#pragma warning disable CS8601 // Possible null reference assignment.
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-			Value = (TValue)(object)value;
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
-#pragma warning restore CS8601 // Possible null reference assignment.
+			Value = (TValue?)(object?)value;
 		}
 
 		/// <inheritdoc/>
@@ -82,7 +70,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		/// <param name="options">The <see cref="FusionCacheEntryOptions"/> object to configure the entry.</param>
 		/// <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
 		/// <returns>The newly created entry.</returns>
-		public static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, FusionCacheEntryOptions options, bool isFromFailSafe)
+		public static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue? value, FusionCacheEntryOptions options, bool isFromFailSafe)
 		{
 			if (options.IsFailSafeEnabled == false)
 				return new FusionCacheDistributedEntry<TValue>(value, null);

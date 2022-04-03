@@ -174,7 +174,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
+		private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
 		{
 			if (options.AllowTimedOutFactoryBackgroundCompletion == false || factoryTask is null)
 				return;
