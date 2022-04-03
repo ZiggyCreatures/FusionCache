@@ -10,12 +10,12 @@ namespace FusionCacheTests
 	{
 		private static readonly string SampleString = "Supercalifragilisticexpialidocious";
 
-		private T LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
+		private T? LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
 		{
 			return serializer.Deserialize<T>(serializer.Serialize(obj));
 		}
 
-		private async Task<T> LoopDeLoopAsync<T>(IFusionCacheSerializer serializer, T? obj)
+		private async Task<T?> LoopDeLoopAsync<T>(IFusionCacheSerializer serializer, T? obj)
 		{
 			return await serializer.DeserializeAsync<T>(await serializer.SerializeAsync(obj));
 		}
