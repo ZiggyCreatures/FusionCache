@@ -23,29 +23,29 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson
 		JsonSerializerOptions? Options;
 
 		/// <inheritdoc />
-		public byte[] Serialize<T>(T obj)
+		public byte[] Serialize<T>(T? obj)
 		{
-			return JsonSerializer.SerializeToUtf8Bytes<T>(obj, Options);
+			return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, Options);
 		}
 
 		/// <inheritdoc />
-		public T Deserialize<T>(byte[] data)
+		public T? Deserialize<T>(byte[] data)
 		{
 			return JsonSerializer.Deserialize<T>(data, Options);
 		}
 
 		/// <inheritdoc />
-		public async ValueTask<byte[]> SerializeAsync<T>(T obj)
+		public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
 		{
 			using (var stream = new MemoryStream())
 			{
-				await JsonSerializer.SerializeAsync<T>(stream, obj, Options);
+				await JsonSerializer.SerializeAsync<T?>(stream, obj, Options);
 				return stream.ToArray();
 			}
 		}
 
 		/// <inheritdoc />
-		public async ValueTask<T> DeserializeAsync<T>(byte[] data)
+		public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
 		{
 			using (var stream = new MemoryStream(data))
 			{
