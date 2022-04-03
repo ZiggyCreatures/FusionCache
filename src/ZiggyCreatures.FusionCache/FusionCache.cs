@@ -365,6 +365,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
+		public bool HasDistributedCache
+		{
+			get { return _dca is object; }
+		}
+
+		/// <inheritdoc/>
 		public FusionCacheEventsHub Events { get { return _events; } }
 
 		/// <inheritdoc/>

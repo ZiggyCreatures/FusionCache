@@ -634,6 +634,9 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.HasBackplane">
             <inheritdoc/>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.HasDistributedCache">
+            <inheritdoc/>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.Events">
             <inheritdoc/>
         </member>
@@ -1751,6 +1754,11 @@
             <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
             <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
             <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.HasDistributedCache">
+            <summary>
+            Gets whether there is a distributed cache configured.
+            </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
             <summary>
