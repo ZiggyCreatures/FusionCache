@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	public partial class FusionCache
 		: IFusionCache
 	{
-		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue?>? factory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -148,7 +148,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					{
 						// FACTORY
 
-						Task<TValue?>? factoryTask = null;
+						Task<TValue>? factoryTask = null;
 
 						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
 
@@ -244,7 +244,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue? GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue?> factory, MaybeValue<TValue?> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -274,7 +274,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue? GetOrSet<TValue>(string key, TValue? defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -302,7 +302,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public MaybeValue<TValue?> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -330,7 +330,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrDefault<TValue>(string key, TValue defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -347,7 +347,9 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", operationId, key);
+#pragma warning disable CS8603 // Possible null reference return.
 				return defaultValue;
+#pragma warning restore CS8603 // Possible null reference return.
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -357,7 +359,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public void Set<TValue>(string key, TValue? value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public void Set<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 

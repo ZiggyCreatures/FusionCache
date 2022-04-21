@@ -13,14 +13,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// </summary>
 		/// <typeparam name="TValue">The typeof the value.</typeparam>
 		/// <returns>The value.</returns>
-		TValue? GetValue<TValue>();
+		TValue GetValue<TValue>();
 
 		/// <summary>
 		/// Set the value inside the entry.
 		/// </summary>
 		/// <typeparam name="TValue">The typeof the value.</typeparam>
 		/// <param name="value">The value.</param>
-		void SetValue<TValue>(TValue? value);
+		void SetValue<TValue>(TValue value);
 
 		/// <summary>
 		/// Metadata about the cache entry.
