@@ -21,7 +21,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
 		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
@@ -37,7 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
 		public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.GetOrSet<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.GetOrSet<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
@@ -118,7 +118,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
 		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, Task<TValue>> factory, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.GetOrSetAsync<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.GetOrSetAsync<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
@@ -133,7 +133,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
 		public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue> factory, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.GetOrSet<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.GetOrSet<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>

@@ -38,7 +38,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
@@ -52,7 +52,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
@@ -193,7 +193,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
 		public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, CancellationToken token = default)
 		{
-			return cache.SetAsync<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration), token);
+			return cache.SetAsync<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
@@ -207,7 +207,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		public static void Set<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, CancellationToken token = default)
 		{
-			cache.Set<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration), token);
+			cache.Set<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 		}
 
 		/// <summary>
