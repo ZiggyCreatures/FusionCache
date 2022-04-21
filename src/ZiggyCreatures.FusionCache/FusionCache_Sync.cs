@@ -170,8 +170,9 @@ namespace ZiggyCreatures.Caching.Fusion
 							factoryCompletedSuccessfully = true;
 
 							// UPDATE ADAPTIVE OPTIONS
-							if (ctx.Options is object)
-								options = ctx.Options;
+							var maybeNewOptions = ctx.GetOptions();
+							if (maybeNewOptions is object && options != maybeNewOptions)
+								options = maybeNewOptions;
 						}
 						catch (OperationCanceledException)
 						{

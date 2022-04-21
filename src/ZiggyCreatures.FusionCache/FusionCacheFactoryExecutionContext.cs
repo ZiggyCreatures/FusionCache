@@ -5,18 +5,49 @@
 	/// </summary>
 	public class FusionCacheFactoryExecutionContext
 	{
+		private FusionCacheEntryOptions _options;
+
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="options">The options to start from.</param>
 		public FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options)
 		{
-			Options = options;
+			_options = options;
 		}
 
 		/// <summary>
 		/// The options currently used, and that can be modified or changed completely.
 		/// </summary>
-		public FusionCacheEntryOptions Options { get; set; }
+		public FusionCacheEntryOptions Options
+		{
+			get
+			{
+				if (_options is null)
+				{
+#pragma warning disable CS8603 // Possible null reference return.
+					return null;
+#pragma warning restore CS8603 // Possible null reference return.
+				}
+
+				if (_options.IsSafeForAdaptiveCaching == false)
+				{
+					_options = _options.EnsureIsSafeForAdaptiveCaching();
+				}
+
+				return _options;
+			}
+			set
+			{
+#pragma warning disable CS8601 // Possible null reference assignment.
+				_options = value?.SetIsSafeForAdaptiveCaching();
+#pragma warning restore CS8601 // Possible null reference assignment.
+			}
+		}
+
+		internal FusionCacheEntryOptions GetOptions()
+		{
+			return _options;
+		}
 	}
 }

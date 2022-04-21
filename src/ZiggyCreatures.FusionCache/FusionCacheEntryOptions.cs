@@ -148,6 +148,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		public bool AllowBackgroundBackplaneOperations { get; set; }
 
+		internal bool IsSafeForAdaptiveCaching { get; set; }
+
 		/// <inheritdoc/>
 		public override string ToString()
 		{
@@ -165,6 +167,12 @@ namespace ZiggyCreatures.Caching.Fusion
 				return 0d;
 
 			return ConcurrentRandom.NextDouble() * JitterMaxDuration.TotalMilliseconds;
+		}
+
+		internal FusionCacheEntryOptions SetIsSafeForAdaptiveCaching()
+		{
+			IsSafeForAdaptiveCaching = true;
+			return this;
 		}
 
 		/// <summary>
@@ -390,6 +398,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			return new FusionCacheEntryOptions()
 			{
+				IsSafeForAdaptiveCaching = IsSafeForAdaptiveCaching,
+
 				Duration = duration ?? Duration,
 				LockTimeout = LockTimeout,
 				Size = Size,
@@ -424,6 +434,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		public FusionCacheEntryOptions Duplicate(TimeSpan? duration, bool includeOptionsModifiers)
 		{
 			return Duplicate(duration);
+		}
+
+		internal FusionCacheEntryOptions EnsureIsSafeForAdaptiveCaching()
+		{
+			if (IsSafeForAdaptiveCaching)
+				return this;
+
+			return Duplicate().SetIsSafeForAdaptiveCaching();
 		}
 	}
 }

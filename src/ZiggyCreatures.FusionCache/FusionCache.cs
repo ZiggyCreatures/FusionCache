@@ -206,8 +206,9 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): a timed-out factory successfully completed in the background: keeping the result", operationId, key);
 
 					// UPDATE ADAPTIVE OPTIONS
-					if (ctx.Options is object)
-						options = ctx.Options;
+					var maybeNewOptions = ctx.GetOptions();
+					if (maybeNewOptions is object && options != maybeNewOptions)
+						options = maybeNewOptions;
 
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
 					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
