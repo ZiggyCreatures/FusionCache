@@ -99,9 +99,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 		public static ValueTask<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue defaultValue = default, CancellationToken token = default)
 		{
-#pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
-#pragma warning restore CS8604 // Possible null reference argument.
 		}
 
 		/// <summary>
@@ -116,9 +114,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 		public static TValue GetOrDefault<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue defaultValue = default, CancellationToken token = default)
 		{
-#pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefault<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
-#pragma warning restore CS8604 // Possible null reference argument.
 		}
 
 		/// <summary>
@@ -133,9 +129,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 		public static ValueTask<TValue> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
-#pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
-#pragma warning restore CS8604 // Possible null reference argument.
 		}
 
 		/// <summary>
@@ -150,9 +144,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 		public static TValue GetOrDefault<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 		{
-#pragma warning disable CS8604 // Possible null reference argument.
 			return cache.GetOrDefault<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction), token);
-#pragma warning restore CS8604 // Possible null reference argument.
 		}
 
 		#endregion

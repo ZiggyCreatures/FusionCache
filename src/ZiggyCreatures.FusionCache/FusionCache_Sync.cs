@@ -347,9 +347,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", operationId, key);
-#pragma warning disable CS8603 // Possible null reference return.
 				return defaultValue;
-#pragma warning restore CS8603 // Possible null reference return.
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
