@@ -623,7 +623,7 @@ namespace FusionCacheTests
 					"foo",
 					async (ctx, _) =>
 					{
-						ctx.Options = ctx.Options.Duplicate().SetDuration(TimeSpan.FromSeconds(1));
+						ctx.Options.Duration = TimeSpan.FromSeconds(1);
 
 						innerOpt = ctx.Options;
 
@@ -656,7 +656,7 @@ namespace FusionCacheTests
 					"foo",
 					(ctx, _) =>
 					{
-						ctx.Options = ctx.Options.Duplicate().SetDuration(TimeSpan.FromSeconds(1));
+						ctx.Options.Duration = TimeSpan.FromSeconds(1);
 
 						innerOpt = ctx.Options;
 
@@ -698,7 +698,7 @@ namespace FusionCacheTests
 						await Task.Delay(TimeSpan.FromSeconds(3));
 
 						// CHANGE THE OPTIONS (SET THE DURATION TO 2s AND DISABLE FAIL-SAFE
-						ctx.Options = ctx.Options.Duplicate().SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
+						ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 						return 42;
 					},
@@ -748,7 +748,7 @@ namespace FusionCacheTests
 						Thread.Sleep(TimeSpan.FromSeconds(3));
 
 						// CHANGE THE OPTIONS (SET THE DURATION TO 2s AND DISABLE FAIL-SAFE
-						ctx.Options = ctx.Options.Duplicate().SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
+						ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 						return 42;
 					},
@@ -772,6 +772,48 @@ namespace FusionCacheTests
 				Assert.Equal(21, value21);
 				Assert.Equal(42, value42);
 				Assert.False(noValue.HasValue);
+			}
+		}
+
+		[Fact]
+		public async Task AdaptiveCachingDoesNotChangeOptionsAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
+
+				_ = await cache.GetOrSetAsync(
+					"foo",
+					async (ctx, _) =>
+					{
+						ctx.Options.Duration = TimeSpan.FromSeconds(20);
+						return 42;
+					},
+					options
+				);
+
+				Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
+			}
+		}
+
+		[Fact]
+		public void AdaptiveCachingDoesNotChangeOptions()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
+
+				_ = cache.GetOrSet(
+					"foo",
+					(ctx, _) =>
+					{
+						ctx.Options.Duration = TimeSpan.FromSeconds(20);
+						return 42;
+					},
+					options
+				);
+
+				Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
 			}
 		}
 	}
