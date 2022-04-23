@@ -10,7 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson
 	public class FusionCacheNewtonsoftJsonSerializer
 		: IFusionCacheSerializer
 	{
-
 		/// <summary>
 		/// Create a new instance of a <see cref="FusionCacheNewtonsoftJsonSerializer"/> object.
 		/// </summary>
@@ -50,5 +49,4 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson
 			return new ValueTask<T?>(Deserialize<T>(data));
 		}
 	}
-
 }

@@ -9,7 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		#region GetOrSet overloads (with factory and fail-safe default value)
 
 		/// <summary>
-		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
@@ -25,7 +25,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="duration"/> provided.
+		/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
 		/// </summary>
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
