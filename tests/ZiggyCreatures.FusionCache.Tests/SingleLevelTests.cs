@@ -697,7 +697,7 @@ namespace FusionCacheTests
 						// WAIT 3s
 						await Task.Delay(TimeSpan.FromSeconds(3));
 
-						// CHANGE THE OPTIONS (SET THE DURATION TO 2s AND DISABLE FAIL-SAFE
+						// CHANGE THE OPTIONS (SET THE DURATION TO 5s AND DISABLE FAIL-SAFE
 						ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 						return 42;
@@ -712,7 +712,7 @@ namespace FusionCacheTests
 				var value42 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(false));
 
 				// LET THE CACHE ENTRY EXPIRES
-				await Task.Delay(TimeSpan.FromSeconds(3));
+				await Task.Delay(TimeSpan.FromSeconds(5));
 
 				// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
 				var noValue = await cache.TryGetAsync<int>("foo", options => options.SetFailSafe(true));
@@ -747,7 +747,7 @@ namespace FusionCacheTests
 						// WAIT 3s
 						Thread.Sleep(TimeSpan.FromSeconds(3));
 
-						// CHANGE THE OPTIONS (SET THE DURATION TO 2s AND DISABLE FAIL-SAFE
+						// CHANGE THE OPTIONS (SET THE DURATION TO 5s AND DISABLE FAIL-SAFE
 						ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 						return 42;
@@ -762,7 +762,7 @@ namespace FusionCacheTests
 				var value42 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(false));
 
 				// LET THE CACHE ENTRY EXPIRES
-				Thread.Sleep(TimeSpan.FromSeconds(3));
+				Thread.Sleep(TimeSpan.FromSeconds(5));
 
 				// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
 				var noValue = cache.TryGet<int>("foo", options => options.SetFailSafe(true));
