@@ -32,7 +32,7 @@ Here are 2 examples, with and without the *context* object.
 
 ### Example: without adaptive caching
 
-As you can see we are specifying the factory as a lambda that takes as input only a cancellation token (of type `CancellationToken`) and nothing else.
+As you can see we are specifying the factory as a lambda that takes as input only a cancellation token `ct` (of type `CancellationToken`) and nothing else.
 
 ```csharp
 var id = 42;
@@ -47,7 +47,7 @@ var product = cache.GetOrSet<Product>(
 
 ### Example: with adaptive caching
 
-As you can see we are specifying the factory as a lambda that takes as input both a context (of type `FusionCacheFactoryExecutionContext`) and a cancellation token (of type `CancellationToken`), so that we are able to change the options inside the factory itself.
+As you can see we are specifying the factory as a lambda that takes as input both a context `ctx` (of type `FusionCacheFactoryExecutionContext`) and a cancellation token `ct` (of type `CancellationToken`), so that we are able to change the options inside the factory itself.
 
 ```csharp
 var id = 42;
