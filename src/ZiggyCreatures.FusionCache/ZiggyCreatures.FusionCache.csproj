@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.9.0</Version>
+		<Version>0.10.0-preview1</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -21,9 +21,12 @@
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>- added the Backplane
-		- removed support for the Evict method (marked as obsolete + error)
-		- removed support for the CacheKeyPrefix option (marked as obsolete + error)</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- added support for adaptive caching
+			- added an optimization to use the FactorySoftTimeout as a LockTimeout in case a custom one has not been specified + fail-safe is enabled + there's a fallback entry, so that in certain situations there can be a perf boost
+			- added IFusionCache.HasDistributedCache prop to know if there is a distributed cache configured
+			- added a warning log in case there's a backplane configured without a distributed cache and DefaultEntryOptions.EnableBackplaneNotifications == true , since this can be dangerous
+			- better nullability decoration</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
