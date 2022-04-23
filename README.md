@@ -49,16 +49,17 @@ On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](h
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:
 
-- [**:rocket: Cache Stampede prevention**](docs/FactoryOptimization.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires
-- [**:twisted_rightwards_arrows: 2nd level**](docs/CacheLevels.md): FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported like Redis, MongoDB, CosmosDB, SqlServer, etc
+- [**🚀 Cache Stampede prevention**](docs/FactoryOptimization.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires
+- [**🔀 2nd level (optional)**](docs/CacheLevels.md): FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported like Redis, MongoDB, CosmosDB, SqlServer, etc
 - [**📢 Backplane**](docs/Backplane.md): when using a distributed cache as a 2nd layer in a multi-node scenario, you can also enable a backplane to immediately notify the other nodes about changes in the cache, to keep everything synchronized without having to do anything
-- [**:bomb: Fail-Safe**](docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
-- [**:stopwatch: Soft/Hard timeouts**](docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
-- [**:zap: High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
-- [**:dizzy: Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
-- [**:telephone_receiver: Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
-- [**:jigsaw: Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc
-- [**:page_with_curl: Extensive logging**](docs/StepByStep.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
+- [**💣 Fail-Safe**](docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
+- [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
+- [**🧙‍♂️ Adaptive Caching**](AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
+- [**⚡ High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
+- [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
+- [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
+- [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc
+- [**📃 Extensive logging**](docs/StepByStep.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 
 <details>
 	<summary>Something more 😏 ?</summary>
@@ -79,7 +80,7 @@ Also, FusionCache has some nice **additional features**:
 </details>
 
 
-## :package: Distribution
+## 📦 Distribution
 
 Official packages:
 
@@ -100,7 +101,7 @@ Third-party packages:
 | [JoeShook.ZiggyCreatures.FusionCache.Metrics.AppMetrics](https://www.nuget.org/packages/JoeShook.ZiggyCreatures.FusionCache.Metrics.AppMetrics/)         | [![NuGet](https://img.shields.io/nuget/v/JoeShook.ZiggyCreatures.FusionCache.Metrics.AppMetrics.svg)](https://www.nuget.org/packages/JoeShook.ZiggyCreatures.FusionCache.Metrics.AppMetrics/) | ![Nuget](https://img.shields.io/nuget/dt/JoeShook.ZiggyCreatures.FusionCache.Metrics.AppMetrics) |
 
 
-## :star: Quick Start
+## ⭐ Quick Start
 
 FusionCache can be installed via the nuget UI (search for the `ZiggyCreatures.FusionCache` package) or via the nuget package manager console:
 
@@ -116,7 +117,7 @@ Product GetProductFromDb(int id) {
 }
 ```
 
-:bulb: This is using the **sync** programming model, but it would be equally valid with the newer **async** one for even better performance.
+💡 This is using the **sync** programming model, but it would be equally valid with the newer **async** one for even better performance.
 
 To start using FusionCache the first thing is create a cache instance:
 
@@ -164,7 +165,7 @@ cache.GetOrSet<Product>(
 );
 ```
 
-That's it :tada:
+That's it 🎉
 
 <details>
 	<summary>Want a little bit more 😏 ?</summary>
@@ -227,19 +228,20 @@ The `DefaultEntryOptions` we did set before will be duplicated and only the dura
 
 The documentation is available in the :open_file_folder: [docs](docs/README.md) folder, with:
 
-- [**:unicorn: A Gentle Introduction**](docs/AGentleIntroduction.md): what you need to know first
-- [**:twisted_rightwards_arrows: Cache Levels**](docs/CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
+- [**🦄 A Gentle Introduction**](docs/AGentleIntroduction.md): what you need to know first
+- [**🔀 Cache Levels**](docs/CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
 - [**📢 Backplane**](docs/Backplane.md): how to get an always synchronized cache, even in a multi-node scenario
-- [**:rocket: Cache Stampede prevention**](docs/FactoryOptimization.md): no more overloads during a cold start or after an expiration
-- [**:bomb: Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
-- [**:stopwatch: Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
-- [**:level_slider: Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
-- [**:joystick: Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
-- [**:telephone_receiver: Events**](docs/Events.md): the events hub and how to use it
-- [**:jigsaw: Plugins**](docs/Plugins.md): how to create and use plugins
+- [**🚀 Cache Stampede prevention**](docs/FactoryOptimization.md): no more overloads during a cold start or after an expiration
+- [**💣 Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
+- [**⏱ Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
+- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
+- [**🎚 Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
+- [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
+- [**📞 Events**](docs/Events.md): the events hub and how to use it
+- [**🧩 Plugins**](docs/Plugins.md): how to create and use plugins
 
 
-## **:woman_teacher: Step By Step**
+## **👩‍🏫 Step By Step**
 If you are in for a ride you can read a complete [step by step example](docs/StepByStep.md) of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what **results** you can expect to obtain.
 
 <div style="text-align:center;">
@@ -249,7 +251,7 @@ If you are in for a ride you can read a complete [step by step example](docs/Ste
 </div>
 
 
-## :ab: Comparison
+## 🆎 Comparison
 
 There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
 
@@ -265,17 +267,19 @@ FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is
 
 The logo is an [original creation](https://dribbble.com/shots/14854206-FusionCache-logo) and is a [sloth](https://en.wikipedia.org/wiki/Sloth) because, you know, speed.
 
-## 💰 Funding / Support
+## 💰 Support
 
 Nothing to do here.
 
 After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
-<br/>
+
 If you find FusionCache useful please just [**:envelope: drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
 
-And if you really want to talk about money, please consider making  **:heart: a donation to a good cause** of your choosing, and maybe let me know about that.
+And if you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and maybe let me know about that.
 
 ## 💼 Is it Production Ready :tm: ?
-Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, at least these are the projects I'm aware of. Considering that just the main package has surpassed the **40K downloads mark** (thanks everybody!) it is probably used even more.
+Yes!
 
-And again, if you are using it please [**:envelope: drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
+Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of. Considering that just the main package has surpassed the **76K downloads mark** (thanks everybody!) it's probably used even more.
+
+And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
