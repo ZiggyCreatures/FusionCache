@@ -91,7 +91,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			IFusionCacheEntry? entry;
 			bool isStale;
-			bool factoryCompletedSuccessfully = false;
+			bool hasNewValue = false;
 
 			try
 			{
@@ -167,7 +167,7 @@ namespace ZiggyCreatures.Caching.Fusion
 							{
 								value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
 							}
-							factoryCompletedSuccessfully = true;
+							hasNewValue = true;
 
 							// UPDATE ADAPTIVE OPTIONS
 							var maybeNewOptions = ctx.GetOptions();
@@ -224,7 +224,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 
 			// EVENT
-			if (factoryCompletedSuccessfully)
+			if (hasNewValue)
 			{
 				_events.OnSet(operationId, key);
 
