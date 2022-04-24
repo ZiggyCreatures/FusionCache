@@ -70,16 +70,17 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				// IF THERE IS NO SPECIFIC LOCK TIMEOUT
 				// + THERE IS A FALLBACK ENTRY
-				// + FAILSAFE IS ENABLED
+				// + FAIL-SAFE IS ENABLED
 				// + THERE IS A FACTORY SOFT TIMEOUT
 				// --> USE IT AS A LOCK TIMEOUT
 				lto = options.FactorySoftTimeout;
 			}
 			var lockObj = _reactor.AcquireLock(key, operationId, lto, _logger);
 
-			if (lockObj is null && memoryEntry is object)
+			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is object)
 			{
 				// IF THE LOCK HAS NOT BEEN ACQUIRED
+				// + FAIL-SAFE IS ENABLED
 				// + THERE IS A FALLBACK ENTRY
 				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
 
