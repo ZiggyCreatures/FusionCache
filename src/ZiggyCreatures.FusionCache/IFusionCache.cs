@@ -178,15 +178,15 @@ namespace ZiggyCreatures.Caching.Fusion
 		IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer);
 
 		/// <summary>
-		/// Gets whether there is a distributed cache configured.
-		/// </summary>
-		bool HasDistributedCache { get; }
-
-		/// <summary>
 		/// Removes the secondary caching layer.
 		/// </summary>
 		/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
 		IFusionCache RemoveDistributedCache();
+
+		/// <summary>
+		/// Gets whether there is a distributed cache configured.
+		/// </summary>
+		bool HasDistributedCache { get; }
 
 		/// <summary>
 		/// Sets a backplane, by providing an <see cref="IFusionCacheBackplane"/> instance.

@@ -319,6 +319,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
+		public bool HasDistributedCache
+		{
+			get { return _dca is object; }
+		}
+
+		/// <inheritdoc/>
 		public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
 		{
 			if (backplane is null)
@@ -374,12 +380,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		public bool HasBackplane
 		{
 			get { return _bpa is object; }
-		}
-
-		/// <inheritdoc/>
-		public bool HasDistributedCache
-		{
-			get { return _dca is object; }
 		}
 
 		/// <inheritdoc/>
