@@ -38,7 +38,7 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
 				var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-				await Task.Delay(1_100);
+				await Task.Delay(1_500);
 				var newValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 				Assert.Equal(initialValue, newValue);
 			}
@@ -50,7 +50,7 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
 				var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-				Thread.Sleep(1_100);
+				Thread.Sleep(1_500);
 				var newValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 				Assert.Equal(initialValue, newValue);
 			}
