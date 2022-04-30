@@ -31,7 +31,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false);
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
 
 				return memoryEntry;
 			}
