@@ -884,5 +884,91 @@ namespace FusionCacheTests
 			Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessagePublished]);
 			Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessageReceived]);
 		}
+
+		[Fact]
+		public async Task StaleHitForOldStaleDataAsync()
+		{
+			var stats = new EntryActionsStats();
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// SET: +1
+				var firstValue = await cache.GetOrSetAsync<int>("foo", async _ => 21, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				// HIT (NORMAL): +1
+				var secondValue = await cache.GetOrSetAsync<int>("foo", async _ => 10, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				await Task.Delay(1_500);
+				// FAIL-SAFE: +1
+				// HIT (STALE): +1
+				var thirdValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				// HIT (STALE): +1
+				var fourthValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+
+				// REMOVE HANDLERS
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(21, firstValue);
+				Assert.Equal(21, secondValue);
+				Assert.Equal(21, thirdValue);
+				Assert.Equal(21, fourthValue);
+				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(1, stats.Data[EntryActionKind.HitNormal]);
+				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
+			}
+		}
+
+		[Fact]
+		public void StaleHitForOldStaleData()
+		{
+			var stats = new EntryActionsStats();
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// SET: +1
+				var firstValue = cache.GetOrSet<int>("foo", _ => 21, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				// HIT (NORMAL): +1
+				var secondValue = cache.GetOrSet<int>("foo", _ => 10, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				Thread.Sleep(1_500);
+				// FAIL-SAFE: +1
+				// HIT (STALE): +1
+				var thirdValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				// HIT (STALE): +1
+				var fourthValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+
+				// REMOVE HANDLERS
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(21, firstValue);
+				Assert.Equal(21, secondValue);
+				Assert.Equal(21, thirdValue);
+				Assert.Equal(21, fourthValue);
+				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(1, stats.Data[EntryActionKind.HitNormal]);
+				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
+			}
+		}
 	}
 }

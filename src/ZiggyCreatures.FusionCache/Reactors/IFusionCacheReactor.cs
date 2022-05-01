@@ -19,7 +19,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 		/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 		/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		/// <returns>The acquired genericlock object, later released when the crytical section is over.</returns>
+		/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
 		ValueTask<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
 
 		/// <summary>
@@ -29,7 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 		/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 		/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 		/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
-		/// <returns>The acquired genericlock object, later released when the crytical section is over.</returns>
+		/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
 		object? AcquireLock(string key, string operationId, TimeSpan timeout, ILogger? logger);
 
 		/// <summary>

@@ -185,7 +185,7 @@ namespace FusionCacheTests
 				// MISS: +1
 				await cache.TryGetAsync<int>("foo");
 
-				Assert.True(plugin.IsStarted, "Plugin has not been started");
+				Assert.True(plugin!.IsStarted, "Plugin has not been started");
 				Assert.Equal(1, plugin.MissCount);
 			}
 		}
@@ -209,7 +209,7 @@ namespace FusionCacheTests
 				// MISS: +1
 				cache.TryGet<int>("foo");
 
-				Assert.True(plugin.IsStarted, "Plugin has not been started");
+				Assert.True(plugin!.IsStarted, "Plugin has not been started");
 				Assert.Equal(1, plugin.MissCount);
 			}
 		}

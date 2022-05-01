@@ -38,7 +38,7 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
 				var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-				await Task.Delay(1_100);
+				await Task.Delay(1_500);
 				var newValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 				Assert.Equal(initialValue, newValue);
 			}
@@ -50,7 +50,7 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
 				var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-				Thread.Sleep(1_100);
+				Thread.Sleep(1_500);
 				var newValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 				Assert.Equal(initialValue, newValue);
 			}
@@ -607,6 +607,213 @@ namespace FusionCacheTests
 				Assert.Equal(42, throttled1);
 				Assert.Equal(42, throttled2);
 				Assert.Equal(3, default3);
+			}
+		}
+
+		[Fact]
+		public async Task AdaptiveCachingAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var dur = TimeSpan.FromMinutes(5);
+				cache.DefaultEntryOptions.Duration = dur;
+				FusionCacheEntryOptions? innerOpt = null;
+
+				var default3 = await cache.GetOrSetAsync(
+					"foo",
+					async (ctx, _) =>
+					{
+						ctx.Options.Duration = TimeSpan.FromSeconds(1);
+
+						innerOpt = ctx.Options;
+
+						return 3;
+					},
+					opt => opt.SetFailSafe(false)
+				);
+
+				await Task.Delay(TimeSpan.FromSeconds(2));
+
+				var maybeValue = await cache.TryGetAsync<int>("foo");
+
+				Assert.Equal(dur, TimeSpan.FromMinutes(5));
+				Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
+				Assert.Equal(innerOpt!.Duration, TimeSpan.FromSeconds(1));
+				Assert.False(maybeValue.HasValue);
+			}
+		}
+
+		[Fact]
+		public void AdaptiveCaching()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var dur = TimeSpan.FromMinutes(5);
+				cache.DefaultEntryOptions.Duration = dur;
+				FusionCacheEntryOptions? innerOpt = null;
+
+				var default3 = cache.GetOrSet(
+					"foo",
+					(ctx, _) =>
+					{
+						ctx.Options.Duration = TimeSpan.FromSeconds(1);
+
+						innerOpt = ctx.Options;
+
+						return 3;
+					}
+				);
+
+				Thread.Sleep(TimeSpan.FromSeconds(2));
+
+				var maybeValue = cache.TryGet<int>("foo");
+
+				Assert.Equal(dur, TimeSpan.FromMinutes(5));
+				Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
+				Assert.Equal(innerOpt!.Duration, TimeSpan.FromSeconds(1));
+				Assert.False(maybeValue.HasValue);
+			}
+		}
+
+		[Fact]
+		public async Task AdaptiveCachingWithBackgroundFactoryCompletionAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var dur = TimeSpan.FromMinutes(5);
+				cache.DefaultEntryOptions.Duration = dur;
+
+				// SET WITH 1s DURATION + FAIL-SAFE
+				await cache.SetAsync("foo", 21, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+
+				// LET IT BECOME STALE
+				await Task.Delay(TimeSpan.FromSeconds(2));
+
+				// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
+				var value21 = await cache.GetOrSetAsync(
+					"foo",
+					async (ctx, _) =>
+					{
+						// WAIT 3s
+						await Task.Delay(TimeSpan.FromSeconds(3));
+
+						// CHANGE THE OPTIONS (SET THE DURATION TO 5s AND DISABLE FAIL-SAFE
+						ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
+
+						return 42;
+					},
+					opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true)
+				);
+
+				// WAIT FOR 3s (+ EXTRA 1s) SO THE FACTORY COMPLETES IN THE BACKGROUND
+				await Task.Delay(TimeSpan.FromSeconds(3 + 1));
+
+				// GET THE VALUE THAT HAS BEEN SET BY THE BACKGROUND COMPLETION OF THE FACTORY
+				var value42 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(false));
+
+				// LET THE CACHE ENTRY EXPIRES
+				await Task.Delay(TimeSpan.FromSeconds(5));
+
+				// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
+				var noValue = await cache.TryGetAsync<int>("foo", options => options.SetFailSafe(true));
+
+				Assert.Equal(dur, TimeSpan.FromMinutes(5));
+				Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
+				Assert.Equal(21, value21);
+				Assert.Equal(42, value42);
+				Assert.False(noValue.HasValue);
+			}
+		}
+
+		[Fact]
+		public void AdaptiveCachingWithBackgroundFactoryCompletion()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var dur = TimeSpan.FromMinutes(5);
+				cache.DefaultEntryOptions.Duration = dur;
+
+				// SET WITH 1s DURATION + FAIL-SAFE
+				cache.Set("foo", 21, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+
+				// LET IT BECOME STALE
+				Thread.Sleep(TimeSpan.FromSeconds(2));
+
+				// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
+				var value21 = cache.GetOrSet(
+					"foo",
+					(ctx, _) =>
+					{
+						// WAIT 3s
+						Thread.Sleep(TimeSpan.FromSeconds(3));
+
+						// CHANGE THE OPTIONS (SET THE DURATION TO 5s AND DISABLE FAIL-SAFE
+						ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
+
+						return 42;
+					},
+					opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true)
+				);
+
+				// WAIT FOR 3s (+ EXTRA 1s) SO THE FACTORY COMPLETES IN THE BACKGROUND
+				Thread.Sleep(TimeSpan.FromSeconds(3 + 1));
+
+				// GET THE VALUE THAT HAS BEEN SET BY THE BACKGROUND COMPLETION OF THE FACTORY
+				var value42 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(false));
+
+				// LET THE CACHE ENTRY EXPIRES
+				Thread.Sleep(TimeSpan.FromSeconds(5));
+
+				// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
+				var noValue = cache.TryGet<int>("foo", options => options.SetFailSafe(true));
+
+				Assert.Equal(dur, TimeSpan.FromMinutes(5));
+				Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
+				Assert.Equal(21, value21);
+				Assert.Equal(42, value42);
+				Assert.False(noValue.HasValue);
+			}
+		}
+
+		[Fact]
+		public async Task AdaptiveCachingDoesNotChangeOptionsAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
+
+				_ = await cache.GetOrSetAsync(
+					"foo",
+					async (ctx, _) =>
+					{
+						ctx.Options.Duration = TimeSpan.FromSeconds(20);
+						return 42;
+					},
+					options
+				);
+
+				Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
+			}
+		}
+
+		[Fact]
+		public void AdaptiveCachingDoesNotChangeOptions()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
+
+				_ = cache.GetOrSet(
+					"foo",
+					(ctx, _) =>
+					{
+						ctx.Options.Duration = TimeSpan.FromSeconds(20);
+						return 42;
+					},
+					options
+				);
+
+				Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
 			}
 		}
 	}

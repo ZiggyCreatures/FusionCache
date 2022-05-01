@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	public partial class FusionCache
 		: IFusionCache
 	{
-		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<CancellationToken, TValue>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+		private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue>? factory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 		{
 			if (options is null)
 				options = _options.DefaultEntryOptions;
@@ -31,7 +31,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false);
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 				return memoryEntry;
 			}
@@ -41,6 +41,27 @@ namespace ZiggyCreatures.Caching.Fusion
 			// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
 			if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
 			{
+				//if (failSafeDefaultValue.HasValue)
+				//{
+				//	// CREATE A NEW ENTRY
+				//	memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(failSafeDefaultValue, options, false);
+
+				//	if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				//		_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): using the default value", operationId, key);
+
+				//	// SAVING THE DATA IN THE MEMORY CACHE
+				//	_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+
+				//	// EVENT
+				//	_events.OnSet(operationId, key);
+
+				//	// BACKPLANE
+				//	if (options.EnableBackplaneNotifications)
+				//		PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
+
+				//	return memoryEntry;
+				//}
+
 				if (options.IsFailSafeEnabled && memoryEntry is object)
 				{
 					// CREATE A NEW (THROTTLED) ENTRY
@@ -53,7 +74,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 					// EVENT
-					_events.OnHit(operationId, key, memoryEntryIsValid == false);
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 					return memoryEntry;
 				}
@@ -64,12 +85,35 @@ namespace ZiggyCreatures.Caching.Fusion
 				return null;
 			}
 
-			IFusionCacheEntry? entry;
-
 			// LOCK
-			var lockObj = _reactor.AcquireLock(key, operationId, options.LockTimeout, _logger);
+			var lto = options.LockTimeout;
+			if (lto == Timeout.InfiniteTimeSpan && memoryEntry is object && options.IsFailSafeEnabled && options.FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+			{
+				// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+				// + THERE IS A FALLBACK ENTRY
+				// + FAIL-SAFE IS ENABLED
+				// + THERE IS A FACTORY SOFT TIMEOUT
+				// --> USE IT AS A LOCK TIMEOUT
+				lto = options.FactorySoftTimeout;
+			}
+			var lockObj = _reactor.AcquireLock(key, operationId, lto, _logger);
+
+			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is object)
+			{
+				// IF THE LOCK HAS NOT BEEN ACQUIRED
+				// + THERE IS A FALLBACK ENTRY
+				// + FAIL-SAFE IS ENABLED
+				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
+
+				// EVENT
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+
+				return memoryEntry;
+			}
+
+			IFusionCacheEntry? entry;
 			bool isStale;
-			bool factoryCompletedSuccessfully = false;
+			bool hasNewValue = false;
 
 			try
 			{
@@ -81,7 +125,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 					// EVENT
-					_events.OnHit(operationId, key, memoryEntryIsValid == false);
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 					return memoryEntry;
 				}
@@ -98,11 +142,11 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (distributedEntryIsValid)
 				{
 					isStale = false;
-					entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, false);
+					entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, distributedEntry?.Metadata?.IsFromFailSafe ?? false);
 				}
 				else
 				{
-					TValue value;
+					TValue? value;
 					bool failSafeActivated = false;
 
 					if (factory is null)
@@ -128,22 +172,29 @@ namespace ZiggyCreatures.Caching.Fusion
 
 						Task<TValue>? factoryTask = null;
 
+						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
+
+						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+							_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
+
+						var ctx = new FusionCacheFactoryExecutionContext(options);
+
 						try
 						{
-							var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
-
-							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-								_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
-
 							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 							{
-								value = factory(CancellationToken.None);
+								value = factory(ctx, CancellationToken.None);
 							}
 							else
 							{
-								value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
+								value = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
 							}
-							factoryCompletedSuccessfully = true;
+							hasNewValue = true;
+
+							// UPDATE ADAPTIVE OPTIONS
+							var maybeNewOptions = ctx.GetOptions();
+							if (maybeNewOptions is object && options != maybeNewOptions)
+								options = maybeNewOptions;
 						}
 						catch (OperationCanceledException)
 						{
@@ -153,7 +204,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						{
 							ProcessFactoryError(operationId, key, exc);
 
-							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, factoryTask, options, dca, token);
+							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
 
 							var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, out failSafeActivated);
 							if (fallbackEntry is object)
@@ -195,7 +246,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 
 			// EVENT
-			if (factoryCompletedSuccessfully)
+			if (hasNewValue)
 			{
 				_events.OnSet(operationId, key);
 
@@ -205,7 +256,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 			else if (entry is object)
 			{
-				_events.OnHit(operationId, key, isStale);
+				_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
 			}
 			else
 			{
@@ -216,7 +267,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <inheritdoc/>
-		public TValue GetOrSet<TValue>(string key, Func<CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+		public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 		{
 			ValidateCacheKey(key);
 
@@ -258,7 +309,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
 			// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, _ => defaultValue, default, options, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, default, options, token);
 
 			if (entry is null)
 			{
@@ -319,9 +370,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", operationId, key);
-#pragma warning disable CS8603 // Possible null reference return.
 				return defaultValue;
-#pragma warning restore CS8603 // Possible null reference return.
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)

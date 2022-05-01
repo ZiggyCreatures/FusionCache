@@ -26,7 +26,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
-		protected FusionCacheDistributedEntry()
+		public FusionCacheDistributedEntry()
 		{
 #pragma warning disable CS8601 // Possible null reference assignment.
 			Value = default;

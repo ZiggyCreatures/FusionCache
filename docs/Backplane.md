@@ -23,7 +23,7 @@ A backplane is like a message bus where change notifications will be published t
 
 By default, everything is handled transparently for us 🎉
 
-## How it works
+## 👩‍🏫 How it works
 
 As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N1`, `N2`, `N3`):
 
@@ -38,7 +38,7 @@ As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N
 As we can see we didn't have to do anything more than usual: everything else is done automatically for us.
 
 
-## Packages
+## 📦 Packages
 
 Currently there are 2 official packages we can use:
 
@@ -50,7 +50,7 @@ Currently there are 2 official packages we can use:
 If we are already using a Redis instance as a distributed cache, we just have to point the backplane to the same instance and we'll be good to go (but if we share the same Redis instance with multiple caches, please read [some notes](RedisNotes.md)).
 
 
-## Example
+### Example
 
 As an example, we'll use FusionCache with [Redis](https://redis.io/), as both a **distributed cache** and a **backplane**.
 
@@ -125,7 +125,7 @@ But is it really necessary to use a distributed cache at all?
 Let's find out.
 
 
-## Distributed cache: is it really necessary?
+## 🤔 Distributed cache: is it really necessary?
 
 The idea seems like a nice one: in a multi-node scenario we may want to use only memory caches on each node + the backplane for cache synchronization, without having to use a shared distributed cache.
 
@@ -154,7 +154,7 @@ This is because not having a **shared state** means we don't know when something
 So how can we solve this?
 
 
-## Look ma: no distributed cache!
+## 🥳 Look ma: no distributed cache!
 
 The solution is to **disable automatic backplane notifications** and publish them only when we want to signal an actual change.
 
@@ -167,7 +167,7 @@ But then, when we **want** to publish a notification, how can we do it? Easy pea
 Let's look at a concrete example.
 
 
-## Example
+### Example
 
 ```csharp
 // INITIAL SETUP: DISABLE AUTOMATIC NOTIFICATIONS
@@ -189,11 +189,11 @@ cache.Remove(
 );
 ```
 
-## ⚠ External changes
+## ⚠ External changes: be careful
 
 Just to reiterate, because it's very important: when using the backplane **without** a distributed cache, any change not manually published by you would result in different nodes not being synched.
 
-This means that, if you want to use the backplane without the distributed cache, you should be confident of the fact that **ALL** changes will be notified by you manually.
+This means that, if you want to use the backplane without the distributed cache, you should be confident about the fact that **ALL** changes will be notified by you manually.
 
 To better understand what would happen otherwise let's look at an example, again with a couple of `GetOrSet` operations on 3 nodes (`N1`, `N2`, `N3`):
 
