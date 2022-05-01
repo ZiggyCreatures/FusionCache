@@ -31,7 +31,7 @@ namespace ZiggyCreatures.Caching.Fusion
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 				return memoryEntry;
 			}
@@ -41,6 +41,27 @@ namespace ZiggyCreatures.Caching.Fusion
 			// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
 			if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
 			{
+				//if (failSafeDefaultValue.HasValue)
+				//{
+				//	// CREATE A NEW ENTRY
+				//	memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(failSafeDefaultValue, options, false);
+
+				//	if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				//		_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): using the default value", operationId, key);
+
+				//	// SAVING THE DATA IN THE MEMORY CACHE
+				//	_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+
+				//	// EVENT
+				//	_events.OnSet(operationId, key);
+
+				//	// BACKPLANE
+				//	if (options.EnableBackplaneNotifications)
+				//		PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
+
+				//	return memoryEntry;
+				//}
+
 				if (options.IsFailSafeEnabled && memoryEntry is object)
 				{
 					// CREATE A NEW (THROTTLED) ENTRY
@@ -53,7 +74,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 					// EVENT
-					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 					return memoryEntry;
 				}
@@ -80,12 +101,12 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is object)
 			{
 				// IF THE LOCK HAS NOT BEEN ACQUIRED
-				// + FAIL-SAFE IS ENABLED
 				// + THERE IS A FALLBACK ENTRY
+				// + FAIL-SAFE IS ENABLED
 				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 				return memoryEntry;
 			}
@@ -104,7 +125,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 					// EVENT
-					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
 
 					return memoryEntry;
 				}
@@ -121,7 +142,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (distributedEntryIsValid)
 				{
 					isStale = false;
-					entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, false);
+					entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, distributedEntry?.Metadata?.IsFromFailSafe ?? false);
 				}
 				else
 				{
@@ -235,7 +256,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 			else if (entry is object)
 			{
-				_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? true));
+				_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
 			}
 			else
 			{
