@@ -53,7 +53,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 					// EVENT
-					_events.OnHit(operationId, key, memoryEntryIsValid == false);
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
 
 					return memoryEntry;
 				}
@@ -85,7 +85,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false);
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
 
 				return memoryEntry;
 			}
@@ -104,7 +104,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
 
 					// EVENT
-					_events.OnHit(operationId, key, memoryEntryIsValid == false);
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? true));
 
 					return memoryEntry;
 				}
@@ -235,7 +235,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 			else if (entry is object)
 			{
-				_events.OnHit(operationId, key, isStale);
+				_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? true));
 			}
 			else
 			{
