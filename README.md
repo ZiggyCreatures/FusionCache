@@ -280,6 +280,6 @@ And if you really want to talk about money, please consider making  **❤ a dona
 ## 💼 Is it Production Ready :tm: ?
 Yes!
 
-Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of. Considering that just the main package has surpassed the **76K downloads mark** (thanks everybody!) it's probably used even more.
+Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of. Considering that just the main package has surpassed the **80K downloads mark** (thanks everybody!) it's probably used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
