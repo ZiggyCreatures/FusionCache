@@ -149,7 +149,7 @@ services.AddFusionCache(options => {
 	options.DefaultEntryOptions = new FusionCacheEntryOptions {
 		Duration = TimeSpan.FromMinutes(2),
 		Priority = CacheItemPriority.Low
-	}
+	};
 });
 ```
 
