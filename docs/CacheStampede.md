@@ -6,7 +6,24 @@
 
 # :rocket: Cache Stampede prevention
 
-A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario: FusionCache takes great care in coordinating the execution of concurrent factories for the same cache key, to avoid this type of failure altogether.
+A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario, and basically it's what happens when a lot of requests comes in for the same data and there's no special handling of that.
+
+## The Problem
+
+Imagine multiple requets coming in, all for the same data. They would:
+
+- all go to the cache to check for the same data
+- all not find that in the cache
+- then they would all go to the database
+- and finally they would all save the same fresh piece of data in the cache
+
+all of them at the same time, for the same data.
+
+Now imagine that scenario with 100 or 1.000 concurrent requests: that is both a waste of resources and something that may potentially tear down your database during peak traffic time.
+
+## The Solution
+
+FusionCache takes great care in coordinating the execution of concurrent factories for the same cache key, to avoid this type of failure altogether.
 
 Inside FusionCache a factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it is not in the cache or is expired.
 
@@ -31,3 +48,11 @@ Special care is put into calling just one factory per key, concurrently: this me
 As you can see, when multiple concurrent `GetOrSet[Async]` calls are made for the same key, only 1 of them will be executed: the returned value will be cached to be readily available, and then returned to all the callers for the same cache key.
 
 This ensures that the data source (let's say a database) **will not be overloaded** with multiple requests for the same piece of data at the same time.
+
+## Multiple nodes
+
+It's right to point out that this automatic coordination does not extend accross multiple nodes: what this means is that although there's a guarantee only 1 factory will be executed concurrently per-key in each node, if multiple requests for the same cache key arrive at the same time on different nodes, one factory per node will be executed.
+
+In practice this is typically not a problem, because for example `1.000` concurrent requests distributed on `5` nodes means, if you are not lucky, at most `5` requests to the database: the cache stampede problem is still solved, you may just have a couple more executions, but not a massive number.
+
+On top of that, one way to mitigate this scenario is to enable jittering via the `JitterMaxDuration` [option](Options.md): basically it's a way to add a little extra random duration to the normal cache duration, so that the same piece of data will expire at a little bit different times on each node, allowing the first node where it will expire to refresh the data from the database and repopulate the distributed cache for everybody else to use right away, and not go to the database.
