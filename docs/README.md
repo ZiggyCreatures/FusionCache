@@ -21,7 +21,7 @@ A deeper description of the main features:
 
 - [**🔀 Cache Levels**](CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
 - [**📢 Backplane**](Backplane.md): how to get an always synchronized cache, even in a multi-node scenario
-- [**🚀 Cache Stampede prevention**](FactoryOptimization.md): no more overloads during a cold start or after an expiration
+- [**🚀 Cache Stampede prevention**](CacheStampede.md): no more overloads during a cold start or after an expiration
 - [**💣 Fail-Safe**](FailSafe.md): an explanation of how the fail-safe mechanism works
 - [**⏱ Timeouts**](Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**🧙‍♂️ Adaptive Caching**](AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself

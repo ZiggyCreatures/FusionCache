@@ -35,7 +35,7 @@ In trying to make an honest and generic overview I've identified a set of **very
 
 The general features I've identified are:
 
-- [**Cache Stampede prevention**](FactoryOptimization.md): the ability to guarantee only one factory will be executed concurrently per-key, even in highly concurrent scenarios. This will reduce a lot the load on your origin datasource (database, etc)
+- [**Cache Stampede prevention**](CacheStampede.md): the ability to guarantee only one factory will be executed concurrently per-key, even in highly concurrent scenarios. This will reduce a lot the load on your origin datasource (database, etc)
 - **Native sync/async support**: native support for both programming models. Even though nowadays the async one is more widly used and in general more performant, they are both useful and have their place in everyday usage
 - [**Fail-Safe**](FailSafe.md) (or similar mechanism): in general the ability to temporarily re-use an expired entry in case it's currently not possible to get a new one. This can greatly reduce transient errors in your application
 - [**Timeouts**](Timeouts.md): the ability to avoid factories to run for too long, potentially creating a blocking situation or resulting in too slow responses

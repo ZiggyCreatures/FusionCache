@@ -134,7 +134,7 @@ If instead the value is not in the cache (or is expired) it can automatically **
 
 - a **DEFAULT VALUE**: that will be **SET** in the cache and returned to you
 
-- a [**FACTORY**](FactoryOptimization.md) method: it will be executed, and if the execution goes well the obtained value will be **SET** in the cache and returned to you
+- a [**FACTORY**](CacheStampede.md) method: it will be executed, and if the execution goes well the obtained value will be **SET** in the cache and returned to you
 
 These are the happy paths.
 

@@ -49,7 +49,7 @@ On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](h
 ## :heavy_check_mark: Features
 These are the **key features** of FusionCache:
 
-- [**🚀 Cache Stampede prevention**](docs/FactoryOptimization.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires
+- [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires
 - [**🔀 2nd level (optional)**](docs/CacheLevels.md): FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported like Redis, MongoDB, CosmosDB, SqlServer, etc
 - [**📢 Backplane**](docs/Backplane.md): when using a distributed cache as a 2nd layer in a multi-node scenario, you can also enable a backplane to immediately notify the other nodes about changes in the cache, to keep everything synchronized without having to do anything
 - [**💣 Fail-Safe**](docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
@@ -231,7 +231,7 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**🦄 A Gentle Introduction**](docs/AGentleIntroduction.md): what you need to know first
 - [**🔀 Cache Levels**](docs/CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
 - [**📢 Backplane**](docs/Backplane.md): how to get an always synchronized cache, even in a multi-node scenario
-- [**🚀 Cache Stampede prevention**](docs/FactoryOptimization.md): no more overloads during a cold start or after an expiration
+- [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): no more overloads during a cold start or after an expiration
 - [**💣 Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
 - [**⏱ Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself

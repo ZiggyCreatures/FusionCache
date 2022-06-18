@@ -61,7 +61,7 @@ To avoid this and have everything always synchronized you can use a backplane, a
 You can read more [**here**](Backplane.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
 
-## 🚀 Factory ([more](FactoryOptimization.md))
+## 🚀 Factory ([more](CacheStampede.md))
 
 A factory is just a function that you specify when using the main `GetOrSet[Async]` method: basically it's the way you specify **how to get a value** when it's needed.
 
@@ -81,7 +81,7 @@ FusionCache will search for the value in the cache (*memory* and *distributed*, 
 
 Special care has been put into ensuring that **only 1** factory per-key will be executed concurrently, to avoid what is known as [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede).
 
-You can read more [**here**](FactoryOptimization.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+You can read more [**here**](CacheStampede.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
 
 ## 💣 Fail-Safe ([more](FailSafe.md))
