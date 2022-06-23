@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.10.0</Version>
+		<Version>0.10.1</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -13,7 +13,7 @@
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
+		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<RootNamespace>ZiggyCreatures.FusionCaching.Serialization.NewtonsoftJson</RootNamespace>
 		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
@@ -21,11 +21,11 @@
 		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Dependencies update + better nullability</PackageReleaseNotes>
+		<PackageReleaseNotes>Dependencies update (JSON.NET security warning)</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
