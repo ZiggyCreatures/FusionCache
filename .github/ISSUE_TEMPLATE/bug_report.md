@@ -17,6 +17,8 @@ Here's a [MRE (Minimal Reproducible Example)](https://en.wikipedia.org/wiki/Mini
 - or a repo
 - etc
 
+For some help on this look at this [help page](https://stackoverflow.com/help/minimal-reproducible-example) on Stack Overflow.
+
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
