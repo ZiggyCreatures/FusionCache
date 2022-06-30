@@ -61,7 +61,7 @@ This is how they compare:
 | **Async Api**            | ✔          | ❌           | ✔          | ✔              | ⚠            |
 | **Fail-Safe or similar** | ✔          | ❌           | ❌         | ❌             | ❌           |
 | **Timeouts**             | ✔          | ❌           | ❌         | ❌             | ❌           |
-| **Adaptive Caching**     | ✔          | ❌           | ❌         | ❌             | ❌           |
+| **Adaptive Caching**     | ✔          | ❌           | ❌         | ❌             | ✔            |
 | **Cancellation**         | ✔          | ❌           | ❌         | ❌             | ❌           |
 | **Multi-provider**       | ✔          | ✔            | ✔          | ✔              | ❌           |
 | **Multi-level**          | ✔          | ✔            | ✔          | ⚠              | ❌           |
