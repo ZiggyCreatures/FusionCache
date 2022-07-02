@@ -248,6 +248,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			// EVENT
 			if (hasNewValue)
 			{
+				_events.OnMiss(operationId, key);
 				_events.OnSet(operationId, key);
 
 				// BACKPLANE

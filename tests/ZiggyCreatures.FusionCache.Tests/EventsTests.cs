@@ -252,8 +252,13 @@ namespace FusionCacheTests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
+				// MISS: +1
 				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+
+				// MISS: +1
+				// SET: +1
+				_ = await cache.GetOrSetAsync<int>("foo2", 42);
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;
@@ -262,9 +267,9 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(0, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(4, stats.Data.Values.Sum());
 			}
 		}
 
@@ -297,8 +302,13 @@ namespace FusionCacheTests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
+				// MISS: +1
 				// SET: +1
 				cache.GetOrSet<int>("foo", _ => 42);
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo2", 42);
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;
@@ -307,9 +317,9 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-				Assert.Equal(0, stats.Data[EntryActionKind.Miss]);
-				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(4, stats.Data.Values.Sum());
 			}
 		}
 
@@ -348,6 +358,7 @@ namespace FusionCacheTests
 				// LET IT BECOME STALE
 				await Task.Delay(duration);
 
+				// MISS: +1
 				// SET: +1
 				_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
 
@@ -359,8 +370,9 @@ namespace FusionCacheTests
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 				Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
@@ -399,6 +411,7 @@ namespace FusionCacheTests
 				// LET IT BECOME STALE
 				Thread.Sleep(duration);
 
+				// MISS: +1
 				// SET: +1
 				cache.GetOrSet<int>("foo", _ => 42);
 
@@ -410,8 +423,9 @@ namespace FusionCacheTests
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 				Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-				Assert.Equal(1, stats.Data.Values.Sum());
+				Assert.Equal(2, stats.Data.Values.Sum());
 			}
 		}
 
