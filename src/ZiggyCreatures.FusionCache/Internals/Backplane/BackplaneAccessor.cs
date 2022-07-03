@@ -71,13 +71,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void ProcessError(string operationId, string key, Exception exc, string actionDescription)
 		{
-			//if (exc is SyntheticTimeoutException)
-			//{
-			//	if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
-			//		_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, operationId, key);
+			if (exc is SyntheticTimeoutException)
+			{
+				if (_logger?.IsEnabled(_options.BackplaneSyntheticTimeoutsLogLevel) ?? false)
+					_logger.Log(_options.BackplaneSyntheticTimeoutsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, operationId, key);
 
-			//	return;
-			//}
+				return;
+			}
 
 			UpdateLastError(key, operationId);
 
