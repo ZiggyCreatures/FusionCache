@@ -25,12 +25,17 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// LOG LEVELS
 			SerializationErrorsLogLevel = LogLevel.Error;
+
 			DistributedCacheSyntheticTimeoutsLogLevel = LogLevel.Warning;
 			DistributedCacheErrorsLogLevel = LogLevel.Warning;
+
 			FactorySyntheticTimeoutsLogLevel = LogLevel.Warning;
 			FactoryErrorsLogLevel = LogLevel.Warning;
+
 			FailSafeActivationLogLevel = LogLevel.Warning;
 			EventHandlingErrorsLogLevel = LogLevel.Warning;
+
+			BackplaneSyntheticTimeoutsLogLevel = LogLevel.Warning;
 			BackplaneErrorsLogLevel = LogLevel.Warning;
 		}
 
@@ -141,6 +146,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during the handling of an event.
 		/// </summary>
 		public LogLevel EventHandlingErrorsLogLevel { get; set; }
+
+		/// <summary>
+		/// Specify the <see cref="LogLevel"/> to use when a synthetic timeout occurs during a backplane cache operation.
+		/// </summary>
+		public LogLevel BackplaneSyntheticTimeoutsLogLevel { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during a backplane operation.
