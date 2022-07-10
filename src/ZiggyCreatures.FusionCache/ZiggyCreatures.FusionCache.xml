@@ -1586,6 +1586,11 @@
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during the handling of an event.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneSyntheticTimeoutsLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a synthetic timeout occurs during a backplane cache operation.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneErrorsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when an error occurs during a backplane operation.
