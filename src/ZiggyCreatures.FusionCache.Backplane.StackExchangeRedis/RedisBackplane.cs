@@ -184,26 +184,25 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 			if (v.IsNull)
 				return;
 
-			try
+			//try
+			//{
+			var receivedCount = await _subscriber!.PublishAsync(_channel, v).ConfigureAwait(false);
+			if (receivedCount == 0)
 			{
-				var receivedCount = await _subscriber!.PublishAsync(_channel, v).ConfigureAwait(false);
-				if (receivedCount == 0)
-				{
-					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-						_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
 
-					return;
-				}
-
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
+				return;
 			}
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
+			//}
 			//catch (Exception exc)
-			catch
-			{
-				//if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				//	_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
-			}
+			//{
+			//	if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+			//		_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
+			//}
 		}
 
 		/// <inheritdoc/>
@@ -216,26 +215,25 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 			if (v.IsNull)
 				return;
 
-			try
+			//try
+			//{
+			var receivedCount = _subscriber!.Publish(_channel, v);
+			if (receivedCount == 0)
 			{
-				var receivedCount = _subscriber!.Publish(_channel, v);
-				if (receivedCount == 0)
-				{
-					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-						_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
 
-					return;
-				}
-
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
+				return;
 			}
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
+			//}
 			//catch (Exception exc)
-			catch
-			{
-				//if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				//	_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
-			}
+			//{
+			//	if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+			//		_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
+			//}
 		}
 
 		private static BackplaneMessage? FromRedisValue(RedisValue value, ILogger? logger)
