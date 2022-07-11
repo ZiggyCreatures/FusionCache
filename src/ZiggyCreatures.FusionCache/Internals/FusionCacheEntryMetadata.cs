@@ -26,7 +26,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		/// <summary>
-		/// The intended expiration of the entry as requested from the caller
+		/// The intended expiration of the entry as requested from the caller.
 		/// <br/>
 		/// When fail-safe is enabled the entry is cached with a higher duration (<see cref="FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
 		/// </summary>
