@@ -435,5 +435,55 @@ namespace FusionCacheTests
 		{
 			_DistributedCacheWireVersionModifierWorks(serializerType, CacheKeyModifierMode.None);
 		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task ReThrowsDistributedCacheErrorsAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+
+			chaosDistributedCache.SetAlwaysThrow();
+			using var fusionCache = new FusionCache(new FusionCacheOptions());
+			fusionCache.DefaultEntryOptions.ReThrowDistributedCacheExceptions = true;
+
+			fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
+
+			await Assert.ThrowsAsync<ChaosException>(async () =>
+			{
+				await fusionCache.SetAsync<int>("foo", 42);
+			});
+
+			await Assert.ThrowsAsync<ChaosException>(async () =>
+			{
+				_ = await fusionCache.TryGetAsync<int>("bar");
+			});
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void ReThrowsDistributedCacheErrors(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+
+			chaosDistributedCache.SetAlwaysThrow();
+			using var fusionCache = new FusionCache(new FusionCacheOptions());
+			fusionCache.DefaultEntryOptions.ReThrowDistributedCacheExceptions = true;
+
+			fusionCache.SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType));
+
+			Assert.Throws<ChaosException>(() =>
+			{
+				fusionCache.Set<int>("foo", 42);
+			});
+
+			Assert.Throws<ChaosException>(() =>
+			{
+				_ = fusionCache.TryGet<int>("bar");
+			});
+		}
 	}
 }
