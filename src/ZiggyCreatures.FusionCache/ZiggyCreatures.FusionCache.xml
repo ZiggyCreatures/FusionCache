@@ -800,6 +800,12 @@
             <para>TL/DR: set this flag to true for a perf boost, but watch out for rare side effects.</para>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowDistributedCacheExceptions">
+            <summary>
+            Set this to true to allow the bubble up of distributed cache exceptions (default is false).
+            Please note that, even if set to true, in some cases you would also need <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> set to false and no timeout (neither soft nor hard) specified.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications">
             <summary>
             Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
@@ -1468,6 +1474,11 @@
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/>.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowDistributedCacheExceptions"/>.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled">
             <summary>
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/>.
@@ -1903,7 +1914,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LogicalExpiration">
             <summary>
-            The intended expiration of the entry as requested from the caller
+            The intended expiration of the entry as requested from the caller.
             <br/>
             When fail-safe is enabled the entry is cached with a higher duration (<see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
             </summary>

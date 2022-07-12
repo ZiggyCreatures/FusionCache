@@ -32,6 +32,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			DistributedCacheSoftTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout;
 			DistributedCacheHardTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheHardTimeout;
 			AllowBackgroundDistributedCacheOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations;
+			ReThrowDistributedCacheExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions;
 
 			IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
 			FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
@@ -134,6 +135,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <para>TL/DR: set this flag to true for a perf boost, but watch out for rare side effects.</para>
 		/// </summary>
 		public bool AllowBackgroundDistributedCacheOperations { get; set; }
+
+		/// <summary>
+		///	Set this to true to allow the bubble up of distributed cache exceptions (default is false).
+		///	Please note that, even if set to true, in some cases you would also need <see cref="AllowBackgroundDistributedCacheOperations"/> set to false and no timeout (neither soft nor hard) specified.
+		/// </summary>
+		public bool ReThrowDistributedCacheExceptions { get; set; }
 
 		/// <summary>
 		/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
@@ -417,6 +424,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
 				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
+				ReThrowDistributedCacheExceptions = ReThrowDistributedCacheExceptions,
 
 				EnableBackplaneNotifications = EnableBackplaneNotifications,
 				AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations

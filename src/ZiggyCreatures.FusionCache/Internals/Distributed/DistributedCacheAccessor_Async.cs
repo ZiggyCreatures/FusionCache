@@ -32,7 +32,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 					false,
 					options.AllowBackgroundDistributedCacheOperations == false,
 					exc => ProcessError(operationId, key, exc, actionDescriptionInner),
-					false,
+					options.ReThrowDistributedCacheExceptions && options.AllowBackgroundDistributedCacheOperations == false && options.DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan,
 					token
 				)
 				.ConfigureAwait(false)
@@ -112,6 +112,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			{
 				ProcessError(operationId, key, exc, "getting entry from distributed");
 				data = null;
+
+				if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
+				{
+					throw;
+				}
 			}
 
 			if (data is null)

@@ -65,6 +65,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		public static bool EntryOptionsAllowBackgroundDistributedCacheOperations { get; set; } = false;
 
 		/// <summary>
+		/// The global default <see cref="FusionCacheEntryOptions.ReThrowDistributedCacheExceptions"/>.
+		/// </summary>
+		public static bool EntryOptionsReThrowDistributedCacheExceptions { get; set; } = false;
+
+		/// <summary>
 		/// The global default <see cref="FusionCacheEntryOptions.IsFailSafeEnabled"/>.
 		/// </summary>
 		public static bool EntryOptionsIsFailSafeEnabled { get; set; } = false;
