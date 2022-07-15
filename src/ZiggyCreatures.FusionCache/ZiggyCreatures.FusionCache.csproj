@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.11.0</Version>
+		<Version>0.11.1</Version>
 		<Authors>Jody Donetti</Authors>
 		<Company>Jody Donetti</Company>
 		<Product>FusionCache</Product>
@@ -22,11 +22,7 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- better GetOrSet events
-			- use soft timeout if `failSafeDefaultValue` provided
-			- optional re-throwing of distributed cache exceptions
-			- better backplane timeouts handling
-			- better backplane error handling
+			- (potentially temporary) rollback of v0.11.0 change of: use soft timeout if `failSafeDefaultValue` provided (see why https://github.com/jodydonetti/ZiggyCreatures.FusionCache/pull/67#issuecomment-1183288014 )
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

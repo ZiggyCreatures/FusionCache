@@ -172,7 +172,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 						Task<TValue>? factoryTask = null;
 
-						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object || failSafeDefaultValue.HasValue);
+						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
 
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 							_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
