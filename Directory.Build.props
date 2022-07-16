@@ -1,0 +1,16 @@
+<Project>
+
+	<PropertyGroup>
+		<Company>Jody Donetti</Company>
+		<Authors>Jody Donetti</Authors>
+		<Product>FusionCache</Product>
+		<Copyright>Copyright © Jody Donetti 2022</Copyright>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
+	</PropertyGroup>
+
+</Project>

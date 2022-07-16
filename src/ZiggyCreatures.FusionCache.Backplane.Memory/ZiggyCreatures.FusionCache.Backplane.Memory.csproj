@@ -5,20 +5,11 @@
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Version>0.11.0</Version>
-		<Authors>Jody Donetti</Authors>
-		<Company>Jody Donetti</Company>
-		<Product>FusionCache</Product>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.Memory</PackageId>
-		<Copyright>Copyright © Jody Donetti 2022</Copyright>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache in memory backplane, used for testing</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>backplane;memory;stackexchange;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.Memory</RootNamespace>
-		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.Memory.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>

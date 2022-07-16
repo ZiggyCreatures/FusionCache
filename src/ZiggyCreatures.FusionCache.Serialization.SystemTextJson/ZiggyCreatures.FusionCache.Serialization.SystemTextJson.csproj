@@ -5,27 +5,19 @@
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Version>0.11.0</Version>
-		<Authors>Jody Donetti</Authors>
-		<Company>Jody Donetti</Company>
-		<Product>FusionCache</Product>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</PackageId>
-		<Copyright>Copyright © Jody Donetti 2022</Copyright>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on System.Text.Json</Description>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<RootNamespace>ZiggyCreatures.FusionCaching.Serialization.SystemTextJson</RootNamespace>
-		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
-		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Text.Json" Version="4.7.2" />
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -33,8 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+		<PackageReference Include="System.Text.Json" Version="4.7.2" />
 	</ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{34B53F49-F5C5-4850-B79E-59AD130379C6}"
 EndProject
@@ -22,13 +22,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BDC18C05-F0DF-4B40-90D8-4BE559EA0C23}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Playground", "tests\ZiggyCreatures.FusionCache.Playground\ZiggyCreatures.FusionCache.Playground.csproj", "{7063CEBE-CE42-4E4D-8EE6-EB719CEF2F2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Backplane.Memory", "src\ZiggyCreatures.FusionCache.Backplane.Memory\ZiggyCreatures.FusionCache.Backplane.Memory.csproj", "{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Backplane.Memory", "src\ZiggyCreatures.FusionCache.Backplane.Memory\ZiggyCreatures.FusionCache.Backplane.Memory.csproj", "{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis", "src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj", "{5659A831-8170-4398-A130-D521844BB4C0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis", "src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj", "{5659A831-8170-4398-A130-D521844BB4C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
