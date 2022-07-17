@@ -87,7 +87,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (options.IsFailSafeEnabled == false)
 				return new FusionCacheDistributedEntry<TValue>(value, null);
 
-			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
+			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration));
 
 			return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 		}

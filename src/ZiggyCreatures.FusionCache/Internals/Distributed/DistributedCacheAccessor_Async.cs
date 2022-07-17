@@ -53,7 +53,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				key,
 				async ct =>
 				{
-					var distributedEntry = entry.AsDistributedEntry<TValue>();
+					var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 					byte[]? data;
 					try

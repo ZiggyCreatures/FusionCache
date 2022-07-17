@@ -117,6 +117,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		public bool AllowTimedOutFactoryBackgroundCompletion { get; set; }
 
 		/// <summary>
+		/// The duration specific for the distributed cache, if any. If not set, <see cref="Duration"/> will be used.
+		/// </summary>
+		public TimeSpan? DistributedCacheDuration { get; set; }
+
+		/// <summary>
 		/// The maximum execution time allowed for each operation on the distributed cache, applied only if fail-safe is enabled and there is a fallback value to return.
 		/// </summary>
 		public TimeSpan DistributedCacheSoftTimeout { get; set; }
@@ -160,7 +165,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")} BN={(EnableBackplaneNotifications ? "Y" : "N")} BBO={(AllowBackgroundBackplaneOperations ? "Y" : "N")}]";
+			return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")} BN={(EnableBackplaneNotifications ? "Y" : "N")} BBO={(AllowBackgroundBackplaneOperations ? "Y" : "N")}]";
 		}
 
 		/// <summary>
@@ -190,6 +195,17 @@ namespace ZiggyCreatures.Caching.Fusion
 		public FusionCacheEntryOptions SetDuration(TimeSpan duration)
 		{
 			Duration = duration;
+			return this;
+		}
+
+		/// <summary>
+		/// Set the distributed cache duration to the specified <see cref="TimeSpan"/> value.
+		/// </summary>
+		/// <param name="duration">The duration to set.</param>
+		/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+		public FusionCacheEntryOptions SetDistributedCacheDuration(TimeSpan? duration)
+		{
+			DistributedCacheDuration = duration;
 			return this;
 		}
 
@@ -349,7 +365,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			var res = new DistributedCacheEntryOptions();
 
-			res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
+			res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : DistributedCacheDuration.GetValueOrDefault(Duration));
 
 			return res;
 		}
@@ -421,6 +437,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				FactoryHardTimeout = FactoryHardTimeout,
 				AllowTimedOutFactoryBackgroundCompletion = AllowTimedOutFactoryBackgroundCompletion,
 
+				DistributedCacheDuration = DistributedCacheDuration,
 				DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
 				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
@@ -429,19 +446,6 @@ namespace ZiggyCreatures.Caching.Fusion
 				EnableBackplaneNotifications = EnableBackplaneNotifications,
 				AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations
 			};
-		}
-
-		/// <summary>
-		/// Creates a new <see cref="FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
-		/// </summary>
-		/// <param name="duration">A custom <see cref="Duration"/> that, if specified, will overwrite the current one.</param>
-		/// <param name="includeOptionsModifiers">If false, the <see cref="MemoryOptionsModifier"/> and <see cref="DistributedOptionsModifier"/> will not be duplicated.</param>
-		/// <returns>The newly created <see cref="FusionCacheEntryOptions"/> object.</returns>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please stop using this, it was an undocumented work in progress: instead use Duplicate(TimeSpan? duration)", true)]
-		public FusionCacheEntryOptions Duplicate(TimeSpan? duration, bool includeOptionsModifiers)
-		{
-			return Duplicate(duration);
 		}
 
 		internal FusionCacheEntryOptions EnsureIsSafeForAdaptiveCaching()

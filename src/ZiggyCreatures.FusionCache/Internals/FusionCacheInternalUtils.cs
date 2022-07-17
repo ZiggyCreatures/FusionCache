@@ -105,6 +105,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			return ts.ToString();
 		}
 
+		public static string? ToLogString(this TimeSpan? ts)
+		{
+			if (ts.HasValue == false)
+				return "/";
+
+			return ts.Value.ToLogString();
+		}
+
 		public static string? ToLogString_Timeout(this TimeSpan ts)
 		{
 			if (ts == Timeout.InfiniteTimeSpan)
@@ -131,20 +139,20 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			return Enum.GetName(CacheItemPriorityType, priority);
 		}
 
-		public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry)
+		public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 		{
 			if (entry is FusionCacheDistributedEntry<TValue>)
 				return (FusionCacheDistributedEntry<TValue>)entry;
 
-			return new FusionCacheDistributedEntry<TValue>(entry.GetValue<TValue>(), entry.Metadata);
+			return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false);
 		}
 
-		public static FusionCacheMemoryEntry AsMemoryEntry(this IFusionCacheEntry entry)
+		public static FusionCacheMemoryEntry AsMemoryEntry(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 		{
 			if (entry is FusionCacheMemoryEntry)
 				return (FusionCacheMemoryEntry)entry;
 
-			return new FusionCacheMemoryEntry(entry.GetValue<object>(), entry.Metadata);
+			return FusionCacheMemoryEntry.CreateFromOptions(entry.GetValue<object>(), options, entry.Metadata?.IsFromFailSafe ?? false);
 		}
 
 		public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)

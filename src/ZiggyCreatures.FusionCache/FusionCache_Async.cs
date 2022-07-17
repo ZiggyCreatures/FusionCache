@@ -236,7 +236,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
 				if (entry is object)
 				{
-					_mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry(), options);
+					_mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry(options), options);
 				}
 			}
 			finally
