@@ -97,8 +97,7 @@ namespace FusionCacheTests
 		public async Task HandlesDistributedCacheRemovalInTheMiddleOfAnOperationAsync(SerializerType serializerType)
 		{
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
-			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(chaosDistributedCache, GetSerializer(serializerType)))
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
 			{
 				var task = fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); return 42; }, new FusionCacheEntryOptions(TimeSpan.FromSeconds(10)));
 				await Task.Delay(500);
@@ -484,6 +483,66 @@ namespace FusionCacheTests
 			{
 				_ = fusionCache.TryGet<int>("bar");
 			});
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task SpecificDistributedCacheDurationWorksAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
+			{
+				await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetFailSafe(false).SetDuration(TimeSpan.FromSeconds(1)).SetDistributedCacheDuration(TimeSpan.FromMinutes(1)));
+				await Task.Delay(TimeSpan.FromSeconds(2));
+				var value = await fusionCache.GetOrDefaultAsync<int>("foo");
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void SpecificDistributedCacheDurationWorks(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
+			{
+				fusionCache.Set<int>("foo", 21, opt => opt.SetFailSafe(false).SetDuration(TimeSpan.FromSeconds(1)).SetDistributedCacheDuration(TimeSpan.FromMinutes(1)));
+				Thread.Sleep(TimeSpan.FromSeconds(2));
+				var value = fusionCache.GetOrDefault<int>("foo");
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task SpecificDistributedCacheDurationWithFailSafeWorksAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
+			{
+				await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetFailSafe(true).SetDuration(TimeSpan.FromSeconds(1)).SetDistributedCacheDuration(TimeSpan.FromMinutes(1)));
+				await Task.Delay(TimeSpan.FromSeconds(2));
+				var value = await fusionCache.GetOrDefaultAsync<int>("foo");
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void SpecificDistributedCacheDurationWithFailSafeWorks(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType)))
+			{
+				fusionCache.Set<int>("foo", 21, opt => opt.SetFailSafe(true).SetDuration(TimeSpan.FromSeconds(1)).SetDistributedCacheDuration(TimeSpan.FromMinutes(1)));
+				Thread.Sleep(TimeSpan.FromSeconds(2));
+				var value = fusionCache.GetOrDefault<int>("foo");
+				Assert.Equal(21, value);
+			}
 		}
 	}
 }
