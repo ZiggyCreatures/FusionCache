@@ -1463,6 +1463,11 @@
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion"/>.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheDuration">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheDuration"/>.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout">
             <summary>
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/>.

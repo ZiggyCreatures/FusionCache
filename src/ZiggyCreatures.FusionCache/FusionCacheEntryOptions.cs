@@ -29,6 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			FactoryHardTimeout = FusionCacheGlobalDefaults.EntryOptionsFactoryHardTimeout;
 			AllowTimedOutFactoryBackgroundCompletion = FusionCacheGlobalDefaults.EntryOptionsAllowTimedOutFactoryBackgroundCompletion;
 
+			DistributedCacheDuration = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheDuration;
 			DistributedCacheSoftTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout;
 			DistributedCacheHardTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheHardTimeout;
 			AllowBackgroundDistributedCacheOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations;

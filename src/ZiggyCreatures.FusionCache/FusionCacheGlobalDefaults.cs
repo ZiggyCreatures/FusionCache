@@ -50,6 +50,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		public static bool EntryOptionsAllowTimedOutFactoryBackgroundCompletion { get; set; } = true;
 
 		/// <summary>
+		/// The global default <see cref="FusionCacheEntryOptions.DistributedCacheDuration"/>.
+		/// </summary>
+		public static TimeSpan? EntryOptionsDistributedCacheDuration { get; set; } = null;
+
+		/// <summary>
 		/// The global default <see cref="FusionCacheEntryOptions.DistributedCacheSoftTimeout"/>.
 		/// </summary>
 		public static TimeSpan EntryOptionsDistributedCacheSoftTimeout { get; set; } = Timeout.InfiniteTimeSpan;
