@@ -754,7 +754,7 @@
             <summary>
             When fail-safe is enabled an entry will expire normally nonetheless, but it will also be kept around for this (usually long) duration, so it may be used as a fallback value in case of errors.
             <br/><br/>
-            TL/DR: the maximum amount of time an expired cache entry can still be used in case of problems.
+            TL/DR: the maximum amount of time a cache entry can be used, even if expired, in case of problems.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeThrottleDuration">
