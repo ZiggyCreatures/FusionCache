@@ -52,7 +52,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		private static void SetupStandardLogger(IServiceCollection services, LogLevel minLevel = LogLevel.Trace)
 		{
-			services.AddLogging(configure => configure.SetMinimumLevel(minLevel).AddConsole(options => options.IncludeScopes = true));
+			services.AddLogging(configure => configure.SetMinimumLevel(minLevel).AddSimpleConsole(options => options.IncludeScopes = true));
 		}
 
 		public static async Task RunAsync()
