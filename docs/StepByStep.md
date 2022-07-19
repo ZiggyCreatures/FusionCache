@@ -555,7 +555,10 @@ Now that we are using a distributed cache we basically have a single version of 
 
 Well yes, but we also have a copy of that data in each node's memory cache, and what happens when one of those pieces of data changes? The result is that after the change, each cache entry would **not be synchronized** with the most updated version, at least until each entry **expires** and gets the new version from the distributed cache or the database.
 
-One way to try to avoid this would be to have a very low cache `Duration`, but that would also mean having more requests to the distributed cache and to the database: this solution can work in some situations, but it's not a real solution to the problem or one that would work in every scenario, but mostly a mitigation.
+One way to try to avoid this would be to have a very low cache `Duration`, but that would also mean having more requests to the distributed cache and to the database.
+A similar approach can be to have different durations for the 1st layer (memory) and the 2nd layer (distributed cache), by setting a very low `Duration` (say, `1 min`) and a higher `DistributedCacheDuration` (say, `10 min`) so that, at most, each node would have their own memory cache not synched for a `1 min` at most, and then any change would be taken from the distributed cache.
+
+Both of these solutions can be a fine mitigation and work in some situations, but they are not a **real** solution to the problem that would work in **every** scenario.
 
 So how to to solve this issue completely? Use a [**backplane**](Backplane.md).
 
