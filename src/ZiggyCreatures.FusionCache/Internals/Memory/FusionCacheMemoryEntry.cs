@@ -32,9 +32,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 		/// <inheritdoc/>
 		public TValue GetValue<TValue>()
 		{
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 #pragma warning disable CS8603 // Possible null reference return.
 			return (TValue)Value;
 #pragma warning restore CS8603 // Possible null reference return.
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
 		}
 
 		/// <inheritdoc/>
