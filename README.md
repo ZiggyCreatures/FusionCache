@@ -60,6 +60,7 @@ These are the **key features** of FusionCache:
 - [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
 - [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc
 - [**📃 Extensive logging**](docs/StepByStep.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
+- [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 <details>
 	<summary>Something more 😏 ?</summary>
@@ -125,7 +126,7 @@ To start using FusionCache the first thing is create a cache instance:
 var cache = new FusionCache(new FusionCacheOptions());
 ```
 
-If instead you are using **DI (Dependency Injection)** use this:
+If instead you are using [DI (Dependency Injection)](docs/DependencyInjection.md) use this:
 
 ```csharp
 services.AddFusionCache();
@@ -239,6 +240,7 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
 - [**📞 Events**](docs/Events.md): the events hub and how to use it
 - [**🧩 Plugins**](docs/Plugins.md): how to create and use plugins
+- [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 
 ## **👩‍🏫 Step By Step**
