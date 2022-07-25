@@ -46,6 +46,7 @@ public class MyController : Controller
 
         return View(product);
     }
+}
 ```
 
 In this way the `cache` param will be automatically populated by the DI framework.
