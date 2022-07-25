@@ -67,8 +67,8 @@ Every FusionCache instance can be configured by passing some options to the cons
 
 ```csharp
 var cache = new FusionCache(new FusionCacheOptions() {
-    CacheName = "MyCache",
-    DistributedCacheErrorsLogLevel = LogLevel.Warning,
+	CacheName = "MyCache",
+	DistributedCacheErrorsLogLevel = LogLevel.Warning,
 	// CHANGE OTHER OPTIONS HERE
 });
 ```
@@ -78,7 +78,7 @@ In a DI approach we can do the same by using the [standard .NET approach](https:
 ```csharp
 services.AddFusionCache(options => {
 	options.CacheName = "MyCache";
-    options.DistributedCacheErrorsLogLevel = LogLevel.Warning;
+	options.DistributedCacheErrorsLogLevel = LogLevel.Warning;
 	// CHANGE OTHER OPTIONS HERE
 });
 ```
