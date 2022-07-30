@@ -6,10 +6,10 @@
 
 # :twisted_rightwards_arrows: Cache Levels: Primary and Secondary
 
-There are possible 2 caching levels, transparently handled by FusionCache for you:
+There are 2 caching levels available, transparently handled by FusionCache for you:
 
-- **Primary**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
-- **Secondary**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **sharing data with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
+- **Primary (Memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
+- **Secondary (Distributed)**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **sharing data with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
 
 Everything is handled transparently for you.
 
@@ -90,3 +90,52 @@ services.AddFusionCache();
 ```
 
 and FusionCache will automatically discover the registered `IDistributedCache` implementation and, if there's also a valid implementation of `IFusionCacheSerializer`, it picks up both and starts using them.
+
+## 🙋‍♀️ What about a disk cache?
+
+In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it. A good example of that may be a mobile app, where everything should be self contained.
+
+In those situations we may wnt a distributed cache that is "not really distributed", something like an implementation of `IDistributedCache` that reads and writes directly to one or more local files: makes sense, right?
+
+Yes, kinda, but there is more to that.
+
+We should also think about the details, about all the things it should handle for a real-real world usage:
+- have the ability to read and write data in a **persistent** way to local files (so the cached data will survive restarts)
+- ability to prevent **data corruption** when writing to disk
+- support some form of **compression**, to avoid wasting too much space on disk
+- support **concurrent** access without deadlocks, starvations and whatnot
+- be **fast** and **resource optimized**, so to consume as little cpu cycles and memory as possible
+- and probably something more that I'm forgetting
+
+That's a lot to do... but wait a sec, isn't that exactly what a **database** is?
+
+Yes, yes it is!
+
+### An actual database? Are you kidding me?
+
+Of course I'm not suggesting to install (and manage) a local MySql/SqlServer/PostgreSQL instance or something, that would be hard to do in most cases, impossible in others and frankly overkill.
+
+So, what should we use?
+
+### Sqlite to the rescue!
+
+If case you didn't know it yet, [Sqlite](https://www.sqlite.org/) is an incredible piece of software:
+- it's one of the highest quality software [ever produced](https://www.i-programmer.info/news/84-database/15609-in-praise-of-sqlite.html)
+- it's used in production on [billions of devices](https://www.sqlite.org/mostdeployed.html), with a higher instance count than all the other database engines, combined
+- it's [fully tested](https://www.sqlite.org/testing.html), with millions of test cases, 100% test coverage, fuzz tests and more, way more (the link is a good read, I suggest to take a look at it)
+- it's very robust, no worries about [data corruption](https://www.sqlite.org/transactional.html)
+- it's fast, like [really really fast](https://www.sqlite.org/fasterthanfs.html). Like, 35% faster than direct file I/O
+- has a very [small footprint](https://www.sqlite.org/footprint.html)
+
+Ok so Sqlite is the best, how can we use it as the 2nd level?
+
+### Ok but how?
+
+Luckily someone in the community created an implementation of `IDistributedCache` based on Sqlite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
+
+The package:
+- supports both the sync and async models natively, meaning it's not doing async-over-sync or viceversa, but a real double impl (like FusionCache does) which is very nice and will use the underlying system resources best
+- uses a [pooling mechanism](https://github.com/neosmart/AspSqliteCache/blob/master/SqliteCache/DbCommandPool.cs) which means the memory allocation will be lower since they reuse existing objects instead of creating new ones every time and consequently, because of that, less cpu usage in the long run because less pressure on the GC (Garbage Collector)
+- supports `CancellationToken`s, meaning that it will gracefully handle cancellations in case it's needed, like for example a mobile app pause/shutdown events or similar
+
+So, we simply use that package as an impl of `IDistributedCache` and we are good to go!
