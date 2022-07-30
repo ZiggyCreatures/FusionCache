@@ -123,9 +123,10 @@ If case you didn't know it yet, [Sqlite](https://www.sqlite.org/) is an incredib
 - it's one of the highest quality software [ever produced](https://www.i-programmer.info/news/84-database/15609-in-praise-of-sqlite.html)
 - it's used in production on [billions of devices](https://www.sqlite.org/mostdeployed.html), with a higher instance count than all the other database engines, combined
 - it's [fully tested](https://www.sqlite.org/testing.html), with millions of test cases, 100% test coverage, fuzz tests and more, way more (the link is a good read, I suggest to take a look at it)
-- it's very robust, no worries about [data corruption](https://www.sqlite.org/transactional.html)
-- it's fast, like [really really fast](https://www.sqlite.org/fasterthanfs.html). Like, 35% faster than direct file I/O
+- it's very robust and fully [transactional](https://www.sqlite.org/hirely.html), no worries about [data corruption](https://www.sqlite.org/transactional.html)
+- it's fast, like [really really fast](https://www.sqlite.org/fasterthanfs.html). Like, 35% faster than direct file I/O!
 - has a very [small footprint](https://www.sqlite.org/footprint.html)
+- the [license](https://www.sqlite.org/copyright.html) is as free and open as it can get
 
 Ok so Sqlite is the best, how can we use it as the 2nd level?
 
@@ -139,3 +140,5 @@ The package:
 - supports `CancellationToken`s, meaning that it will gracefully handle cancellations in case it's needed, like for example a mobile app pause/shutdown events or similar
 
 So, we simply use that package as an impl of `IDistributedCache` and we are good to go!
+
+Oh, and give that repo a star ⭐ and share it!
