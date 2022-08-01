@@ -95,7 +95,7 @@ and FusionCache will automatically discover the registered `IDistributedCache` i
 
 In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it. A good example of that may be a mobile app, where everything should be self contained.
 
-In those situations we may wnt a distributed cache that is "not really distributed", something like an implementation of `IDistributedCache` that reads and writes directly to one or more local files: makes sense, right?
+In those situations we may want a distributed cache that is "not really distributed", something like an implementation of `IDistributedCache` that reads and writes directly to one or more local files: makes sense, right?
 
 Yes, kinda, but there is more to that.
 
@@ -135,7 +135,7 @@ Ok so Sqlite is the best, how can we use it as the 2nd level?
 Luckily someone in the community created an implementation of `IDistributedCache` based on Sqlite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
 
 The package:
-- supports both the sync and async models natively, meaning it's not doing async-over-sync or viceversa, but a real double impl (like FusionCache does) which is very nice and will use the underlying system resources best
+- supports both the sync and async models natively, meaning it's not doing async-over-sync or vice versa, but a real double impl (like FusionCache does) which is very nice and will use the underlying system resources best
 - uses a [pooling mechanism](https://github.com/neosmart/AspSqliteCache/blob/master/SqliteCache/DbCommandPool.cs) which means the memory allocation will be lower since they reuse existing objects instead of creating new ones every time and consequently, because of that, less cpu usage in the long run because less pressure on the GC (Garbage Collector)
 - supports `CancellationToken`s, meaning that it will gracefully handle cancellations in case it's needed, like for example a mobile app pause/shutdown events or similar
 
