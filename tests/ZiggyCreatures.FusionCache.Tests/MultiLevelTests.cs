@@ -544,5 +544,41 @@ namespace FusionCacheTests
 				Assert.Equal(21, value);
 			}
 		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task MemoryExpirationAlignedWithDistributedAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var fusionCache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType));
+			using var fusionCache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType));
+
+			await fusionCache1.SetAsync<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromSeconds(4)));
+			await Task.Delay(TimeSpan.FromSeconds(2));
+			var v1 = await fusionCache2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
+			await Task.Delay(TimeSpan.FromSeconds(5));
+			var v2 = await fusionCache2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
+			Assert.Equal(21, v1);
+			Assert.Equal(42, v2);
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void MemoryExpirationAlignedWithDistributed(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var fusionCache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType));
+			using var fusionCache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, GetSerializer(serializerType));
+
+			fusionCache1.Set<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromSeconds(4)));
+			Thread.Sleep(TimeSpan.FromSeconds(2));
+			var v1 = fusionCache2.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
+			Thread.Sleep(TimeSpan.FromSeconds(5));
+			var v2 = fusionCache2.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
+			Assert.Equal(21, v1);
+			Assert.Equal(42, v2);
+		}
 	}
 }

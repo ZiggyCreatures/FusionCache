@@ -142,7 +142,8 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (distributedEntryIsValid)
 				{
 					isStale = false;
-					entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, distributedEntry?.Metadata?.IsFromFailSafe ?? false);
+					//entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, distributedEntry?.Metadata?.IsFromFailSafe ?? false);
+					entry = FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options);
 				}
 				else
 				{

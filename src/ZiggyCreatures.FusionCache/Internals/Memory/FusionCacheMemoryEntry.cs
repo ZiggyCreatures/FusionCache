@@ -75,5 +75,37 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 
 			return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 		}
+
+		/// <summary>
+		/// Creates a new <see cref="FusionCacheMemoryEntry"/> instance from another entry and some options.
+		/// </summary>
+		/// <param name="entry">The source entry.</param>
+		/// <param name="options">The <see cref="FusionCacheEntryOptions"/> object to configure the entry.</param>
+		/// <returns>The newly created entry.</returns>
+		public static FusionCacheMemoryEntry CreateFromOtherEntry<TValue>(IFusionCacheEntry entry, FusionCacheEntryOptions options)
+		{
+			if (options.IsFailSafeEnabled == false && entry.Metadata is null)
+				return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), null);
+
+			var isFromFailSafe = entry.Metadata?.IsFromFailSafe ?? false;
+
+			DateTimeOffset exp;
+
+			if (entry.Metadata is object)
+			{
+				exp = entry.Metadata.LogicalExpiration;
+			}
+			else
+			{
+				exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
+			}
+
+			if (options.JitterMaxDuration > TimeSpan.Zero)
+			{
+				exp = exp.AddMilliseconds(options.GetJitterDurationMs());
+			}
+
+			return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe));
+		}
 	}
 }

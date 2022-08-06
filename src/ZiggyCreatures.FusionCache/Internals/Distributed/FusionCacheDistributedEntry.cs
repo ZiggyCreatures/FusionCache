@@ -84,8 +84,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 		/// <returns>The newly created entry.</returns>
 		public static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, FusionCacheEntryOptions options, bool isFromFailSafe)
 		{
-			if (options.IsFailSafeEnabled == false)
-				return new FusionCacheDistributedEntry<TValue>(value, null);
+			//if (options.IsFailSafeEnabled == false)
+			//	return new FusionCacheDistributedEntry<TValue>(value, null);
 
 			var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration));
 
