@@ -25,6 +25,8 @@ Basically it boils down to 2 possible ways:
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), [advanced timeouts](Timeouts.md) and so on.
 
+Finally, if needed you can also specify a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option, so that updates to the distributed cache can be picked up more frequently, in case you don't want to use a [backplane](Backplane.md) for some reason.
+
 ## Packages
 
 There are a variety of already existing `IDistributedCache` implementations available, just pick one:
