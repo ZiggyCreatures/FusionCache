@@ -86,7 +86,8 @@ services.AddFusionCache(options => {
 
 ## Customization
 
-Some things though are not options of how FusionCache works, but just of how it should behave during the DI-based instantiation: examples can be things like:
+Some things though are not options of how FusionCache works, but just of how it should behave during the DI-based instantiation.
+Examples can be things like:
 - should it automatically use a distributed cache if there's one registered? That would be pretty common
 - should it ignore though the distributed cache, even if it finds one registered, in case it's the "fake" one (`MemoryDistributedCache`, which is not really a distributed cache) if there's one registered? That would also be pretty common, to avoid doing extra work for a 2nd level which is not really useful
 - etc
