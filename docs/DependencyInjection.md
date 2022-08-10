@@ -64,7 +64,7 @@ If we want though, we can customize that behaviour by changing the options used 
 
 ## Options
 
-Every FusionCache instance can be configured by passing some options to the constructor, like this:
+Every FusionCache instance can be configured by passing some [options](Options.md) to the constructor, like this:
 
 ```csharp
 var cache = new FusionCache(new FusionCacheOptions() {
