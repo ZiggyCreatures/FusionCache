@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.12.0</Version>
+		<Version>0.13.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on System.Text.Json</Description>
