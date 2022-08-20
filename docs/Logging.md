@@ -14,7 +14,7 @@ In general logging in .NET boils down to this:
 
 1. library: choose an actual logger implementation that we like: there's the native .NET one and there are others more advanced, like [Serilog](https://serilog.net/), [NLog](https://nlog-project.org/) and more
 2. sinks: every logger implementation can then write to one or more sinks, which are actual "log destinations" where log events will be sent to. Examples can be the console, local files, a remote logging aggregation service, etc
-3. minimum level (default): specify a global/defualt minimum log level that will be used as a "filter". Every log event lower than that will be ignored
+3. minimum level (default): specify a global/default minimum log level that will be used as a "filter". Every log event lower than that will be ignored
 4. minimum level (overrides): optionally specify different min levels per component (via namespaces, see below), in case we want to log less/more than the default, but only for specific components
 
 In FusionCache there are also some advanced configurations, like which log levels to use for different concerns (see below).
@@ -106,7 +106,7 @@ For example:
 
 We can see all of them [here](Options.md) in the Options docs.
 
-## 🕵️‍♀️ Example
+### Example
 
 Let's say we want to know about all the problems related to calling the database in our factory calls, except for when synthetic timeouts occur (eg: because we set a soft timeout to a very low `10 ms` value, so it will be hit frequently). Also suppose we set our configuration with a min level of something like `Information` or `Warning`.
 
