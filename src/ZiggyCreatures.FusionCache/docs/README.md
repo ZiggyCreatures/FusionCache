@@ -31,7 +31,7 @@ These are the **key features** of FusionCache:
 - [**💫 Natively sync/async**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
 - [**📞 Events**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusioCache instance, both at a high level and at lower levels (memory/distributed layers)
 - [**🧩 Plugins**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc...
-- [**📃 Extensive logging**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
+- [**📜 Logging**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
 - [**🔃 Dependency Injection**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 
