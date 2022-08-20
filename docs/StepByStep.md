@@ -632,7 +632,7 @@ Let's say this gives us another `20%` of the original `39,000` so that (`50%` + 
 
 ## 9) Logging
 
-Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: **logging** .
+Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: [**logging**](Logging.md).
 
 FusionCache supports the standard .NET `ILogger<T>` interface, so that any compatible implementation works out of the box (think Serilog, NLog, Application Insights, etc): this may help us investigate complicated situations with ease, since it can log a lot of details otherwise unavailable.
 

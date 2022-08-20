@@ -59,7 +59,7 @@ These are the **key features** of FusionCache:
 - [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
 - [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
 - [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc
-- [**📃 Extensive logging**](docs/StepByStep.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
+- [**📜 Extensive logging**](docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 <details>

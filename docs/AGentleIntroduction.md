@@ -160,11 +160,10 @@ In time, the most useful plugins will be listed directly in the homepage.
 You can read more [**here**](Plugins.md).
 
 
-## 📃 Logging
+## 📜 Logging ([more](Logging.md))
+
 FusionCache can log extensively to help you pinpoint any possible problem in your production environment.
 
-It uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem, allowing you to use any implementation you want that is compatible with it (Serilog, NLog, etc).
+It uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem, allowing you to use any implementation you want that is compatible with it (Serilog, NLog, etc): it also has a series of settings you may find useful to better tune its behaviour.
 
-Since logging can have an impact on performance, a great care has been put into not having to pay that price if not necessary, and in paying as little as you want when you actually need it.
-
-FusionCache lets you customize which `LogLevel` to use for any of the main events (see the `FusionCacheOptions` details [here](Options.md#fusioncacheoptions)) and this, combined with the standard ability to set a minimum `LogLevel` per category (see [here](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging#configure-logging)), can greatly reduce the volume of logged events to obtain less background noise while investigating a problem you may have.
+You can read more [**here**](Logging.md).
