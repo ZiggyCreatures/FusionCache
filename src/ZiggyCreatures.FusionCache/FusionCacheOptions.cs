@@ -119,6 +119,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when a synthetic timeout occurs during a distributed cache operation.
+		/// <br/>
+		/// <br/>
+		/// NOTE: synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your distributed cache.
 		/// </summary>
 		public LogLevel DistributedCacheSyntheticTimeoutsLogLevel { get; set; }
 
@@ -129,6 +132,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when a synthetic timeout occurs during a factory execution.
+		/// <br/>
+		/// <br/>
+		/// NOTE: synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your database, services or else.
 		/// </summary>
 		public LogLevel FactorySyntheticTimeoutsLogLevel { get; set; }
 
@@ -149,6 +155,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when a synthetic timeout occurs during a backplane cache operation.
+		/// <br/>
+		/// <br/>
+		/// NOTE: synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your backplane.
 		/// </summary>
 		public LogLevel BackplaneSyntheticTimeoutsLogLevel { get; set; }
 
