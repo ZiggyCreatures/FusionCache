@@ -240,6 +240,7 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
 - [**📞 Events**](docs/Events.md): the events hub and how to use it
 - [**🧩 Plugins**](docs/Plugins.md): how to create and use plugins
+- [**📜 Logging**](docs/Logging.md): logging configuration and usage
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 
