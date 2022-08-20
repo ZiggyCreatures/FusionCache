@@ -616,9 +616,6 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Evict(System.String)">
-            <inheritdoc/>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <inheritdoc/>
         </member>
@@ -733,16 +730,6 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Priority">
             <summary>
             The <see cref="T:Microsoft.Extensions.Caching.Memory.CacheItemPriority"/> of the entry in the memory cache.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.MemoryOptionsModifier">
-            <summary>
-            A function to apply when creating a <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> object from this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, to allow for extra customizations.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedOptionsModifier">
-            <summary>
-            A function to apply when creating a <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> object from this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, to allow for extra customizations.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled">
@@ -940,16 +927,6 @@
             <summary>
             A set of extension methods that add some commonly used overloads to any instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> object.
             </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.CreateEntryOptions(ZiggyCreatures.Caching.Fusion.IFusionCache,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan},System.Boolean)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance by duplicating the DefaultEntryOptions and optionally applying a setup action.
-            </summary>
-            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.</param>
-            <param name="setupAction">An optional setup action to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
-            <param name="duration">An optional duration to directly change the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.</param>
-            <param name="includeOptionsModifiers">Specify if options modifiers should be duplicated as well.</param>
-            <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/>.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,``0,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
@@ -1540,15 +1517,6 @@
             The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="F:System.TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix">
-            <summary>
-            <strong>WARNING:</strong> this feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
-            <br/>
-            For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
-            <br/><br/>
-            An optional <see cref="T:System.String"/> prefix to prepend to any cache key passed to the cache methods.
-            </summary>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EnableSyncEventHandlersExecution">
             <summary>
             Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
@@ -1579,6 +1547,9 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheSyntheticTimeoutsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a synthetic timeout occurs during a distributed cache operation.
+            <br/>
+            <br/>
+            NOTE: synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your distributed cache.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheErrorsLogLevel">
@@ -1589,6 +1560,9 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.FactorySyntheticTimeoutsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a synthetic timeout occurs during a factory execution.
+            <br/>
+            <br/>
+            NOTE: synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your database, services or else.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.FactoryErrorsLogLevel">
@@ -1609,6 +1583,9 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneSyntheticTimeoutsLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when a synthetic timeout occurs during a backplane cache operation.
+            <br/>
+            <br/>
+            NOTE: synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your backplane.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneErrorsLogLevel">
@@ -1765,12 +1742,6 @@
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Evict(System.String)">
-            <summary>
-            Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
-            </summary>
-            <param name="key">The cache key which identifies the entry in the cache.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>

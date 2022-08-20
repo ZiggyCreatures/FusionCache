@@ -69,20 +69,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		public CacheItemPriority Priority { get; set; }
 
 		/// <summary>
-		/// A function to apply when creating a <see cref="MemoryCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
-		/// </summary>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please stop using this, it was an undocumented work in progress", true)]
-		public Action<MemoryCacheEntryOptions, object?>? MemoryOptionsModifier { get; set; }
-
-		/// <summary>
-		/// A function to apply when creating a <see cref="DistributedCacheEntryOptions"/> object from this <see cref="FusionCacheEntryOptions"/> object, to allow for extra customizations.
-		/// </summary>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please stop using this, it was an undocumented work in progress", true)]
-		public Action<DistributedCacheEntryOptions, object?>? DistributedOptionsModifier { get; set; }
-
-		/// <summary>
 		/// Enable the fail-safe mechanism, which will be activated if and when something goes wrong while calling a factory or getting data from a distributed cache.
 		/// </summary>
 		public bool IsFailSafeEnabled { get; set; }

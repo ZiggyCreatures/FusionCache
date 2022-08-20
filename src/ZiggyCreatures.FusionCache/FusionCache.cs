@@ -266,14 +266,6 @@ namespace ZiggyCreatures.Caching.Fusion
 			_events.OnFactoryError(operationId, key);
 		}
 
-		/// <inheritdoc/>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
-		public void Evict(string key)
-		{
-			// EMPTY
-		}
-
 		internal void EvictInternal(string key, bool allowFailSafe)
 		{
 			ValidateCacheKey(key);

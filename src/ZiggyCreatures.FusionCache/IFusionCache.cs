@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -160,14 +159,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
-
-		/// <summary>
-		/// Evict a cache entry, only locally in memory, without propagating the eviction to the distributed cache or raising a Remove event.
-		/// </summary>
-		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("Please don't use this: it was an undocumented work in progress and has been removed", true)]
-		void Evict(string key);
 
 		/// <summary>
 		/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.

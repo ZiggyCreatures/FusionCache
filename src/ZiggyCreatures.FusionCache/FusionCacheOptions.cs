@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -78,17 +77,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
 		/// </summary>
 		public TimeSpan DistributedCacheCircuitBreakerDuration { get; set; }
-
-		/// <summary>
-		/// <strong>WARNING:</strong> this feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore.
-		/// <br/>
-		/// For more info see <a href="https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33">https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33</a> .
-		/// <br/><br/>
-		/// An optional <see cref="string"/> prefix to prepend to any cache key passed to the cache methods.
-		/// </summary>
-		[EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("This feature has been removed: please pre-process your cache keys yourself before passing them to FusionCache, they will not be touched in any way anymore. For more info see https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33", true)]
-		public string? CacheKeyPrefix { get; set; }
 
 		/// <summary>
 		/// Execute event handlers in a sync fashion, waiting for all of them to complete before moving on.
