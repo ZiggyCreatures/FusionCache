@@ -29,7 +29,7 @@ A deeper description of the main features:
 - [**🕹 Core Methods**](CoreMethods.md): what you need to know about the core methods available
 - [**📞 Events**](Events.md): the events hub and how to use it
 - [**🧩 Plugins**](Plugins.md): how to create and use plugins
-- [**📜 Logging**](docs/Logging.md): logging configuration and usage
+- [**📜 Logging**](Logging.md): logging configuration and usage
 - [**🔃 Dependency Injection**](DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 
