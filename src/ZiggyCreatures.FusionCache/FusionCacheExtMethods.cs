@@ -77,7 +77,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		/// <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+		/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
@@ -92,7 +92,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		/// <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+		/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
@@ -107,7 +107,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		/// <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+		/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
@@ -122,7 +122,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 		/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 		/// <param name="key">The cache key which identifies the entry in the cache.</param>
-		/// <param name="defaultValue">The defualt value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
+		/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
 		/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
