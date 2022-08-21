@@ -9,8 +9,8 @@
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 
 		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/jodydonetti/ZiggyCreatures.FusionCache</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/ZiggyCreatures/FusionCache</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/ZiggyCreatures/FusionCache</PackageProjectUrl>
 
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
