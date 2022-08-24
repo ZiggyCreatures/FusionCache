@@ -39,7 +39,7 @@ If you want to get yourself **comfortable with the overall concepts** there's [:
 
 If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:woman_teacher: Step By Step ](docs/StepByStep.md) guide.
 
-If instead you want to start using it **immediately** there's a [:star: Quick Start](#star-quick-start) for you.
+If instead you want to start using it **immediately** there's a [:star: Quick Start](#-quick-start) for you.
 
 ## :trophy: Award
 
