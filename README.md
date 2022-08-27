@@ -1,7 +1,7 @@
 
 | 📢 PSA: FusionCache has a new home |
 | :--- |
-| On Aug 21 2022 the official repo has changed from [jodydonetti/ZiggyCreatures.FusionCache](https://github.com/jodydonetti/ZiggyCreatures.FusionCache) to a simpler [ZiggyCreatures/FusionCache](https://github.com/ZiggyCreatures/FusionCache). Everything should just works, even pending pull requests and so on, thanks GitHub's auto-redirects. <br/><br/> Anyway I suggest to update remotes, urls etc to keep everything clean. |
+| On Aug 21 2022 the official repo has changed from [jodydonetti/ZiggyCreatures.FusionCache](https://github.com/jodydonetti/ZiggyCreatures.FusionCache) to a simpler [ZiggyCreatures/FusionCache](https://github.com/ZiggyCreatures/FusionCache). Everything should just works, even pending pull requests and so on, thanks to GitHub's auto-redirects. <br/><br/> Anyway I suggest to update remotes, urls etc to keep everything clean. |
 
 <div align="center">
 
@@ -39,7 +39,7 @@ If you want to get yourself **comfortable with the overall concepts** there's [:
 
 If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:woman_teacher: Step By Step ](docs/StepByStep.md) guide.
 
-If instead you want to start using it **immediately** there's a [:star: Quick Start](#star-quick-start) for you.
+If instead you want to start using it **immediately** there's a [:star: Quick Start](#-quick-start) for you.
 
 ## :trophy: Award
 
