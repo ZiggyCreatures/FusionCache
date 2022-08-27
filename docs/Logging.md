@@ -12,20 +12,70 @@ FusionCache uses the standard `ILogger<T>` interface and a structured logging ap
 
 In general logging in .NET boils down to this:
 
-1. library: choose an actual logger implementation that we like: there's the native .NET one and there are others more advanced, like [Serilog](https://serilog.net/), [NLog](https://nlog-project.org/) and more
-2. sinks: every logger implementation can then write to one or more sinks, which are actual "log destinations" where log events will be sent to. Examples can be the console, local files, a remote logging aggregation service, etc
-3. minimum level (default): specify a global/default minimum log level that will be used as a "filter". Every log event lower than that will be ignored
-4. minimum level (overrides): optionally specify different min levels per component (via namespaces, see below), in case we want to log less/more than the default, but only for specific components
+1. **library**: choose an actual logger implementation that we like: there's the native .NET one and there are others more advanced, like [Serilog](https://serilog.net/), [NLog](https://nlog-project.org/) and more
+2. **sinks**: every logger implementation can then write to one or more sinks, which are actual "log destinations" where log events will be sent to. Examples can be the console, local files, a remote logging aggregation service, etc
+3. **minimum level (default)**: specify a global/default minimum log level that will be used as a "filter". Every log event lower than that will be ignored
+4. **minimum level (overrides)**: optionally specify different min levels per component (via namespaces, see below), in case we want to log less/more than the default, but only for specific components
 
 In FusionCache there are also some advanced configurations, like which log levels to use for different concerns (see below).
 
-## 📦 How to specify a logger
+## ⭐ Quick Start
 
 As is common in .NET components, the `FusionCache` constructor can accept an `ILogger<FusionCache>` param to specify which logger instance to use.
 
-If we are instantiating a FusionCache instance manually (eg: `new FusionCache(...)`) we can pass an instance of any class that implements the `ILogger<T>` interface and it will use it. Of course we can also avoid passing it at all (or pass `null`) so no logging will happen.
+Let's see some examples.
+
+### Manual creation
+
+If we are instantiating a FusionCache instance manually (eg: `new FusionCache(...)`) we can pass an instance of any class that implements the `ILogger<T>` interface and it will use it, and to create instances of loggers we must use a `LoggerFactory`.
+
+Let's say we want to use the native .NET console logger with a min log level of `Warning` and enable scopes, here's how:
+
+```csharp
+// CREATE THE LOGGER FACTORY
+var factory = LoggerFactory.Create(b => b
+    // MIN LOG LEVEL (GLOBAL)
+    .SetMinimumLevel(LogLevel.Warning)
+    // SIMPLE CONSOLE SINK + SCOPES
+    .AddSimpleConsole(options => options.IncludeScopes = true)
+);
+```
+
+Then create a logger instance (of type `ILogger<FusionCache>`) and pas it to the FusionCache constructor:
+
+```csharp
+// CREATE THE SPECIFIC LOGGER
+var logger = factory.CreateLogger<FusionCache>();
+
+// SPECIFY THE LOGGER WHEN CREATING THE CACHE
+var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+```
+
+Of course we can also avoid passing it at all (or pass `null`) so no logging will happen, like this:
+
+```csharp
+// NO LOGGER SPECIFIED == NO LOGGING
+var cache = new FusionCache(new FusionCacheOptions());
+```
+
+### DI (Dependency Injection)
 
 The same is true when using [Dependency Injection](DependencyInjection.md), and that will work automatically with the registered logger we've choosen to use.
+
+To do the same as before but with DI, we simply add logging to the registered services and configure it (actually, we are configuring the builder, as before, just with a different syntax):
+
+```csharp
+services.AddLogging(b => b
+    // MIN LOG LEVEL (GLOBAL)
+    .SetMinimumLevel(LogLevel.Information)
+    // SIMPLE CONSOLE SINK + SCOPES
+    .AddSimpleConsole(options => options.IncludeScopes = true)
+);
+```
+
+Now every service, component, controller or else that has an `ILogger<T>` param in the constructor, will be provided one automatically.
+
+## 📦 Libraries
 
 There are native logger implementations available in .NET itself, or we can just grab one of the many Nuget packages available like the forementioned Serilog, NLog, etc.
 
@@ -37,7 +87,7 @@ As said FusionCache follows the official .NET logging guidelines, and that inclu
 | :--- |
 | A bit of nitpicking here, but to be precise FusionCache does not know anything about logging configuration per se, it just uses "a standard logger" and everything works just fine because it is the logger itself that is configured. We'll see here how to configure a logger, but just as a way to get started with logging, even though that is not specific to FusionCache. |
 
-## 🎚 Standard configuration
+## 🎚 Standard Configuration
 
 Here's an example of a logging configuration in the standard `appsettings.json` file, for the native .NET loggers and with a couple of min level overrides:
 
@@ -79,7 +129,7 @@ Again, we can read more about this in the [official documentation](https://docs.
 
 In general though the nice thing about this is that once we've choosen the logger we want to use and have configured it, everythig will work the same for all of our components and libraries, like FusionCache (if they respect the standard logging flow of course!).
 
-## ⚡ Advanced configuration
+## ⚡ Advanced Configuration
 
 Most of the times it is clear which `LogLevel` to use for something: a piece of code that should've run normally throws instead an exception? We catch it and log the event with a `Error`, including the exception itself and re-throw, so the library users can handle it the way they want. Easy peasy.
 
@@ -119,11 +169,55 @@ options.FactoryErrorsLogLevel = LogLevel.Error;
 
 From now on we will never see log entries for synthetic timeouts, leaving our logs with way less background noise, on top of consuming less log storage 🎉
 
+## 📞 Events + Logging
+
+Ok now something a little bit extravagant, but since we are here why not 😅 ?
+
+Let's see how to log certain events but **only** in specific situations, like let's say that for whatever reason we want to log fail-safe activations with a `Warning` level, but not all of them, but just the ones for cache entries with a key that contains `"foo"`: how can we do that?
+
+With the advanced customization we just saw + [events](Events.md).
+
+First we set the logging level for fail-safe activations to something very low, like `Trace`, then we listen for `FailSafeActivate` events, do the cache key check and log there.
+
+See:
+
+```csharp
+// DECLARE A METHOD/LOCAL FUNCTION TO HANDLE THE EVENTS
+void OnFailSafeActivate(object? sender, FusionCacheEntryEventArgs e)
+{
+    // CHECK FOR THE CACHE KEY
+    if(e.Key.Contains("foo")) {
+        // LOG SOMETHING WITH WARNING LEVEL
+        logger.LogWarning("Fail-safe activation for {Key}", e.Key);
+    }
+}
+
+// CREATE A LOGGER (AS SEEN ABOVE)
+var logger = [...] ;
+
+// SETUP THE OPTIONS
+var options = new FusionCacheOptions() {
+    // SET THE FAIL-SAFE ACTIVATION LOG LEVEL TO SOMETHING VERY LOW
+    FailSafeActivationLogLevel = LogLevel.Trace
+};
+
+// CREATE THE CACHE WITH THE SPECIFIED OPTIONS
+var cache = new FusionCache(options);
+
+// LISTEN FOR FAIL-SAFE ACTIVATION EVENTS
+cache.Events.FailSafeActivate += OnFailSafeActivate;
+
+// DO YOUR THINGS...
+
+// FINALLY, REMEMBER TO UNSUBSCRIBE FROM THE EVENTS TO AVOID MEMORY LEAKS!
+cache.Events.FailSafeActivate -= OnFailSafeActivate;
+```
+
 ## ⛱ Playground
 
 In case we want to get more familiar with FusionCache and logging, the **Playground** can help us make sense of it with some concrete examples by changing some code and looking at the actual console output.
 
-If we download FusionCache source code or clone the repo we can see it has a `tests` folder which contains 2 projects, one of which is `ZiggyCreatures.FusionCache.Playground`.
+If we download the FusionCache source code or clone the repo we can see it has a `tests` folder which contains 2 projects, one of which is `ZiggyCreatures.FusionCache.Playground`.
 
 This is a sample console app with different scenarios to play with, one of which is called `LoggingScenario`: it is an example of how to set up a logger (it contains both the standard .NET console logger and a Serilog console logger) and it consists of a series of simple operations done on a FusionCache instance. By running it we can see what will be logged for every operation, and by playing with the minimum log levels in the configuration and the FusionCache [logging options](Options.md) we can fine tune what we want to log, to avoid logging too much or too little.
 
@@ -179,3 +273,17 @@ ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException: The operation has timed
 As we can see there is way less informations produced, which in turn is less background noise for normal operations.
 
 It's up to us to choose the desired level of logging based on our own context.
+
+## ⚡ Production & Performance Considerations
+
+As we saw we can log a lot of informations, and that is great when there is a problem and we want to investigate what is going on to solve it.
+
+Normally though, logging all of that will result in a huge amount of resources consumed: storage for sure, probably bandwidth and more.
+
+We should log a lot in a development environment, because typically that goes to the console or similar, and even if it goes on the disk we can easily keep that clean and anyway nobody else will use our own dev env, right?
+
+In production though we should only log problems (`Error` level) or potential problems (`Warning` level), and nothing more, unless it is strictly necessary, like when there's a problem we're having a hard time solving: even then though, we should set the min level to `Debug` (typically avoid `Trace`, which is uber verbose) for the lowest amount of time, and then turn it back to `Warning` as soon as possible.
+
+So the suggestion is:
+- **DEV ENV**: set the min level to `Debug`
+- **PROD ENV**: set the min level to `Warning`. In case of problems, try with `Information` or, if that is not enough, with `Debug`. As soon as the problem is solved or you have enough informations to investigate it, turn it back to `Warning`
