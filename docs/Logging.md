@@ -270,13 +270,13 @@ ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException: The operation has timed
 [12:15:41 WRN] FUSION (O=33859d31231f48a197950c3edd0cccbd K=foo): FAIL-SAFE activated (from memory)
 ```
 
-As we can see there is way less informations produced, which in turn is less background noise for normal operations.
+As we can see there is way less information produced, which in turn means less background noise for normal operations.
 
 It's up to us to choose the desired level of logging based on our own context.
 
 ## ⚡ Production & Performance Considerations
 
-As we saw we can log a lot of informations, and that is great when there is a problem and we want to investigate what is going on to solve it.
+As we saw we can log a lot of information, and that is great when there is a problem and we want to investigate what is going on to solve it.
 
 Normally though, logging all of that will result in a huge amount of resources consumed: storage for sure, probably bandwidth and more.
 
