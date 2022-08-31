@@ -71,6 +71,13 @@ services.AddLogging(b => b
     // SIMPLE CONSOLE SINK + SCOPES
     .AddSimpleConsole(options => options.IncludeScopes = true)
 );
+
+// THE LOGGER WILL BE AUTOMATICALLY PROVIDED
+services.AddFusionCache(options =>
+{
+    options.CacheName = "MyCache";
+    // ETC...
+});
 ```
 
 Now every service, component, controller or else that has an `ILogger<T>` param in the constructor, will be provided one automatically.
@@ -160,7 +167,7 @@ We can see all of them [here](Options.md) in the Options docs.
 
 Let's say we want to know about all the problems related to calling the database in our factory calls, except for when synthetic timeouts occur (eg: because we set a soft timeout to a very low `10 ms` value, so it will be hit frequently). Also suppose we set our configuration with a min level of something like `Information` or `Warning`.
 
-We should simply this:
+We should simply do this:
 
 ```csharp
 options.FactorySyntheticTimeoutsLogLevel = LogLevel.Debug;
@@ -168,6 +175,23 @@ options.FactoryErrorsLogLevel = LogLevel.Error;
 ```
 
 From now on we will never see log entries for synthetic timeouts, leaving our logs with way less background noise, on top of consuming less log storage 🎉
+
+Here's the complete example:
+
+```csharp
+services.AddLogging(b => b
+    // GLOBAL MIN LEVEL: Warning
+    .SetMinimumLevel(LogLevel.Warning)
+);
+
+services.AddFusionCache(options =>
+{
+    // FACTORY SYNTHETIC TIMEOUTS: Debug (SO THEY WILL BE IGNORED)
+    options.FactorySyntheticTimeoutsLogLevel = LogLevel.Debug;
+	// ANY OTHER FACTORY ERRORS: Error (SO THEY WILL -NOT- BE IGNORED)
+    options.FactoryErrorsLogLevel = LogLevel.Error;
+});
+```
 
 ## 📞 Events + Logging
 
