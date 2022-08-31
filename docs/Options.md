@@ -12,7 +12,7 @@ Even if FusionCache typically *just works* by default, it may be important to fi
 
 ## FusionCacheOptions
 
-When creating the entire cache it is possible to setup some cache-wide options, using the `FusionCacheOptions` type: you can configure some things, like the **custom logging levels** to use or a **cache key prefix** to be applied to each cache key.
+When creating the entire cache it is possible to setup some cache-wide options, using the `FusionCacheOptions` type: with that you can configure things like the cache name, custom logging levels to use and more.
 
 The most important one is the `DefaultEntryOptions` which is a `FusionCacheEntryOptions` object (see below) used as a default:
 
