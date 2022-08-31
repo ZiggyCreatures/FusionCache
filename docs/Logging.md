@@ -67,7 +67,7 @@ To do the same as before but with DI, we simply add logging to the registered se
 ```csharp
 services.AddLogging(b => b
     // MIN LOG LEVEL (GLOBAL)
-    .SetMinimumLevel(LogLevel.Information)
+    .SetMinimumLevel(LogLevel.Warning)
     // SIMPLE CONSOLE SINK + SCOPES
     .AddSimpleConsole(options => options.IncludeScopes = true)
 );
