@@ -90,10 +90,6 @@ In general each logger has its own way to setup itself, so we should look at the
 
 As said FusionCache follows the official .NET logging guidelines, and that includes [configuration](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging#configure-logging).
 
-| ℹ NOTE |
-| :--- |
-| A bit of nitpicking here, but to be precise FusionCache does not know anything about logging configuration per se, it just uses "a standard logger" and everything works just fine because it is the logger itself that is configured. We'll see here how to configure a logger, but just as a way to get started with logging, even though that is not specific to FusionCache. |
-
 ## 🎚 Standard Configuration
 
 Here's an example of a logging configuration in the standard `appsettings.json` file, for the native .NET loggers and with a couple of min level overrides:
