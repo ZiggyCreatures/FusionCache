@@ -1,8 +1,3 @@
-
-| 📢 PSA: FusionCache has a new home |
-| :--- |
-| On Aug 21 2022 the official repo has changed from [jodydonetti/ZiggyCreatures.FusionCache](https://github.com/jodydonetti/ZiggyCreatures.FusionCache) to a simpler [ZiggyCreatures/FusionCache](https://github.com/ZiggyCreatures/FusionCache). Everything should just works, even pending pull requests and so on, thanks to GitHub's auto-redirects. <br/><br/> Anyway I suggest to update remotes, urls etc to keep everything clean. |
-
 <div align="center">
 
 ![FusionCache logo](docs/logo-256x256.png)
