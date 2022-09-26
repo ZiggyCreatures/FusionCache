@@ -17,7 +17,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		);
 
 		/// <summary>
-		/// Run an async function asynchronously with a timeout and some additional ooptions.
+		/// Run an async function asynchronously with a timeout and some additional options.
 		/// </summary>
 		/// <typeparam name="TResult"></typeparam>
 		/// <param name="asyncFunc">The async function to execute.</param>
@@ -86,7 +86,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		/// <summary>
-		/// Run an async action asynchronously with a timeout and some additional ooptions.
+		/// Run an async action asynchronously with a timeout and some additional options.
 		/// </summary>
 		/// <param name="asyncAction">The async action to execute.</param>
 		/// <param name="timeout">The timeout to apply.</param>
@@ -156,7 +156,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		/// <summary>
-		/// Run an async function synchoronously with a timeout and some additional ooptions.
+		/// Run an async function synchoronously with a timeout and some additional options.
 		/// </summary>
 		/// <typeparam name="TResult"></typeparam>
 		/// <param name="asyncFunc">The async function to execute.</param>
@@ -192,7 +192,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		/// <summary>
-		/// Run an async action synchoronously with a timeout and some additional ooptions.
+		/// Run an async action synchoronously with a timeout and some additional options.
 		/// </summary>
 		/// <param name="asyncAction">The async action to execute.</param>
 		/// <param name="timeout">The timeout to apply.</param>
@@ -226,7 +226,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		}
 
 		/// <summary>
-		/// Run a sync function synchoronously with a timeout and some additional ooptions.
+		/// Run a sync function synchoronously with a timeout and some additional options.
 		/// </summary>
 		/// <typeparam name="TResult"></typeparam>
 		/// <param name="syncFunc">The sync function to execute.</param>
