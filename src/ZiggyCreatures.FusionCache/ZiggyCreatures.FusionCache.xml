@@ -1920,7 +1920,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
             <summary>
-            Run an async function asynchronously with a timeout and some additional ooptions.
+            Run an async function asynchronously with a timeout and some additional options.
             </summary>
             <typeparam name="TResult"></typeparam>
             <param name="asyncFunc">The async function to execute.</param>
@@ -1932,7 +1932,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
             <summary>
-            Run an async action asynchronously with a timeout and some additional ooptions.
+            Run an async action asynchronously with a timeout and some additional options.
             </summary>
             <param name="asyncAction">The async action to execute.</param>
             <param name="timeout">The timeout to apply.</param>
@@ -1943,7 +1943,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
             <summary>
-            Run an async function synchoronously with a timeout and some additional ooptions.
+            Run an async function synchoronously with a timeout and some additional options.
             </summary>
             <typeparam name="TResult"></typeparam>
             <param name="asyncFunc">The async function to execute.</param>
@@ -1955,7 +1955,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncActionWithTimeout(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
             <summary>
-            Run an async action synchoronously with a timeout and some additional ooptions.
+            Run an async action synchoronously with a timeout and some additional options.
             </summary>
             <param name="asyncAction">The async action to execute.</param>
             <param name="timeout">The timeout to apply.</param>
@@ -1965,7 +1965,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunSyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,``0},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
             <summary>
-            Run a sync function synchoronously with a timeout and some additional ooptions.
+            Run a sync function synchoronously with a timeout and some additional options.
             </summary>
             <typeparam name="TResult"></typeparam>
             <param name="syncFunc">The sync function to execute.</param>
