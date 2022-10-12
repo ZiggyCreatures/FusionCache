@@ -56,7 +56,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Get the value underlying value if there, otherwise the provided <paramref name="defaultValue"/>.
 		/// </summary>
-		/// <param name="defaultValue">A value to return if the <see cref="MaybeValue{TValue}.HasValue"/> property is false.</param>
+		/// <param name="defaultValue">A value to return if the <see cref="MaybeValue{TValue}.HasValue"/> property is <see langword="false"/>.</param>
 		public TValue GetValueOrDefault(TValue defaultValue)
 		{
 			return HasValue ? Value : defaultValue;
@@ -78,7 +78,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// Returns <see cref="MaybeValue{TValue}"/> or, if <see cref="MaybeValue{TValue}.HasValue"/> is false, throws an <see cref="InvalidOperationException"/> exception instead.
+		/// Returns <see cref="MaybeValue{TValue}"/> or, if <see cref="MaybeValue{TValue}.HasValue"/> is <see langword="false"/>, throws an <see cref="InvalidOperationException"/> exception instead.
 		/// </summary>
 		/// <param name="maybe">The <see cref="MaybeValue{TValue}"/> instance.</param>
 		public static implicit operator TValue(MaybeValue<TValue> maybe)

@@ -35,7 +35,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// Tries to pen the circuit.
 		/// </summary>
 		/// <param name="isStateChanged">Indicates if the circuit has been opened with this operation.</param>
-		/// <returns>True if the circuit is open, either because it was already or because it has been opened with this operation. False otherwise.</returns>
+		/// <returns><see langword="true"/> if the circuit is open, either because it was already or because it has been opened with this operation. <see langword="false"/> otherwise.</returns>
 		public bool TryOpen(out bool isStateChanged)
 		{
 			// NO CIRCUIT-BREAKER DURATION
@@ -58,7 +58,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// Check if the circuit is closed, or has been closed with this operation.
 		/// </summary>
 		/// <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
-		/// <returns>True if the circuit is close, either because it was already or because it has been closed with this operation. False otherwise.</returns>
+		/// <returns><see langword="true"/> if the circuit is close, either because it was already or because it has been closed with this operation. <see langword="false"/> otherwise.</returns>
 		public bool IsClosed(out bool isStateChanged)
 		{
 			isStateChanged = false;

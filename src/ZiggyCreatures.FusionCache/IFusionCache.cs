@@ -203,7 +203,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
 		///// <param name="options">The options to use.</param>
 		///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		///// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		///// <returns><see langword="true"/> if there was at least one backplane to send a notification to, otherwise <see langword="false"/>.</returns>
 		//ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		///// <summary>
@@ -212,7 +212,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
 		///// <param name="options">The options to use.</param>
 		///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-		///// <returns>True if there was at least one backplane to send a notification to, otherwise false.</returns>
+		///// <returns><see langword="true"/> if there was at least one backplane to send a notification to, otherwise <see langword="false"/>.</returns>
 		//bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 		/// <summary>
@@ -230,7 +230,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// Stop a plugin, then remove it from this FusionCache instance.
 		/// </summary>
 		/// <param name="plugin">The <see cref="IFusionCachePlugin"/> instance.</param>
-		/// <returns>True if the plugin has been removed, otherwise false.</returns>
+		/// <returns><see langword="true"/> if the plugin has been removed, otherwise <see langword="false"/>.</returns>
 		bool RemovePlugin(IFusionCachePlugin plugin);
 	}
 }

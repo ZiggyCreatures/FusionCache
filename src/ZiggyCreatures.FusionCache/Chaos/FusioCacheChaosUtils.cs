@@ -14,7 +14,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		/// Determines if an exception should be thrown.
 		/// </summary>
 		/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
-		/// <returns>True if an exception should be thrown, false otherwise.</returns>
+		/// <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
 		public static bool ShouldCreateChaos(float throwProbability)
 		{
 			if (throwProbability <= 0f)

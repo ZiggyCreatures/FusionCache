@@ -40,7 +40,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// <summary>
 		/// Checks if a message is valid.
 		/// </summary>
-		/// <returns>True if it seems valid, false otherwise.</returns>
+		/// <returns><see langword="true"/> if it seems valid, <see langword="false"/> otherwise.</returns>
 		public bool IsValid()
 		{
 			if (string.IsNullOrEmpty(SourceId))
