@@ -76,7 +76,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 		/// </summary>
 		public TimeSpan DistributedCacheCircuitBreakerDuration { get; set; }
 
@@ -85,7 +85,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>WARNING:</strong> by default this option is NOT enabled, and should remain this way in any normal circumstance unless you really know what you are doing.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md"/>
 		/// </summary>
 		public bool EnableSyncEventHandlersExecution { get; set; }
 
@@ -97,21 +97,21 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// The duration of the circuit-breaker used when working with the backplane. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 		/// </summary>
 		public TimeSpan BackplaneCircuitBreakerDuration { get; set; }
 
 		/// <summary>
 		/// The prefix to use in the backplane channel name: if not specified the <see cref="CacheName"/> will be used.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 		/// </summary>
 		public string? BackplaneChannelPrefix { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel SerializationErrorsLogLevel { get; set; }
 
@@ -120,14 +120,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>NOTE:</strong> synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your distributed cache.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel DistributedCacheSyntheticTimeoutsLogLevel { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when any error (except for a synthetic timeout) occurs during a distributed cache operation.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel DistributedCacheErrorsLogLevel { get; set; }
 
@@ -136,28 +136,28 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>NOTE:</strong> synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your database, services or else.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel FactorySyntheticTimeoutsLogLevel { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when any error (except for a synthetic timeout) occurs during a factory execution.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel FactoryErrorsLogLevel { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when a fail-safe activation occurs.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel FailSafeActivationLogLevel { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during the handling of an event.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel EventHandlingErrorsLogLevel { get; set; }
 
@@ -166,14 +166,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>NOTE:</strong> synthetic timeouts are only related to soft/hard timeouts, and are not related to intrinsic timeout exceptions or similar that may be thrown by your backplane.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel BackplaneSyntheticTimeoutsLogLevel { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during a backplane operation.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 		/// </summary>
 		public LogLevel BackplaneErrorsLogLevel { get; set; }
 

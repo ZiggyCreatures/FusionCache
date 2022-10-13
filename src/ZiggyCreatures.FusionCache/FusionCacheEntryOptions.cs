@@ -46,22 +46,22 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// The amount of time after which a cache entry is <strong>considered expired</strong>.
 		/// <br/>
-		/// Please note the wording "considered expired" here: what it means is that, although from the <strong>outside</strong> what is observed is always the same (a piece of data expires after the specified <see cref="Duration"/>), on the <strong>inside</strong> things change depending on the fact that fail-safe is enabled or not.
-		/// <br/><br/>
-		/// Specifically:
+		/// Please note the wording "considered expired" here: what it means is that, although from the OUTSIDE what is observed is always the same (a piece of data logically expires after the specified <see cref="Duration"/>), on the INSIDE things change depending on the fact that fail-safe is enabled or not.
+		/// <br/>
+		/// More specifically:
 		/// <br/>
 		/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/> the <see cref="Duration"/> corresponds to the actual underlying duration in the cache, nothing more, nothing less
 		/// <br/>
-		/// - if <see cref="IsFailSafeEnabled" /> is set to <see langword="true"/>, the underlying duration in the cache corresponds to <see cref="FailSafeMaxDuration"/> and the <see cref="Duration"/> property is used as a way to indicate when the data should be considered stale (expired), without making it actually expire
+		/// - if <see cref="IsFailSafeEnabled" /> is set to <see langword="true"/>, the underlying duration in the cache corresponds to <see cref="FailSafeMaxDuration"/> and the <see cref="Duration"/> property is used internally as a way to indicate when the data should be considered stale (expired), without making it actually expire inside the cache levels (memory and/or distributed)
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 		/// </summary>
 		public TimeSpan Duration { get; set; }
 
 		/// <summary>
 		/// The timeout to apply when trying to acquire a lock during a factory execution.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
 		/// </summary>
 		public TimeSpan LockTimeout { get; set; }
 
@@ -83,7 +83,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// Enable the fail-safe mechanism, which will be activated if and when something goes wrong while calling a factory or getting data from a distributed cache.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 		/// </summary>
 		public bool IsFailSafeEnabled { get; set; }
 
@@ -96,7 +96,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/>
 		/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 		/// </summary>
 		public TimeSpan FailSafeMaxDuration { get; set; }
 
@@ -106,49 +106,49 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>TL/DR:</strong> the amount of time an expired cache entry is temporarily considered non-expired before checking the source (calling the factory) again.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 		/// </summary>
 		public TimeSpan FailSafeThrottleDuration { get; set; }
 
 		/// <summary>
 		/// The maximum execution time allowed for the factory, applied only if fail-safe is enabled and there is a fallback value to return.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 		/// </summary>
 		public TimeSpan FactorySoftTimeout { get; set; }
 
 		/// <summary>
 		/// The maximum execution time allowed for the factory in any case, even if there is not a stale value to fallback to.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 		/// </summary>
 		public TimeSpan FactoryHardTimeout { get; set; }
 
 		/// <summary>
 		/// It enables a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 		/// </summary>
 		public bool AllowTimedOutFactoryBackgroundCompletion { get; set; }
 
 		/// <summary>
 		/// The duration specific for the distributed cache, if any. If not set, <see cref="Duration"/> will be used.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 		/// </summary>
 		public TimeSpan? DistributedCacheDuration { get; set; }
 
 		/// <summary>
 		/// The maximum execution time allowed for each operation on the distributed cache, applied only if fail-safe is enabled and there is a fallback value to return.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 		/// </summary>
 		public TimeSpan DistributedCacheSoftTimeout { get; set; }
 
 		/// <summary>
 		/// The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 		/// </summary>
 		public TimeSpan DistributedCacheHardTimeout { get; set; }
 
@@ -161,7 +161,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>TL/DR:</strong> set this flag to <see langword="true"/> for a perf boost, but watch out for rare side effects.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 		/// </summary>
 		public bool AllowBackgroundDistributedCacheOperations { get; set; }
 
@@ -169,14 +169,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		///	Set this to <see langword="true"/> to allow the bubble up of distributed cache exceptions (default is <see langword="false"/>).
 		///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundDistributedCacheOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 		/// </summary>
 		public bool ReThrowDistributedCacheExceptions { get; set; }
 
 		/// <summary>
 		/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 		/// </summary>
 		public bool EnableBackplaneNotifications { get; set; }
 
@@ -187,7 +187,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <br/><br/>
 		/// <strong>TL/DR:</strong> if you want to wait for backplane operations to complete, set this flag to <see langword="false"/>.
 		/// <br/><br/>
-		/// <strong>DOCS:</strong> <a href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md">https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md</a>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 		/// </summary>
 		public bool AllowBackgroundBackplaneOperations { get; set; }
 
@@ -200,8 +200,9 @@ namespace ZiggyCreatures.Caching.Fusion
 		}
 
 		/// <summary>
-		/// If <see cref="JitterMaxDuration"/> is greater than <see cref="TimeSpan.Zero"/>, this method returns a randomized duration (in ms) between 0 and <see cref="JitterMaxDuration"/> that will be added to the entry's specified <see cref="Duration"/> .
-		/// This is done to avoid a variation of the so called <a href="https://en.wikipedia.org/wiki/Cache_stampede">cache stampede problem</a> that may happen when the entry for the same key expires on multiple nodes at the same time, because of high synchronization.
+		/// If <see cref="JitterMaxDuration"/> is greater than <see cref="TimeSpan.Zero"/>, this method returns a randomized duration (in ms) between 0 and <see cref="JitterMaxDuration"/> that will be added to the entry's specified <see cref="Duration"/>.
+		/// <br/>
+		/// This is done to avoid a variation of the so called <see href="https://en.wikipedia.org/wiki/Cache_stampede"><strong>Cache Stampede problem</strong></see> that may happen when the entry for the same key expires on multiple nodes at the same time, because of high synchronization.
 		/// </summary>
 		/// <returns>An additional cache duration (in ms) to slightly vary the entry duration</returns>
 		public double GetJitterDurationMs()
