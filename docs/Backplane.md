@@ -38,6 +38,29 @@ As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N
 As we can see we didn't have to do anything more than usual: everything else is done automatically for us.
 
 
+## 📩 Notifications: then what?
+
+One detail that may be interesting to know is what happens when a notification is sent.
+
+When you think about it, there are 3 things that could be done after some data changes (at least theoretically):
+1. **ACTIVE:** send the change notification, including the updated data
+2. **PASSIVE:** send the change notification, and each client will update it immediately
+3. **LAZY:** send the change notification, and each client will remove their local version of the data (since it's old now)
+
+The first approach (ACTIVE) is not really good, since it has these problems:
+- requires an extra serialization step for the data to be transmitted
+- requires a bigger payload for the notification, sent to all clients
+- all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
+
+The second approach (PASSIVE) is not good either, since it has these problems:
+- every node will request the same data at the same time from the distributed cache, generating a lot of traffic
+- all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
+
+The third approach (LAZY) is the sweet spot, since it just says to each node "hey, this data is change, evict your local copy": at the next request for that data, if and only if it ever arrives, the data will be automatically get from the distributed cache and everything will work normally, thanks to the cache stampede prevention and all the other features.
+
+One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call): why is that? Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls.
+
+
 ## 📦 Packages
 
 Currently there are 2 official packages we can use:
