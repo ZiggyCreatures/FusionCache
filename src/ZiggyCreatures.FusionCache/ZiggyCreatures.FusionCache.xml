@@ -710,7 +710,7 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration">
             <summary>
             The amount of time after which a cache entry is <strong>considered expired</strong>.
-            <br/>
+            <br/><br/>
             Please note the wording "considered expired" here: what it means is that, although from the OUTSIDE what is observed is always the same (a piece of data logically expires after the specified <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/>), on the INSIDE things change depending on the fact that fail-safe is enabled or not.
             <br/>
             More specifically:
@@ -737,6 +737,8 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Size">
             <summary>
             The size of the cache entry, used as a value of <see cref="P:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions.Size"/> in the underlying memory cache.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Priority">
