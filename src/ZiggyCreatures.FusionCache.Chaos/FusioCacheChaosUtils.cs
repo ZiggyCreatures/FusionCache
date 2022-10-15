@@ -33,7 +33,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		public static void MaybeThrow(float throwProbability)
 		{
 			if (ShouldCreateChaos(throwProbability))
-				throw new ChaosException("Something went wrong");
+				throw new ChaosException("Just a little bit of controlled chaos");
 		}
 
 		/// <summary>

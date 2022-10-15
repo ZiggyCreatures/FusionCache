@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Distributed;
 namespace ZiggyCreatures.Caching.Fusion.Chaos
 {
 	/// <summary>
-	/// An implementation of <see cref="IDistributedCache"/> that acts on behalf of another one, but with a (controllable) little chaos in-between.
+	/// An implementation of <see cref="IDistributedCache"/> that acts on behalf of another one, but with a (controllable) amount of chaos in-between.
 	/// </summary>
 	public class ChaosDistributedCache
 		: IDistributedCache
