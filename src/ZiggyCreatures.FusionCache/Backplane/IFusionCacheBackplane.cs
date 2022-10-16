@@ -23,7 +23,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane
 		/// Send a notification to the other connected nodes, if any.
 		/// </summary>
 		/// <param name="message">The message to send.</param>
-		/// /// <param name="options">The options to use.</param>
+		/// <param name="options">The options to use.</param>
 		/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 		ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token);
 
