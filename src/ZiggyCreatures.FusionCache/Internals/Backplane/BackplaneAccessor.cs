@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
@@ -13,6 +16,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 		private readonly ILogger? _logger;
 		private readonly FusionCacheBackplaneEventsHub _events;
 		private readonly SimpleCircuitBreaker _breaker;
+		private readonly SemaphoreSlim _autoRecoveryLock = new SemaphoreSlim(1, 1);
+		private ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)> _autoRecoveryQueue = new ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)>();
 
 		public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
 		{
@@ -68,7 +73,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			return res;
 		}
 
-		//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void ProcessError(string operationId, string key, Exception exc, string actionDescription)
 		{
 			if (exc is SyntheticTimeoutException)
@@ -83,6 +87,154 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
 				_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
+		}
+
+		private void AddAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options)
+		{
+			if (message.CacheKey is null)
+				return;
+
+			// IF WE REACHED THE QUEUE LIMIT -> THE ITEM IS NOT ADDED TO
+			// BUT IF AN ITEM WITH THE SAME KEY IS ALREADY THERE -> THE ITEM IS ADDED (BECAUSE IT WILL BE AN OVERRIDE)
+			if (_autoRecoveryQueue.Count >= _options.BackplaneAutoRecoveryMaxItems && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
+				return;
+
+			_autoRecoveryQueue[message.CacheKey] = (message, options);
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", message.CacheKey);
+		}
+
+		private void ProcessAutoRecoveryQueue()
+		{
+			var _count = _autoRecoveryQueue.Count;
+			if (_count == 0)
+				return;
+
+			// ACQUIRE THE LOCK
+			if (_autoRecoveryLock.Wait(0) == false)
+			{
+				// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY, SOMEONE ELSE IS ALREADY PROCESSING THE QUEUE, SO WE JUST RETURN
+				return;
+			}
+
+			_ = Task.Run(async () =>
+			{
+				try
+				{
+					// NOTE: THE COUNT USAGE HERE IN THE LOG IS JUST AN INDICATION: PER THE MULTI-THREADED NATURE OF THIS THING
+					// IT'S OK IF THE NUMBER IS SINCE CHANGED AND IN THE FOREACH LOOP WE WILL ITERATE OVER MORE (OR LESS) ITEMS
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "FUSION: starting backplane auto-recovery of about {Count} pending notifications", _count);
+
+					_count = 0;
+					foreach (var item in _autoRecoveryQueue)
+					{
+						var _operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
+						if (await PublishAsync(_operationId, item.Value.Message, item.Value.Options, true).ConfigureAwait(false))
+						{
+							// IF A PUBLISH GO THROUGH -> REMOVE FROM THE QUEUE
+							_autoRecoveryQueue.TryRemove(item.Key, out _);
+
+							_count++;
+						}
+						else
+						{
+							// IF A PUBLISH DOESN'T GO THROUGH -> STOP PROCESSING THE QUEUE
+							if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+								_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _operationId, item.Value.Message.CacheKey, _count);
+
+							return;
+						}
+					}
+
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "FUSION: completed backplane auto-recovery of {Count} items", _count);
+				}
+				finally
+				{
+					// RELEASE THE LOCK
+					_autoRecoveryLock.Release();
+				}
+			});
+		}
+
+		//private async ValueTask ProcessAutoRecoveryQueueAsync()
+		//{
+		//	var _count = _autoRecoveryQueue.Count;
+		//	if (_count == 0)
+		//		return;
+
+		//	// ACQUIRE THE LOCK
+		//	if (await _autoRecoveryLock.WaitAsync(0) == false)
+		//	{
+		//		// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY, SOMEONE ELSE IS ALREADY PROCESSING THE QUEUE, SO WE JUST RETURN
+		//		return;
+		//	}
+
+		//	_ = Task.Run(async () =>
+		//	{
+		//		try
+		//		{
+		//			// NOTE: THE COUNT USAGE HERE IN THE LOG IS JUST AN INDICATION: PER THE MULTI-THREADED NATURE OF THIS THING
+		//			// IT'S OK IF THE NUMBER IS SINCE CHANGED AND IN THE FOREACH LOOP WE WILL ITERATE OVER MORE (OR LESS) ITEMS
+		//			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+		//				_logger.Log(LogLevel.Debug, "FUSION: starting backplane auto-recovery of about {Count} pending notifications", _count);
+
+		//			_count = 0;
+		//			foreach (var item in _autoRecoveryQueue)
+		//			{
+		//				var _operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
+		//				if (await PublishAsync(_operationId, item.Value.Message, item.Value.Options, true).ConfigureAwait(false))
+		//				{
+		//					// IF A PUBLISH GO THROUGH -> REMOVE FROM THE QUEUE
+		//					_autoRecoveryQueue.TryRemove(item.Key, out _);
+
+		//					_count++;
+		//				}
+		//				else
+		//				{
+		//					// IF A PUBLISH DOESN'T GO THROUGH -> STOP PROCESSING THE QUEUE
+		//					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+		//						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _operationId, item.Value.Message.CacheKey, _count);
+
+		//					return;
+		//				}
+		//			}
+
+		//			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+		//				_logger.Log(LogLevel.Debug, "FUSION: completed backplane auto-recovery of {Count} items", _count);
+		//		}
+		//		finally
+		//		{
+		//			// RELEASE THE LOCK
+		//			_autoRecoveryLock.Release();
+		//		}
+		//	});
+		//}
+
+		private bool CheckIncomingMessageForAutoRecoveryConflicts(BackplaneMessage message)
+		{
+			if (message.CacheKey is null)
+			{
+				return true;
+			}
+
+			if (_autoRecoveryQueue.TryGetValue(message.CacheKey, out var pendingLocal) == false)
+			{
+				// NO PENDING LOCAL MESSAGE WITH THE SAME KEY
+				return true;
+			}
+
+			if (pendingLocal.Message.InstantTicks <= message.InstantTicks)
+			{
+				// PENDING LOCAL MESSAGE IS -OLDER- THAN THE INCOMING ONE -> REMOVE THE LOCAL ONE
+				_autoRecoveryQueue.TryRemove(message.CacheKey, out _);
+				return true;
+			}
+
+			// PENDING LOCAL MESSAGE IS -NEWER- THAN THE INCOMING ONE -> DO NOT PROCESS THE INCOMING ONE
+			return false;
 		}
 
 		public void Subscribe()
@@ -103,6 +255,22 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 
 		private void ProcessMessage(BackplaneMessage message)
 		{
+			// AUTO-RECOVERY
+			if (_options.EnableBackplaneAutoRecovery)
+			{
+				if (CheckIncomingMessageForAutoRecoveryConflicts(message) == false)
+				{
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey}, but has been discarded since there is a newer pending one in the auto-recovery queue", message.CacheKey);
+
+					ProcessAutoRecoveryQueue();
+
+					return;
+				}
+
+				ProcessAutoRecoveryQueue();
+			}
+
 			// IGNORE INVALID MESSAGES
 			if (message is null || message.IsValid() == false)
 			{

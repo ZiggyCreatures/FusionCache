@@ -453,7 +453,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (_bpa is null)
 				return false;
 
-			return await _bpa.PublishAsync(operationId, message, options, token);
+			return await _bpa.PublishAsync(operationId, message, options, false, token);
 		}
 
 		/// <inheritdoc/>

@@ -32,7 +32,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			;
 		}
 
-		public bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		public bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, CancellationToken token = default)
 		{
 			if (IsCurrentlyUsable(operationId, message.CacheKey) == false)
 				return false;
@@ -46,7 +46,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			{
 				// IGNORE MESSAGES -NOT- FROM THIS SOURCE
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send a backplane message with a SourceId different than the local one (IFusionCache.InstanceId)", operationId, message.CacheKey);
+					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + (isAutoRecovery ? " (auto-recovery)" : String.Empty) + " with a SourceId different than the local one (IFusionCache.InstanceId)", operationId, message.CacheKey);
 
 				return false;
 			}
@@ -55,7 +55,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			{
 				// IGNORE INVALID MESSAGES
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message", operationId, message.CacheKey);
+					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + (isAutoRecovery ? " (auto-recovery)" : String.Empty), operationId, message.CacheKey);
 
 				return false;
 			}
@@ -67,12 +67,29 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				message.CacheKey!,
 				_ =>
 				{
-					_backplane.Publish(message, options);
+					try
+					{
+						_backplane.Publish(message, options);
+
+						if (isAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
+						{
+							ProcessAutoRecoveryQueue();
+						}
+					}
+					catch
+					{
+						if (isAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
+						{
+							AddAutoRecoveryItem(message, options);
+						}
+
+						throw;
+					}
 
 					// EVENT
 					_events.OnMessagePublished(operationId, message);
 				},
-				"sending backplane notification",
+				"sending backplane notification" + (isAutoRecovery ? " (auto-recovery)" : String.Empty),
 				options,
 				token
 			);

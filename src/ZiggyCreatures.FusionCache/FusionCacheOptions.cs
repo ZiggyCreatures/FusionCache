@@ -22,6 +22,9 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			_defaultEntryOptions = new FusionCacheEntryOptions();
 
+			EnableBackplaneAutoRecovery = false; // TODO: WHEN THROUGHLY TESTED, CHANGE THIS
+			BackplaneAutoRecoveryMaxItems = 100;
+
 			// LOG LEVELS
 			SerializationErrorsLogLevel = LogLevel.Error;
 
@@ -107,6 +110,20 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 		/// </summary>
 		public string? BackplaneChannelPrefix { get; set; }
+
+		/// <summary>
+		/// Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
+		/// <br/><br/>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+		/// </summary>
+		public bool EnableBackplaneAutoRecovery { get; set; }
+
+		/// <summary>
+		/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption.
+		/// <br/><br/>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+		/// </summary>
+		public int BackplaneAutoRecoveryMaxItems { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.

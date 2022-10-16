@@ -34,7 +34,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			;
 		}
 
-		public async ValueTask<bool> PublishAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+		public async ValueTask<bool> PublishAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isFromAutoRecovery, CancellationToken token = default)
 		{
 			if (IsCurrentlyUsable(operationId, message.CacheKey) == false)
 				return false;
@@ -48,7 +48,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			{
 				// IGNORE MESSAGES -NOT- FROM THIS SOURCE
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send a backplane message with a SourceId different than the local one (IFusionCache.InstanceId)", operationId, message.CacheKey);
+					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " with a SourceId different than the local one (IFusionCache.InstanceId)", operationId, message.CacheKey);
 
 				return false;
 			}
@@ -57,7 +57,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			{
 				// IGNORE INVALID MESSAGES
 				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message", operationId, message.CacheKey);
+					_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty), operationId, message.CacheKey);
 
 				return false;
 			}
@@ -69,12 +69,29 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				message.CacheKey!,
 				async ct =>
 				{
-					await _backplane.PublishAsync(message, options, ct).ConfigureAwait(false);
+					try
+					{
+						await _backplane.PublishAsync(message, options, ct).ConfigureAwait(false);
+
+						if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
+						{
+							ProcessAutoRecoveryQueue();
+						}
+					}
+					catch
+					{
+						if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
+						{
+							AddAutoRecoveryItem(message, options);
+						}
+
+						throw;
+					}
 
 					// EVENT
 					_events.OnMessagePublished(operationId, message);
 				},
-				"sending backplane notification",
+				"sending backplane notification" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty),
 				options,
 				token
 			).ConfigureAwait(false);
