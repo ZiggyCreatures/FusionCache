@@ -112,13 +112,9 @@ namespace ZiggyCreatures.Caching.Fusion
 				throw new ArgumentNullException(nameof(key));
 		}
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private string GenerateOperationId()
 		{
-			if (_logger is null)
-				return string.Empty;
-
-			return Guid.NewGuid().ToString("N");
+			return FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 		}
 
 		private DistributedCacheAccessor? GetCurrentDistributedAccessor()

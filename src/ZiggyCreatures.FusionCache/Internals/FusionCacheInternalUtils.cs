@@ -11,6 +11,19 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 {
 	internal static class FusionCacheInternalUtils
 	{
+		public static string GenerateOperationId()
+		{
+			return Guid.NewGuid().ToString("N");
+		}
+
+		public static string MaybeGenerateOperationId(ILogger? logger)
+		{
+			if (logger is null)
+				return string.Empty;
+
+			return GenerateOperationId();
+		}
+
 		/// <summary>
 		/// Checks if the entry is logically expired.
 		/// </summary>
