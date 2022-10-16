@@ -10,6 +10,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
+using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -24,8 +25,8 @@ namespace FusionCacheTests
 
 	public class BackplaneTests
 	{
-		private static string? RedisConnection = null;
-		//private static string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
+		private static readonly string? RedisConnection = null;
+		//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
 
 		private static IFusionCacheSerializer GetSerializer(SerializerType serializerType)
 		{
@@ -48,6 +49,11 @@ namespace FusionCacheTests
 			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection });
 		}
 
+		private static ChaosBackplane CreateChaosBackplane()
+		{
+			return new ChaosBackplane(CreateBackplane());
+		}
+
 		private static IDistributedCache CreateDistributedCache()
 		{
 			if (string.IsNullOrWhiteSpace(RedisConnection))
@@ -56,13 +62,15 @@ namespace FusionCacheTests
 			return new RedisCache(new RedisCacheOptions { Configuration = RedisConnection });
 		}
 
-		private static IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane)
+		private static IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null)
 		{
-			var fusionCache = new FusionCache(new FusionCacheOptions()
+			var options = new FusionCacheOptions()
 			{
 				CacheName = cacheName!,
 				EnableSyncEventHandlersExecution = true
-			});
+			};
+			setupAction?.Invoke(options);
+			var fusionCache = new FusionCache(options);
 			fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 			if (distributedCache is object && serializerType.HasValue)
@@ -349,6 +357,146 @@ namespace FusionCacheTests
 				Assert.Equal(1, cache1.GetOrDefault<int>(key));
 				Assert.Equal(2, cache2.GetOrDefault<int>(key));
 				Assert.Equal(3, cache3.GetOrDefault<int>(key));
+			}
+			finally
+			{
+				cache1?.Dispose();
+				cache2?.Dispose();
+				cache3?.Dispose();
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task AutoRecoveryWorksAsync(SerializerType serializerType)
+		{
+			var _value = 0;
+
+			var key = "foo";
+			var otherKey = "bar";
+
+			var distributedCache = CreateDistributedCache();
+
+			var backplane1 = CreateChaosBackplane();
+			var backplane2 = CreateChaosBackplane();
+			var backplane3 = CreateChaosBackplane();
+
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; });
+
+			// DISABLE THE BACKPLANE
+			backplane1.SetAlwaysThrow();
+			backplane2.SetAlwaysThrow();
+			backplane3.SetAlwaysThrow();
+
+			await Task.Delay(1_000);
+
+			try
+			{
+				// 1
+				_value = 1;
+				await cache1.SetAsync(key, _value, TimeSpan.FromMinutes(10));
+				await Task.Delay(200);
+
+				// 2
+				_value = 2;
+				await cache2.SetAsync(key, _value, TimeSpan.FromMinutes(10));
+				await Task.Delay(200);
+
+				// 3
+				_value = 3;
+				await cache3.SetAsync(key, _value, TimeSpan.FromMinutes(10));
+				await Task.Delay(200);
+
+				Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value));
+				Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value));
+				Assert.Equal(3, await cache3.GetOrSetAsync<int>(key, async _ => _value));
+
+				// RE-ENABLE THE BACKPLANE
+				backplane1.SetNeverThrow();
+				backplane2.SetNeverThrow();
+				backplane3.SetNeverThrow();
+
+				// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
+				await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
+
+				await Task.Delay(1_000);
+
+				Assert.Equal(3, await cache1.GetOrSetAsync<int>(key, async _ => _value));
+				Assert.Equal(3, await cache2.GetOrSetAsync<int>(key, async _ => _value));
+				Assert.Equal(3, await cache3.GetOrSetAsync<int>(key, async _ => _value));
+			}
+			finally
+			{
+				cache1?.Dispose();
+				cache2?.Dispose();
+				cache3?.Dispose();
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void AutoRecoveryWorks(SerializerType serializerType)
+		{
+			var _value = 0;
+
+			var key = "foo";
+			var otherKey = "bar";
+
+			var distributedCache = CreateDistributedCache();
+
+			var backplane1 = CreateChaosBackplane();
+			var backplane2 = CreateChaosBackplane();
+			var backplane3 = CreateChaosBackplane();
+
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; });
+
+			// DISABLE THE BACKPLANE
+			backplane1.SetAlwaysThrow();
+			backplane2.SetAlwaysThrow();
+			backplane3.SetAlwaysThrow();
+
+			Thread.Sleep(1_000);
+
+			try
+			{
+				// 1
+				_value = 1;
+				cache1.Set(key, _value, TimeSpan.FromMinutes(10));
+				Thread.Sleep(200);
+
+				// 2
+				_value = 2;
+				cache2.Set(key, _value, TimeSpan.FromMinutes(10));
+				Thread.Sleep(200);
+
+				// 3
+				_value = 3;
+				cache3.Set(key, _value, TimeSpan.FromMinutes(10));
+				Thread.Sleep(200);
+
+				Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
+				Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
+				Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+
+				// RE-ENABLE THE BACKPLANE
+				backplane1.SetNeverThrow();
+				backplane2.SetNeverThrow();
+				backplane3.SetNeverThrow();
+
+				// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
+				cache1.Set(otherKey, 42, TimeSpan.FromMinutes(10));
+
+				Thread.Sleep(1_000);
+
+				Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value));
+				Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value));
+				Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
 			}
 			finally
 			{
