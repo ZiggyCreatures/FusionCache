@@ -91,7 +91,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 
 			DateTimeOffset exp;
 
-			if (entry.Metadata is object)
+			if (entry.Metadata is not null)
 			{
 				exp = entry.Metadata.LogicalExpiration;
 			}

@@ -148,7 +148,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 				}
 
 				// EVENT
-				if (entry is object)
+				if (entry is not null)
 				{
 					_events.OnHit(operationId, key, isValid == false);
 				}

@@ -158,7 +158,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var cache = new FusionCache(options);
 					AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
-					if (distributedCache is object)
+					if (distributedCache is not null)
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING DIST. CACHE...");
 						cache.SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer());
@@ -168,7 +168,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					AnsiConsole.Markup("- [deepskyblue1]BACKPLANE   : [/] CREATING...");
 					var backplane = CreateBackplane(groupIdx);
 					AnsiConsole.MarkupLine("[green3_1]OK[/]");
-					if (backplane is object)
+					if (backplane is not null)
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING BACKPLANE...");
 						cache.SetupBackplane(backplane);

@@ -43,7 +43,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			// TODO: NOT SURE ABOUT THIS
 			//if (exc is null)
 			//	return null;
-			return (exc.InnerException is object && exc.InnerExceptions?.Count <= 1)
+			return (exc.InnerException is not null && exc.InnerExceptions?.Count <= 1)
 				? exc.InnerException
 				: exc
 			;
@@ -188,7 +188,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			var invocations = ev.GetInvocationList();
 
 			// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
-			if (logger is object && logger.IsEnabled(logLevel) == false)
+			if (logger is not null && logger.IsEnabled(logLevel) == false)
 				logger = null;
 
 			var e = eventArgsBuilder();

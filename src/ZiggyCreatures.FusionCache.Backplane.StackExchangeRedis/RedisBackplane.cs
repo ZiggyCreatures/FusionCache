@@ -63,13 +63,13 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 
 		private void EnsureConnection()
 		{
-			if (_connection is object)
+			if (_connection is not null)
 				return;
 
 			_connectionLock.Wait();
 			try
 			{
-				if (_connection is object)
+				if (_connection is not null)
 					return;
 
 				_connection = ConnectionMultiplexer.Connect(GetConfigurationOptions());
@@ -89,13 +89,13 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 		{
 			token.ThrowIfCancellationRequested();
 
-			if (_connection is object)
+			if (_connection is not null)
 				return;
 
 			await _connectionLock.WaitAsync(token).ConfigureAwait(false);
 			try
 			{
-				if (_connection is object)
+				if (_connection is not null)
 					return;
 
 				_connection = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions()).ConfigureAwait(false);
@@ -160,7 +160,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis
 				await _subscriber!.SubscribeAsync(_channel, (_, v) =>
 				{
 					var message = FromRedisValue(v, _logger);
-					if (message is object)
+					if (message is not null)
 					{
 						_handler(message);
 					}

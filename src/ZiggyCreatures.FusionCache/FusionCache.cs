@@ -130,7 +130,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", operationId, key);
-				if (distributedEntry is object)
+				if (distributedEntry is not null)
 				{
 					// FAIL SAFE (FROM DISTRIBUTED)
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
@@ -142,7 +142,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 					return distributedEntry;
 				}
-				else if (memoryEntry is object)
+				else if (memoryEntry is not null)
 				{
 					// FAIL SAFE (FROM MEMORY)
 					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
@@ -203,7 +203,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 					// UPDATE ADAPTIVE OPTIONS
 					var maybeNewOptions = ctx.GetOptions();
-					if (maybeNewOptions is object && options != maybeNewOptions)
+					if (maybeNewOptions is not null && options != maybeNewOptions)
 						options = maybeNewOptions;
 
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
@@ -309,7 +309,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <inheritdoc/>
 		public bool HasDistributedCache
 		{
-			get { return _dca is object; }
+			get { return _dca is not null; }
 		}
 
 		/// <inheritdoc/>
@@ -318,7 +318,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			if (backplane is null)
 				throw new ArgumentNullException(nameof(backplane));
 
-			if (_bpa is object)
+			if (_bpa is not null)
 			{
 				RemoveBackplane();
 			}
@@ -351,7 +351,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		{
 			lock (_lockBackplane)
 			{
-				if (_bpa is object)
+				if (_bpa is not null)
 				{
 					_bpa.Unsubscribe();
 					_bpa = null;
@@ -367,7 +367,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <inheritdoc/>
 		public bool HasBackplane
 		{
-			get { return _bpa is object; }
+			get { return _bpa is not null; }
 		}
 
 		/// <inheritdoc/>

@@ -305,9 +305,9 @@ namespace ZiggyCreatures.Caching.Fusion
 		public FusionCacheEntryOptions SetFailSafe(bool isEnabled, TimeSpan? maxDuration = null, TimeSpan? throttleDuration = null)
 		{
 			IsFailSafeEnabled = isEnabled;
-			if (maxDuration is object)
+			if (maxDuration is not null)
 				FailSafeMaxDuration = maxDuration.Value;
-			if (throttleDuration is object)
+			if (throttleDuration is not null)
 				FailSafeThrottleDuration = throttleDuration.Value;
 			return this;
 		}
@@ -321,11 +321,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 		public FusionCacheEntryOptions SetFactoryTimeouts(TimeSpan? softTimeout = null, TimeSpan? hardTimeout = null, bool? keepTimedOutFactoryResult = null)
 		{
-			if (softTimeout is object)
+			if (softTimeout is not null)
 				FactorySoftTimeout = softTimeout.Value;
-			if (hardTimeout is object)
+			if (hardTimeout is not null)
 				FactoryHardTimeout = hardTimeout.Value;
-			if (keepTimedOutFactoryResult is object)
+			if (keepTimedOutFactoryResult is not null)
 				AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
 			return this;
 		}
@@ -339,11 +339,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 		public FusionCacheEntryOptions SetDistributedCacheTimeouts(TimeSpan? softTimeout = null, TimeSpan? hardTimeout = null, bool? allowBackgroundDistributedCacheOperations = null)
 		{
-			if (softTimeout is object)
+			if (softTimeout is not null)
 				DistributedCacheSoftTimeout = softTimeout.Value;
-			if (hardTimeout is object)
+			if (hardTimeout is not null)
 				DistributedCacheHardTimeout = hardTimeout.Value;
-			if (allowBackgroundDistributedCacheOperations is object)
+			if (allowBackgroundDistributedCacheOperations is not null)
 				AllowBackgroundDistributedCacheOperations = allowBackgroundDistributedCacheOperations.Value;
 			return this;
 		}

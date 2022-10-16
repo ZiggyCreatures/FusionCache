@@ -17,11 +17,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 	{
 		public static FusionCacheEntryOptions SetFactoryTimeouts(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
 		{
-			if (softTimeoutMs is object)
+			if (softTimeoutMs is not null)
 				options.FactorySoftTimeout = TimeSpan.FromMilliseconds(softTimeoutMs.Value);
-			if (hardTimeoutMs is object)
+			if (hardTimeoutMs is not null)
 				options.FactoryHardTimeout = TimeSpan.FromMilliseconds(hardTimeoutMs.Value);
-			if (keepTimedOutFactoryResult is object)
+			if (keepTimedOutFactoryResult is not null)
 				options.AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
 			return options;
 		}

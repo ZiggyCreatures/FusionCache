@@ -156,7 +156,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors
 			{
 				if (disposing)
 				{
-					if (_lockPool is object)
+					if (_lockPool is not null)
 					{
 						foreach (var semaphore in _lockPool)
 						{

@@ -32,7 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			services.AddOptions();
 
-			if (setupOptionsAction is object)
+			if (setupOptionsAction is not null)
 				services.Configure(setupOptionsAction);
 
 			services.TryAdd(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
@@ -55,7 +55,7 @@ namespace Microsoft.Extensions.DependencyInjection
 						distributedCache = null;
 					}
 
-					if (distributedCache is object)
+					if (distributedCache is not null)
 					{
 						var serializer = serviceProvider.GetService<IFusionCacheSerializer>();
 
@@ -74,7 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
 				// BACKPLANE
 				var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
 
-				if (backplane is object)
+				if (backplane is not null)
 				{
 					cache.SetupBackplane(backplane);
 				}

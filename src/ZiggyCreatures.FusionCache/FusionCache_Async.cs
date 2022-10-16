@@ -62,7 +62,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				//	return memoryEntry;
 				//}
 
-				if (options.IsFailSafeEnabled && memoryEntry is object)
+				if (options.IsFailSafeEnabled && memoryEntry is not null)
 				{
 					// CREATE A NEW (THROTTLED) ENTRY
 					memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(memoryEntry.Value, options, true);
@@ -87,7 +87,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			// LOCK
 			var lto = options.LockTimeout;
-			if (lto == Timeout.InfiniteTimeSpan && memoryEntry is object && options.IsFailSafeEnabled && options.FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+			if (lto == Timeout.InfiniteTimeSpan && memoryEntry is not null && options.IsFailSafeEnabled && options.FactorySoftTimeout != Timeout.InfiniteTimeSpan)
 			{
 				// IF THERE IS NO SPECIFIC LOCK TIMEOUT
 				// + THERE IS A FALLBACK ENTRY
@@ -98,7 +98,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			}
 			var lockObj = await _reactor.AcquireLockAsync(key, operationId, lto, _logger, token).ConfigureAwait(false);
 
-			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is object)
+			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
 			{
 				// IF THE LOCK HAS NOT BEEN ACQUIRED
 				// + THERE IS A FALLBACK ENTRY
@@ -136,7 +136,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 				if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 				{
-					(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is object, token).ConfigureAwait(false);
+					(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
 				}
 
 				if (distributedEntryIsValid)
@@ -155,7 +155,7 @@ namespace ZiggyCreatures.Caching.Fusion
 						// NO FACTORY
 
 						var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, out failSafeActivated);
-						if (fallbackEntry is object)
+						if (fallbackEntry is not null)
 						{
 							value = fallbackEntry.GetValue<TValue>();
 						}
@@ -173,7 +173,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 						Task<TValue>? factoryTask = null;
 
-						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is object || distributedEntry is object);
+						var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
 
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 							_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
@@ -194,7 +194,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 							// UPDATE ADAPTIVE OPTIONS
 							var maybeNewOptions = ctx.GetOptions();
-							if (maybeNewOptions is object && options != maybeNewOptions)
+							if (maybeNewOptions is not null && options != maybeNewOptions)
 								options = maybeNewOptions;
 						}
 						catch (OperationCanceledException)
@@ -208,7 +208,7 @@ namespace ZiggyCreatures.Caching.Fusion
 							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
 
 							var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, out failSafeActivated);
-							if (fallbackEntry is object)
+							if (fallbackEntry is not null)
 							{
 								value = fallbackEntry.GetValue<TValue>();
 							}
@@ -235,14 +235,14 @@ namespace ZiggyCreatures.Caching.Fusion
 				}
 
 				// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
-				if (entry is object)
+				if (entry is not null)
 				{
 					_mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry(options), options);
 				}
 			}
 			finally
 			{
-				if (lockObj is object)
+				if (lockObj is not null)
 					ReleaseLock(operationId, key, lockObj);
 			}
 
@@ -256,7 +256,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				if (options.EnableBackplaneNotifications)
 					await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token).ConfigureAwait(false);
 			}
-			else if (entry is object)
+			else if (entry is not null)
 			{
 				_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
 			}

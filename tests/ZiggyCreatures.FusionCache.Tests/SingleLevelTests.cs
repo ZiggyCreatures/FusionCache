@@ -11,11 +11,11 @@ namespace FusionCacheTests
 	{
 		public static FusionCacheEntryOptions SetFactoryTimeoutsMs(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
 		{
-			if (softTimeoutMs is object)
+			if (softTimeoutMs is not null)
 				options.FactorySoftTimeout = TimeSpan.FromMilliseconds(softTimeoutMs.Value);
-			if (hardTimeoutMs is object)
+			if (hardTimeoutMs is not null)
 				options.FactoryHardTimeout = TimeSpan.FromMilliseconds(hardTimeoutMs.Value);
-			if (keepTimedOutFactoryResult is object)
+			if (keepTimedOutFactoryResult is not null)
 				options.AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
 			return options;
 		}
@@ -419,7 +419,7 @@ namespace FusionCacheTests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is greater than outer cancel");
+				Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is greater than outer cancel");
 				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is less than factory delay");
 			}
 		}
@@ -441,7 +441,7 @@ namespace FusionCacheTests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				Assert.True(sw.ElapsedMilliseconds > outerCancelDelayMs, "Elapsed is greater than outer cancel");
+				Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is greater than outer cancel");
 				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is less than factory delay");
 			}
 		}

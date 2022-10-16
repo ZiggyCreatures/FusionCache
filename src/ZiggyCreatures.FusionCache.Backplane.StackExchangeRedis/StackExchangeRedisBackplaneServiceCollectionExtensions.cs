@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
 			services.AddOptions();
 
-			if (setupOptionsAction is object)
+			if (setupOptionsAction is not null)
 				services.Configure(setupOptionsAction);
 
 			services.TryAdd(ServiceDescriptor.Transient<IFusionCacheBackplane>(serviceProvider =>

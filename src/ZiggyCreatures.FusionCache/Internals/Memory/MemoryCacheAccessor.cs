@@ -10,7 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 	{
 		public MemoryCacheAccessor(IMemoryCache? memoryCache, ILogger? logger, FusionCacheMemoryEventsHub events)
 		{
-			if (memoryCache is object)
+			if (memoryCache is not null)
 			{
 				_cache = memoryCache;
 			}
@@ -71,7 +71,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			}
 
 			// EVENT
-			if (entry is object)
+			if (entry is not null)
 			{
 				_events.OnHit(operationId, key, isValid == false);
 			}
@@ -105,7 +105,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 			if (entry is null)
 				return;
 
-			if (allowFailSafe && entry.Metadata is object && entry.Metadata.IsLogicallyExpired() == false)
+			if (allowFailSafe && entry.Metadata is not null && entry.Metadata.IsLogicallyExpired() == false)
 			{
 				// MAKE THE ENTRY LOGICALLY EXPIRE
 				entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);

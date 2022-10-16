@@ -26,8 +26,8 @@
 		</PackageReference>
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-		<!--<PropertyGroup>-->
+	<!--<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">-->
+	<PropertyGroup>
 		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 

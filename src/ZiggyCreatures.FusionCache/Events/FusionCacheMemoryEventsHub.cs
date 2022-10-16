@@ -33,7 +33,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events
 		/// <returns><see langword="true"/> if the <see cref="Eviction"/> event has subscribers, otherwhise <see langword="false"/>.</returns>
 		public bool HasEvictionSubscribers()
 		{
-			return Eviction is object;
+			return Eviction is not null;
 		}
 
 		internal void OnEviction(string operationId, string key, EvictionReason reason)

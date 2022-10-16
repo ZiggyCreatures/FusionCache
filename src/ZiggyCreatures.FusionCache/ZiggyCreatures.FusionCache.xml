@@ -110,7 +110,7 @@
             Send a notification to the other connected nodes, if any.
             </summary>
             <param name="message">The message to send.</param>
-            /// <param name="options">The options to use.</param>
+            <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">

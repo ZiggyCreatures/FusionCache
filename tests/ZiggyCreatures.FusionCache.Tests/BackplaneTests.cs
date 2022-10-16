@@ -73,9 +73,9 @@ namespace FusionCacheTests
 			var fusionCache = new FusionCache(options);
 			fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
-			if (distributedCache is object && serializerType.HasValue)
+			if (distributedCache is not null && serializerType.HasValue)
 				fusionCache.SetupDistributedCache(distributedCache, GetSerializer(serializerType.Value));
-			if (backplane is object)
+			if (backplane is not null)
 				fusionCache.SetupBackplane(backplane);
 
 			return fusionCache;
