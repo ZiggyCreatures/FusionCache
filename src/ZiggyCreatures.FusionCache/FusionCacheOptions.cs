@@ -119,11 +119,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		public bool EnableBackplaneAutoRecovery { get; set; }
 
 		/// <summary>
-		/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption.
+		/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
 		/// <br/><br/>
 		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 		/// </summary>
-		public int BackplaneAutoRecoveryMaxItems { get; set; }
+		public int? BackplaneAutoRecoveryMaxItems { get; set; }
 
 		/// <summary>
 		/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.

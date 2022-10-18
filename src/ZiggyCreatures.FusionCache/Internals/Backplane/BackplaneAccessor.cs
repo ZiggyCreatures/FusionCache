@@ -96,7 +96,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 
 			// IF WE REACHED THE QUEUE LIMIT -> THE ITEM IS NOT ADDED TO
 			// BUT IF AN ITEM WITH THE SAME KEY IS ALREADY THERE -> THE ITEM IS ADDED (BECAUSE IT WILL BE AN OVERRIDE)
-			if (_autoRecoveryQueue.Count >= _options.BackplaneAutoRecoveryMaxItems && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
+			if (_options.BackplaneAutoRecoveryMaxItems.HasValue && _autoRecoveryQueue.Count >= _options.BackplaneAutoRecoveryMaxItems.Value && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
 				return;
 
 			_autoRecoveryQueue[message.CacheKey] = (message, options);
