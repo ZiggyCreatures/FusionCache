@@ -61,6 +61,24 @@ The third approach (LAZY) is the sweet spot, since it just says to each node "he
 One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call): why is that? Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls.
 
 
+## ↩️ Auto-Recovery
+
+Since the backplane is implemented on top of a distributed component (in general some sort of message bus, like the Redis Pub/Sub feature) sometimes things can go bad: the message bus can restart or become temporarily unavailable, transient network errors may occur or anything else. In those situations each local nodes' memory caches will become out of sync, since they missed some notifications.
+
+Wouldn't it be nice if FusionCache would help us is some way?
+
+Enter **auto-recovery**.
+
+With auto-recovery enabled FusionCache will detect notifications that failed to be sent, put them in a local temporary queue and later on, as soon as the backplane will become available again, will try to send them to all the other nodes to re-sync them correctly.
+
+Special care has been put into correctly handling some common situations, like:
+- if more than one notification is about to be queued for the same cache key, only the last one will be kept since the result of sending 2 notifications for the same cache key back-to-back would be the same
+- if a notification is received for a cache key for which there is a queued notification, only the most recent one is kept: if the incoming one is newer, the local one is discarded and the incoming one is processed, otherwise the incoming one is ignored and the local one is sent to the other nodes. This avoids, for example, evicting an entry from a local cache if it has been updated after a change in a remote node, which would be useless
+- it is possible to set a limit in how many notifications to keep in the queue via the `BackplaneAutoRecoveryMaxItems` option (default value: `100`, can be `null` to remove any limit) to avoid consuming too much memory or to bombard the backplane as soon as it will become available again. If a notification is about to be queued but the limit has already been reached, an heuristic is used that will remove the notification for the cache entry with the lowest `Duration`, so to lower as possible the impact on the global shared state synchronization.
+
+**🧪 NOTE:** auto-recovery is available since version `0.14.0`, but it is disabled by default as is considered experimental. As soon as the feature will be tested out in real world projects without any issue, it will probably be enabled by default.
+
+
 ## 📦 Packages
 
 Currently there are 2 official packages we can use:
