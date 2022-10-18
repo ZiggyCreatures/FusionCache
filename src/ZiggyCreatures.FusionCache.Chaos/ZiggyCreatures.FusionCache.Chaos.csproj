@@ -4,17 +4,15 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.13.0</Version>
+		<Version>0.14.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Chaos</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
-		<Description>FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.</Description>
+		<Description>Chaos-related utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behaviour in a controlled failing environment.</Description>
 		<PackageTags>chaos;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Chaos</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Chaos.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>
-			- initial impl
-		</PackageReleaseNotes>
+		<PackageReleaseNotes>Initial commit (moved files here from the main project)</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -23,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
 </Project>

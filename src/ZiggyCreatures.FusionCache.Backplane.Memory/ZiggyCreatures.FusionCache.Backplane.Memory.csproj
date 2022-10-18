@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.13.0</Version>
+		<Version>0.14.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.Memory</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache in memory backplane, used for testing</Description>
@@ -12,7 +12,7 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.Memory</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.Memory.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
+		<PackageReleaseNotes>experimental: added a backplane auto-recovery feature (must be manually enabled, for now)</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
