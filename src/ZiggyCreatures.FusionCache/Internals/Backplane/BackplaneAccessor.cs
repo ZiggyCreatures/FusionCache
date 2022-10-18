@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -94,10 +95,37 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 			if (message.CacheKey is null)
 				return;
 
-			// IF WE REACHED THE QUEUE LIMIT -> THE ITEM IS NOT ADDED TO
-			// BUT IF AN ITEM WITH THE SAME KEY IS ALREADY THERE -> THE ITEM IS ADDED (BECAUSE IT WILL BE AN OVERRIDE)
 			if (_options.BackplaneAutoRecoveryMaxItems.HasValue && _autoRecoveryQueue.Count >= _options.BackplaneAutoRecoveryMaxItems.Value && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
-				return;
+			{
+				// IF:
+				// - A LIMIT HAS BEEN SET
+				// - THE LIMIT HAS BEEN REACHED OR SURPASSED
+				// - THE ITEM TO BE ADDED IS NOT ALREADY THERE (OTHERWISE IT WILL BE AN OVERWRITE AND SIZE WILL NOT GROW)
+				// THEN FIND THE ITEM THAT WILL EXPIRE SOONER AND REMOVE IT OR, IF NEW ITEM WILL EXPIRE SOONER, DO NOT ADD IT
+				try
+				{
+					var soonerToExpire = _autoRecoveryQueue.Values.OrderBy(x => x.Message.InstantTicks + x.Options.Duration.Ticks).FirstOrDefault();
+					if (soonerToExpire.Message is not null)
+					{
+						if ((soonerToExpire.Message.InstantTicks + soonerToExpire.Options.Duration.Ticks) < (message.InstantTicks + options.Duration.Ticks))
+						{
+							// REMOVE THE QUEUED ITEM
+							_autoRecoveryQueue.TryRemove(soonerToExpire.Message.CacheKey!, out _);
+						}
+						else
+						{
+							// IGNORE THE NEW ITEM
+							return;
+						}
+					}
+
+				}
+				catch (Exception exc)
+				{
+					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+						_logger.Log(LogLevel.Error, exc, "FUSION: an error occurred while deciding which item in the backplane auto-recovery queue to remove to make space for a new one");
+				}
+			}
 
 			_autoRecoveryQueue[message.CacheKey] = (message, options);
 
@@ -158,60 +186,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 				}
 			});
 		}
-
-		//private async ValueTask ProcessAutoRecoveryQueueAsync()
-		//{
-		//	var _count = _autoRecoveryQueue.Count;
-		//	if (_count == 0)
-		//		return;
-
-		//	// ACQUIRE THE LOCK
-		//	if (await _autoRecoveryLock.WaitAsync(0) == false)
-		//	{
-		//		// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY, SOMEONE ELSE IS ALREADY PROCESSING THE QUEUE, SO WE JUST RETURN
-		//		return;
-		//	}
-
-		//	_ = Task.Run(async () =>
-		//	{
-		//		try
-		//		{
-		//			// NOTE: THE COUNT USAGE HERE IN THE LOG IS JUST AN INDICATION: PER THE MULTI-THREADED NATURE OF THIS THING
-		//			// IT'S OK IF THE NUMBER IS SINCE CHANGED AND IN THE FOREACH LOOP WE WILL ITERATE OVER MORE (OR LESS) ITEMS
-		//			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-		//				_logger.Log(LogLevel.Debug, "FUSION: starting backplane auto-recovery of about {Count} pending notifications", _count);
-
-		//			_count = 0;
-		//			foreach (var item in _autoRecoveryQueue)
-		//			{
-		//				var _operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
-		//				if (await PublishAsync(_operationId, item.Value.Message, item.Value.Options, true).ConfigureAwait(false))
-		//				{
-		//					// IF A PUBLISH GO THROUGH -> REMOVE FROM THE QUEUE
-		//					_autoRecoveryQueue.TryRemove(item.Key, out _);
-
-		//					_count++;
-		//				}
-		//				else
-		//				{
-		//					// IF A PUBLISH DOESN'T GO THROUGH -> STOP PROCESSING THE QUEUE
-		//					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-		//						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _operationId, item.Value.Message.CacheKey, _count);
-
-		//					return;
-		//				}
-		//			}
-
-		//			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-		//				_logger.Log(LogLevel.Debug, "FUSION: completed backplane auto-recovery of {Count} items", _count);
-		//		}
-		//		finally
-		//		{
-		//			// RELEASE THE LOCK
-		//			_autoRecoveryLock.Release();
-		//		}
-		//	});
-		//}
 
 		private bool CheckIncomingMessageForAutoRecoveryConflicts(BackplaneMessage message)
 		{

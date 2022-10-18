@@ -539,19 +539,19 @@ namespace FusionCacheTests
 				// 1
 				_value = 1;
 				await cache1.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
-				await cache1.SetAsync(key2, _value, TimeSpan.FromMinutes(10));
+				await cache1.SetAsync(key2, _value, TimeSpan.FromMinutes(5));
 				await Task.Delay(200);
 
 				// 2
 				_value = 2;
 				await cache2.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
-				await cache2.SetAsync(key2, _value, TimeSpan.FromMinutes(10));
+				await cache2.SetAsync(key2, _value, TimeSpan.FromMinutes(5));
 				await Task.Delay(200);
 
 				// 3
 				_value = 3;
 				await cache3.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
-				await cache3.SetAsync(key2, _value, TimeSpan.FromMinutes(10));
+				await cache3.SetAsync(key2, _value, TimeSpan.FromMinutes(5));
 				await Task.Delay(200);
 
 				_value = 21;
@@ -623,19 +623,19 @@ namespace FusionCacheTests
 				// 1
 				_value = 1;
 				cache1.Set(key1, _value, TimeSpan.FromMinutes(10));
-				cache1.Set(key2, _value, TimeSpan.FromMinutes(10));
+				cache1.Set(key2, _value, TimeSpan.FromMinutes(5));
 				Thread.Sleep(200);
 
 				// 2
 				_value = 2;
 				cache2.Set(key1, _value, TimeSpan.FromMinutes(10));
-				cache2.Set(key2, _value, TimeSpan.FromMinutes(10));
+				cache2.Set(key2, _value, TimeSpan.FromMinutes(5));
 				Thread.Sleep(200);
 
 				// 3
 				_value = 3;
 				cache3.Set(key1, _value, TimeSpan.FromMinutes(10));
-				cache3.Set(key2, _value, TimeSpan.FromMinutes(10));
+				cache3.Set(key2, _value, TimeSpan.FromMinutes(5));
 				Thread.Sleep(200);
 
 				_value = 21;
