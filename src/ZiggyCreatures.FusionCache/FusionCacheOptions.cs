@@ -22,7 +22,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 			_defaultEntryOptions = new FusionCacheEntryOptions();
 
-			EnableBackplaneAutoRecovery = false; // TODO: WHEN THROUGHLY TESTED, CHANGE THIS
+			EnableBackplaneAutoRecovery = false; // TODO: WHEN THOROUGHLY TESTED, CHANGE THIS
 			BackplaneAutoRecoveryMaxItems = 100;
 
 			// LOG LEVELS
