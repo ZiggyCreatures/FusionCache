@@ -11,35 +11,13 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
-using ZiggyCreatures.Caching.Fusion.Serialization;
-using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
-using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionCacheTests
 {
-	public enum SerializerType
-	{
-		NewtonsoftJson = 0,
-		SystemTextJson = 1
-	}
-
 	public class BackplaneTests
 	{
 		private static readonly string? RedisConnection = null;
 		//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
-
-		private static IFusionCacheSerializer GetSerializer(SerializerType serializerType)
-		{
-			switch (serializerType)
-			{
-				case SerializerType.NewtonsoftJson:
-					return new FusionCacheNewtonsoftJsonSerializer();
-				case SerializerType.SystemTextJson:
-					return new FusionCacheSystemTextJsonSerializer();
-			}
-
-			throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
-		}
 
 		private static IFusionCacheBackplane CreateBackplane()
 		{
@@ -74,7 +52,7 @@ namespace FusionCacheTests
 			fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 			if (distributedCache is not null && serializerType.HasValue)
-				fusionCache.SetupDistributedCache(distributedCache, GetSerializer(serializerType.Value));
+				fusionCache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType.Value));
 			if (backplane is not null)
 				fusionCache.SetupBackplane(backplane);
 
@@ -82,8 +60,7 @@ namespace FusionCacheTests
 		}
 
 		[Theory]
-		[InlineData(SerializerType.NewtonsoftJson)]
-		[InlineData(SerializerType.SystemTextJson)]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task BackplaneWorksAsync(SerializerType serializerType)
 		{
 			var key = Guid.NewGuid().ToString("N");
@@ -145,8 +122,7 @@ namespace FusionCacheTests
 		}
 
 		[Theory]
-		[InlineData(SerializerType.NewtonsoftJson)]
-		[InlineData(SerializerType.SystemTextJson)]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public void BackplaneWorks(SerializerType serializerType)
 		{
 			var key = Guid.NewGuid().ToString("N");
@@ -367,8 +343,7 @@ namespace FusionCacheTests
 		}
 
 		[Theory]
-		[InlineData(SerializerType.NewtonsoftJson)]
-		[InlineData(SerializerType.SystemTextJson)]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task AutoRecoveryWorksAsync(SerializerType serializerType)
 		{
 			var _value = 0;
@@ -437,8 +412,7 @@ namespace FusionCacheTests
 		}
 
 		[Theory]
-		[InlineData(SerializerType.NewtonsoftJson)]
-		[InlineData(SerializerType.SystemTextJson)]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public void AutoRecoveryWorks(SerializerType serializerType)
 		{
 			var _value = 0;
@@ -507,8 +481,7 @@ namespace FusionCacheTests
 		}
 
 		[Theory]
-		[InlineData(SerializerType.NewtonsoftJson)]
-		[InlineData(SerializerType.SystemTextJson)]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task AutoRecoveryRespectsMaxItemsAsync(SerializerType serializerType)
 		{
 			var _value = 0;
@@ -591,8 +564,7 @@ namespace FusionCacheTests
 		}
 
 		[Theory]
-		[InlineData(SerializerType.NewtonsoftJson)]
-		[InlineData(SerializerType.SystemTextJson)]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public void AutoRecoveryRespectsMaxItems(SerializerType serializerType)
 		{
 			var _value = 0;
