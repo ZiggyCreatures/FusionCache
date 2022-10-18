@@ -505,5 +505,173 @@ namespace FusionCacheTests
 				cache3?.Dispose();
 			}
 		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public async Task AutoRecoveryRespectsMaxItemsAsync(SerializerType serializerType)
+		{
+			var _value = 0;
+
+			var key1 = "foo";
+			var key2 = "bar";
+			var otherKey = "foobar";
+
+			var distributedCache = CreateDistributedCache();
+
+			var backplane1 = CreateChaosBackplane();
+			var backplane2 = CreateChaosBackplane();
+			var backplane3 = CreateChaosBackplane();
+
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+
+			// DISABLE THE BACKPLANE
+			backplane1.SetAlwaysThrow();
+			backplane2.SetAlwaysThrow();
+			backplane3.SetAlwaysThrow();
+
+			await Task.Delay(1_000);
+
+			try
+			{
+				// 1
+				_value = 1;
+				await cache1.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
+				await cache1.SetAsync(key2, _value, TimeSpan.FromMinutes(10));
+				await Task.Delay(200);
+
+				// 2
+				_value = 2;
+				await cache2.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
+				await cache2.SetAsync(key2, _value, TimeSpan.FromMinutes(10));
+				await Task.Delay(200);
+
+				// 3
+				_value = 3;
+				await cache3.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
+				await cache3.SetAsync(key2, _value, TimeSpan.FromMinutes(10));
+				await Task.Delay(200);
+
+				_value = 21;
+
+				Assert.Equal(1, await cache1.GetOrSetAsync<int>(key1, async _ => _value));
+				Assert.Equal(2, await cache2.GetOrSetAsync<int>(key1, async _ => _value));
+				Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => _value));
+
+				Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => _value));
+				Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => _value));
+				Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => _value));
+
+				// RE-ENABLE THE BACKPLANE
+				backplane1.SetNeverThrow();
+				backplane2.SetNeverThrow();
+				backplane3.SetNeverThrow();
+
+				// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
+				await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
+
+				await Task.Delay(1_000);
+
+				Assert.Equal(3, await cache1.GetOrSetAsync<int>(key1, async _ => _value));
+				Assert.Equal(3, await cache2.GetOrSetAsync<int>(key1, async _ => _value));
+				Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => _value));
+
+				Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => _value));
+				Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => _value));
+				Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => _value));
+			}
+			finally
+			{
+				cache1?.Dispose();
+				cache2?.Dispose();
+				cache3?.Dispose();
+			}
+		}
+
+		[Theory]
+		[InlineData(SerializerType.NewtonsoftJson)]
+		[InlineData(SerializerType.SystemTextJson)]
+		public void AutoRecoveryRespectsMaxItems(SerializerType serializerType)
+		{
+			var _value = 0;
+
+			var key1 = "foo";
+			var key2 = "bar";
+			var otherKey = "foobar";
+
+			var distributedCache = CreateDistributedCache();
+
+			var backplane1 = CreateChaosBackplane();
+			var backplane2 = CreateChaosBackplane();
+			var backplane3 = CreateChaosBackplane();
+
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+
+			// DISABLE THE BACKPLANE
+			backplane1.SetAlwaysThrow();
+			backplane2.SetAlwaysThrow();
+			backplane3.SetAlwaysThrow();
+
+			Thread.Sleep(1_000);
+
+			try
+			{
+				// 1
+				_value = 1;
+				cache1.Set(key1, _value, TimeSpan.FromMinutes(10));
+				cache1.Set(key2, _value, TimeSpan.FromMinutes(10));
+				Thread.Sleep(200);
+
+				// 2
+				_value = 2;
+				cache2.Set(key1, _value, TimeSpan.FromMinutes(10));
+				cache2.Set(key2, _value, TimeSpan.FromMinutes(10));
+				Thread.Sleep(200);
+
+				// 3
+				_value = 3;
+				cache3.Set(key1, _value, TimeSpan.FromMinutes(10));
+				cache3.Set(key2, _value, TimeSpan.FromMinutes(10));
+				Thread.Sleep(200);
+
+				_value = 21;
+
+				Assert.Equal(1, cache1.GetOrSet<int>(key1, _ => _value));
+				Assert.Equal(2, cache2.GetOrSet<int>(key1, _ => _value));
+				Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => _value));
+
+				Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => _value));
+				Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => _value));
+				Assert.Equal(3, cache3.GetOrSet<int>(key2, _ => _value));
+
+				// RE-ENABLE THE BACKPLANE
+				backplane1.SetNeverThrow();
+				backplane2.SetNeverThrow();
+				backplane3.SetNeverThrow();
+
+				// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
+				cache1.Set(otherKey, 42, TimeSpan.FromMinutes(10));
+
+				Thread.Sleep(1_000);
+
+				Assert.Equal(3, cache1.GetOrSet<int>(key1, _ => _value));
+				Assert.Equal(3, cache2.GetOrSet<int>(key1, _ => _value));
+				Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => _value));
+
+				Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => _value));
+				Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => _value));
+				Assert.Equal(3, cache3.GetOrSet<int>(key2, _ => _value));
+			}
+			finally
+			{
+				cache1?.Dispose();
+				cache2?.Dispose();
+				cache3?.Dispose();
+			}
+		}
 	}
 }
