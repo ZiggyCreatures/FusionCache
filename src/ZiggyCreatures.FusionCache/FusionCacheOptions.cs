@@ -64,6 +64,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// The default <see cref="FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
 		/// </summary>
+		/// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
 		public FusionCacheEntryOptions DefaultEntryOptions
 		{
 			get { return _defaultEntryOptions; }
