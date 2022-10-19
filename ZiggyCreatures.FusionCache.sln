@@ -31,7 +31,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis", "src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj", "{5659A831-8170-4398-A130-D521844BB4C0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Chaos", "src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj", "{6DC66BBC-6B35-4CCC-A48B-6AD28C336C80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Chaos", "src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj", "{6DC66BBC-6B35-4CCC-A48B-6AD28C336C80}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack", "src\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj", "{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +77,10 @@ Global
 		{6DC66BBC-6B35-4CCC-A48B-6AD28C336C80}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DC66BBC-6B35-4CCC-A48B-6AD28C336C80}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DC66BBC-6B35-4CCC-A48B-6AD28C336C80}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -89,6 +95,7 @@ Global
 		{AEBFD35A-48BF-45ED-8AB4-F9DB1882D12D} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{5659A831-8170-4398-A130-D521844BB4C0} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{6DC66BBC-6B35-4CCC-A48B-6AD28C336C80} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
+		{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {92916FA2-FCAC-406E-BF3F-0A2CE9512EF0}
