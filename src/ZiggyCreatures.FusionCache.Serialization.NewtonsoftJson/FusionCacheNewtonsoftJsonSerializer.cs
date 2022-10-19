@@ -19,7 +19,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson
 			Settings = settings;
 		}
 
-		private JsonSerializerSettings? Settings;
+		private readonly JsonSerializerSettings? Settings;
 
 		/// <inheritdoc />
 		public byte[] Serialize<T>(T? obj)
