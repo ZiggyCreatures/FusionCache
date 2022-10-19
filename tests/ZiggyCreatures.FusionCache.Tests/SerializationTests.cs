@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -7,7 +8,6 @@ namespace FusionCacheTests
 	public class SerializationTests
 	{
 		private static readonly string SampleString = "Supercalifragilisticexpialidocious";
-		private static readonly SampleComplexObject SampleObject = SampleComplexObject.CreateRandom();
 
 		private static T? LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
 		{
@@ -35,6 +35,28 @@ namespace FusionCacheTests
 			var serializer = TestsUtils.GetSerializer(serializerType);
 			var looped = LoopDeLoop(serializer, SampleString);
 			Assert.Equal(SampleString, looped);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task LoopFailsWithIncompatibleTypesAsync(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			await Assert.ThrowsAnyAsync<Exception>(async () =>
+			{
+				await serializer.DeserializeAsync<int>(await serializer.SerializeAsync("sloths, sloths everywhere"));
+			});
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void LoopFailsWithIncompatibleTypes(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			Assert.ThrowsAny<Exception>(() =>
+			{
+				serializer.Deserialize<int>(serializer.Serialize("sloths, sloths everywhere"));
+			});
 		}
 
 		[Theory]
