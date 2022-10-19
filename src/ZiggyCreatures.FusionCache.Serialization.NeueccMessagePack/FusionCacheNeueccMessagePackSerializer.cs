@@ -17,8 +17,8 @@ namespace ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack
 		/// <param name="options">The optional <see cref="MessagePackSerializerOptions"/> object to use.</param>
 		public FusionCacheNeueccMessagePackSerializer(MessagePackSerializerOptions? options = null)
 		{
-			Options = options ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
-			//Options = options;
+			//Options = options ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
+			Options = options;
 		}
 
 		private readonly MessagePackSerializerOptions? Options;
