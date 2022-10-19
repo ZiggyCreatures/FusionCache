@@ -475,10 +475,10 @@ namespace FusionCacheTests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
-				var initialValue = (object)SampleComplexObject.CreateRandom();
+				var initialValue = (object)ComplexType.CreateSample();
 				await cache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
-				var newValue = await cache.GetOrDefaultAsync<SampleComplexObject>("foo");
-				Assert.NotNull(newValue);
+				var newValue = await cache.GetOrDefaultAsync<ComplexType>("foo");
+				Assert.Equal(initialValue, newValue);
 			}
 		}
 
@@ -487,10 +487,10 @@ namespace FusionCacheTests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
-				var initialValue = (object)SampleComplexObject.CreateRandom();
+				var initialValue = (object)ComplexType.CreateSample();
 				cache.Set("foo", initialValue, TimeSpan.FromHours(24));
-				var newValue = cache.GetOrDefault<SampleComplexObject>("foo");
-				Assert.NotNull(newValue);
+				var newValue = cache.GetOrDefault<ComplexType>("foo");
+				Assert.Equal(initialValue, newValue);
 			}
 		}
 

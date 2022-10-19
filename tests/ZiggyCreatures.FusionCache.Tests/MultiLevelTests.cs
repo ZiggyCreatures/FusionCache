@@ -316,11 +316,11 @@ namespace FusionCacheTests
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
 				{
-					var initialValue = (object)SampleComplexObject.CreateRandom();
+					var initialValue = (object)ComplexType.CreateSample();
 					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
 					memoryCache.Remove("foo");
-					var newValue = await fusionCache.GetOrDefaultAsync<SampleComplexObject>("foo");
-					Assert.NotNull(newValue);
+					var newValue = await fusionCache.GetOrDefaultAsync<ComplexType>("foo");
+					Assert.Equal(initialValue, newValue);
 				}
 			}
 		}
@@ -334,11 +334,11 @@ namespace FusionCacheTests
 				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
 				{
-					var initialValue = (object)SampleComplexObject.CreateRandom();
+					var initialValue = (object)ComplexType.CreateSample();
 					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
 					memoryCache.Remove("foo");
-					var newValue = fusionCache.GetOrDefault<SampleComplexObject>("foo");
-					Assert.NotNull(newValue);
+					var newValue = fusionCache.GetOrDefault<ComplexType>("foo");
+					Assert.Equal(initialValue, newValue);
 				}
 			}
 		}

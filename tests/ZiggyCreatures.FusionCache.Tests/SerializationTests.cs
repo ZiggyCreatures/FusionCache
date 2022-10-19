@@ -21,7 +21,7 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
-		public async Task LoopSucceedsAsync(SerializerType serializerType)
+		public async Task LoopSucceedsWithSimpleTypesAsync(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
 			var looped = await LoopDeLoopAsync(serializer, SampleString);
@@ -30,11 +30,31 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
-		public void LoopSucceeds(SerializerType serializerType)
+		public void LoopSucceedsWithSimpleTypes(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
 			var looped = LoopDeLoop(serializer, SampleString);
 			Assert.Equal(SampleString, looped);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task LoopSucceedsWithNonSimpleTypesAsync(SerializerType serializerType)
+		{
+			var data = ComplexType.CreateSample();
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var looped = await LoopDeLoopAsync(serializer, data);
+			Assert.Equal(data, looped);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void LoopSucceedsWithNonSimpleTypes(SerializerType serializerType)
+		{
+			var data = ComplexType.CreateSample();
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var looped = LoopDeLoop(serializer, data);
+			Assert.Equal(data, looped);
 		}
 
 		[Theory]
