@@ -56,7 +56,7 @@ The second approach (PASSIVE) is not good either, since it has these problems:
 - every node will request the same data at the same time from the distributed cache, generating a lot of traffic
 - all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
 
-The third approach (LAZY) is the sweet spot, since it just says to each node "hey, this data is change, evict your local copy": at the next request for that data, if and only if it ever arrives, the data will be automatically get from the distributed cache and everything will work normally, thanks to the cache stampede prevention and all the other features.
+The third approach (LAZY) is the sweet spot, since it just says to each node _"hey, this data is changed, evict your local copy"_: at the next request for that data, if and only if it ever arrives, the data will be automatically get from the distributed cache and everything will work normally, thanks to the cache stampede prevention and all the other features.
 
 One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call): why is that? Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls.
 
