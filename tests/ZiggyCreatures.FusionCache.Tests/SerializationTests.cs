@@ -39,7 +39,7 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
-		public async Task LoopSucceedsWithNonSimpleTypesAsync(SerializerType serializerType)
+		public async Task LoopSucceedsWithComplexTypesAsync(SerializerType serializerType)
 		{
 			var data = ComplexType.CreateSample();
 			var serializer = TestsUtils.GetSerializer(serializerType);
@@ -49,7 +49,7 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
-		public void LoopSucceedsWithNonSimpleTypes(SerializerType serializerType)
+		public void LoopSucceedsWithComplexTypes(SerializerType serializerType)
 		{
 			var data = ComplexType.CreateSample();
 			var serializer = TestsUtils.GetSerializer(serializerType);
