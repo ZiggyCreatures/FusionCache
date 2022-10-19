@@ -48,9 +48,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromSeconds(1);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromSeconds(2);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -100,7 +100,7 @@ namespace FusionCacheTests
 				await cache.TryGetAsync<int>("bar");
 
 				// LET THE THROTTLE DURATION PASS
-				await Task.Delay(throttleDuration);
+				await Task.Delay(throttleDuration + TimeSpan.FromMilliseconds(100));
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
@@ -113,7 +113,7 @@ namespace FusionCacheTests
 				// REMOVE: +1
 				await cache.RemoveAsync("bar");
 
-				await Task.Delay(TimeSpan.FromSeconds(5));
+				await Task.Delay(TimeSpan.FromSeconds(2));
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;
@@ -138,9 +138,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromSeconds(1);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromSeconds(2);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -190,7 +190,7 @@ namespace FusionCacheTests
 				cache.TryGet<int>("bar");
 
 				// LET THE THROTTLE DURATION PASS
-				Thread.Sleep(throttleDuration);
+				Thread.Sleep(throttleDuration + TimeSpan.FromMilliseconds(100));
 
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
@@ -203,7 +203,7 @@ namespace FusionCacheTests
 				// REMOVE: +1
 				cache.Remove("bar");
 
-				Thread.Sleep(TimeSpan.FromSeconds(5));
+				Thread.Sleep(TimeSpan.FromSeconds(2));
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;

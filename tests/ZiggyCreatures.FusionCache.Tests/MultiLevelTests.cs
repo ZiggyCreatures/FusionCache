@@ -233,7 +233,7 @@ namespace FusionCacheTests
 					await fusionCache.SetAsync<int>("foo", 2, options => options.SetDurationSec(60).SetFailSafe(true));
 					chaosDistributedCache.SetNeverThrow();
 					await fusionCache.SetAsync<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
-					await Task.Delay(circuitBreakerDuration).ConfigureAwait(false);
+					await Task.Delay(circuitBreakerDuration + TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
 					memoryCache.Remove("foo");
 					var res = await fusionCache.GetOrDefaultAsync<int>("foo", -1);
 
@@ -262,7 +262,7 @@ namespace FusionCacheTests
 					fusionCache.Set<int>("foo", 2, options => options.SetDurationSec(60).SetFailSafe(true));
 					chaosDistributedCache.SetNeverThrow();
 					fusionCache.Set<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
-					Thread.Sleep(circuitBreakerDuration);
+					Thread.Sleep(circuitBreakerDuration + TimeSpan.FromMilliseconds(100));
 					memoryCache.Remove("foo");
 					var res = fusionCache.GetOrDefault<int>("foo", -1);
 
