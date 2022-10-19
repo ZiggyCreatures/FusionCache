@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -34,6 +33,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			DistributedCacheHardTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheHardTimeout;
 			AllowBackgroundDistributedCacheOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations;
 			ReThrowDistributedCacheExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions;
+			ReThrowSerializationExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowSerializationExceptions;
 
 			IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
 			FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
@@ -174,6 +174,14 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 		/// </summary>
 		public bool ReThrowDistributedCacheExceptions { get; set; }
+
+		/// <summary>
+		///	Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="false"/>).
+		///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundDistributedCacheOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
+		/// <br/><br/>
+		/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+		/// </summary>
+		public bool ReThrowSerializationExceptions { get; set; }
 
 		/// <summary>
 		/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
@@ -476,6 +484,7 @@ namespace ZiggyCreatures.Caching.Fusion
 				DistributedCacheHardTimeout = DistributedCacheHardTimeout,
 				AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 				ReThrowDistributedCacheExceptions = ReThrowDistributedCacheExceptions,
+				ReThrowSerializationExceptions = ReThrowSerializationExceptions,
 
 				EnableBackplaneNotifications = EnableBackplaneNotifications,
 				AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations

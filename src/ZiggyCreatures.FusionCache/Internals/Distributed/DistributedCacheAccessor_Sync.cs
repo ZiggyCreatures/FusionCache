@@ -66,6 +66,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", operationId, key, distributedEntry.ToLogString());
 
+						if (options.ReThrowSerializationExceptions)
+							throw;
+
 						// EVENT
 						_events.OnSerializationError(operationId, key);
 
@@ -161,6 +164,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			{
 				if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", operationId, key);
+
+				if (options.ReThrowSerializationExceptions)
+					throw;
 
 				// EVENT
 				_events.OnDeserializationError(operationId, key);
