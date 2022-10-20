@@ -1,6 +1,6 @@
-﻿using System.IO;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using MessagePack;
+using MessagePack.Resolvers;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack
@@ -14,11 +14,14 @@ namespace ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack
 		/// <summary>
 		/// Create a new instance of a <see cref="FusionCacheNeueccMessagePackSerializer"/> object.
 		/// </summary>
-		/// <param name="options">The optional <see cref="MessagePackSerializerOptions"/> object to use.</param>
+		/// <param name="options">The <see cref="MessagePackSerializerOptions"/> to use: if not specified, the contract-less (<see cref="ContractlessStandardResolver"/>) options will be used.</param>
 		public FusionCacheNeueccMessagePackSerializer(MessagePackSerializerOptions? options = null)
 		{
-			//Options = options ?? MessagePack.Resolvers.ContractlessStandardResolver.Options;
-			Options = options;
+			// OLD VERSION
+			//Options = options;
+
+			// PER @neuecc 'S SUGGESTION: DEFAULT TO THE CONTRACTLESS RESOLVER
+			Options = options ?? ContractlessStandardResolver.Options;
 		}
 
 		private readonly MessagePackSerializerOptions? Options;
@@ -36,22 +39,30 @@ namespace ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack
 		}
 
 		/// <inheritdoc />
-		public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
+		public ValueTask<byte[]> SerializeAsync<T>(T? obj)
 		{
-			using (var stream = new MemoryStream())
-			{
-				await MessagePackSerializer.SerializeAsync<T?>(stream, obj, Options);
-				return stream.ToArray();
-			}
+			// OLD VERSION
+			//using (var stream = new MemoryStream())
+			//{
+			//	await MessagePackSerializer.SerializeAsync<T?>(stream, obj, Options);
+			//	return stream.ToArray();
+			//}
+
+			// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
+			return new ValueTask<byte[]>(Serialize(obj));
 		}
 
 		/// <inheritdoc />
-		public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
+		public ValueTask<T?> DeserializeAsync<T>(byte[] data)
 		{
-			using (var stream = new MemoryStream(data))
-			{
-				return await MessagePackSerializer.DeserializeAsync<T?>(stream, Options);
-			}
+			// OLD VERSION
+			//using (var stream = new MemoryStream(data))
+			//{
+			//	return await MessagePackSerializer.DeserializeAsync<T?>(stream, Options);
+			//}
+
+			// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
+			return new ValueTask<T?>(Deserialize<T>(data));
 		}
 	}
 }

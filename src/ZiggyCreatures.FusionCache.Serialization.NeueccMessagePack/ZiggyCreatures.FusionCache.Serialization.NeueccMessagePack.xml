@@ -13,7 +13,7 @@
             <summary>
             Create a new instance of a <see cref="T:ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.FusionCacheNeueccMessagePackSerializer"/> object.
             </summary>
-            <param name="options">The optional <see cref="T:MessagePack.MessagePackSerializerOptions"/> object to use.</param>
+            <param name="options">The <see cref="T:MessagePack.MessagePackSerializerOptions"/> to use: if not specified, the contract-less (<see cref="T:MessagePack.Resolvers.ContractlessStandardResolver"/>) options will be used.</param>
         </member>
         <member name="M:ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.FusionCacheNeueccMessagePackSerializer.Serialize``1(``0)">
             <inheritdoc />
@@ -37,7 +37,7 @@
             Adds an implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> based on the famous Neuecc's MessagePack one.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
-            <param name="options">The <see cref="T:MessagePack.MessagePackSerializerOptions"/> to use.</param>
+            <param name="options">The <see cref="T:MessagePack.MessagePackSerializerOptions"/> to use: if not specified, the contract-less (<see cref="T:MessagePack.Resolvers.ContractlessStandardResolver"/>) options will be used.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
     </members>
