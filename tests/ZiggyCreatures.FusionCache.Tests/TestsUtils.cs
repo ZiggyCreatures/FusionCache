@@ -27,7 +27,7 @@ namespace FusionCacheTests
 				case SerializerType.SystemTextJson:
 					return new FusionCacheSystemTextJsonSerializer();
 				case SerializerType.NeueccMessagePack:
-					return new FusionCacheNeueccMessagePackSerializer(MessagePack.Resolvers.ContractlessStandardResolver.Options);
+					return new FusionCacheNeueccMessagePackSerializer();
 				default:
 					throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
 			}
