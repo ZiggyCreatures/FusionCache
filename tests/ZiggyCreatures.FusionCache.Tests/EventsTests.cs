@@ -650,7 +650,7 @@ namespace FusionCacheTests
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// LET IT BECOME STALE
-				await Task.Delay(duration);
+				await Task.Delay(duration + TimeSpan.FromMilliseconds(100));
 
 				// MISS: +1
 				_ = await cache.TryGetAsync<int>("foo", options => options.SetFailSafe(false));
@@ -700,7 +700,7 @@ namespace FusionCacheTests
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// LET IT BECOME STALE
-				Thread.Sleep(duration);
+				Thread.Sleep(duration + TimeSpan.FromMilliseconds(100));
 
 				// MISS: +1
 				cache.TryGet<int>("foo", options => options.SetFailSafe(false));
