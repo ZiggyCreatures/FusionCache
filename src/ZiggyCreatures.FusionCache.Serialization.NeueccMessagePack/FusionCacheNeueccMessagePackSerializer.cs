@@ -1,9 +1,8 @@
 ﻿using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Resolvers;
-using ZiggyCreatures.Caching.Fusion.Serialization;
 
-namespace ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack
+namespace ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack
 {
 	/// <summary>
 	/// An implementation of <see cref="IFusionCacheSerializer"/> which uses Neuecc's famous MessagePack serializer.

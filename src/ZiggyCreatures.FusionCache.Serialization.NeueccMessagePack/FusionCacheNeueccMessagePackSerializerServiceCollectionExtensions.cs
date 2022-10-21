@@ -3,7 +3,7 @@ using MessagePack;
 using MessagePack.Resolvers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ZiggyCreatures.Caching.Fusion.Serialization;
-using ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack;
+using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
