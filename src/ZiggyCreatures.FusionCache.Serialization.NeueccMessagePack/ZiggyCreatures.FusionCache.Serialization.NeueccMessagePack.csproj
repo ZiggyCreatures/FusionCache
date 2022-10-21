@@ -10,7 +10,7 @@
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Neuecc's MessagePack serializer</Description>
 		<PackageTags>messagepack;msgpack;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCaching.Serialization.NeueccMessagePack</RootNamespace>
+		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>Initial release</PackageReleaseNotes>

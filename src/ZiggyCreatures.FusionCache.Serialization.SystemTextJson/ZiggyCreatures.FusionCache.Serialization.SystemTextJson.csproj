@@ -9,7 +9,7 @@
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on System.Text.Json</Description>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCaching.Serialization.SystemTextJson</RootNamespace>
+		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>

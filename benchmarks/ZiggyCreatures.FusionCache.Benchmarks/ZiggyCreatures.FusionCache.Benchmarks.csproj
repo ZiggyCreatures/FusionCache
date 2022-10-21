@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net5.0</TargetFramework>
-		<RootNamespace>ZiggyCreatures.FusionCaching.Benchmarks</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Benchmarks</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
