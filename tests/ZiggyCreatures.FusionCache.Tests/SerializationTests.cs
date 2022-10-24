@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests
@@ -11,12 +13,14 @@ namespace FusionCacheTests
 
 		private static T? LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
 		{
-			return serializer.Deserialize<T>(serializer.Serialize(obj));
+			var data = serializer.Serialize(obj);
+			return serializer.Deserialize<T>(data);
 		}
 
 		private static async Task<T?> LoopDeLoopAsync<T>(IFusionCacheSerializer serializer, T? obj)
 		{
-			return await serializer.DeserializeAsync<T>(await serializer.SerializeAsync(obj));
+			var data = await serializer.SerializeAsync(obj);
+			return await serializer.DeserializeAsync<T>(data);
 		}
 
 		[Theory]
@@ -95,6 +99,38 @@ namespace FusionCacheTests
 			var serializer = TestsUtils.GetSerializer(serializerType);
 			var looped = LoopDeLoop<string>(serializer, null);
 			Assert.Null(looped);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task LoopSucceedsWithDistributedEntryAndSimpleTypesAsync(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true));
+
+			var data = await serializer.SerializeAsync(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
+			Assert.NotNull(looped);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void LoopSucceedsWithDistributedEntryAndSimpleTypes(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true));
+
+			var data = serializer.Serialize(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
+			Assert.NotNull(looped);
 		}
 	}
 }

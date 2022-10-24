@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace FusionCacheTests
 {
+	[DataContract]
 	public class ComplexType
 	{
+		[DataMember(Name = "pi", Order = 1)]
 		public int PropInt { get; set; }
+		[DataMember(Name = "ps", Order = 2)]
 		public string? PropString { get; set; }
+		[DataMember(Name = "pb", Order = 3)]
 		public bool PropBool { get; set; }
 
 		public override bool Equals(object? obj)
