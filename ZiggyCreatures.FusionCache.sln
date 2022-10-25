@@ -35,7 +35,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack", "src\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj", "{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Serialization.ProtoBufNet", "src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj", "{FC2C7F03-69E0-4CCE-A582-1FB6D8D11560}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.ProtoBufNet", "src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj", "{FC2C7F03-69E0-4CCE-A582-1FB6D8D11560}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
