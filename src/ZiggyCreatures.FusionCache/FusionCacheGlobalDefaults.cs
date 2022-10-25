@@ -77,7 +77,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// The global default <see cref="FusionCacheEntryOptions.ReThrowSerializationExceptions"/>.
 		/// </summary>
-		public static bool EntryOptionsReThrowSerializationExceptions { get; set; } = false;
+		public static bool EntryOptionsReThrowSerializationExceptions { get; set; } = true;
 
 		/// <summary>
 		/// The global default <see cref="FusionCacheEntryOptions.IsFailSafeEnabled"/>.

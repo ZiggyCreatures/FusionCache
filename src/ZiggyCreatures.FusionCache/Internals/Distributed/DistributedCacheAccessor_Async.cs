@@ -46,46 +46,45 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 
 			token.ThrowIfCancellationRequested();
 
-			var distributedOptions = options.ToDistributedCacheEntryOptions();
+			var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
+			// SERIALIZATION
+			byte[]? data;
+			try
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", operationId, key, distributedEntry.ToLogString());
+
+				data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
+					_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", operationId, key, distributedEntry.ToLogString());
+
+				if (options.ReThrowSerializationExceptions)
+					throw;
+
+				// EVENT
+				_events.OnSerializationError(operationId, key);
+
+				data = null;
+			}
+
+			if (data is null)
+				return;
+
+			// SAVE TO DISTRIBUTED CACHE
+			var distributedOptions = options.ToDistributedCacheEntryOptions();
 			await ExecuteOperationAsync(
 				operationId,
 				key,
 				async ct =>
 				{
-					var distributedEntry = entry.AsDistributedEntry<TValue>(options);
-
-					byte[]? data;
-					try
-					{
-						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", operationId, key, distributedEntry.ToLogString());
-
-						data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
-					}
-					catch (Exception exc)
-					{
-						if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-							_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", operationId, key, distributedEntry.ToLogString());
-
-						if (options.ReThrowSerializationExceptions)
-							throw;
-
-						// EVENT
-						_events.OnSerializationError(operationId, key);
-
-						data = null;
-					}
-
-					if (data is null)
-						return;
-
-					ct.ThrowIfCancellationRequested();
-
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", operationId, key, distributedEntry.ToLogString());
 
-					await _cache.SetAsync(MaybeProcessCacheKey(key), data, distributedOptions, token).ConfigureAwait(false);
+					await _cache.SetAsync(MaybeProcessCacheKey(key), data, distributedOptions, ct).ConfigureAwait(false);
 
 					// EVENT
 					_events.OnSet(operationId, key);
@@ -105,6 +104,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to get entry from distributed", operationId, key);
 
+			// GET FROM DISTRIBUTED CACHE
 			byte[]? data;
 			try
 			{
@@ -125,6 +125,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed
 			if (data is null)
 				return (null, false);
 
+			// DESERIALIZATION
 			try
 			{
 				var entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data).ConfigureAwait(false);
