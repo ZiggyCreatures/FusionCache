@@ -448,17 +448,26 @@ namespace FusionCacheTests
 		public async Task ReThrowsSerializationErrorsAsync(SerializerType serializerType)
 		{
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
 
 			using var fusionCache = new FusionCache(new FusionCacheOptions());
 			fusionCache.DefaultEntryOptions.ReThrowSerializationExceptions = true;
 
-			fusionCache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			fusionCache.SetupDistributedCache(distributedCache, serializer);
 
+			serializer.SetAlwaysThrow();
+			await Assert.ThrowsAsync<ChaosException>(async () =>
+			{
+				await fusionCache.SetAsync<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
+			});
+
+			serializer.SetNeverThrow();
 			await fusionCache.SetAsync<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
 
-			await Task.Delay(TimeSpan.FromSeconds(1));
+			Thread.Sleep(TimeSpan.FromSeconds(1));
 
-			await Assert.ThrowsAnyAsync<Exception>(async () =>
+			serializer.SetAlwaysThrow();
+			await Assert.ThrowsAsync<ChaosException>(async () =>
 			{
 				_ = await fusionCache.TryGetAsync<int>("foo");
 			});
@@ -469,20 +478,81 @@ namespace FusionCacheTests
 		public void ReThrowsSerializationErrors(SerializerType serializerType)
 		{
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
 
 			using var fusionCache = new FusionCache(new FusionCacheOptions());
 			fusionCache.DefaultEntryOptions.ReThrowSerializationExceptions = true;
 
-			fusionCache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			fusionCache.SetupDistributedCache(distributedCache, serializer);
 
+			serializer.SetAlwaysThrow();
+			Assert.Throws<ChaosException>(() =>
+			{
+				fusionCache.Set<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
+			});
+
+			serializer.SetNeverThrow();
 			fusionCache.Set<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
 
 			Thread.Sleep(TimeSpan.FromSeconds(1));
 
-			Assert.ThrowsAny<Exception>(() =>
+			serializer.SetAlwaysThrow();
+			Assert.Throws<ChaosException>(() =>
 			{
 				_ = fusionCache.TryGet<int>("foo");
 			});
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task DoesNotReThrowsSerializationErrorsAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
+
+			using var fusionCache = new FusionCache(new FusionCacheOptions());
+			fusionCache.DefaultEntryOptions.ReThrowSerializationExceptions = false;
+
+			fusionCache.SetupDistributedCache(distributedCache, serializer);
+
+			serializer.SetAlwaysThrow();
+			await fusionCache.SetAsync<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
+
+			serializer.SetNeverThrow();
+			await fusionCache.SetAsync<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
+
+			Thread.Sleep(TimeSpan.FromSeconds(1));
+
+			serializer.SetAlwaysThrow();
+			var res = await fusionCache.TryGetAsync<int>("foo");
+
+			Assert.False(res.HasValue);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void DoesNotReThrowsSerializationErrors(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
+
+			using var fusionCache = new FusionCache(new FusionCacheOptions());
+			fusionCache.DefaultEntryOptions.ReThrowSerializationExceptions = false;
+
+			fusionCache.SetupDistributedCache(distributedCache, serializer);
+
+			serializer.SetAlwaysThrow();
+			fusionCache.Set<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
+
+			serializer.SetNeverThrow();
+			fusionCache.Set<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)));
+
+			Thread.Sleep(TimeSpan.FromSeconds(1));
+
+			serializer.SetAlwaysThrow();
+			var res = fusionCache.TryGet<int>("foo");
+
+			Assert.False(res.HasValue);
 		}
 
 		[Theory]
