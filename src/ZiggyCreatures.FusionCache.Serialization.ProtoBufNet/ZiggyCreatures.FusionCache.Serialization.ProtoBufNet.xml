@@ -6,7 +6,7 @@
     <members>
         <member name="T:ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.FusionCacheProtoBufNetSerializer">
             <summary>
-            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses Neuecc's famous MessagePack serializer.
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses the most used .NET ProtoBuf serializer, by Marc Gravell.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.FusionCacheProtoBufNetSerializer.#ctor(ProtoBuf.Meta.RuntimeTypeModel)">
