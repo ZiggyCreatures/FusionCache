@@ -419,8 +419,8 @@ namespace FusionCacheTests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is greater than outer cancel");
-				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is less than factory delay");
+				Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is less than outer cancel");
+				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is not less than factory delay");
 			}
 		}
 
@@ -441,8 +441,8 @@ namespace FusionCacheTests
 				sw.Stop();
 
 				Assert.Equal(-1, res);
-				Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is greater than outer cancel");
-				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is less than factory delay");
+				Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is less than outer cancel");
+				Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is not less than factory delay");
 			}
 		}
 
