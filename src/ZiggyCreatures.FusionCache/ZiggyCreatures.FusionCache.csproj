@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.14.0</Version>
+		<Version>0.15.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.</Description>
@@ -13,12 +13,9 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- experimental: added a backplane auto-recovery feature (must be manually enabled, for now)
-			- the chaos-related utilities and components have been moved to a separate project (ZiggyCreatures.FusionCache.Chaos)
-			- added links to online documentation in the xml docs for most options
-			- added some nullability analysis attributes
-			- fixed some typos in the xml docs
-			- removed all members marked as [Obsolete] from a very long time
+			- added a ReThrowSerializationExceptions option (enabled by default) to have more control on exceptions handling during de/serialization
+			- better flow for de/serialization while talking with the distributed cache
+			- better xml docs
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

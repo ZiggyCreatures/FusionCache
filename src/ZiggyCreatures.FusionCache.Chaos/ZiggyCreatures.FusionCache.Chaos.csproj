@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>9.0</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.14.0</Version>
+		<Version>0.15.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Chaos</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>Chaos-related utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behaviour in a controlled failing environment.</Description>
@@ -12,7 +12,7 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Chaos</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Chaos.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Initial commit (moved files here from the main project)</PackageReleaseNotes>
+		<PackageReleaseNotes>Added ChaosSerializer, to allow better testing of various error conditions while de/serializing</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
