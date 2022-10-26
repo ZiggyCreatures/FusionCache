@@ -29,8 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 					exc => ProcessError(operationId, key, exc, actionDescriptionInner),
 					false,
 					token
-				)
-				.ConfigureAwait(false)
+				).ConfigureAwait(false)
 			;
 		}
 
