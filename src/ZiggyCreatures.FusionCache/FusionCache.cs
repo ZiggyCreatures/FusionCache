@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 namespace ZiggyCreatures.Caching.Fusion
 {
 	/// <inheritdoc/>
+	[DebuggerDisplay("NAME: {_options.CacheName} - ID: {InstanceId} - DC: {HasDistributedCache} - BP: {HasBackplane}")]
 	public partial class FusionCache
 		: IFusionCache
 	{
