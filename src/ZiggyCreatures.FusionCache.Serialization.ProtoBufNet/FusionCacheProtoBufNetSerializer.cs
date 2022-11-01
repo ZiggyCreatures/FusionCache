@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using ProtoBuf.Meta;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -20,47 +23,70 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 		{
 			_model = model ?? RuntimeTypeModel.Default;
 
-			// ENSURE MODEL REGISTRATION FOR FusionCacheEntryMetadata
-			//if (_model.CanSerialize(typeof(FusionCacheEntryMetadata)) == false)
-			//{
-			try
-			{
-				_model.Add(typeof(FusionCacheEntryMetadata), false)
-					.SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate))
-				;
-			}
-			catch
-			{
-				// EMPTY
-			}
-			//}
+			RegisterMetadataModel();
 		}
 
+		private static readonly ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>> _modelsCache = new ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>>();
+		private static readonly Type _metadataType = typeof(FusionCacheEntryMetadata);
+		private static readonly Type _distributedEntryOpenGenericType = typeof(FusionCacheDistributedEntry<>);
+
 		private readonly RuntimeTypeModel _model;
-		private readonly object _modelLock = new object();
 
-		private void EnsureDistributedEntryModelIsRegistered<T>()
+		private void RegisterMetadataModel()
 		{
-			// TODO: OPTIMIZE THIS
+			HashSet<Type> tmp;
 
-			var _t = typeof(T);
-			if (_t.IsGenericType == false || _t.GetGenericTypeDefinition() != typeof(FusionCacheDistributedEntry<>))
+			lock (_modelsCache)
+			{
+				tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+			}
+
+			lock (tmp)
+			{
+				if (tmp.Contains(_metadataType))
+					return;
+
+				// ENSURE MODEL REGISTRATION FOR FusionCacheEntryMetadata
+				try
+				{
+					_model.Add(typeof(FusionCacheEntryMetadata), false)
+								.SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate))
+							;
+				}
+				catch
+				{
+					// EMPTY
+				}
+			}
+		}
+
+		private void MaybeRegisterDistributedEntryModel<T>()
+		{
+			var t = typeof(T);
+
+			if (t.IsGenericType == false || t.GetGenericTypeDefinition() != _distributedEntryOpenGenericType)
 				return;
 
-			//if (_model.CanSerialize(_t))
-			//	return;
+			HashSet<Type> tmp;
 
-			lock (_modelLock)
+			lock (_modelsCache)
 			{
-				//if (_model.CanSerialize(_t))
-				//	return;
+				tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+			}
+
+			lock (tmp)
+			{
+				if (tmp.Contains(t))
+					return;
 
 				// ENSURE MODEL REGISTRATION FOR FusionCacheDistributedEntry<T>
 				try
 				{
-					_model.Add(typeof(T), false)
-						.Add(1, nameof(FusionCacheDistributedEntry<T>.Value))
-						.Add(2, nameof(FusionCacheDistributedEntry<T>.Metadata))
+					// NOTE: USING FusionCacheDistributedEntry<bool> HERE SINCE IT WILL
+					// BE EVALUATED AT COMPILE TIME AND SO IT DOESN'T ACTUALLY MATTER
+					_model.Add(t, false)
+						.Add(1, nameof(FusionCacheDistributedEntry<bool>.Value))
+						.Add(2, nameof(FusionCacheDistributedEntry<bool>.Metadata))
 					;
 				}
 				catch
@@ -73,7 +99,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 		/// <inheritdoc />
 		public byte[] Serialize<T>(T? obj)
 		{
-			EnsureDistributedEntryModelIsRegistered<T>();
+			MaybeRegisterDistributedEntryModel<T>();
 
 			using (var stream = new MemoryStream())
 			{
@@ -88,7 +114,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 			if (data.Length == 0)
 				return default(T);
 
-			EnsureDistributedEntryModelIsRegistered<T>();
+			MaybeRegisterDistributedEntryModel<T>();
 
 			using (var stream = new MemoryStream(data))
 			{
