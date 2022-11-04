@@ -34,24 +34,28 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 
 		private void RegisterMetadataModel()
 		{
-			HashSet<Type> tmp;
-
-			lock (_modelsCache)
+			if (_modelsCache.TryGetValue(_model, out var tmp) == false)
 			{
-				tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+				lock (_modelsCache)
+				{
+					tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+				}
 			}
+
+			// ENSURE MODEL REGISTRATION FOR FusionCacheEntryMetadata
+			if (tmp.Contains(_metadataType))
+				return;
 
 			lock (tmp)
 			{
 				if (tmp.Contains(_metadataType))
 					return;
 
-				// ENSURE MODEL REGISTRATION FOR FusionCacheEntryMetadata
 				try
 				{
 					_model.Add(typeof(FusionCacheEntryMetadata), false)
-								.SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate))
-							;
+						.SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate))
+					;
 				}
 				catch
 				{
@@ -67,19 +71,23 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 			if (t.IsGenericType == false || t.GetGenericTypeDefinition() != _distributedEntryOpenGenericType)
 				return;
 
-			HashSet<Type> tmp;
-
-			lock (_modelsCache)
+			if (_modelsCache.TryGetValue(_model, out var tmp) == false)
 			{
-				tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+				lock (_modelsCache)
+				{
+					tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+				}
 			}
+
+			// ENSURE MODEL REGISTRATION FOR FusionCacheDistributedEntry<T>
+			if (tmp.Contains(t))
+				return;
 
 			lock (tmp)
 			{
 				if (tmp.Contains(t))
 					return;
 
-				// ENSURE MODEL REGISTRATION FOR FusionCacheDistributedEntry<T>
 				try
 				{
 					// NOTE: USING FusionCacheDistributedEntry<bool> HERE SINCE IT WILL
