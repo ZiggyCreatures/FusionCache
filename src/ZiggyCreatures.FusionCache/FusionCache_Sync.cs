@@ -289,7 +289,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 					_logger.LogError("FUSION (O={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", operationId, key);
-				throw new InvalidOperationException("The resulting fusion cache entry is null");
+				throw new InvalidOperationException("The resulting FusionCache entry is null");
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -317,7 +317,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 					_logger.LogError("FUSION (O={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", operationId, key);
-				throw new InvalidOperationException("The resulting fusion cache entry is null");
+				throw new InvalidOperationException("The resulting FusionCache entry is null");
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
