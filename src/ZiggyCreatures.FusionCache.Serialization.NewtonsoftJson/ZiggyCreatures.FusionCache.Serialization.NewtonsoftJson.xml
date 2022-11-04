@@ -29,7 +29,7 @@
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheNewtonsoftJsonSerializerServiceCollectionExtensions">
             <summary>
-            Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Extension methods for setting up FusionCache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheNewtonsoftJsonSerializerServiceCollectionExtensions.AddFusionCacheNewtonsoftJsonSerializer(Microsoft.Extensions.DependencyInjection.IServiceCollection,Newtonsoft.Json.JsonSerializerSettings)">

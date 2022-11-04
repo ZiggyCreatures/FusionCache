@@ -29,7 +29,7 @@
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheSystemTextJsonSerializerServiceCollectionExtensions">
             <summary>
-            Extension methods for setting up fusion cache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Extension methods for setting up FusionCache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheSystemTextJsonSerializerServiceCollectionExtensions.AddFusionCacheSystemTextJsonSerializer(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Text.Json.JsonSerializerOptions)">
