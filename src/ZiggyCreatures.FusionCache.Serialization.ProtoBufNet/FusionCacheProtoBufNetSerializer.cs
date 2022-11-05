@@ -56,6 +56,8 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 					_model.Add(typeof(FusionCacheEntryMetadata), false)
 						.SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate))
 					;
+
+					tmp.Add(_metadataType);
 				}
 				catch
 				{
@@ -96,6 +98,8 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 						.Add(1, nameof(FusionCacheDistributedEntry<bool>.Value))
 						.Add(2, nameof(FusionCacheDistributedEntry<bool>.Metadata))
 					;
+
+					tmp.Add(t);
 				}
 				catch
 				{
