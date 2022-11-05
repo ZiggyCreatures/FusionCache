@@ -51,18 +51,23 @@ In general this can be used as a set of options that will act as the *baseline*,
 | Name | Type | Default | Description |
 | ---: | :---: | :---: | :--- |
 | `CacheName`                                 | `string` | `"FusionCache"` | The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association. |
-| `DefaultEntryOptions`                       | `FusionCacheEntryOptions` | *see below* | This is the default entry options object that will be used when one is not passed to each method call that need one, and as a starting point when duplicating one, either via the explicit `FusionCache.CreateOptions(...)` method or in one of the *overloads* of each *core method*. |
-| `DistributedCacheCircuitBreakerDuration`    | `TimeSpan`                     | `none` | If set to a value greater than zero, every time the distributed cache will fail it will become temporarily unavailable for this amount of time. This is useful to avoid overloading the distributed cache when it has some problems. |
-| `CacheKeyPrefix` *(Deprecated)*               | `string?`                 | `null` | If specified, each call to a core method will pre-process the specified cache key, prefixing it with this value. Uesful for example when using the same distributed cache for different environments (lowering the costs), to avoid cache entries from the development environment to mix with the ones from the staging environment. <br/><br/> **⚠ WARNING:** this option has been deprecated, see [here](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/33). |
+| `DefaultEntryOptions`                       | `FusionCacheEntryOptions`  | *see below* | This is the default entry options object that will be used when one is not passed to each method call that need one, and as a starting point when duplicating one, either via the explicit `FusionCache.CreateOptions(...)` method or in one of the *overloads* of each *core method*. |
+| `DistributedCacheCircuitBreakerDuration`    | `TimeSpan`                 | `none` | The duration of the circuit-breaker used when working with the distributed cache. |
 | `DistributedCacheKeyModifierMode`           | `CacheKeyModifierMode`     | `Prefix` | Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version). |
+| `BackplaneCircuitBreakerDuration`           | `TimeSpan`                 | `none` | The duration of the circuit-breaker used when working with the backplane. |
+| `BackplaneChannelPrefix`                    | `string?`                  | `null` | The prefix to use in the backplane channel name: if not specified the `CacheName` will be used. |
+| `EnableBackplaneAutoRecovery`               | `bool`                     | `false` | Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again. |
+| `BackplaneAutoRecoveryMaxItems`             | `int?`                     | `100` | The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to `null` there will be no limit. |
 | `EnableSyncEventHandlersExecution`          | `bool`                    | `false` | If set to `true` all registered event handlers will be run synchronously: this is really, very, highly discouraged as it may slow down all other handlers and FusionCache itself. |
-| `SerializationErrorsLogLevel`               | `LogLevel`                | `Error` | Used when logging serialization errors (while working with the distributed cache) |
-| `DistributedCacheSyntheticTimeoutsLogLevel` | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while using the distributed cache |
-| `DistributedCacheErrorsLogLevel`            | `LogLevel`                | `Warning` | Used when logging any other kind of errors while using the distributed cache |
-| `FactorySyntheticTimeoutsLogLevel`          | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while calling the factory |
-| `FactoryErrorsLogLevel`                     | `LogLevel`                | `Warning` | Used when logging any other kind of errors while calling the factory |
-| `FailSafeActivationLogLevel`                | `LogLevel`                | `Warning` | Used when logging fail-safe activations |
-| `EventHandlingErrorsLogLevel`               | `LogLevel`                | `Warning` | Used when logging errors while executing event handlers |
+| `SerializationErrorsLogLevel`               | `LogLevel`                | `Error` | Used when logging serialization errors (while working with the distributed cache). |
+| `DistributedCacheSyntheticTimeoutsLogLevel` | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while using the distributed cache. |
+| `DistributedCacheErrorsLogLevel`            | `LogLevel`                | `Warning` | Used when logging any other kind of errors while using the distributed cache. |
+| `FactorySyntheticTimeoutsLogLevel`          | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while calling the factory. |
+| `FactoryErrorsLogLevel`                     | `LogLevel`                | `Warning` | Used when logging any other kind of errors while calling the factory. |
+| `FailSafeActivationLogLevel`                | `LogLevel`                | `Warning` | Used when logging fail-safe activations. |
+| `EventHandlingErrorsLogLevel`               | `LogLevel`                | `Warning` | Used when logging errors while executing event handlers. |
+| `BackplaneSyntheticTimeoutsLogLevel`        | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while using the backplane. |
+| `BackplaneErrorsLogLevel`                   | `LogLevel`                | `Warning` | Used when logging any other kind of errors while using the backplane. |
 
 
 ## FusionCacheEntryOptions
@@ -91,5 +96,7 @@ For a better **developer experience** and to **consume less memory** (higher per
 | `DistributedCacheSoftTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for each operation on the distributed cache when is not problematic to simply timeout. |
 | `DistributedCacheHardTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to. |
 | `AllowBackgroundDistributedCacheOperations` | `bool` | `false` | Normally operations on the distributed cache are executed in a blocking fashion: setting this flag to true let them run in the background in a kind of fire-and-forget way. This will give a perf boost, but watch out for rare side effects. |
-| `ReThrowDistributedCacheExceptions` | `bool` | `false` | Set this to true to allow the bubble up of distributed cache exceptions (default is false). Please note that, even if set to true, in some cases you would also need `AllowBackgroundDistributedCacheOperations` set to false and no timeout (neither soft nor hard) specified. |
+| `ReThrowDistributedCacheExceptions` | `bool` | `false` | Set this to true to allow the bubble up of distributed cache exceptions (default is `false`). Please note that, even if set to true, in some cases you would also need `AllowBackgroundDistributedCacheOperations` set to false and no timeout (neither soft nor hard) specified. |
+| `ReThrowSerializationExceptions`    | `bool` | `true` | Set this to false to disable the bubble up of serialization exceptions (default is `true`). |
 | `EnableBackplaneNotifications` | `bool` | `true` | Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call). |
+| `AllowBackgroundBackplaneOperations` | `bool` | `true` | By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed. Setting this flag to `false` will execute these operations in a blocking fashion, typically resulting in worse performance. |
