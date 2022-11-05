@@ -280,6 +280,10 @@ namespace FusionCacheTests
 			cache2.DefaultEntryOptions.EnableBackplaneNotifications = false;
 			cache3.DefaultEntryOptions.EnableBackplaneNotifications = false;
 
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
 			await Task.Delay(1_000);
 
 			try
@@ -316,6 +320,10 @@ namespace FusionCacheTests
 			cache1.DefaultEntryOptions.EnableBackplaneNotifications = false;
 			cache2.DefaultEntryOptions.EnableBackplaneNotifications = false;
 			cache3.DefaultEntryOptions.EnableBackplaneNotifications = false;
+
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 			Thread.Sleep(1_000);
 
@@ -360,6 +368,10 @@ namespace FusionCacheTests
 			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; });
 			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; });
 			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; });
+
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 			// DISABLE THE BACKPLANE
 			backplane1.SetAlwaysThrow();
@@ -430,6 +442,10 @@ namespace FusionCacheTests
 			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; });
 			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; });
 
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
 			// DISABLE THE BACKPLANE
 			backplane1.SetAlwaysThrow();
 			backplane2.SetAlwaysThrow();
@@ -499,6 +515,10 @@ namespace FusionCacheTests
 			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
 			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
 			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 			// DISABLE THE BACKPLANE
 			backplane1.SetAlwaysThrow();
@@ -582,6 +602,10 @@ namespace FusionCacheTests
 			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
 			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
 			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 			// DISABLE THE BACKPLANE
 			backplane1.SetAlwaysThrow();
