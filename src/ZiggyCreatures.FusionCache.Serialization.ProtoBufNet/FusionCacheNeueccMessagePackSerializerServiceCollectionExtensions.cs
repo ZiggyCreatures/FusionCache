@@ -12,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
 	public static class FusionCacheNeueccMessagePackSerializerServiceCollectionExtensions
 	{
 		/// <summary>
-		/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses the most used .NET ProtoBuf serializer, by Marc Gravell.
+		/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
 		/// </summary>
 		/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 		/// <param name="model">The <see cref="RuntimeTypeModel"/> to use: if not specified, the default one (<see cref="RuntimeTypeModel.Default"/>) will be used.</param>

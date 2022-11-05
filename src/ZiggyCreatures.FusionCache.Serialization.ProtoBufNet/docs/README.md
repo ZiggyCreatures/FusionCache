@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package is an implementation for a FusionCache serializer to be used with the optional distributed cache layer, based on [System.Text.Json](https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-how-to).
+This package is an implementation for a FusionCache serializer to be used with the optional distributed cache layer, based on [protobuf-net](https://github.com/protobuf-net/protobuf-net), one of the most used Protobuf serializer on .NET.

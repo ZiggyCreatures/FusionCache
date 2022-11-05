@@ -11,7 +11,7 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheNeueccMessagePackSerializerServiceCollectionExtensions.AddFusionCacheProtoBufNetSerializer(Microsoft.Extensions.DependencyInjection.IServiceCollection,ProtoBuf.Meta.RuntimeTypeModel)">
             <summary>
-            Adds an implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses the most used .NET ProtoBuf serializer, by Marc Gravell.
+            Adds an implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <param name="model">The <see cref="T:ProtoBuf.Meta.RuntimeTypeModel"/> to use: if not specified, the default one (<see cref="P:ProtoBuf.Meta.RuntimeTypeModel.Default"/>) will be used.</param>
@@ -19,7 +19,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.FusionCacheProtoBufNetSerializer">
             <summary>
-            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses the most used .NET ProtoBuf serializer, by Marc Gravell.
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.FusionCacheProtoBufNetSerializer.#ctor(ProtoBuf.Meta.RuntimeTypeModel)">
