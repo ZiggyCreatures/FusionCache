@@ -95,56 +95,56 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		/// <inheritdoc/>
 		public byte[] Get(string key)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			return _innerCache.Get(key);
 		}
 
 		/// <inheritdoc/>
 		public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 			return await _innerCache.GetAsync(key, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
 		public void Refresh(string key)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			_innerCache.Refresh(key);
 		}
 
 		/// <inheritdoc/>
 		public async Task RefreshAsync(string key, CancellationToken token = default)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 			await _innerCache.RefreshAsync(key, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
 		public void Remove(string key)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			_innerCache.Remove(key);
 		}
 
 		/// <inheritdoc/>
 		public async Task RemoveAsync(string key, CancellationToken token = default)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 			await _innerCache.RemoveAsync(key, token).ConfigureAwait(false);
 		}
 
 		/// <inheritdoc/>
 		public void Set(string key, byte[] value, DistributedCacheEntryOptions options)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			_innerCache.Set(key, value, options);
 		}
 
 		/// <inheritdoc/>
 		public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 			await _innerCache.SetAsync(key, value, options, token).ConfigureAwait(false);
 		}
 	}
