@@ -95,14 +95,14 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		/// <inheritdoc/>
 		public void Publish(BackplaneMessage message, FusionCacheEntryOptions options)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			_innerBackplane.Publish(message, options);
 		}
 
 		/// <inheritdoc/>
 		public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 			await _innerBackplane.PublishAsync(message, options, token).ConfigureAwait(false);
 		}
 

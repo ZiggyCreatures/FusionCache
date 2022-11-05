@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 	/// <summary>
 	/// Various utils to work with randomized controllable chaos.
 	/// </summary>
-	public static class FusioCacheChaosUtils
+	public static class FusionCacheChaosUtils
 	{
 		/// <summary>
 		/// Determines if an exception should be thrown.

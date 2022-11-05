@@ -94,28 +94,28 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		/// <inheritdoc/>
 		public T? Deserialize<T>(byte[] data)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			return _innerSerializer.Deserialize<T>(data);
 		}
 
 		/// <inheritdoc/>
 		public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			return await _innerSerializer.DeserializeAsync<T>(data);
 		}
 
 		/// <inheritdoc/>
 		public byte[] Serialize<T>(T? obj)
 		{
-			FusioCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			return _innerSerializer.Serialize<T>(obj);
 		}
 
 		/// <inheritdoc/>
 		public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
 		{
-			await FusioCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
 			return await _innerSerializer.SerializeAsync<T>(obj);
 		}
 	}
