@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionCacheTests
@@ -14,7 +15,9 @@ namespace FusionCacheTests
 		NewtonsoftJson = 0,
 		SystemTextJson = 1,
 		// MESSAGEPACK
-		NeueccMessagePack = 10
+		NeueccMessagePack = 10,
+		// PROTOBUF
+		ProtoBufNet = 20
 	}
 
 	public static class TestsUtils
@@ -29,6 +32,8 @@ namespace FusionCacheTests
 					return new FusionCacheSystemTextJsonSerializer();
 				case SerializerType.NeueccMessagePack:
 					return new FusionCacheNeueccMessagePackSerializer();
+				case SerializerType.ProtoBufNet:
+					return new FusionCacheProtoBufNetSerializer();
 				default:
 					throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
 			}
