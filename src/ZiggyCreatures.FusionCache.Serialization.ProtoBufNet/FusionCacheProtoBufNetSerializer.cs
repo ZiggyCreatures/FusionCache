@@ -11,7 +11,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.Internals;
 namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet
 {
 	/// <summary>
-	/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the most used .NET ProtoBuf serializer, by Marc Gravell.
+	/// An implementation of <see cref="IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
 	/// </summary>
 	public class FusionCacheProtoBufNetSerializer
 		: IFusionCacheSerializer
