@@ -13,8 +13,8 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- added a ReThrowSerializationExceptions option (enabled by default) to have more control on exceptions handling during de/serialization
-			- better flow for de/serialization while talking with the distributed cache
+			- added Protobuf support
+			- added [DebuggerDisplay] support for some classes
 			- better xml docs
 		</PackageReleaseNotes>
 	</PropertyGroup>
