@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection
 	/// <summary>
 	/// Extension methods for setting up FusionCache related services in an <see cref="IServiceCollection" />.
 	/// </summary>
-	public static class FusionCacheNeueccMessagePackSerializerServiceCollectionExtensions
+	public static class FusionCacheProtoBufNetSerializerServiceCollectionExtensions
 	{
 		/// <summary>
 		/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
