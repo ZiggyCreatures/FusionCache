@@ -250,6 +250,66 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SerializeAsync``1(``0)">
             <inheritdoc/>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils">
+            <summary>
+            Various utils to work with randomized controllable chaos.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.ShouldCreateChaos(System.Single)">
+            <summary>
+            Determines if an exception should be thrown.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.MaybeThrow(System.Single)">
+            <summary>
+            Maybe throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.RandomizeDelay(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>.
+            </summary>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+            <returns>The randomized delay.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.MaybeDelay(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            </summary>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.MaybeDelayAsync(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            </summary>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.MaybeChaos(System.TimeSpan,System.TimeSpan,System.Single)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusioCacheChaosUtils.MaybeChaosAsync(System.TimeSpan,System.TimeSpan,System.Single)">
+            <summary>
+            Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils">
             <summary>
             Various utils to work with randomized controllable chaos.
