@@ -15,7 +15,7 @@ Everything is handled transparently for you.
 
 Any implementation of the standard `IDistributedCache` interface will work (see below).
 
-On top of this you also need to specify a *serializer* to use, by providing an implementation of the `IFusionCacheSerializer` interface: you can create your own or pick one of the existing (see below).
+On top of this you also need to specify a *serializer* to use, by providing an implementation of the `IFusionCacheSerializer` interface: you can create your own or pick one of the existing ones, which natively support formats like Json, MessagePack and Protobuf (see below).
 
 Basically it boils down to 2 possible ways:
 
