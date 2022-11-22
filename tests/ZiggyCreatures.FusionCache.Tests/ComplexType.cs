@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using MemoryPack;
 
 namespace FusionCacheTests
 {
 	[DataContract]
-	public class ComplexType
+	[MemoryPackable]
+	public partial class ComplexType
 	{
 		[DataMember(Name = "pi", Order = 1)]
 		public int PropInt { get; set; }
