@@ -1,5 +1,4 @@
 ﻿using MemoryPack;
-using MemoryPack.Formatters;
 using MemoryPack.Internal;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -8,28 +7,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 {
 	static internal class FusionCacheDistributedEntrySurrogate<TValue>
 	{
-		[Preserve]
-		public static void RegisterFormatter()
-		{
-			//try
-			//{
-			//	if (MemoryPackFormatterProvider.IsRegistered<FusionCacheDistributedEntry<TValue>>() == false)
-			//	{
-			//		var formatter = new FusionCacheDistributedEntryFormatter<TValue>();
-			//		MemoryPackFormatterProvider.Register(formatter);
-			//	}
-
-			//	if (MemoryPackFormatterProvider.IsRegistered<FusionCacheDistributedEntry<TValue>[]>() == false)
-			//	{
-			//		MemoryPackFormatterProvider.Register(new ArrayFormatter<FusionCacheDistributedEntry<TValue>>());
-			//	}
-			//}
-			//catch
-			//{
-			//	// EMPTY
-			//}
-		}
-
 		[Preserve]
 		public static void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, ref FusionCacheDistributedEntry<TValue>? value) where TBufferWriter : class, System.Buffers.IBufferWriter<byte>
 		{
