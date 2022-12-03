@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package is an implementation for a FusionCache serializer to be used with the optional distributed cache layer, based on the famous [Neuecc's MessagePack](https://github.com/neuecc/MessagePack-CSharp).
+This package is an implementation for a FusionCache serializer to be used with the optional distributed cache layer, based on the fast new serializer by Neuecc, [MemoryPack](https://github.com/Cysharp/MemoryPack).
