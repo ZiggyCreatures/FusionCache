@@ -11,23 +11,23 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		[Preserve]
 		public static void RegisterFormatter()
 		{
-			try
-			{
-				if (MemoryPackFormatterProvider.IsRegistered<FusionCacheDistributedEntry<TValue>>() == false)
-				{
-					var formatter = new FusionCacheDistributedEntryFormatter<TValue>();
-					MemoryPackFormatterProvider.Register(formatter);
-				}
+			//try
+			//{
+			//	if (MemoryPackFormatterProvider.IsRegistered<FusionCacheDistributedEntry<TValue>>() == false)
+			//	{
+			//		var formatter = new FusionCacheDistributedEntryFormatter<TValue>();
+			//		MemoryPackFormatterProvider.Register(formatter);
+			//	}
 
-				if (MemoryPackFormatterProvider.IsRegistered<FusionCacheDistributedEntry<TValue>[]>() == false)
-				{
-					MemoryPackFormatterProvider.Register(new ArrayFormatter<FusionCacheDistributedEntry<TValue>>());
-				}
-			}
-			catch
-			{
-				// EMPTY
-			}
+			//	if (MemoryPackFormatterProvider.IsRegistered<FusionCacheDistributedEntry<TValue>[]>() == false)
+			//	{
+			//		MemoryPackFormatterProvider.Register(new ArrayFormatter<FusionCacheDistributedEntry<TValue>>());
+			//	}
+			//}
+			//catch
+			//{
+			//	// EMPTY
+			//}
 		}
 
 		[Preserve]
