@@ -78,7 +78,7 @@ Special care has been put into correctly handling some common situations, like:
 
 This feature is not implemented **inside** a backplane implementation, of which there are multiple, but inside FusionCache itself: this means that it works with any backplane implementation, which is nice.
 
-**🧪 NOTE:** auto-recovery is available since version `0.14.0`, but it is disabled by default as is considered experimental. As soon as the feature will be tested out in real world projects without any issue, it will probably be enabled by default.
+**ℹ NOTE:** auto-recovery is available since version `0.14.0`, but it's enabled by default only since version `0.17.0`.
 
 
 ## 📦 Packages
