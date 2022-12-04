@@ -271,41 +271,41 @@ namespace FusionCacheTests
 			}
 		}
 
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public async Task HandlesFlexibleSimpleTypeConversionsAsync(SerializerType serializerType)
-		{
-			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
-			{
-				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
-				{
-					int? initialValue = 42;
-					await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
-					memoryCache.Remove("foo");
-					var newValue = await fusionCache.GetOrDefaultAsync<int>("foo");
-					Assert.Equal(initialValue, newValue);
-				}
-			}
-		}
+		//[Theory]
+		//[ClassData(typeof(SerializerTypesClassData))]
+		//public async Task HandlesFlexibleSimpleTypeConversionsAsync(SerializerType serializerType)
+		//{
+		//	using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+		//	{
+		//		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		//		using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+		//		{
+		//			int? initialValue = 42;
+		//			await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
+		//			memoryCache.Remove("foo");
+		//			var newValue = await fusionCache.GetOrDefaultAsync<int>("foo");
+		//			Assert.Equal(initialValue, newValue);
+		//		}
+		//	}
+		//}
 
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public void HandlesFlexibleSimpleTypeConversions(SerializerType serializerType)
-		{
-			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
-			{
-				var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
-				{
-					int? initialValue = 42;
-					fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
-					memoryCache.Remove("foo");
-					var newValue = fusionCache.GetOrDefault<int>("foo");
-					Assert.Equal(initialValue, newValue);
-				}
-			}
-		}
+		//[Theory]
+		//[ClassData(typeof(SerializerTypesClassData))]
+		//public void HandlesFlexibleSimpleTypeConversions(SerializerType serializerType)
+		//{
+		//	using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
+		//	{
+		//		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		//		using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+		//		{
+		//			int? initialValue = 42;
+		//			fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
+		//			memoryCache.Remove("foo");
+		//			var newValue = fusionCache.GetOrDefault<int>("foo");
+		//			Assert.Equal(initialValue, newValue);
+		//		}
+		//	}
+		//}
 
 		//[Theory]
 		//[ClassData(typeof(SerializerTypesClassData))]
