@@ -2,57 +2,56 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson
+namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
+
+/// <summary>
+/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the System.Text.Json serializer.
+/// </summary>
+public class FusionCacheSystemTextJsonSerializer
+	: IFusionCacheSerializer
 {
+
 	/// <summary>
-	/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the System.Text.Json serializer.
+	/// Create a new instance of a <see cref="FusionCacheSystemTextJsonSerializer"/> object.
 	/// </summary>
-	public class FusionCacheSystemTextJsonSerializer
-		: IFusionCacheSerializer
+	/// <param name="options">The optional <see cref="JsonSerializerOptions"/> object to use.</param>
+	public FusionCacheSystemTextJsonSerializer(JsonSerializerOptions? options = null)
 	{
+		Options = options;
+	}
 
-		/// <summary>
-		/// Create a new instance of a <see cref="FusionCacheSystemTextJsonSerializer"/> object.
-		/// </summary>
-		/// <param name="options">The optional <see cref="JsonSerializerOptions"/> object to use.</param>
-		public FusionCacheSystemTextJsonSerializer(JsonSerializerOptions? options = null)
+	JsonSerializerOptions? Options;
+
+	/// <inheritdoc />
+	public byte[] Serialize<T>(T? obj)
+	{
+		return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, Options);
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(byte[] data)
+	{
+		return JsonSerializer.Deserialize<T>(data, Options);
+	}
+
+	/// <inheritdoc />
+	public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
+	{
+		using (var stream = new MemoryStream())
 		{
-			Options = options;
+			await JsonSerializer.SerializeAsync<T?>(stream, obj, Options);
+			return stream.ToArray();
 		}
+	}
 
-		JsonSerializerOptions? Options;
-
-		/// <inheritdoc />
-		public byte[] Serialize<T>(T? obj)
+	/// <inheritdoc />
+	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
+	{
+		using (var stream = new MemoryStream(data))
 		{
-			return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, Options);
+			return await JsonSerializer.DeserializeAsync<T>(stream, Options);
 		}
-
-		/// <inheritdoc />
-		public T? Deserialize<T>(byte[] data)
-		{
-			return JsonSerializer.Deserialize<T>(data, Options);
-		}
-
-		/// <inheritdoc />
-		public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
-		{
-			using (var stream = new MemoryStream())
-			{
-				await JsonSerializer.SerializeAsync<T?>(stream, obj, Options);
-				return stream.ToArray();
-			}
-		}
-
-		/// <inheritdoc />
-		public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
-		{
-			using (var stream = new MemoryStream(data))
-			{
-				return await JsonSerializer.DeserializeAsync<T>(stream, Options);
-			}
-		}
-
 	}
 
 }
+
