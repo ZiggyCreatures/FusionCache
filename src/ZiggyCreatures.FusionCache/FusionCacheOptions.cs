@@ -22,7 +22,7 @@ public class FusionCacheOptions
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
 
-		EnableBackplaneAutoRecovery = false; // TODO: WHEN THOROUGHLY TESTED, CHANGE THIS
+		EnableBackplaneAutoRecovery = true;
 		BackplaneAutoRecoveryMaxItems = 100;
 
 		// LOG LEVELS
