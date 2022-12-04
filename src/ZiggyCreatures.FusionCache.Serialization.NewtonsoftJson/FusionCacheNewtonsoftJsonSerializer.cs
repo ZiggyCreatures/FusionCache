@@ -38,14 +38,12 @@ public class FusionCacheNewtonsoftJsonSerializer
 	/// <inheritdoc />
 	public ValueTask<byte[]> SerializeAsync<T>(T? obj)
 	{
-		// TODO: DO BETTER HERE
 		return new ValueTask<byte[]>(Serialize<T>(obj));
 	}
 
 	/// <inheritdoc />
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data)
 	{
-		// TODO: DO BETTER HERE
 		return new ValueTask<T?>(Deserialize<T>(data));
 	}
 }
