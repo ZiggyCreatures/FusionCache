@@ -4,128 +4,127 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace ZiggyCreatures.Caching.Fusion.Reactors
+namespace ZiggyCreatures.Caching.Fusion.Reactors;
+
+internal sealed class FusionCacheReactorUnbounded
+	: IFusionCacheReactor
 {
-	internal sealed class FusionCacheReactorUnbounded
-		: IFusionCacheReactor
+	private Dictionary<string, SemaphoreSlim> _lockCache;
+
+	public FusionCacheReactorUnbounded(int reactorSize = 100)
 	{
-		private Dictionary<string, SemaphoreSlim> _lockCache;
+		_lockCache = new Dictionary<string, SemaphoreSlim>(reactorSize);
+	}
 
-		public FusionCacheReactorUnbounded(int reactorSize = 100)
+	public int Collisions
+	{
+		get { return 0; }
+	}
+
+	private SemaphoreSlim GetSemaphore(string key, string operationId, ILogger? logger)
+	{
+		SemaphoreSlim _semaphore;
+
+		if (_lockCache.TryGetValue(key, out _semaphore))
+			return _semaphore;
+
+		lock (_lockCache)
 		{
-			_lockCache = new Dictionary<string, SemaphoreSlim>(reactorSize);
-		}
-
-		public int Collisions
-		{
-			get { return 0; }
-		}
-
-		private SemaphoreSlim GetSemaphore(string key, string operationId, ILogger? logger)
-		{
-			SemaphoreSlim _semaphore;
-
 			if (_lockCache.TryGetValue(key, out _semaphore))
 				return _semaphore;
 
-			lock (_lockCache)
-			{
-				if (_lockCache.TryGetValue(key, out _semaphore))
-					return _semaphore;
+			_semaphore = new SemaphoreSlim(1, 1);
 
-				_semaphore = new SemaphoreSlim(1, 1);
+			_lockCache[key] = _semaphore;
 
-				_lockCache[key] = _semaphore;
-
-				return _semaphore;
-			}
+			return _semaphore;
 		}
+	}
 
-		// ACQUIRE LOCK ASYNC
-		public async ValueTask<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	// ACQUIRE LOCK ASYNC
+	public async ValueTask<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	{
+		token.ThrowIfCancellationRequested();
+
+		var semaphore = GetSemaphore(key, operationId, logger);
+
+		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+
+		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
+
+		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+
+		return acquired ? semaphore : null;
+	}
+
+	// ACQUIRE LOCK
+	public object? AcquireLock(string key, string operationId, TimeSpan timeout, ILogger? logger)
+	{
+		var semaphore = GetSemaphore(key, operationId, logger);
+
+		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+
+		var acquired = semaphore.Wait(timeout);
+
+		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
+			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+
+		return acquired ? semaphore : null;
+	}
+
+	// RELEASE LOCK ASYNC
+	public void ReleaseLock(string key, string operationId, object? lockObj, ILogger? logger)
+	{
+		if (lockObj is null)
+			return;
+
+		try
 		{
-			token.ThrowIfCancellationRequested();
-
-			var semaphore = GetSemaphore(key, operationId, logger);
-
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
-
-			var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
-
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
-
-			return acquired ? semaphore : null;
+			((SemaphoreSlim)lockObj).Release();
 		}
-
-		// ACQUIRE LOCK
-		public object? AcquireLock(string key, string operationId, TimeSpan timeout, ILogger? logger)
+		catch (Exception exc)
 		{
-			var semaphore = GetSemaphore(key, operationId, logger);
-
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
-
-			var acquired = semaphore.Wait(timeout);
-
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
-
-			return acquired ? semaphore : null;
+			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+				logger.LogWarning(exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
 		}
+	}
 
-		// RELEASE LOCK ASYNC
-		public void ReleaseLock(string key, string operationId, object? lockObj, ILogger? logger)
+	// IDISPOSABLE
+	private bool disposedValue;
+	/*protected virtual*/
+	private void Dispose(bool disposing)
+	{
+		if (!disposedValue)
 		{
-			if (lockObj is null)
-				return;
-
-			try
+			if (disposing)
 			{
-				((SemaphoreSlim)lockObj).Release();
-			}
-			catch (Exception exc)
-			{
-				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.LogWarning(exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
-			}
-		}
-
-		// IDISPOSABLE
-		private bool disposedValue;
-		/*protected virtual*/
-		private void Dispose(bool disposing)
-		{
-			if (!disposedValue)
-			{
-				if (disposing)
+				foreach (var semaphore in _lockCache.Values)
 				{
-					foreach (var semaphore in _lockCache.Values)
+					try
 					{
-						try
-						{
-							semaphore.Dispose();
-						}
-						catch
-						{
-							// EMPTY
-						}
+						semaphore.Dispose();
 					}
-					_lockCache.Clear();
+					catch
+					{
+						// EMPTY
+					}
 				}
+				_lockCache.Clear();
+			}
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-				_lockCache = null;
+			_lockCache = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-				disposedValue = true;
-			}
+			disposedValue = true;
 		}
+	}
 
-		public void Dispose()
-		{
-			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
-		}
+	public void Dispose()
+	{
+		Dispose(disposing: true);
+		GC.SuppressFinalize(this);
 	}
 }

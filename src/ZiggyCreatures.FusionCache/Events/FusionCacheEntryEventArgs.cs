@@ -1,24 +1,23 @@
 ﻿using System;
 
-namespace ZiggyCreatures.Caching.Fusion.Events
+namespace ZiggyCreatures.Caching.Fusion.Events;
+
+/// <summary>
+/// The specific <see cref="EventArgs"/> object for events related to cache entries (eg: with a cache key).
+/// </summary>
+public class FusionCacheEntryEventArgs : EventArgs
 {
 	/// <summary>
-	/// The specific <see cref="EventArgs"/> object for events related to cache entries (eg: with a cache key).
+	/// Initializes a new instance of the <see cref="FusionCacheEntryEventArgs"/> class.
 	/// </summary>
-	public class FusionCacheEntryEventArgs : EventArgs
+	/// <param name="key">The cache key related to the event.</param>
+	public FusionCacheEntryEventArgs(string key)
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="FusionCacheEntryEventArgs"/> class.
-		/// </summary>
-		/// <param name="key">The cache key related to the event.</param>
-		public FusionCacheEntryEventArgs(string key)
-		{
-			Key = key;
-		}
-
-		/// <summary>
-		/// The cache key related to the event.
-		/// </summary>
-		public string Key { get; }
+		Key = key;
 	}
+
+	/// <summary>
+	/// The cache key related to the event.
+	/// </summary>
+	public string Key { get; }
 }

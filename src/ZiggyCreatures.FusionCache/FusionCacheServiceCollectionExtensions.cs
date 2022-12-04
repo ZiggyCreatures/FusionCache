@@ -9,96 +9,95 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Microsoft.Extensions.DependencyInjection;
+
+/// <summary>
+/// Extension methods for setting up FusionCache related services in an <see cref="IServiceCollection" />.
+/// </summary>
+public static class FusionCacheServiceCollectionExtensions
 {
 	/// <summary>
-	/// Extension methods for setting up FusionCache related services in an <see cref="IServiceCollection" />.
+	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// </summary>
-	public static class FusionCacheServiceCollectionExtensions
+	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+	/// <param name="setupOptionsAction">The <see cref="Action{FusionCacheOptions}"/> to configure the provided <see cref="FusionCacheOptions"/>.</param>
+	/// <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
+	/// <param name="ignoreMemoryDistributedCache">If the registered <see cref="IDistributedCache"/> found is an instance of <see cref="MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
+	/// <param name="setupCacheAction">The <see cref="Action{IServiceProvider,FusionCacheOptions}"/> to configure the newly created <see cref="IFusionCache"/> instance.</param>
+	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
 	{
-		/// <summary>
-		/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
-		/// </summary>
-		/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-		/// <param name="setupOptionsAction">The <see cref="Action{FusionCacheOptions}"/> to configure the provided <see cref="FusionCacheOptions"/>.</param>
-		/// <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
-		/// <param name="ignoreMemoryDistributedCache">If the registered <see cref="IDistributedCache"/> found is an instance of <see cref="MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
-		/// <param name="setupCacheAction">The <see cref="Action{IServiceProvider,FusionCacheOptions}"/> to configure the newly created <see cref="IFusionCache"/> instance.</param>
-		/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-		public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
+		if (services is null)
+			throw new ArgumentNullException(nameof(services));
+
+		services.AddOptions();
+
+		if (setupOptionsAction is not null)
+			services.Configure(setupOptionsAction);
+
+		services.TryAdd(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
 		{
-			if (services is null)
-				throw new ArgumentNullException(nameof(services));
+			var logger = serviceProvider.GetService<ILogger<FusionCache>>();
 
-			services.AddOptions();
+			var cache = new FusionCache(
+				serviceProvider.GetRequiredService<IOptions<FusionCacheOptions>>(),
+				serviceProvider.GetService<IMemoryCache>(),
+				logger: logger
+			);
 
-			if (setupOptionsAction is not null)
-				services.Configure(setupOptionsAction);
-
-			services.TryAdd(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
+			// DISTRIBUTED CACHE
+			if (useDistributedCacheIfAvailable)
 			{
-				var logger = serviceProvider.GetService<ILogger<FusionCache>>();
+				var distributedCache = serviceProvider.GetService<IDistributedCache>();
 
-				var cache = new FusionCache(
-					serviceProvider.GetRequiredService<IOptions<FusionCacheOptions>>(),
-					serviceProvider.GetService<IMemoryCache>(),
-					logger: logger
-				);
-
-				// DISTRIBUTED CACHE
-				if (useDistributedCacheIfAvailable)
+				if (ignoreMemoryDistributedCache && distributedCache is MemoryDistributedCache)
 				{
-					var distributedCache = serviceProvider.GetService<IDistributedCache>();
-
-					if (ignoreMemoryDistributedCache && distributedCache is MemoryDistributedCache)
-					{
-						distributedCache = null;
-					}
-
-					if (distributedCache is not null)
-					{
-						var serializer = serviceProvider.GetService<IFusionCacheSerializer>();
-
-						if (serializer is null)
-						{
-							if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-								logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
-						}
-						else
-						{
-							cache.SetupDistributedCache(distributedCache, serializer);
-						}
-					}
+					distributedCache = null;
 				}
 
-				// BACKPLANE
-				var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
-
-				if (backplane is not null)
+				if (distributedCache is not null)
 				{
-					cache.SetupBackplane(backplane);
-				}
+					var serializer = serviceProvider.GetService<IFusionCacheSerializer>();
 
-				// PLUGINS
-				foreach (var plugin in serviceProvider.GetServices<IFusionCachePlugin>())
-				{
-					try
+					if (serializer is null)
 					{
-						cache.AddPlugin(plugin);
+						if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+							logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
 					}
-					catch
+					else
 					{
-						// EMPTY: EVERYTHING HAS BEEN ALREADY LOGGED, IF NECESSARY
+						cache.SetupDistributedCache(distributedCache, serializer);
 					}
 				}
+			}
 
-				// CUSTOM SETUP ACTION
-				setupCacheAction?.Invoke(serviceProvider, cache);
+			// BACKPLANE
+			var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
 
-				return cache;
-			}));
+			if (backplane is not null)
+			{
+				cache.SetupBackplane(backplane);
+			}
 
-			return services;
-		}
+			// PLUGINS
+			foreach (var plugin in serviceProvider.GetServices<IFusionCachePlugin>())
+			{
+				try
+				{
+					cache.AddPlugin(plugin);
+				}
+				catch
+				{
+					// EMPTY: EVERYTHING HAS BEEN ALREADY LOGGED, IF NECESSARY
+				}
+			}
+
+			// CUSTOM SETUP ACTION
+			setupCacheAction?.Invoke(serviceProvider, cache);
+
+			return cache;
+		}));
+
+		return services;
 	}
 }
