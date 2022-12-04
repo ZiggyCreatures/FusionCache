@@ -50,6 +50,7 @@ As for an implementation of `IFusionCacheSerializer`, pick one of these:
 | [ZiggyCreatures.FusionCache.Serialization.SystemTextJson](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.SystemTextJson/) <br/> A serializer, based on the new System.Text.Json | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.SystemTextJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.SystemTextJson/) |
 | [ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/) <br/> A MessagePack serializer, based on the most used [MessagePack](https://github.com/neuecc/MessagePack-CSharp) serializer on .NET | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/) |
 | [ZiggyCreatures.FusionCache.Serialization.ProtoBufNet](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet/) <br/> A Protobuf serializer, based on one of the most used [protobuf-net](https://github.com/protobuf-net/protobuf-net) serializer on .NET | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet/) |
+| [ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/) <br/> A serializer based on the uber fast new serializer by Neuecc, [MemoryPack](https://github.com/Cysharp/MemoryPack) | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/) |
 
 
 ## Example
@@ -121,9 +122,9 @@ Of course I'm not suggesting to install (and manage) a local MySql/SqlServer/Pos
 
 So, what should we use?
 
-### Sqlite to the rescue!
+### SQLite to the rescue!
 
-If case you didn't know it yet, [Sqlite](https://www.sqlite.org/) is an incredible piece of software:
+If case you didn't know it yet, [SQLite](https://www.sqlite.org/) is an incredible piece of software:
 - it's one of the highest quality software [ever produced](https://www.i-programmer.info/news/84-database/15609-in-praise-of-sqlite.html)
 - it's used in production on [billions of devices](https://www.sqlite.org/mostdeployed.html), with a higher instance count than all the other database engines, combined
 - it's [fully tested](https://www.sqlite.org/testing.html), with millions of test cases, 100% test coverage, fuzz tests and more, way more (the link is a good read, I suggest to take a look at it)
@@ -132,11 +133,11 @@ If case you didn't know it yet, [Sqlite](https://www.sqlite.org/) is an incredib
 - has a very [small footprint](https://www.sqlite.org/footprint.html)
 - the [license](https://www.sqlite.org/copyright.html) is as free and open as it can get
 
-Ok so Sqlite is the best, how can we use it as the 2nd level?
+Ok so SQLite is the best, how can we use it as the 2nd level?
 
 ### Ok but how?
 
-Luckily someone in the community created an implementation of `IDistributedCache` based on Sqlite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
+Luckily someone in the community created an implementation of `IDistributedCache` based on SQLite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
 
 The package:
 - supports both the sync and async models natively, meaning it's not doing async-over-sync or vice versa, but a real double impl (like FusionCache does) which is very nice and will use the underlying system resources best
