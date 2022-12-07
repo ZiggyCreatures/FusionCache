@@ -6,6 +6,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 using ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet;
+using ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionCacheTests
@@ -15,6 +16,7 @@ namespace FusionCacheTests
 		// JSON
 		NewtonsoftJson = 0,
 		SystemTextJson = 1,
+		ServiceStackJson = 2,
 		// MESSAGEPACK
 		NeueccMessagePack = 10,
 		// PROTOBUF
@@ -33,6 +35,8 @@ namespace FusionCacheTests
 					return new FusionCacheNewtonsoftJsonSerializer();
 				case SerializerType.SystemTextJson:
 					return new FusionCacheSystemTextJsonSerializer();
+				case SerializerType.ServiceStackJson:
+					return new FusionCacheServiceStackJsonSerializer();
 				case SerializerType.NeueccMessagePack:
 					return new FusionCacheNeueccMessagePackSerializer();
 				case SerializerType.ProtoBufNet:
