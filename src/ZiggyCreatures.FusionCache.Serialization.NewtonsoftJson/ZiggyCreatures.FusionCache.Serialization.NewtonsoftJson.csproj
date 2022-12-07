@@ -12,7 +12,7 @@
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
+		<PackageReleaseNotes>Update dependency for a Json.NET security vulnerability (see https://github.com/JamesNK/Newtonsoft.Json/pull/2711)</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 	</ItemGroup>
 
 </Project>
