@@ -43,6 +43,7 @@ public class FusionCacheEntryOptions
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
 
 		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
+		SkipDistributedCacheReadWhenStale = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale;
 	}
 
 	/// <summary>
@@ -205,8 +206,21 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// Skip the usage of the distributed cache, if any.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public bool SkipDistributedCache { get; set; }
+
+	/// <summary>
+	/// When a 2nd layer (distributed cache) is used and a cache entry in the 1st layer (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
+	/// <br/><br/>
+	/// There are situations though, like in a mobile app with a SQLite 2nd layer, where the 2nd layer is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd layer, so we can skip that extra read for a perf boost (of course the write part will still be done).
+	/// <br/><br/>
+	/// <strong>TL/DR:</strong> if your 2nd level is not "distributed" but only "out of process", setting this to <see langword="true"/> can give you a nice performance boost.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipDistributedCacheReadWhenStale { get; set; }
 
 	internal bool IsSafeForAdaptiveCaching { get; set; }
 
@@ -377,11 +391,22 @@ public class FusionCacheEntryOptions
 	/// <summary>
 	/// Set the <see cref="SkipDistributedCache"/> property.
 	/// </summary>
-	/// <param name="skipDistributedCache">The value for the <see cref="SkipDistributedCache"/> property.</param>
+	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
-	public FusionCacheEntryOptions SetSkipDistributedCache(bool skipDistributedCache)
+	public FusionCacheEntryOptions SetSkipDistributedCache(bool skip)
 	{
-		SkipDistributedCache = skipDistributedCache;
+		SkipDistributedCache = skip;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipDistributedCacheReadWhenStale"/> property.
+	/// </summary>
+	/// <param name="skip">Set the <see cref="SkipDistributedCacheReadWhenStale"/> property.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipDistributedCacheReadWhenStale(bool skip)
+	{
+		SkipDistributedCacheReadWhenStale = skip;
 		return this;
 	}
 
@@ -500,14 +525,17 @@ public class FusionCacheEntryOptions
 			DistributedCacheDuration = DistributedCacheDuration,
 			DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
 			DistributedCacheHardTimeout = DistributedCacheHardTimeout,
-			AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
+
 			ReThrowDistributedCacheExceptions = ReThrowDistributedCacheExceptions,
 			ReThrowSerializationExceptions = ReThrowSerializationExceptions,
 
-			EnableBackplaneNotifications = EnableBackplaneNotifications,
+			AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations,
 
-			SkipDistributedCache = SkipDistributedCache
+			EnableBackplaneNotifications = EnableBackplaneNotifications,
+
+			SkipDistributedCache = SkipDistributedCache,
+			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale
 		};
 	}
 
