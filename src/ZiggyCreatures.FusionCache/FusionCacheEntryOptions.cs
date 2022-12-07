@@ -357,7 +357,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified <see cref="TimeSpan"/> value.
+	/// Enable or disable backplane notifications.
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>

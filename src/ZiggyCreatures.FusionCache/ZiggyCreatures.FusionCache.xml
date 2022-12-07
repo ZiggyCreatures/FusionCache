@@ -788,7 +788,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetBackplane(System.Boolean)">
             <summary>
-            Set the duration to the specified <see cref="T:System.TimeSpan"/> value.
+            Enable or disable backplane notifications.
             </summary>
             <param name="enableBackplaneNotifications">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
