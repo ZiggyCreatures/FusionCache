@@ -136,7 +136,7 @@ public partial class FusionCache
 
 			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
-				if (memoryEntry is null || options.SkipDistributedCacheReadWhenStale == false)
+				if ((memoryEntry is object && options.SkipDistributedCacheReadWhenStale) == false)
 				{
 					(distributedEntry, distributedEntryIsValid) = dca.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, token);
 				}
