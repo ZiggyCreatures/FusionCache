@@ -51,6 +51,6 @@ public class FusionCacheEntryMetadata
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[FFS={(IsFromFailSafe ? "Y" : "N")} LEXP={LogicalExpiration.ToLogString_Expiration()}]";
+		return $"[FFS={IsFromFailSafe.ToStringYN()} LEXP={LogicalExpiration.ToLogString_Expiration()}]";
 	}
 }

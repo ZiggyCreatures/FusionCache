@@ -699,6 +699,11 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache">
+            <summary>
+            Skip the usage of the distributed cache, if any.
+            </summary>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToString">
             <inheritdoc/>
         </member>
@@ -791,6 +796,13 @@
             Set the duration to the specified <see cref="T:System.TimeSpan"/> value.
             </summary>
             <param name="enableBackplaneNotifications">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSkipDistributedCache(System.Boolean)">
+            <summary>
+            Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache"/> property.
+            </summary>
+            <param name="skipDistributedCache">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub)">
@@ -1382,6 +1394,11 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations">
             <summary>
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache"/>.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions">

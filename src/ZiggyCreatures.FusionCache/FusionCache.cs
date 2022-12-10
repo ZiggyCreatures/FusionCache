@@ -118,9 +118,9 @@ public partial class FusionCache
 		return FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 	}
 
-	private DistributedCacheAccessor? GetCurrentDistributedAccessor()
+	private DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions options)
 	{
-		return _dca;
+		return options.SkipDistributedCache ? null : _dca;
 	}
 
 	private IFusionCacheEntry? MaybeGetFallbackEntry<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry, FusionCacheEntryOptions options, out bool failSafeActivated)

@@ -644,5 +644,47 @@ namespace FusionCacheTests
 			Assert.Equal(21, v1);
 			Assert.Equal(42, v2);
 		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanSkipDistributedCacheAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var fusionCache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			using var fusionCache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			var v1 = await fusionCache1.GetOrSetAsync<int>("foo", 1, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true).SetSkipDistributedCache(true));
+			var v2 = await fusionCache2.GetOrSetAsync<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
+
+			Assert.Equal(1, v1);
+			Assert.Equal(2, v2);
+
+			var v3 = await fusionCache1.GetOrSetAsync<int>("bar", 3, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
+			var v4 = await fusionCache2.GetOrSetAsync<int>("bar", 4, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCache(true));
+
+			Assert.Equal(3, v3);
+			Assert.Equal(4, v4);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanSkipDistributedCache(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var fusionCache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			using var fusionCache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			var v1 = fusionCache1.GetOrSet<int>("foo", 1, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true).SetSkipDistributedCache(true));
+			var v2 = fusionCache2.GetOrSet<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
+
+			Assert.Equal(1, v1);
+			Assert.Equal(2, v2);
+
+			var v3 = fusionCache1.GetOrSet<int>("bar", 3, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
+			var v4 = fusionCache2.GetOrSet<int>("bar", 4, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCache(true));
+
+			Assert.Equal(3, v3);
+			Assert.Equal(4, v4);
+		}
 	}
 }
