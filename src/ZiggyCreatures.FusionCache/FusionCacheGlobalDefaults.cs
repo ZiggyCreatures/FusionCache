@@ -103,4 +103,9 @@ public static class FusionCacheGlobalDefaults
 	/// The global default <see cref="FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
 	/// </summary>
 	public static bool EntryOptionsAllowBackgroundBackplaneOperations { get; set; } = true;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCache"/>.
+	/// </summary>
+	public static bool EntryOptionsSkipDistributedCache { get; set; } = false;
 }

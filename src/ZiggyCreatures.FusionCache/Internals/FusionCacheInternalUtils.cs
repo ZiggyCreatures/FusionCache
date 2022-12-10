@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -150,6 +151,12 @@ internal static class FusionCacheInternalUtils
 
 		// FALLBACK
 		return Enum.GetName(CacheItemPriorityType, priority);
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string ToStringYN(this bool b)
+	{
+		return b ? "Y" : "N";
 	}
 
 	public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)

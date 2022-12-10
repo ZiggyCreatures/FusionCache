@@ -36,7 +36,7 @@ public partial class FusionCache
 			return memoryEntry;
 		}
 
-		var dca = GetCurrentDistributedAccessor();
+		var dca = GetCurrentDistributedAccessor(options);
 
 		// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
 		if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
@@ -400,7 +400,7 @@ public partial class FusionCache
 
 		_mca.SetEntry<TValue>(operationId, key, entry, options);
 
-		var dca = GetCurrentDistributedAccessor();
+		var dca = GetCurrentDistributedAccessor(options);
 
 		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 		{
@@ -432,7 +432,7 @@ public partial class FusionCache
 
 		_mca.RemoveEntry(operationId, key, options);
 
-		var dca = GetCurrentDistributedAccessor();
+		var dca = GetCurrentDistributedAccessor(options);
 
 		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 		{

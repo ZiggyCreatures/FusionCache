@@ -41,6 +41,8 @@ public class FusionCacheEntryOptions
 
 		EnableBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsEnableBackplaneNotifications;
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
+
+		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
 	}
 
 	/// <summary>
@@ -201,12 +203,17 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	public bool AllowBackgroundBackplaneOperations { get; set; }
 
+	/// <summary>
+	/// Skip the usage of the distributed cache, if any.
+	/// </summary>
+	public bool SkipDistributedCache { get; set; }
+
 	internal bool IsSafeForAdaptiveCaching { get; set; }
 
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={(IsFailSafeEnabled ? "Y" : "N")} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={(AllowTimedOutFactoryBackgroundCompletion ? "Y" : "N")} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={(AllowBackgroundDistributedCacheOperations ? "Y" : "N")} BN={(EnableBackplaneNotifications ? "Y" : "N")} BBO={(AllowBackgroundBackplaneOperations ? "Y" : "N")}]";
+		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} SKD={SkipDistributedCache.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} BN={EnableBackplaneNotifications.ToStringYN()} BBO={AllowBackgroundBackplaneOperations.ToStringYN()}]";
 	}
 
 	/// <summary>
@@ -368,6 +375,17 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the <see cref="SkipDistributedCache"/> property.
+	/// </summary>
+	/// <param name="skipDistributedCache">The value for the <see cref="SkipDistributedCache"/> property.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipDistributedCache(bool skipDistributedCache)
+	{
+		SkipDistributedCache = skipDistributedCache;
+		return this;
+	}
+
+	/// <summary>
 	/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 	/// </summary>
 	/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
@@ -487,7 +505,9 @@ public class FusionCacheEntryOptions
 			ReThrowSerializationExceptions = ReThrowSerializationExceptions,
 
 			EnableBackplaneNotifications = EnableBackplaneNotifications,
-			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations
+			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations,
+
+			SkipDistributedCache = SkipDistributedCache
 		};
 	}
 
