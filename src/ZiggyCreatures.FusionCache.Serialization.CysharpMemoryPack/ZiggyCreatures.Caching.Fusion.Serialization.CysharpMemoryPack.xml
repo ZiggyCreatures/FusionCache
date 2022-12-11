@@ -27,6 +27,26 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.FusionCacheCysharpMemoryPackSerializer.DeserializeAsync``1(System.Byte[])">
             <inheritdoc />
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internals.SerializableFusionCacheDistributedEntry`1">
+            <remarks>
+            MemoryPack GenerateType: Object<br/>
+            <code>
+            <b>bool</b> IsNull<br/>
+            <b>TValue</b> Value<br/>
+            <b>ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata</b> Metadata<br/>
+            </code>
+            </remarks>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internals.SerializableFusionCacheEntryMetadata">
+            <remarks>
+            MemoryPack GenerateType: Object<br/>
+            <code>
+            <b>bool</b> IsNull<br/>
+            <b>System.DateTimeOffset</b> LogicalExpiration<br/>
+            <b>bool</b> IsFromFailSafe<br/>
+            </code>
+            </remarks>
+        </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerServiceCollectionExtensions">
             <summary>
             Extension methods for setting up FusionCache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.

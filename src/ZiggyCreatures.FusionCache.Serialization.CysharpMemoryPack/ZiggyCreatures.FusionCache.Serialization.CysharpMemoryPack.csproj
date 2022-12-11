@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.1</TargetFramework>
-		<LangVersion>10.0</LangVersion>
+		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
+		<LangVersion>11.0</LangVersion>
 		<Nullable>enable</Nullable>
 		<Version>0.17.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack</PackageId>
