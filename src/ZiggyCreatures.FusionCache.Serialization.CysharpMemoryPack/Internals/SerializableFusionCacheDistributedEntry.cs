@@ -52,11 +52,11 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 
 		public override void Deserialize(ref MemoryPackReader reader, scoped ref FusionCacheDistributedEntry<TValue>? value)
 		{
-			//if (reader.PeekIsNull())
-			//{
-			//	value = null;
-			//	return;
-			//}
+			if (reader.PeekIsNull())
+			{
+				value = null;
+				return;
+			}
 
 			var wrapped = reader.ReadPackable<SerializableFusionCacheDistributedEntry<TValue>>();
 			if (wrapped is null)
