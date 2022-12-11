@@ -21,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MemoryPack" Version="1.8.13" />
+		<PackageReference Include="MemoryPack" Version="1.9.2" />
 	</ItemGroup>
 
 	<ItemGroup>
