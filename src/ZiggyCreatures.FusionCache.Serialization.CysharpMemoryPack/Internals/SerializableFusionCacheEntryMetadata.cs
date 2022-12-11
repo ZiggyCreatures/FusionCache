@@ -25,11 +25,10 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 			if (isNull)
 			{
 				this.Metadata = null;
+				return;
 			}
-			else
-			{
-				this.Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe);
-			}
+
+			this.Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe);
 		}
 
 		public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)
@@ -42,20 +41,31 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 	{
 		public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer, scoped ref FusionCacheEntryMetadata? value)
 		{
+			if (value is null)
+			{
+				writer.WriteNullObjectHeader();
+				return;
+			}
+
 			writer.WritePackable(new SerializableFusionCacheEntryMetadata(value));
 		}
 
 		public override void Deserialize(ref MemoryPackReader reader, scoped ref FusionCacheEntryMetadata? value)
 		{
-			var wrapped = reader.ReadPackable<SerializableFusionCacheEntryMetadata>();
-			if (wrapped is not null)
-			{
-				value = wrapped.Metadata;
-			}
-			else
+			if (reader.PeekIsNull())
 			{
 				value = null;
+				return;
 			}
+
+			var wrapped = reader.ReadPackable<SerializableFusionCacheEntryMetadata>();
+			if (wrapped is null)
+			{
+				value = null;
+				return;
+			}
+
+			value = wrapped.Metadata;
 		}
 	}
 }
