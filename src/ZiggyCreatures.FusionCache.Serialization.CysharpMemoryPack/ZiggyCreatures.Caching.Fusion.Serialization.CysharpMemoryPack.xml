@@ -31,7 +31,6 @@
             <remarks>
             MemoryPack GenerateType: Object<br/>
             <code>
-            <b>bool</b> IsNull<br/>
             <b>TValue</b> Value<br/>
             <b>ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata</b> Metadata<br/>
             </code>
@@ -41,7 +40,6 @@
             <remarks>
             MemoryPack GenerateType: Object<br/>
             <code>
-            <b>bool</b> IsNull<br/>
             <b>System.DateTimeOffset</b> LogicalExpiration<br/>
             <b>bool</b> IsFromFailSafe<br/>
             </code>
