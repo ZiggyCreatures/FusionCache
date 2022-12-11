@@ -149,6 +149,8 @@ namespace FusionCacheTests
 
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
+			Assert.Equal(SampleString, looped!.Value);
+			Assert.Null(looped!.Metadata);
 		}
 
 		[Theory]
@@ -165,6 +167,8 @@ namespace FusionCacheTests
 
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
+			Assert.Equal(SampleString, looped!.Value);
+			Assert.Null(looped!.Metadata);
 		}
 	}
 }
