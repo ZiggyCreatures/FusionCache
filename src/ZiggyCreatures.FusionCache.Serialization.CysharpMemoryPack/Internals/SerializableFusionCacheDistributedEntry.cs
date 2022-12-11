@@ -11,23 +11,14 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		public readonly FusionCacheDistributedEntry<TValue>? Entry;
 
 		[MemoryPackInclude]
-		public bool IsNull => Entry is null;
-
-		[MemoryPackInclude]
 		public TValue? Value => Entry is not null ? Entry.Value : default;
 
 		[MemoryPackAllowSerialize]
 		public FusionCacheEntryMetadata? Metadata => Entry?.Metadata;
 
 		[MemoryPackConstructor]
-		SerializableFusionCacheDistributedEntry(bool isNull, TValue value, FusionCacheEntryMetadata? metadata)
+		SerializableFusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata)
 		{
-			if (isNull)
-			{
-				this.Entry = null;
-				return;
-			}
-
 			this.Entry = new FusionCacheDistributedEntry<TValue>(value, metadata);
 		}
 
