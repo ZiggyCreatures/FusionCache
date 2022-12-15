@@ -1,10 +1,10 @@
 <div align="center">
 
 ![FusionCache logo](docs/logo-256x256.png)
+	
+# FusionCache
 
 </div>
-
-# FusionCache
 
 <div align="center">
 
