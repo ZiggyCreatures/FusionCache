@@ -11,10 +11,10 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		public readonly FusionCacheEntryMetadata? Metadata;
 
 		[MemoryPackInclude]
-		public DateTimeOffset LogicalExpiration => (Metadata?.LogicalExpiration) ?? default;
+		public DateTimeOffset LogicalExpiration => Metadata?.LogicalExpiration ?? default;
 
 		[MemoryPackInclude]
-		public bool IsFromFailSafe => (Metadata?.IsFromFailSafe) ?? default;
+		public bool IsFromFailSafe => Metadata?.IsFromFailSafe ?? default;
 
 		[MemoryPackConstructor]
 		SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe)
