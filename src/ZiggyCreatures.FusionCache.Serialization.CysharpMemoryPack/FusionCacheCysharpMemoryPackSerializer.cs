@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using MemoryPack;
+using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internals;
 
@@ -13,7 +14,7 @@ public class FusionCacheCysharpMemoryPackSerializer
 {
 	static FusionCacheCysharpMemoryPackSerializer()
 	{
-		FusionCacheEntryMetadataSurrogate.RegisterFormatter();
+		MemoryPackFormatterProvider.Register<FusionCacheEntryMetadata>(new FusionCacheEntryMetadataFormatter());
 		MemoryPackFormatterProvider.RegisterGenericType(typeof(FusionCacheDistributedEntry<>), typeof(FusionCacheDistributedEntryFormatter<>));
 	}
 

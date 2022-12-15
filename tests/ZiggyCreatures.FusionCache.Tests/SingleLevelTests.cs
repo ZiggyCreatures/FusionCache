@@ -557,7 +557,7 @@ namespace FusionCacheTests
 				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
 				await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));
 				// LET IT EXPIRE
-				await Task.Delay(duration + TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+				await Task.Delay(duration.PlusALittleBit()).ConfigureAwait(false);
 				// CHECK EXPIRED (WITHOUT FAIL-SAFE)
 				var nope = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
 				// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
@@ -589,7 +589,7 @@ namespace FusionCacheTests
 				// SET THE VALUE (WITH FAIL-SAFE ENABLED)
 				cache.Set("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));
 				// LET IT EXPIRE
-				Thread.Sleep(duration + TimeSpan.FromSeconds(1));
+				Thread.Sleep(duration.PlusALittleBit());
 				// CHECK EXPIRED (WITHOUT FAIL-SAFE)
 				var nope = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
 				// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION

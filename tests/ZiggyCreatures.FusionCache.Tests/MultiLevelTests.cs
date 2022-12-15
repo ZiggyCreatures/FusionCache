@@ -124,7 +124,7 @@ namespace FusionCacheTests
 				{
 					fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
-					await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+					await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit()).ConfigureAwait(false);
 					memoryCache.Remove("foo");
 					await Assert.ThrowsAsync<Exception>(async () =>
 					{
@@ -149,7 +149,7 @@ namespace FusionCacheTests
 				{
 					fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
-					Thread.Sleep(TimeSpan.FromSeconds(1));
+					Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
 					memoryCache.Remove("foo");
 					Assert.Throws<Exception>(() =>
 					{
@@ -233,7 +233,7 @@ namespace FusionCacheTests
 					await fusionCache.SetAsync<int>("foo", 2, options => options.SetDurationSec(60).SetFailSafe(true));
 					chaosDistributedCache.SetNeverThrow();
 					await fusionCache.SetAsync<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
-					await Task.Delay(circuitBreakerDuration + TimeSpan.FromMilliseconds(100)).ConfigureAwait(false);
+					await Task.Delay(circuitBreakerDuration.PlusALittleBit()).ConfigureAwait(false);
 					memoryCache.Remove("foo");
 					var res = await fusionCache.GetOrDefaultAsync<int>("foo", -1);
 
@@ -262,7 +262,7 @@ namespace FusionCacheTests
 					fusionCache.Set<int>("foo", 2, options => options.SetDurationSec(60).SetFailSafe(true));
 					chaosDistributedCache.SetNeverThrow();
 					fusionCache.Set<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
-					Thread.Sleep(circuitBreakerDuration + TimeSpan.FromMilliseconds(100));
+					Thread.Sleep(circuitBreakerDuration.PlusALittleBit());
 					memoryCache.Remove("foo");
 					var res = fusionCache.GetOrDefault<int>("foo", -1);
 

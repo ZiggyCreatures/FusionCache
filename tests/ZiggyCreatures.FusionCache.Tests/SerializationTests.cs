@@ -134,5 +134,41 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task LoopSucceedsWithDistributedEntryAndNoMetadataAsync(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, null);
+
+			var data = await serializer.SerializeAsync(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
+			Assert.NotNull(looped);
+			Assert.Equal(SampleString, looped!.Value);
+			Assert.Null(looped!.Metadata);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void LoopSucceedsWithDistributedEntryAndNoMetadata(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, null);
+
+			var data = serializer.Serialize(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
+			Assert.NotNull(looped);
+			Assert.Equal(SampleString, looped!.Value);
+			Assert.Null(looped!.Metadata);
+		}
 	}
 }
