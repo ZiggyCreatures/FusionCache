@@ -136,7 +136,10 @@ public partial class FusionCache
 
 			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
-				(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+				if ((memoryEntry is object && options.SkipDistributedCacheReadWhenStale) == false)
+				{
+					(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+				}
 			}
 
 			if (distributedEntryIsValid)

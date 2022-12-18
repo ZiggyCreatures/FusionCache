@@ -13,9 +13,8 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- added MemoryPack support
 			- enable backplane auto-recovery by default
-			- switched to file-scopen namespaces
+			- switched to file-scoped namespaces
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

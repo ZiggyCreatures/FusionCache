@@ -12,7 +12,10 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Add missing service collection extensions</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- Better support for .NET 7
+			- Add missing service collection extensions
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
