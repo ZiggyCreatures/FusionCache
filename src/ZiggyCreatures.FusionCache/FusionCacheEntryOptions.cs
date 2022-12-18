@@ -428,10 +428,13 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> property.</param>
+	/// <param name="skipBackplaneNotifications">The value for the <see cref="SkipBackplaneNotifications"/> property: if set to <see langword="null"/>, no changes will be made.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
-	public FusionCacheEntryOptions SetSkipDistributedCache(bool skip)
+	public FusionCacheEntryOptions SetSkipDistributedCache(bool skip, bool? skipBackplaneNotifications)
 	{
 		SkipDistributedCache = skip;
+		if (skipBackplaneNotifications.HasValue)
+			SkipBackplaneNotifications = skipBackplaneNotifications.Value;
 		return this;
 	}
 
