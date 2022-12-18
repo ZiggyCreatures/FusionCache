@@ -95,9 +95,9 @@ public static class FusionCacheGlobalDefaults
 	public static TimeSpan EntryOptionsFailSafeThrottleDuration { get; set; } = TimeSpan.FromSeconds(30);
 
 	/// <summary>
-	/// The global default <see cref="FusionCacheEntryOptions.EnableBackplaneNotifications"/>.
+	/// The global default <see cref="FusionCacheEntryOptions.SkipBackplaneNotifications"/>.
 	/// </summary>
-	public static bool EntryOptionsEnableBackplaneNotifications { get; set; } = true;
+	public static bool EntryOptionsSkipBackplaneNotifications { get; set; } = false;
 
 	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.

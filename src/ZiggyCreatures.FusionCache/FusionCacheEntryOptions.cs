@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -39,7 +40,7 @@ public class FusionCacheEntryOptions
 		FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
 		FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
 
-		EnableBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsEnableBackplaneNotifications;
+		SkipBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications;
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
 
 		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
@@ -190,8 +191,24 @@ public class FusionCacheEntryOptions
 	/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <br/>
+	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
-	public bool EnableBackplaneNotifications { get; set; }
+	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
+	public bool EnableBackplaneNotifications
+	{
+		get { return !SkipBackplaneNotifications; }
+		set { SkipBackplaneNotifications = !value; }
+	}
+
+	/// <summary>
+	/// Skip the usage of the backplane, if any.
+	/// <br/>
+	/// Normally, if you have a backplane setup, any change operation (like a SET via a Set/GetOrSet call or a REMOVE via a Remove call) will send backplane notifications: this option can skip it.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public bool SkipBackplaneNotifications { get; set; }
 
 	/// <summary>
 	/// By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
@@ -227,7 +244,7 @@ public class FusionCacheEntryOptions
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} SKD={SkipDistributedCache.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} BN={EnableBackplaneNotifications.ToStringYN()} BBO={AllowBackgroundBackplaneOperations.ToStringYN()}]";
+		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} SKD={SkipDistributedCache.ToStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} SBN={SkipBackplaneNotifications.ToStringYN()} BBO={AllowBackgroundBackplaneOperations.ToStringYN()}]";
 	}
 
 	/// <summary>
@@ -379,17 +396,36 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// Enable or disable backplane notifications.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <br/>
+	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
 	public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
 	{
-		EnableBackplaneNotifications = enableBackplaneNotifications;
+		return SetSkipBackplaneNotifications(!enableBackplaneNotifications);
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipBackplaneNotifications"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipBackplaneNotifications"/> property.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipBackplaneNotifications(bool skip)
+	{
+		SkipBackplaneNotifications = skip;
 		return this;
 	}
 
 	/// <summary>
-	/// Set the <see cref="SkipDistributedCache"/> property.
+	/// Set the <see cref="SkipDistributedCache"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -400,7 +436,9 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the <see cref="SkipDistributedCacheReadWhenStale"/> property.
+	/// Set the <see cref="SkipDistributedCacheReadWhenStale"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	/// <param name="skip">Set the <see cref="SkipDistributedCacheReadWhenStale"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -532,7 +570,7 @@ public class FusionCacheEntryOptions
 			AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations,
 
-			EnableBackplaneNotifications = EnableBackplaneNotifications,
+			SkipBackplaneNotifications = SkipBackplaneNotifications,
 
 			SkipDistributedCache = SkipDistributedCache,
 			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale

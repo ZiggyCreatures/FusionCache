@@ -153,7 +153,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = WorkloadScenarioOptions.AllowBackgroundBackplaneOperations;
 					options.BackplaneCircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration;
 					if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
-						options.DefaultEntryOptions.EnableBackplaneNotifications = false;
+						options.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
 					var cache = new FusionCache(options);
 					AnsiConsole.MarkupLine("[green3_1]OK[/]");
