@@ -199,13 +199,13 @@ So how can we solve this?
 
 ## 🥳 Look ma: no distributed cache!
 
-The solution is to **disable automatic backplane notifications** and publish them only when we want to signal an actual change.
+The solution is to **skip automatic backplane notifications** and publish them only when we want to signal an actual change.
 
 And how can we do this, in practice?
 
-To decide if notifications should be published on the backplane FusionCache looks at the `EnableBackplaneNotifications` option on the `FusionCacheEntryOptions` object: this means that we can be granular and specify it for every single operation, but as we know this also means that we can set it to `false` in the global `DefaultEntryOptions` once, and not having to disable it every time.
+By default notifications are published on the backplane (if any): to skip them we can just set the `SkipBackplaneNotifications` option on the `FusionCacheEntryOptions` object. This means that we can be granular and specify it for every single operation, but as we know this also means that we can set it to `true` in the global `DefaultEntryOptions` once, and not having to skip them every time.
 
-But then, when we **want** to publish a notification, how can we do it? Easy peasy, simply enable it only for that specific operation.
+But then, when we **want** to publish a notification, how can we do it? Easy peasy, simply enable them only for that specific operation.
 
 Let's look at a concrete example.
 
@@ -213,8 +213,8 @@ Let's look at a concrete example.
 ### Example
 
 ```csharp
-// INITIAL SETUP: DISABLE AUTOMATIC NOTIFICATIONS
-cache.DefaultEntryOptions.EnableBackplaneNotifications = false;
+// INITIAL SETUP: SKIP AUTOMATIC NOTIFICATIONS
+cache.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
 // [...]
 
@@ -222,13 +222,13 @@ cache.DefaultEntryOptions.EnableBackplaneNotifications = false;
 cache.Set(
     $"product:{product.Id}",
     product,
-    options => options.SetDuration(TimeSpan.FromMinutes(5)).SetBackplane(true)
+    options => options.SetDuration(TimeSpan.FromMinutes(5)).SetSkipBackplaneNotifications(false)
 );
 
 // LATER ON, SUPPOSE WE JUST REMOVED THE PRODUCT FROM THE DATABASE, SO WE NEED TO REMOVE IT FROM THE CACHE TOO
 cache.Remove(
     $"product:{product.Id}",
-    options => options.SetBackplane(true)
+    options => options.SetSkipBackplaneNotifications(false)
 );
 ```
 

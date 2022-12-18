@@ -56,7 +56,7 @@ public partial class FusionCache
 			//	_events.OnSet(operationId, key);
 
 			//	// BACKPLANE
-			//	if (options.EnableBackplaneNotifications)
+			//	if (options.SkipBackplaneNotifications == false)
 			//		PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
 
 			//	return memoryEntry;
@@ -256,7 +256,7 @@ public partial class FusionCache
 			_events.OnSet(operationId, key);
 
 			// BACKPLANE
-			if (options.EnableBackplaneNotifications)
+			if (options.SkipBackplaneNotifications == false)
 				PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
 		}
 		else if (entry is not null)
@@ -414,7 +414,7 @@ public partial class FusionCache
 		_events.OnSet(operationId, key);
 
 		// BACKPLANE
-		if (options.EnableBackplaneNotifications)
+		if (options.SkipBackplaneNotifications == false)
 			PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
 	}
 
@@ -446,7 +446,7 @@ public partial class FusionCache
 		_events.OnRemove(operationId, key);
 
 		// BACKPLANE
-		if (options.EnableBackplaneNotifications)
+		if (options.SkipBackplaneNotifications == false)
 			PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options);
 	}
 

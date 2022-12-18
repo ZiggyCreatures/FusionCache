@@ -337,11 +337,11 @@ public partial class FusionCache
 		// - HAS A MEMORY CACHE (ALWAYS)
 		// - HAS BACKPLANE
 		// - DOES *NOT* HAVE A DISTRIBUTED CACHE
-		// - THE OPTION DefaultEntryOptions.EnableBackplaneNotifications IS TRUE
-		if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.EnableBackplaneNotifications)
+		// - THE OPTION DefaultEntryOptions.SkipBackplaneNotifications IS FALSE
+		if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.SkipBackplaneNotifications == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.EnableBackplaneNotifications option is set to true. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.EnableBackplaneNotifications to false.", backplane.GetType().FullName);
+				_logger.LogWarning("FUSION: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", backplane.GetType().FullName);
 		}
 
 		return this;

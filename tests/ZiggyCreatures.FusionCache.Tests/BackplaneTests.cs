@@ -269,16 +269,16 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public async Task NoAutomaticNotificationsAsync()
+		public async Task CanSkipNotificationsAsync()
 		{
 			var key = Guid.NewGuid().ToString("N");
 			using var cache1 = CreateFusionCache(null, null, null, CreateBackplane());
 			using var cache2 = CreateFusionCache(null, null, null, CreateBackplane());
 			using var cache3 = CreateFusionCache(null, null, null, CreateBackplane());
 
-			cache1.DefaultEntryOptions.EnableBackplaneNotifications = false;
-			cache2.DefaultEntryOptions.EnableBackplaneNotifications = false;
-			cache3.DefaultEntryOptions.EnableBackplaneNotifications = false;
+			cache1.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			cache3.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -310,16 +310,16 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void NoAutomaticNotifications()
+		public void CanSkipNotifications()
 		{
 			var key = Guid.NewGuid().ToString("N");
 			using var cache1 = CreateFusionCache(null, null, null, CreateBackplane());
 			using var cache2 = CreateFusionCache(null, null, null, CreateBackplane());
 			using var cache3 = CreateFusionCache(null, null, null, CreateBackplane());
 
-			cache1.DefaultEntryOptions.EnableBackplaneNotifications = false;
-			cache2.DefaultEntryOptions.EnableBackplaneNotifications = false;
-			cache3.DefaultEntryOptions.EnableBackplaneNotifications = false;
+			cache1.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			cache3.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
