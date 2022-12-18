@@ -191,6 +191,8 @@ public class FusionCacheEntryOptions
 	/// Enable publishing of backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <br/>
+	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
 	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
 	public bool EnableBackplaneNotifications
@@ -394,6 +396,10 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// Enable or disable backplane notifications.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <br/>
+	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -405,6 +411,8 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// Set the <see cref="SkipBackplaneNotifications"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	/// <param name="skip">The value for the <see cref="SkipBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -416,6 +424,8 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// Set the <see cref="SkipDistributedCache"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -427,6 +437,8 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// Set the <see cref="SkipDistributedCacheReadWhenStale"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	/// <param name="skip">Set the <see cref="SkipDistributedCacheReadWhenStale"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
