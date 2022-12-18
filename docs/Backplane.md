@@ -42,7 +42,7 @@ As we can see we didn't have to do anything more than usual: everything else is 
 
 One detail that may be interesting to know is what happens when a notification is sent.
 
-When you think about it, there are 3 things that could be done after some data changes (at least theoretically):
+When we think about it, there are 3 things that could be done after some data changes (at least theoretically):
 1. **ACTIVE:** send the change notification, including the updated data
 2. **PASSIVE:** send the change notification, and each client will update it immediately
 3. **LAZY:** send the change notification, and each client will remove their local version of the data (since it's old now)
@@ -234,9 +234,9 @@ cache.Remove(
 
 ## ⚠ External changes: be careful
 
-Just to reiterate, because it's very important: when using the backplane **without** a distributed cache, any change not manually published by you would result in different nodes not being synched.
+Just to reiterate, because it's very important: when using the backplane **without** a distributed cache, any change not manually published by us would result in different nodes not being synched.
 
-This means that, if you want to use the backplane without the distributed cache, you should be confident about the fact that **ALL** changes will be notified by you manually.
+This means that, if we want to use the backplane without the distributed cache, we should be confident about the fact that **ALL** changes will be notified by us manually.
 
 To better understand what would happen otherwise let's look at an example, again with a couple of `GetOrSet` operations on 3 nodes (`N1`, `N2`, `N3`):
 
@@ -250,13 +250,13 @@ To better understand what would happen otherwise let's look at an example, again
 
 Now `N1` and `N2` will have different data cached for `5 min`, see the problem?
 
-So when using a backplane I would **really** suggest using a distributed cache too, otherwise the system may become a little bit too fragile. If, on the other hand, you are comfortable with such a situation, by all means use it.
+So when using a backplane I would **really** suggest using a distributed cache too, otherwise the system may become a little bit too fragile. If, on the other hand, we are comfortable with such a situation, by all means use it.
 
 ## Conclusion
 
 As we saw there are basically 2 ways of using a backplane:
 
 - **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything, everything just works and it's hard to have inconsistencies between different nodes
-- **2️⃣ MEMORY + BACKPLANE (NO DISTRIBUTED)**: probably the less common, where we have to disable automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes. It's easier to have inconsistencies between different nodes
+- **2️⃣ MEMORY + BACKPLANE (NO DISTRIBUTED)**: probably the less common, where we have to skip automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes. It's easier to have inconsistencies between different nodes
 
-So remember: without a distributed cache we should **⚠ DISABLE** backplane notifications by default, otherwise your system may suffer.
+So remember: without a distributed cache we should **⚠ SKIP** backplane notifications by default, otherwise our system may suffer.
