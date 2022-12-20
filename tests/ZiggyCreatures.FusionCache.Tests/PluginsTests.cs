@@ -170,48 +170,50 @@ namespace FusionCacheTests
 		public async Task DependencyInjectionAutoDiscoveryWorksAsync()
 		{
 			var services = new ServiceCollection();
+
 			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
 			services.AddFusionCache(options =>
 			{
 				options.EnableSyncEventHandlersExecution = true;
 			});
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				// GET THE PLUGIN (SHOULD RETURN THE SME INSTANCE, BECAUSE SINGLETON)
-				var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
+			using var serviceProvider = services.BuildServiceProvider();
 
-				// MISS: +1
-				await cache.TryGetAsync<int>("foo");
+			var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.True(plugin!.IsStarted, "Plugin has not been started");
-				Assert.Equal(1, plugin.MissCount);
-			}
+			// GET THE PLUGIN (SHOULD RETURN THE SME INSTANCE, BECAUSE SINGLETON)
+			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
+
+			// MISS: +1
+			await cache.TryGetAsync<int>("foo");
+
+			Assert.True(plugin!.IsStarted, "Plugin has not been started");
+			Assert.Equal(1, plugin.MissCount);
 		}
 
 		[Fact]
 		public void DependencyInjectionAutoDiscoveryWorks()
 		{
 			var services = new ServiceCollection();
+
 			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
 			services.AddFusionCache(options =>
 			{
 				options.EnableSyncEventHandlersExecution = true;
 			});
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				// GET THE PLUGIN (SHOULD RETURN THE SME INSTANCE, BECAUSE SINGLETON)
-				var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
+			using var serviceProvider = services.BuildServiceProvider();
 
-				// MISS: +1
-				cache.TryGet<int>("foo");
+			var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.True(plugin!.IsStarted, "Plugin has not been started");
-				Assert.Equal(1, plugin.MissCount);
-			}
+			// GET THE PLUGIN (SHOULD RETURN THE SME INSTANCE, BECAUSE SINGLETON)
+			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
+
+			// MISS: +1
+			cache.TryGet<int>("foo");
+
+			Assert.True(plugin!.IsStarted, "Plugin has not been started");
+			Assert.Equal(1, plugin.MissCount);
 		}
 	}
 }

@@ -1055,6 +1055,12 @@
             <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/>.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetDefaultCache(ZiggyCreatures.Caching.Fusion.IFusionCacheProvider)">
+            <summary>
+            Returns the default FusionCache instance, the one with the CacheName equals to <see cref="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultCacheName"/>.
+            </summary>
+            <returns>The default FusionCache instance.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
@@ -1460,6 +1466,11 @@
             Represents all the options available for the entire <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
             </summary>
         </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultCacheName">
+            <summary>
+            The default value for <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/>.
+            </summary>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.#ctor">
             <summary>
             Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.
@@ -1800,6 +1811,18 @@
             </summary>
             <param name="plugin">The <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> instance.</param>
             <returns><see langword="true"/> if the plugin has been removed, otherwise <see langword="false"/>.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCacheProvider">
+            <summary>
+            The provider to work with multiple named FusionCache instances, kinda like Microsoft's HTTP named clients (see https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests#named-clients)
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCacheProvider.GetCache(System.String)">
+            <summary>
+            Returns the FusionCache instance with the corresponding name.
+            </summary>
+            <param name="cacheName">The name of the cache: it must match the one provided during registration.</param>
+            <returns>The FusionCache instance corresponding to the cache name specified.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom">
             <summary>
@@ -2311,6 +2334,27 @@
             <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
             <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
             <param name="setupCacheAction">The <see cref="T:System.Action`2"/> to configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache})">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
+            <param name="setupOptionsAction">The <see cref="T:System.Action`1"/> to configure the provided <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/>.</param>
+            <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
+            <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
+            <param name="setupCacheAction">The <see cref="T:System.Action`2"/> to configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
+            <param name="cache">The direct FusionCache instance.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
     </members>

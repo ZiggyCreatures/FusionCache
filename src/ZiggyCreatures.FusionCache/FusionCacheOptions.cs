@@ -14,11 +14,16 @@ public class FusionCacheOptions
 	private FusionCacheEntryOptions _defaultEntryOptions;
 
 	/// <summary>
+	/// The default value for <see cref="IFusionCache.CacheName"/>.
+	/// </summary>
+	public static readonly string DefaultCacheName = "FusionCache";
+
+	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheOptions"/> object.
 	/// </summary>
 	public FusionCacheOptions()
 	{
-		_cacheName = "FusionCache";
+		_cacheName = DefaultCacheName;
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
 
