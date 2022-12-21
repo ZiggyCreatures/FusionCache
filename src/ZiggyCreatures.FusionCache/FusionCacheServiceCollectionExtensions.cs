@@ -135,7 +135,7 @@ public static class FusionCacheServiceCollectionExtensions
 		{
 			var logger = serviceProvider.GetService<ILogger<FusionCache>>();
 
-			var options = serviceProvider.GetRequiredService<IOptionsSnapshot<FusionCacheOptions>>().Get(cacheName);
+			var options = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheOptions>>().Get(cacheName);
 
 			var cache = new FusionCache(
 				options,
