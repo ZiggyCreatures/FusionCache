@@ -29,6 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion
 
 		bool UseRegisteredDistributedCache { get; set; }
 		bool IgnoreRegisteredMemoryDistributedCache { get; set; }
+		bool ThrowIfMissingSerializer { get; set; }
 		IDistributedCache? DistributedCache { get; set; }
 		IFusionCacheSerializer? Serializer { get; set; }
 

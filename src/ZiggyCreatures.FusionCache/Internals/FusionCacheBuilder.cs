@@ -51,6 +51,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 		public bool UseRegisteredDistributedCache { get; set; }
 		public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
+		public bool ThrowIfMissingSerializer { get; set; }
 		public IDistributedCache? DistributedCache { get; set; }
 		public IFusionCacheSerializer? Serializer { get; set; }
 
@@ -148,7 +149,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					serializer = serviceProvider.GetService<IFusionCacheSerializer>();
 				}
 
-				if (serializer is null)
+				if (serializer is null && ThrowIfMissingSerializer)
 				{
 					throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache subsystem has not been set up");
 				}

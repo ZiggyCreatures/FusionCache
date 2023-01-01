@@ -205,5 +205,21 @@ namespace FusionCacheTests
 				cacheProvider.GetCache("BarCache");
 			});
 		}
+
+		[Fact]
+		public void ThrowIfMissingSerializer()
+		{
+			var services = new ServiceCollection();
+
+			services.AddDistributedMemoryCache();
+			services.AddFusionCache(b => b.WithRegisteredDistributedCache(false));
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				serviceProvider.GetService<IFusionCache>();
+			});
+		}
 	}
 }

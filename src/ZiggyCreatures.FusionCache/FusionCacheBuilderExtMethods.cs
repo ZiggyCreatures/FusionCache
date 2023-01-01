@@ -42,10 +42,11 @@ public static partial class FusionCacheBuilderExtMethods
 		return b;
 	}
 
-	public static IFusionCacheBuilder WithRegisteredDistributedCache(this IFusionCacheBuilder b, bool ignoreMemoryDistributedCache = true)
+	public static IFusionCacheBuilder WithRegisteredDistributedCache(this IFusionCacheBuilder b, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
 	{
 		b.UseRegisteredDistributedCache = true;
 		b.IgnoreRegisteredMemoryDistributedCache = ignoreMemoryDistributedCache;
+		b.ThrowIfMissingSerializer = throwIfMissingSerializer;
 
 		return b;
 	}
