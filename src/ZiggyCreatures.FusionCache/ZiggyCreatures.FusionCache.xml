@@ -530,6 +530,11 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods">
+            <summary>
+            A set of extension methods that add some commonly used setup actions to an instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> object.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
             <summary>
             Represents all the options available for a single <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> entry.
@@ -1812,6 +1817,11 @@
             <param name="plugin">The <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> instance.</param>
             <returns><see langword="true"/> if the plugin has been removed, otherwise <see langword="false"/>.</returns>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.CacheName">
+            <summary>
+            Gets the name of the FusionCache instance configured by this builder.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCacheProvider">
             <summary>
             The provider to work with multiple named FusionCache instances, kinda like Microsoft's HTTP named clients (see https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests#named-clients)
@@ -1905,6 +1915,9 @@
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
             <returns>The newly created entry.</returns>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheBuilder.CacheName">
+            <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata">
             <summary>
@@ -2330,18 +2343,6 @@
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
-            <param name="setupOptionsAction">The <see cref="T:System.Action`1"/> to configure the provided <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/>.</param>
-            <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
-            <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
-            <param name="setupCacheAction">The <see cref="T:System.Action`2"/> to configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
-            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache})">
-            <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
-            </summary>
-            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
-            <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
             <param name="setupOptionsAction">The <see cref="T:System.Action`1"/> to configure the provided <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/>.</param>
             <param name="useDistributedCacheIfAvailable">Automatically wires up an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> if it has been registered in the Dependendy Injection container </param>
             <param name="ignoreMemoryDistributedCache">If the registered <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> found is an instance of <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>

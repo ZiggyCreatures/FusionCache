@@ -16,7 +16,7 @@ public class FusionCacheOptions
 	/// <summary>
 	/// The default value for <see cref="IFusionCache.CacheName"/>.
 	/// </summary>
-	public static readonly string DefaultCacheName = "FusionCache";
+	public const string DefaultCacheName = "FusionCache";
 
 	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheOptions"/> object.

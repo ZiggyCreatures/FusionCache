@@ -69,43 +69,38 @@ namespace FusionCacheTests
 			// FOO: 10 MIN DURATION + FAIL-SAFE
 			services.AddFusionCache(
 				"FooCache",
-				opt =>
+				b =>
 				{
-					opt.DefaultEntryOptions
+					b.WithDefaultEntryOptions(opt => opt
 						.SetDuration(TimeSpan.FromMinutes(10))
 						.SetFailSafe(true)
-					;
+					);
 				}
 			);
 
 			// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
 			services.AddFusionCache(
 				"BarCache",
-				opt =>
-				{
-					opt.DefaultEntryOptions
+				b => b
+					.WithDefaultEntryOptions(opt => opt
 						.SetDuration(TimeSpan.FromSeconds(42))
 						.SetFactoryTimeouts(TimeSpan.FromSeconds(3))
-					;
-				},
-				true,
-				false
+					)
+					.WithRegisteredDistributedCache(false)
 			);
 
 			// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE
 			services.AddFusionCache(
 				"BazCache",
-				opt =>
-				{
-					opt.DefaultEntryOptions
+				b => b
+					.WithDefaultEntryOptions(opt => opt
 						.SetDuration(TimeSpan.FromHours(3))
 						.SetFailSafe(true)
-					;
-				},
-				setupCacheAction: (sp, c) =>
-				{
-					c.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
-				}
+					)
+					.WithPostSetup((sp, c) =>
+					{
+						c.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+					})
 			);
 
 			// QUX (CUSTOM INSTANCE): 1 SEC DURATION + 123 DAYS DIST DURATION
