@@ -56,9 +56,9 @@ In this way the `cache` param will be automatically populated by the DI framewor
 Normally, if we just use `services.AddFusionCache();` in the startup phase what will happen is that FusionCache will use a default behaviour, like:
 
 - it will name the cache with a default value of `"FusionCache"`
-- it will look for a registered distributed cache (any implementation of `IDistributedCache`) and, if it also finds a valid serializer (any implementation of `IFusionCacheSerializer`), will add a 2nd level for us, all automatically
+- it will look for a registered distributed cache (any implementation of `IDistributedCache`) and, if it also finds a valid serializer (any implementation of `IFusionCacheSerializer`), will add a [2nd level](CacheLevels.md) for us, all automatically
 - it will look for a registered [backplane](Backplane.md) (any implementation of `IFusionCacheBackplane`) and use it, again all automatically
-- it will look for registered FusionCache plugins (all registered implementations of `IFusionCachePlugin`) and add + initialize them
+- it will look for registered FusionCache [plugins](Plugins.md) (all registered implementations of `IFusionCachePlugin`) and add + initialize them
 
 If we want though, we can customize that behaviour by changing the options used (`FusionCacheOptions`) and a couple of other things: keep reading to find out more.
 
