@@ -12,130 +12,261 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// </summary>
 public static partial class FusionCacheBuilderExtMethods
 {
-	public static IFusionCacheBuilder WithDefaultEntryOptions(this IFusionCacheBuilder b, FusionCacheEntryOptions options)
+	/// <summary>
+	/// Specify a <see cref="FusionCacheEntryOptions"/> instance to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="options">The <see cref="FusionCacheEntryOptions"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithDefaultEntryOptions(this IFusionCacheBuilder builder, FusionCacheEntryOptions options)
 	{
-		b.DefaultEntryOptions = options;
+		builder.DefaultEntryOptions = options;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithDefaultEntryOptions(this IFusionCacheBuilder b, Action<FusionCacheEntryOptions> optionsSetup)
+	/// <summary>
+	/// Specify a custom logic to further configure the <see cref="FusionCacheEntryOptions"/> instance to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="optionsSetup"></param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithDefaultEntryOptions(this IFusionCacheBuilder builder, Action<FusionCacheEntryOptions> optionsSetup)
 	{
-		b.DefaultEntryOptions = new FusionCacheEntryOptions();
-		optionsSetup?.Invoke(b.DefaultEntryOptions);
+		if (builder.DefaultEntryOptions is null)
+		{
+			builder.DefaultEntryOptions = new FusionCacheEntryOptions();
+		}
 
-		return b;
+		optionsSetup?.Invoke(builder.DefaultEntryOptions);
+
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithRegisteredMemoryCache(this IFusionCacheBuilder b)
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IMemoryCache"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredMemoryCache(this IFusionCacheBuilder builder)
 	{
-		b.UseRegisteredMemoryCache = true;
+		builder.UseRegisteredMemoryCache = true;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithMemoryCache(this IFusionCacheBuilder b, IMemoryCache memoryCache)
+	/// <summary>
+	/// Specify a custom <see cref="IMemoryCache"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithMemoryCache(this IFusionCacheBuilder builder, IMemoryCache memoryCache)
 	{
-		b.UseRegisteredMemoryCache = false;
-		b.MemoryCache = memoryCache;
+		builder.UseRegisteredMemoryCache = false;
+		builder.MemoryCache = memoryCache;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithRegisteredDistributedCache(this IFusionCacheBuilder b, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IDistributedCache"/> service (and a corresponding <see cref="IFusionCacheSerializer"/>) registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
+	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredDistributedCache(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
 	{
-		b.UseRegisteredDistributedCache = true;
-		b.IgnoreRegisteredMemoryDistributedCache = ignoreMemoryDistributedCache;
-		b.ThrowIfMissingSerializer = throwIfMissingSerializer;
+		builder.UseRegisteredDistributedCache = true;
+		builder.IgnoreRegisteredMemoryDistributedCache = ignoreMemoryDistributedCache;
+		builder.ThrowIfMissingSerializer = throwIfMissingSerializer;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithDistributedCache(this IFusionCacheBuilder b, IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+	/// <summary>
+	/// Specify a custom <see cref="IDistributedCache"/> and a custom <see cref="IFusionCacheSerializer"/> instances to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
+	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithDistributedCache(this IFusionCacheBuilder builder, IDistributedCache distributedCache, IFusionCacheSerializer serializer)
 	{
-		b.UseRegisteredDistributedCache = false;
-		b.DistributedCache = distributedCache;
-		b.Serializer = serializer;
+		builder.UseRegisteredDistributedCache = false;
+		builder.DistributedCache = distributedCache;
+		builder.Serializer = serializer;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithoutDistributedCache(this IFusionCacheBuilder b)
+	/// <summary>
+	/// Indicates that the builder should not use a distributed case.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithoutDistributedCache(this IFusionCacheBuilder builder)
 	{
-		b.UseRegisteredDistributedCache = false;
-		b.DistributedCache = null;
-		b.Serializer = null;
+		builder.UseRegisteredDistributedCache = false;
+		builder.DistributedCache = null;
+		builder.Serializer = null;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithRegisteredBackplane(this IFusionCacheBuilder b)
+	/// <summary>
+	/// Indicates if the builder should try find and use an <see cref="IFusionCacheBackplane"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredBackplane(this IFusionCacheBuilder builder)
 	{
-		b.UseRegisteredBackplane = true;
+		builder.UseRegisteredBackplane = true;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithBackplane(this IFusionCacheBuilder b, IFusionCacheBackplane backplane)
+	/// <summary>
+	/// Specify a custom <see cref="IFusionCacheBackplane"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="backplane">The <see cref="IFusionCacheBackplane"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithBackplane(this IFusionCacheBuilder builder, IFusionCacheBackplane backplane)
 	{
-		b.UseRegisteredBackplane = false;
-		b.Backplane = backplane;
+		builder.UseRegisteredBackplane = false;
+		builder.Backplane = backplane;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithoutBackplane(this IFusionCacheBuilder b)
+	/// <summary>
+	/// Indicates that the builder should not use a backplane.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithoutBackplane(this IFusionCacheBuilder builder)
 	{
-		b.UseRegisteredBackplane = false;
-		b.Backplane = null;
+		builder.UseRegisteredBackplane = false;
+		builder.Backplane = null;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithAllRegisteredPlugins(this IFusionCacheBuilder b)
+	/// <summary>
+	/// Indicates if the builder should try find and use any available <see cref="IFusionCachePlugin"/> services registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithAllRegisteredPlugins(this IFusionCacheBuilder builder)
 	{
-		b.UseAllRegisteredPlugins = true;
+		builder.UseAllRegisteredPlugins = true;
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithPlugin(this IFusionCacheBuilder b, IFusionCachePlugin plugin)
+	/// <summary>
+	/// Adds a custom <see cref="IFusionCachePlugin"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="plugin">The <see cref="IFusionCachePlugin"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithPlugin(this IFusionCacheBuilder builder, IFusionCachePlugin plugin)
 	{
-		b.UseAllRegisteredPlugins = false;
-		b.Plugins.Add(plugin);
+		builder.UseAllRegisteredPlugins = false;
+		builder.Plugins.Add(plugin);
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithPlugins(this IFusionCacheBuilder b, params IFusionCachePlugin[] plugins)
+	/// <summary>
+	/// Adds one or more custom <see cref="IFusionCachePlugin"/> instances to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="plugins">The <see cref="IFusionCachePlugin"/> instances to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithPlugins(this IFusionCacheBuilder builder, params IFusionCachePlugin[] plugins)
 	{
-		b.UseAllRegisteredPlugins = false;
-		b.Plugins.AddRange(plugins);
+		builder.UseAllRegisteredPlugins = false;
+		builder.Plugins.AddRange(plugins);
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithoutPlugins(this IFusionCacheBuilder b)
+	/// <summary>
+	/// Indicates that the builder should not use any plugins.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithoutPlugins(this IFusionCacheBuilder builder)
 	{
-		b.UseAllRegisteredPlugins = false;
-		b.Plugins.Clear();
+		builder.UseAllRegisteredPlugins = false;
+		builder.Plugins.Clear();
 
-		return b;
+		return builder;
 	}
 
-	public static IFusionCacheBuilder WithAllRegisteredComponents(this IFusionCacheBuilder b, bool ignoreMemoryDistributedCache = true)
+	/// <summary>
+	/// Indicates if the builder should try to find and use all the compatible services registered in the DI container, like a distributed cache, a backplane, plugins, etc.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithAllRegisteredComponents(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true)
 	{
-		return b
+		return builder
+			.WithRegisteredMemoryCache()
 			.WithRegisteredDistributedCache(ignoreMemoryDistributedCache)
 			.WithRegisteredBackplane()
 			.WithAllRegisteredPlugins()
 		;
 	}
 
-	public static IFusionCacheBuilder WithPostSetup(this IFusionCacheBuilder b, Action<IServiceProvider, IFusionCache> action)
+	/// <summary>
+	/// Specify a custom post-setup action, that will be invoked just after the creation of the FusionCache instance, and before returning it to the caller.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> it is possible to call this multiple times, to add multiple post-setup calls one after the other to combine them for a powerful result.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="action">The custom post-setup action to be added to the builder pipeline.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithPostSetup(this IFusionCacheBuilder builder, Action<IServiceProvider, IFusionCache> action)
 	{
-		b.PostSetupAction += action;
+		builder.PostSetupAction += action;
 
-		return b;
+		return builder;
 	}
 }

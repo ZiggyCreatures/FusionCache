@@ -179,6 +179,8 @@ public static class FusionCacheServiceCollectionExtensions
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
 	/// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAllRegisteredComponents() method.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
@@ -192,6 +194,8 @@ public static class FusionCacheServiceCollectionExtensions
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
 	/// <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
@@ -205,6 +209,8 @@ public static class FusionCacheServiceCollectionExtensions
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
 	/// <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>

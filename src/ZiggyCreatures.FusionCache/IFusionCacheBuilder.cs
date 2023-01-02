@@ -12,6 +12,8 @@ namespace ZiggyCreatures.Caching.Fusion
 {
 	/// <summary>
 	/// Represents an instance of a builder object to create FusionCache instances.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	public interface IFusionCacheBuilder
 	{
@@ -61,7 +63,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		bool UseRegisteredDistributedCache { get; set; }
 
 		/// <summary>
-		/// When trying to find an <see cref="IDistributedCache"/> service service registered in the DI container, ignore it if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by mvc without control from the user.
+		/// When trying to find an <see cref="IDistributedCache"/> service registered in the DI container, ignore it if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.
 		/// </summary>
 		bool IgnoreRegisteredMemoryDistributedCache { get; set; }
 
@@ -103,7 +105,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// A custom post-setup action, that will be invoked just after the creation of the FusionCache instance, and before returning it to the caller.
 		/// <br/><br/>
-		/// <strong>NOTE:</strong> it is possible to call this multiple times, to add multiple post-setup calls one after the other to combine them for a powerful result.
+		/// <strong>NOTE:</strong> it is possible to add actions multiple times, to add multiple post-setup calls one after the other to combine them for a powerful result.
 		/// </summary>
 		Action<IServiceProvider, IFusionCache>? PostSetupAction { get; set; }
 	}
