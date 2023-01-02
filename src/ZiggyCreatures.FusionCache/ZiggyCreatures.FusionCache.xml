@@ -1817,9 +1817,101 @@
             <param name="plugin">The <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> instance.</param>
             <returns><see langword="true"/> if the plugin has been removed, otherwise <see langword="false"/>.</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder">
+            <summary>
+            Represents an instance of a builder object to create FusionCache instances.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.CacheName">
             <summary>
-            Gets the name of the FusionCache instance configured by this builder.
+            The name of the FusionCache instance.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredLogger">
+            <summary>
+            Indicates if the builder should try find and use an <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> service registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Logger">
+            <summary>
+            A specific <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredMemoryCache">
+            <summary>
+            Indicates if the builder should try find and use an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> service registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.MemoryCache">
+            <summary>
+            A specific <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredOptions">
+            <summary>
+            Indicates if the builder should try find and use an <see cref="T:Microsoft.Extensions.Options.IOptions`1"/> service registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.SetupOptionsAction">
+            <summary>
+            A custom setup logic for the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object, to allow for fine-grained customization.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.DefaultEntryOptions">
+            <summary>
+            A custom <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to be used as the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredDistributedCache">
+            <summary>
+            Indicates if the builder should try find and use an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.IgnoreRegisteredMemoryDistributedCache">
+            <summary>
+            When trying to find an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service service registered in the DI container, ignore it if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by mvc without control from the user.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.ThrowIfMissingSerializer">
+            <summary>
+            If an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service is about to be used, but a valid <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> has not been provided, throw an exception: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.DistributedCache">
+            <summary>
+            A specific <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Serializer">
+            <summary>
+            A specific <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredBackplane">
+            <summary>
+            Indicates if the builder should try find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> service registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Backplane">
+            <summary>
+            A specific <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseAllRegisteredPlugins">
+            <summary>
+            Indicates if the builder should try find and use any available <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> services registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Plugins">
+            <summary>
+            A specific set of <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> instances to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.PostSetupAction">
+            <summary>
+            A custom post-setup action, that will be invoked just after the creation of the FusionCache instance, and before returning it to the caller.
+            <br/><br/>
+            <strong>NOTE:</strong> it is possible to call this multiple times, to add multiple post-setup calls one after the other to combine them for a powerful result.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCacheProvider">
@@ -2356,6 +2448,46 @@
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
             <param name="cache">The direct FusionCache instance.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAllRegisteredComponents() method.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
+            <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAllRegisteredComponents() method.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
+            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
+            </summary>
+            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
     </members>

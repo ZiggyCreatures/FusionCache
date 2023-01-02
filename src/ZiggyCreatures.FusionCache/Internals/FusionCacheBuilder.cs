@@ -149,9 +149,15 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					serializer = serviceProvider.GetService<IFusionCacheSerializer>();
 				}
 
-				if (serializer is null && ThrowIfMissingSerializer)
+				if (serializer is null)
 				{
-					throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache subsystem has not been set up");
+					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+						logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
+
+					if (ThrowIfMissingSerializer)
+					{
+						throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache subsystem has not been set up");
+					}
 				}
 				else
 				{
@@ -171,15 +177,19 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			}
 
 			// PLUGINS
-			IEnumerable<IFusionCachePlugin>? plugins;
+			List<IFusionCachePlugin>? plugins = null;
 
 			if (UseAllRegisteredPlugins)
 			{
-				plugins = serviceProvider.GetServices<IFusionCachePlugin>();
+				plugins = serviceProvider.GetServices<IFusionCachePlugin>()?.ToList();
 			}
-			else
+
+			if (Plugins?.Any() == true)
 			{
-				plugins = Plugins;
+				if (plugins is null)
+					plugins = new List<IFusionCachePlugin>();
+
+				plugins.AddRange(Plugins);
 			}
 
 			if (plugins?.Any() == true)

@@ -47,7 +47,11 @@ namespace FusionCacheTests
 			services.AddDistributedMemoryCache();
 			services.AddFusionCacheNewtonsoftJsonSerializer();
 			services.AddFusionCacheMemoryBackplane();
-			services.AddFusionCache(ignoreMemoryDistributedCache: false);
+			services.AddFusionCache(b =>
+			{
+				b.WithAllRegisteredComponents();
+				b.IgnoreRegisteredMemoryDistributedCache = false;
+			});
 
 			using var serviceProvider = services.BuildServiceProvider();
 
