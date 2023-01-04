@@ -535,6 +535,26 @@
             A set of extension methods that add some commonly used setup actions to an instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> object.
             </summary>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithOptions(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.FusionCacheOptions)">
+            <summary>
+            Specify a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance to be used.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance to use.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithOptions(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions})">
+            <summary>
+            Specify a custom logic to further configure the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> instance to be used.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <param name="action">The custom action that configure the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithDefaultEntryOptions(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
             <summary>
             Specify a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance to be used as the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/> option.
@@ -552,7 +572,7 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="optionsSetup"></param>
+            <param name="action">The custom action that configure the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
@@ -2012,6 +2032,11 @@
             Indicates if the builder should try find and use an <see cref="T:Microsoft.Extensions.Options.IOptions`1"/> service registered in the DI container.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Options">
+            <summary>
+            A custom <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object to be used.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.SetupOptionsAction">
             <summary>
             A custom setup logic for the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object, to allow for fine-grained customization.
@@ -2020,6 +2045,11 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.DefaultEntryOptions">
             <summary>
             A custom <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to be used as the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.SetupDefaultEntryOptionsAction">
+            <summary>
+            A custom setup logic for the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object, to allow for fine-grained customization.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredDistributedCache">
@@ -2167,9 +2197,6 @@
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
             <returns>The newly created entry.</returns>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheBuilder.CacheName">
-            <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata">
             <summary>
@@ -2603,14 +2630,14 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,ZiggyCreatures.Caching.Fusion.IFusionCache)">
             <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Adds a custom instance of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
-            <param name="cache">The direct FusionCache instance.</param>
+            <param name="cache">The custom FusionCache instance.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Action{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Boolean,System.Action{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
             <summary>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             <br/><br/>
@@ -2618,10 +2645,11 @@
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
+            <param name="autoSetup">Specifies if an initial auto-setup should be made: this means that every compatible component found in the DI container (like a distributed cache, a backplane, etc) will be automatically setup before eventually calling the builder. This corresponse to calling the WithAllRegisteredComponents() method on the builder object.</param>
             <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Boolean,System.Action{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
             <summary>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             <br/><br/>
@@ -2630,30 +2658,8 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
+            <param name="autoSetup">Specifies if an initial auto-setup should be made: this means that every compatible component found in the DI container (like a distributed cache, a backplane, etc) will be automatically setup before eventually calling the builder. This corresponse to calling the WithAllRegisteredComponents() method on the builder object.</param>
             <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
-            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
-            <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
-            <br/><br/>
-            <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
-            <br/><br/>
-            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-            </summary>
-            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
-            <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
-            <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
-        </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
-            <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
-            <br/><br/>
-            <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
-            <br/><br/>
-            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-            </summary>
-            <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
     </members>

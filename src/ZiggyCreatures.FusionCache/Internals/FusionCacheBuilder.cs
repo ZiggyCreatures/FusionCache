@@ -20,8 +20,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		{
 			CacheName = cacheName;
 
-			DefaultEntryOptions = new FusionCacheEntryOptions();
-
 			UseRegisteredOptions = true;
 			UseRegisteredLogger = true;
 			UseRegisteredMemoryCache = false;
@@ -33,7 +31,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			Plugins = new List<IFusionCachePlugin>();
 		}
 
-		/// <inheritdoc/>
 		public string CacheName { get; }
 
 		public bool UseRegisteredLogger { get; set; }
@@ -45,9 +42,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		private bool UseRegisteredReactor { get; set; }
 
 		public bool UseRegisteredOptions { get; set; }
+		public FusionCacheOptions? Options { get; set; }
 		public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
 
-		public FusionCacheEntryOptions DefaultEntryOptions { get; set; }
+		public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
+		public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 		public bool UseRegisteredDistributedCache { get; set; }
 		public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
@@ -75,7 +74,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			if (options is null)
 			{
-				options = new FusionCacheOptions();
+				options = Options ?? new FusionCacheOptions();
 			}
 
 			// ENSURE CACHE NAME
@@ -90,6 +89,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			if (DefaultEntryOptions is not null)
 			{
 				options.DefaultEntryOptions = DefaultEntryOptions;
+			}
+
+			if (SetupDefaultEntryOptionsAction is not null)
+			{
+				SetupDefaultEntryOptionsAction?.Invoke(options.DefaultEntryOptions);
 			}
 
 			// LOGGER

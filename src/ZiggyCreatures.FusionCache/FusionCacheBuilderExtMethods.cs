@@ -13,6 +13,36 @@ namespace ZiggyCreatures.Caching.Fusion;
 public static partial class FusionCacheBuilderExtMethods
 {
 	/// <summary>
+	/// Specify a <see cref="FusionCacheOptions"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="options">The <see cref="FusionCacheOptions"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithOptions(this IFusionCacheBuilder builder, FusionCacheOptions options)
+	{
+		builder.Options = options;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom logic to further configure the <see cref="FusionCacheOptions"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="action">The custom action that configure the <see cref="FusionCacheOptions"/> object.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithOptions(this IFusionCacheBuilder builder, Action<FusionCacheOptions> action)
+	{
+		builder.SetupOptionsAction += action;
+
+		return builder;
+	}
+
+	/// <summary>
 	/// Specify a <see cref="FusionCacheEntryOptions"/> instance to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/> option.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
@@ -33,16 +63,11 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="optionsSetup"></param>
+	/// <param name="action">The custom action that configure the <see cref="FusionCacheOptions"/> object.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithDefaultEntryOptions(this IFusionCacheBuilder builder, Action<FusionCacheEntryOptions> optionsSetup)
+	public static IFusionCacheBuilder WithDefaultEntryOptions(this IFusionCacheBuilder builder, Action<FusionCacheEntryOptions> action)
 	{
-		if (builder.DefaultEntryOptions is null)
-		{
-			builder.DefaultEntryOptions = new FusionCacheEntryOptions();
-		}
-
-		optionsSetup?.Invoke(builder.DefaultEntryOptions);
+		builder.SetupDefaultEntryOptionsAction += action;
 
 		return builder;
 	}

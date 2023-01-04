@@ -26,7 +26,8 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <param name="ignoreMemoryDistributedCache">If the registered <see cref="IDistributedCache"/> found is an instance of <see cref="MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
 	/// <param name="setupCacheAction">The <see cref="Action{IServiceProvider,FusionCacheOptions}"/> to configure the newly created <see cref="IFusionCache"/> instance.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
+	[Obsolete("This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach.")]
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -103,11 +104,11 @@ public static class FusionCacheServiceCollectionExtensions
 	}
 
 	/// <summary>
-	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	/// Adds a custom instance of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
-	/// <param name="cache">The direct FusionCache instance.</param>
+	/// <param name="cache">The custom FusionCache instance.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
 	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, IFusionCache cache)
 	{
@@ -144,9 +145,10 @@ public static class FusionCacheServiceCollectionExtensions
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
+	/// <param name="autoSetup">Specifies if an initial auto-setup should be made: this means that every compatible component found in the DI container (like a distributed cache, a backplane, etc) will be automatically setup before eventually calling the builder. This corresponse to calling the WithAllRegisteredComponents() method on the builder object.</param>
 	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, Action<IFusionCacheBuilder> setupBuilderAction)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, bool autoSetup = true, Action<IFusionCacheBuilder>? setupBuilderAction = null)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -167,6 +169,11 @@ public static class FusionCacheServiceCollectionExtensions
 		{
 			var b = new FusionCacheBuilder(cacheName);
 
+			if (autoSetup)
+			{
+				b.WithAllRegisteredComponents();
+			}
+
 			setupBuilderAction?.Invoke(b);
 
 			return b.Build(serviceProvider);
@@ -183,39 +190,11 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+	/// <param name="autoSetup">Specifies if an initial auto-setup should be made: this means that every compatible component found in the DI container (like a distributed cache, a backplane, etc) will be automatically setup before eventually calling the builder. This corresponse to calling the WithAllRegisteredComponents() method on the builder object.</param>
 	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<IFusionCacheBuilder> setupBuilderAction)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, bool autoSetup = true, Action<IFusionCacheBuilder>? setupBuilderAction = null)
 	{
-		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName, setupBuilderAction);
-	}
-
-	/// <summary>
-	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
-	/// <br/><br/>
-	/// <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
-	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName)
-	{
-		return services.AddFusionCache(cacheName, b => b.WithAllRegisteredComponents());
-	}
-
-	/// <summary>
-	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
-	/// <br/><br/>
-	/// <strong>NOTE: </strong> by using this method, a default logic is applied which automatically use all the available registered components. This is the same as calling the overload with the builder and calling the WithAllRegisteredComponents() method.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services)
-	{
-		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName);
+		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName, autoSetup, setupBuilderAction);
 	}
 }

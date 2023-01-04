@@ -48,6 +48,11 @@ namespace ZiggyCreatures.Caching.Fusion
 		bool UseRegisteredOptions { get; set; }
 
 		/// <summary>
+		/// A custom <see cref="FusionCacheOptions"/> object to be used.
+		/// </summary>
+		FusionCacheOptions? Options { get; set; }
+
+		/// <summary>
 		/// A custom setup logic for the <see cref="FusionCacheOptions"/> object, to allow for fine-grained customization.
 		/// </summary>
 		Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
@@ -55,7 +60,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <summary>
 		/// A custom <see cref="FusionCacheEntryOptions"/> object to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/>.
 		/// </summary>
-		FusionCacheEntryOptions DefaultEntryOptions { get; set; }
+		FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
+
+		/// <summary>
+		/// A custom setup logic for the <see cref="FusionCacheOptions"/> object, to allow for fine-grained customization.
+		/// </summary>
+		Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IDistributedCache"/> service registered in the DI container.

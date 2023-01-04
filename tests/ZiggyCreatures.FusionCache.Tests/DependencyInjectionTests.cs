@@ -47,9 +47,8 @@ namespace FusionCacheTests
 			services.AddDistributedMemoryCache();
 			services.AddFusionCacheNewtonsoftJsonSerializer();
 			services.AddFusionCacheMemoryBackplane();
-			services.AddFusionCache(b =>
+			services.AddFusionCache(true, b =>
 			{
-				b.WithAllRegisteredComponents();
 				b.IgnoreRegisteredMemoryDistributedCache = false;
 			});
 
@@ -73,6 +72,7 @@ namespace FusionCacheTests
 			// FOO: 10 MIN DURATION + FAIL-SAFE
 			services.AddFusionCache(
 				"FooCache",
+				false,
 				b =>
 				{
 					b.WithDefaultEntryOptions(opt => opt
@@ -85,6 +85,7 @@ namespace FusionCacheTests
 			// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
 			services.AddFusionCache(
 				"BarCache",
+				false,
 				b => b
 					.WithDefaultEntryOptions(opt => opt
 						.SetDuration(TimeSpan.FromSeconds(42))
@@ -96,6 +97,7 @@ namespace FusionCacheTests
 			// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE
 			services.AddFusionCache(
 				"BazCache",
+				false,
 				b => b
 					.WithDefaultEntryOptions(opt => opt
 						.SetDuration(TimeSpan.FromHours(3))
@@ -216,7 +218,7 @@ namespace FusionCacheTests
 			var services = new ServiceCollection();
 
 			services.AddDistributedMemoryCache();
-			services.AddFusionCache(b => b.WithRegisteredDistributedCache(false));
+			services.AddFusionCache(false, b => b.WithRegisteredDistributedCache(false));
 
 			using var serviceProvider = services.BuildServiceProvider();
 
