@@ -172,7 +172,8 @@ namespace FusionCacheTests
 			var services = new ServiceCollection();
 
 			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
-			services.AddFusionCache(true, b => b
+			services.AddFusionCache(b => b
+				.WithAutoSetup()
 				.WithOptions(options =>
 				{
 					options.EnableSyncEventHandlersExecution = true;
@@ -199,7 +200,8 @@ namespace FusionCacheTests
 			var services = new ServiceCollection();
 
 			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
-			services.AddFusionCache(true, b => b
+			services.AddFusionCache(b => b
+				.WithAutoSetup()
 				.WithOptions(options =>
 				{
 					options.EnableSyncEventHandlersExecution = true;

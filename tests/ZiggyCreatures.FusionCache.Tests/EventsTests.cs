@@ -48,9 +48,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(1);
+			var duration = TimeSpan.FromMilliseconds(100);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(2);
+			var throttleDuration = TimeSpan.FromMilliseconds(200);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -113,7 +113,7 @@ namespace FusionCacheTests
 				// REMOVE: +1
 				await cache.RemoveAsync("bar");
 
-				await Task.Delay(TimeSpan.FromSeconds(2));
+				//await Task.Delay(TimeSpan.FromSeconds(1));
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;
@@ -138,9 +138,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(1);
+			var duration = TimeSpan.FromMilliseconds(100);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(2);
+			var throttleDuration = TimeSpan.FromMilliseconds(200);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -203,7 +203,7 @@ namespace FusionCacheTests
 				// REMOVE: +1
 				cache.Remove("bar");
 
-				Thread.Sleep(TimeSpan.FromSeconds(2));
+				//Thread.Sleep(TimeSpan.FromSeconds(1));
 
 				// REMOVE HANDLERS
 				cache.Events.Miss -= onMiss;
@@ -328,9 +328,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromMilliseconds(200);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromMilliseconds(300);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -381,9 +381,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromMilliseconds(200);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromMilliseconds(300);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -522,9 +522,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromMilliseconds(200);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromMilliseconds(300);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -572,9 +572,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromMilliseconds(200);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromMilliseconds(300);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -622,9 +622,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromMilliseconds(200);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromMilliseconds(300);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -672,9 +672,9 @@ namespace FusionCacheTests
 		{
 			var stats = new EntryActionsStats();
 
-			var duration = TimeSpan.FromSeconds(2);
+			var duration = TimeSpan.FromMilliseconds(200);
 			var maxDuration = TimeSpan.FromDays(1);
-			var throttleDuration = TimeSpan.FromSeconds(3);
+			var throttleDuration = TimeSpan.FromMilliseconds(300);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -903,6 +903,7 @@ namespace FusionCacheTests
 		public async Task StaleHitForOldStaleDataAsync()
 		{
 			var stats = new EntryActionsStats();
+			var duration = TimeSpan.FromMilliseconds(200);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -916,15 +917,15 @@ namespace FusionCacheTests
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// SET: +1
-				var firstValue = await cache.GetOrSetAsync<int>("foo", async _ => 21, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var firstValue = await cache.GetOrSetAsync<int>("foo", async _ => 21, new FusionCacheEntryOptions(duration).SetFailSafe(true));
 				// HIT (NORMAL): +1
-				var secondValue = await cache.GetOrSetAsync<int>("foo", async _ => 10, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-				await Task.Delay(1_500);
+				var secondValue = await cache.GetOrSetAsync<int>("foo", async _ => 10, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+				await Task.Delay(duration.PlusALittleBit());
 				// FAIL-SAFE: +1
 				// HIT (STALE): +1
-				var thirdValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var thirdValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(duration).SetFailSafe(true));
 				// HIT (STALE): +1
-				var fourthValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var fourthValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(duration).SetFailSafe(true));
 
 				// REMOVE HANDLERS
 				cache.Events.Hit -= onHit;
@@ -946,6 +947,7 @@ namespace FusionCacheTests
 		public void StaleHitForOldStaleData()
 		{
 			var stats = new EntryActionsStats();
+			var duration = TimeSpan.FromMilliseconds(200);
 
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
@@ -959,15 +961,15 @@ namespace FusionCacheTests
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 
 				// SET: +1
-				var firstValue = cache.GetOrSet<int>("foo", _ => 21, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var firstValue = cache.GetOrSet<int>("foo", _ => 21, new FusionCacheEntryOptions(duration).SetFailSafe(true));
 				// HIT (NORMAL): +1
-				var secondValue = cache.GetOrSet<int>("foo", _ => 10, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-				Thread.Sleep(1_500);
+				var secondValue = cache.GetOrSet<int>("foo", _ => 10, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+				Thread.Sleep(duration.PlusALittleBit());
 				// FAIL-SAFE: +1
 				// HIT (STALE): +1
-				var thirdValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var thirdValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(duration).SetFailSafe(true));
 				// HIT (STALE): +1
-				var fourthValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var fourthValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(duration).SetFailSafe(true));
 
 				// REMOVE HANDLERS
 				cache.Events.Hit -= onHit;
