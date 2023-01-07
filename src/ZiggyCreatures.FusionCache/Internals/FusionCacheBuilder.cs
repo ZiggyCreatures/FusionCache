@@ -49,13 +49,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
 		public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
-		public bool UseRegisteredDistributedCache { get; set; }
-		public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
-		public IDistributedCache? DistributedCache { get; set; }
-
 		public bool UseRegisteredSerializer { get; set; }
 		public bool ThrowIfMissingSerializer { get; set; }
 		public IFusionCacheSerializer? Serializer { get; set; }
+
+		public bool UseRegisteredDistributedCache { get; set; }
+		public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
+		public IDistributedCache? DistributedCache { get; set; }
 
 		public bool UseRegisteredBackplane { get; set; }
 		public IFusionCacheBackplane? Backplane { get; set; }

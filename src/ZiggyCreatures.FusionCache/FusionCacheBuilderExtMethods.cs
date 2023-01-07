@@ -103,6 +103,20 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredSerializer(this IFusionCacheBuilder builder)
+	{
+		builder.UseRegisteredDistributedCache = true;
+
+		return builder;
+	}
+
+	/// <summary>
 	/// Specify a custom <see cref="IFusionCacheSerializer"/> instance to be used.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
@@ -145,11 +159,14 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
 	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithDistributedCache(this IFusionCacheBuilder builder, IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+	public static IFusionCacheBuilder WithDistributedCache(this IFusionCacheBuilder builder, IDistributedCache distributedCache, IFusionCacheSerializer? serializer = null)
 	{
 		builder.UseRegisteredDistributedCache = false;
 		builder.DistributedCache = distributedCache;
-		builder.Serializer = serializer;
+		if (serializer is not null)
+		{
+			builder.Serializer = serializer;
+		}
 
 		return builder;
 	}

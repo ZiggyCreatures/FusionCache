@@ -68,21 +68,6 @@ namespace ZiggyCreatures.Caching.Fusion
 		Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 		/// <summary>
-		/// Indicates if the builder should try find and use an <see cref="IDistributedCache"/> service registered in the DI container.
-		/// </summary>
-		bool UseRegisteredDistributedCache { get; set; }
-
-		/// <summary>
-		/// When trying to find an <see cref="IDistributedCache"/> service registered in the DI container, ignore it if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.
-		/// </summary>
-		bool IgnoreRegisteredMemoryDistributedCache { get; set; }
-
-		/// <summary>
-		/// A specific <see cref="IDistributedCache"/> instance to be used.
-		/// </summary>
-		IDistributedCache? DistributedCache { get; set; }
-
-		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
 		/// </summary>
 		bool UseRegisteredSerializer { get; set; }
@@ -96,6 +81,21 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// A specific <see cref="IFusionCacheSerializer"/> instance to be used.
 		/// </summary>
 		IFusionCacheSerializer? Serializer { get; set; }
+
+		/// <summary>
+		/// Indicates if the builder should try find and use an <see cref="IDistributedCache"/> service registered in the DI container.
+		/// </summary>
+		bool UseRegisteredDistributedCache { get; set; }
+
+		/// <summary>
+		/// When trying to find an <see cref="IDistributedCache"/> service registered in the DI container, ignore it if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.
+		/// </summary>
+		bool IgnoreRegisteredMemoryDistributedCache { get; set; }
+
+		/// <summary>
+		/// A specific <see cref="IDistributedCache"/> instance to be used.
+		/// </summary>
+		IDistributedCache? DistributedCache { get; set; }
 
 		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IFusionCacheBackplane"/> service registered in the DI container.
