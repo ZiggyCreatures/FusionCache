@@ -103,6 +103,22 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
+	/// Specify a custom <see cref="IFusionCacheSerializer"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithSerializer(this IFusionCacheBuilder builder, IFusionCacheSerializer serializer)
+	{
+		builder.UseRegisteredSerializer = false;
+		builder.Serializer = serializer;
+
+		return builder;
+	}
+
+	/// <summary>
 	/// Indicates if the builder should try to find and use an <see cref="IDistributedCache"/> service (and a corresponding <see cref="IFusionCacheSerializer"/>) registered in the DI container.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
@@ -267,12 +283,13 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
+	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithAllRegisteredComponents(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true)
+	public static IFusionCacheBuilder WithAutoSetup(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
 	{
 		return builder
 			.WithRegisteredMemoryCache()
-			.WithRegisteredDistributedCache(ignoreMemoryDistributedCache)
+			.WithRegisteredDistributedCache(ignoreMemoryDistributedCache, throwIfMissingSerializer)
 			.WithRegisteredBackplane()
 			.WithAllRegisteredPlugins()
 		;

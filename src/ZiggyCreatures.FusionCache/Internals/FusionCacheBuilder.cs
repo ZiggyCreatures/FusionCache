@@ -25,6 +25,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 			UseRegisteredMemoryCache = false;
 			UseRegisteredReactor = true;
 			UseRegisteredDistributedCache = false;
+			UseRegisteredSerializer = true;
 			IgnoreRegisteredMemoryDistributedCache = true;
 			UseRegisteredBackplane = false;
 			UseAllRegisteredPlugins = false;
@@ -50,8 +51,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 		public bool UseRegisteredDistributedCache { get; set; }
 		public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
-		public bool ThrowIfMissingSerializer { get; set; }
 		public IDistributedCache? DistributedCache { get; set; }
+
+		public bool UseRegisteredSerializer { get; set; }
+		public bool ThrowIfMissingSerializer { get; set; }
 		public IFusionCacheSerializer? Serializer { get; set; }
 
 		public bool UseRegisteredBackplane { get; set; }
@@ -147,13 +150,21 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			if (distributedCache is not null)
 			{
-				var serializer = Serializer;
-				if (serializer is null)
+				IFusionCacheSerializer? serializer;
+				if (UseRegisteredSerializer)
 				{
 					serializer = serviceProvider.GetService<IFusionCacheSerializer>();
 				}
+				else
+				{
+					serializer = Serializer;
+				}
 
-				if (serializer is null)
+				if (serializer is not null)
+				{
+					cache.SetupDistributedCache(distributedCache, serializer);
+				}
+				else
 				{
 					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
 						logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
@@ -162,10 +173,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 					{
 						throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache subsystem has not been set up");
 					}
-				}
-				else
-				{
-					cache.SetupDistributedCache(distributedCache, serializer);
 				}
 			}
 

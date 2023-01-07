@@ -78,14 +78,19 @@ namespace ZiggyCreatures.Caching.Fusion
 		bool IgnoreRegisteredMemoryDistributedCache { get; set; }
 
 		/// <summary>
-		/// If an <see cref="IDistributedCache"/> service is about to be used, but a valid <see cref="IFusionCacheSerializer"/> has not been provided, throw an exception: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work.
-		/// </summary>
-		bool ThrowIfMissingSerializer { get; set; }
-
-		/// <summary>
 		/// A specific <see cref="IDistributedCache"/> instance to be used.
 		/// </summary>
 		IDistributedCache? DistributedCache { get; set; }
+
+		/// <summary>
+		/// Indicates if the builder should try find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
+		/// </summary>
+		bool UseRegisteredSerializer { get; set; }
+
+		/// <summary>
+		/// If an <see cref="IDistributedCache"/> service is about to be used, but a valid <see cref="IFusionCacheSerializer"/> has not been provided, throw an exception: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work.
+		/// </summary>
+		bool ThrowIfMissingSerializer { get; set; }
 
 		/// <summary>
 		/// A specific <see cref="IFusionCacheSerializer"/> instance to be used.
