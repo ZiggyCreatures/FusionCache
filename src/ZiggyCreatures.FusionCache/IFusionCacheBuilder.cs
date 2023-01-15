@@ -123,5 +123,12 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// <strong>NOTE:</strong> it is possible to add actions multiple times, to add multiple post-setup calls one after the other to combine them for a powerful result.
 		/// </summary>
 		Action<IServiceProvider, IFusionCache>? PostSetupAction { get; set; }
+
+		/// <summary>
+		/// Creates a new FusionCache instante, and set it up based on the configured builder options.
+		/// </summary>
+		/// <param name="serviceProvider">The needed <see cref="IServiceProvider"/> instance.</param>
+		/// <returns>The <see cref="IFusionCache"/> instance created.</returns>
+		IFusionCache Build(IServiceProvider serviceProvider);
 	}
 }

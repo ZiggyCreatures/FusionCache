@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -18,7 +19,15 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class FusionCacheServiceCollectionExtensions
 {
 	/// <summary>
+	/// !!! OBSOLETE !!!
+	/// <br/>
+	/// This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach.
+	/// <br/>
+	/// The new call corresponding to AddFusionCache() is AddFusionCache(b => b.WithAutoSetup()) , see the docs for more.
+	/// <br/><br/>
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="setupOptionsAction">The <see cref="Action{FusionCacheOptions}"/> to configure the provided <see cref="FusionCacheOptions"/>.</param>
@@ -105,6 +114,8 @@ public static class FusionCacheServiceCollectionExtensions
 
 	/// <summary>
 	/// Adds a custom instance of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
@@ -142,12 +153,14 @@ public static class FusionCacheServiceCollectionExtensions
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
 	/// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
 	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, Action<IFusionCacheBuilder> setupBuilderAction)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, Func<IFusionCacheBuilder, IFusionCacheBuilder> setupBuilderAction)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -166,15 +179,33 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.Add(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
 		{
-			var b = new FusionCacheBuilder(cacheName);
+			IFusionCacheBuilder b = new FusionCacheBuilder(cacheName);
 
-			setupBuilderAction?.Invoke(b);
+			if (setupBuilderAction is not null)
+			{
+				b = setupBuilderAction(b);
+			}
 
 			return b.Build(serviceProvider);
 		}));
 
 		return services;
 	}
+
+	///// <summary>
+	///// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	///// <br/><br/>
+	///// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
+	///// <br/><br/>
+	///// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	///// </summary>
+	///// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+	///// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
+	///// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	//public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName)
+	//{
+	//	return services.AddFusionCache(cacheName, (Func<IFusionCacheBuilder, IFusionCacheBuilder>?)null!);
+	//}
 
 	/// <summary>
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
@@ -186,8 +217,22 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<IFusionCacheBuilder> setupBuilderAction)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, Func<IFusionCacheBuilder, IFusionCacheBuilder> setupBuilderAction)
 	{
 		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName, setupBuilderAction);
 	}
+
+	///// <summary>
+	///// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	///// <br/><br/>
+	///// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
+	///// <br/><br/>
+	///// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	///// </summary>
+	///// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+	///// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	//public static IServiceCollection AddFusionCache(this IServiceCollection services)
+	//{
+	//	return services.AddFusionCache((Func<IFusionCacheBuilder, IFusionCacheBuilder>?)null!);
+	//}
 }

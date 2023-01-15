@@ -13,7 +13,7 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b.WithAutoSetup());
+			services.AddFusionCache(b => b);
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -23,30 +23,66 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void CanInitMultipleTimes()
-		{
-			var services = new ServiceCollection();
-
-			services.AddFusionCache(b => b.WithAutoSetup());
-			services.AddFusionCache(b => b.WithAutoSetup());
-			services.AddFusionCache(b => b.WithAutoSetup());
-			services.AddFusionCache(b => b.WithAutoSetup());
-
-			using var serviceProvider = services.BuildServiceProvider();
-
-			var cache = serviceProvider.GetRequiredService<IFusionCache>();
-
-			Assert.NotNull(cache);
-		}
-
-		[Fact]
-		public void CanAutoDiscover()
+		public void EmptyBuilderDoesNotUseExtraComponents()
 		{
 			var services = new ServiceCollection();
 
 			services.AddDistributedMemoryCache();
-			services.AddFusionCacheNewtonsoftJsonSerializer();
+			services.AddFusionCacheSystemTextJsonSerializer();
 			services.AddFusionCacheMemoryBackplane();
+
+			services.AddFusionCache(b => b);
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+			Assert.NotNull(cache);
+			Assert.False(cache.HasDistributedCache);
+			Assert.False(cache.HasBackplane);
+		}
+
+		[Fact]
+		public void CanConfigureVariousOptions()
+		{
+			var services = new ServiceCollection();
+
+			var options = new FusionCacheOptions
+			{
+				BackplaneAutoRecoveryMaxItems = 123,
+			};
+
+			services.AddFusionCache(b => b
+				.WithOptions(options)
+				.WithOptions(opt =>
+				{
+					opt.DefaultEntryOptions.DistributedCacheDuration = TimeSpan.FromSeconds(123);
+				})
+				.WithDefaultEntryOptions(opt =>
+				{
+					opt.Duration = TimeSpan.FromMinutes(123);
+				})
+			);
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+			Assert.NotNull(cache);
+			Assert.Equal(123, options.BackplaneAutoRecoveryMaxItems);
+			Assert.Equal(TimeSpan.FromSeconds(123), cache.DefaultEntryOptions.DistributedCacheDuration!.Value);
+			Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
+		}
+
+		[Fact]
+		public void CanAutoSetup()
+		{
+			var services = new ServiceCollection();
+
+			services.AddDistributedMemoryCache();
+			services.AddFusionCacheSystemTextJsonSerializer();
+			services.AddFusionCacheMemoryBackplane();
+
 			services.AddFusionCache(b => b
 				.WithAutoSetup(false)
 			);
@@ -61,7 +97,43 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void CanUseMultipleNamedCaches()
+		public void ThrowsIfMissingSerializer()
+		{
+			var services = new ServiceCollection();
+
+			services.AddDistributedMemoryCache();
+
+			services.AddFusionCache(b => b
+				.WithAutoSetup(false)
+			);
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				_ = serviceProvider.GetService<IFusionCache>();
+			});
+		}
+
+		[Fact]
+		public void CanInitMultipleTimes()
+		{
+			var services = new ServiceCollection();
+
+			services.AddFusionCache(b => b);
+			services.AddFusionCache(b => b);
+			services.AddFusionCache(b => b);
+			services.AddFusionCache(b => b);
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+			Assert.NotNull(cache);
+		}
+
+		[Fact]
+		public void CanUseMultipleNamedCachesAndConfigureThem()
 		{
 			var services = new ServiceCollection();
 
@@ -155,10 +227,18 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache("FooCache", b => b.WithAutoSetup());
-			services.AddFusionCache("BarCache", b => b.WithAutoSetup());
-			services.AddFusionCache("BazCache", b => b.WithAutoSetup());
-			services.AddFusionCache(b => b.WithAutoSetup());
+			services.AddFusionCache("FooCache", b => b
+				.WithAutoSetup()
+			);
+			services.AddFusionCache("BarCache", b => b
+				.WithAutoSetup()
+			);
+			services.AddFusionCache("BazCache", b => b
+				.WithAutoSetup()
+			);
+			services.AddFusionCache(b => b
+				.WithAutoSetup()
+			);
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -183,12 +263,12 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void ThrowsWithMultipleNamedCachesWhenInvalidName()
+		public void ThrowsWhenRequestingAnUnregisteredCache()
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache("FooCache", b => b.WithAutoSetup());
-			services.AddFusionCache(b => b.WithAutoSetup());
+			services.AddFusionCache("FooCache", b => b);
+			services.AddFusionCache(b => b);
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -201,19 +281,62 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void ThrowIfMissingSerializer()
+		public void ExistingAndObsoleteCallsStillWork()
 		{
 			var services = new ServiceCollection();
 
-			services.AddDistributedMemoryCache();
-			services.AddFusionCache(b => b.WithRegisteredDistributedCache(false));
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				opt =>
+				{
+					opt.BackplaneAutoRecoveryMaxItems = 123;
+				}
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				opt =>
+				{
+					opt.BackplaneAutoRecoveryMaxItems = 123;
+				},
+				false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				opt =>
+				{
+					opt.BackplaneAutoRecoveryMaxItems = 123;
+				},
+				false,
+				false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				useDistributedCacheIfAvailable: false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				ignoreMemoryDistributedCache: false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
 
 			using var serviceProvider = services.BuildServiceProvider();
 
-			Assert.Throws<InvalidOperationException>(() =>
-			{
-				serviceProvider.GetService<IFusionCache>();
-			});
+			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+
+			Assert.Equal(1, 1);
 		}
 	}
 }

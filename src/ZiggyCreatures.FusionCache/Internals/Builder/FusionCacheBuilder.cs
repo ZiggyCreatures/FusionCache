@@ -11,7 +11,7 @@ using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
-namespace ZiggyCreatures.Caching.Fusion.Internals
+namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 {
 	internal class FusionCacheBuilder
 		: IFusionCacheBuilder
@@ -77,7 +77,12 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 
 			if (options is null)
 			{
-				options = Options ?? new FusionCacheOptions();
+				options = Options;
+			}
+
+			if (options is null)
+			{
+				options = new FusionCacheOptions();
 			}
 
 			// ENSURE CACHE NAME

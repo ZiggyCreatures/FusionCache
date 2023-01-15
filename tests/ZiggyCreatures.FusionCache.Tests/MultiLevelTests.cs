@@ -113,22 +113,25 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task AppliesDistributedCacheHardTimeoutAsync(SerializerType serializerType)
 		{
-			var simulatedDelayMs = 5_000;
+			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+			var softTimeout = TimeSpan.FromMilliseconds(100);
+			var hardTimeout = TimeSpan.FromMilliseconds(1_000);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
-			chaosDistributedCache.SetAlwaysDelayExactly(TimeSpan.FromMilliseconds(simulatedDelayMs));
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
 					fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
 					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
-					await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit()).ConfigureAwait(false);
+					await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
 					memoryCache.Remove("foo");
+					chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 					await Assert.ThrowsAsync<Exception>(async () =>
 					{
-						var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+						_ = await fusionCache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout));
 					});
 				}
 			}
@@ -138,22 +141,25 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public void AppliesDistributedCacheHardTimeout(SerializerType serializerType)
 		{
-			var simulatedDelayMs = 5_000;
+			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+			var softTimeout = TimeSpan.FromMilliseconds(100);
+			var hardTimeout = TimeSpan.FromMilliseconds(1_000);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
-			chaosDistributedCache.SetAlwaysDelayExactly(TimeSpan.FromMilliseconds(simulatedDelayMs));
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
 					fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
 					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
 					memoryCache.Remove("foo");
+					chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 					Assert.Throws<Exception>(() =>
 					{
-						_ = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+						_ = fusionCache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout));
 					});
 				}
 			}
@@ -163,11 +169,12 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task AppliesDistributedCacheSoftTimeoutAsync(SerializerType serializerType)
 		{
-			var simulatedDelayMs = 5_000;
+			var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
+			var softTimeout = TimeSpan.FromMilliseconds(100);
+			var hardTimeout = TimeSpan.FromMilliseconds(1_000);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
-			chaosDistributedCache.SetAlwaysDelayExactly(TimeSpan.FromMilliseconds(simulatedDelayMs));
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
@@ -176,12 +183,13 @@ namespace FusionCacheTests
 					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
 					var sw = Stopwatch.StartNew();
+					chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 					var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
 					sw.Stop();
 
 					Assert.Equal(42, res);
 					Assert.True(sw.ElapsedMilliseconds >= 100, "Distributed cache soft timeout not applied");
-					Assert.True(sw.ElapsedMilliseconds < simulatedDelayMs, "Distributed cache soft timeout not applied");
+					Assert.True(sw.Elapsed < simulatedDelay, "Distributed cache soft timeout not applied");
 				}
 			}
 		}
@@ -190,11 +198,12 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public void AppliesDistributedCacheSoftTimeout(SerializerType serializerType)
 		{
-			var simulatedDelayMs = 5_000;
+			var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
+			var softTimeout = TimeSpan.FromMilliseconds(100);
+			var hardTimeout = TimeSpan.FromMilliseconds(1_000);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
-			chaosDistributedCache.SetAlwaysDelayExactly(TimeSpan.FromMilliseconds(simulatedDelayMs));
 			using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 			{
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
@@ -203,12 +212,13 @@ namespace FusionCacheTests
 					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 					Thread.Sleep(TimeSpan.FromSeconds(1));
 					var sw = Stopwatch.StartNew();
-					var res = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+					chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
+					var res = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout));
 					sw.Stop();
 
 					Assert.Equal(42, res);
 					Assert.True(sw.ElapsedMilliseconds >= 100, "Distributed cache soft timeout not applied");
-					Assert.True(sw.ElapsedMilliseconds < simulatedDelayMs, "Distributed cache soft timeout not applied");
+					Assert.True(sw.Elapsed < simulatedDelay, "Distributed cache soft timeout not applied");
 				}
 			}
 		}
@@ -615,15 +625,23 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task MemoryExpirationAlignedWithDistributedAsync(SerializerType serializerType)
 		{
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			using var fusionCache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-			using var fusionCache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			var firstDuration = TimeSpan.FromSeconds(4);
+			var secondDuration = TimeSpan.FromSeconds(10);
 
-			await fusionCache1.SetAsync<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromSeconds(4)));
-			await Task.Delay(TimeSpan.FromSeconds(2));
-			var v1 = await fusionCache2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
-			await Task.Delay(TimeSpan.FromSeconds(5));
-			var v2 = await fusionCache2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var fusionCache1 = new FusionCache(new FusionCacheOptions())
+				.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType))
+			;
+			using var fusionCache2 = new FusionCache(new FusionCacheOptions())
+				.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType))
+			;
+
+			await fusionCache1.SetAsync<int>("foo", 21, opt => opt.SetDuration(firstDuration));
+			await Task.Delay(firstDuration / 2);
+			var v1 = await fusionCache2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(secondDuration));
+			await Task.Delay(firstDuration + TimeSpan.FromSeconds(1));
+			var v2 = await fusionCache2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(secondDuration));
+
 			Assert.Equal(21, v1);
 			Assert.Equal(42, v2);
 		}
@@ -632,15 +650,23 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public void MemoryExpirationAlignedWithDistributed(SerializerType serializerType)
 		{
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			using var fusionCache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-			using var fusionCache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			var firstDuration = TimeSpan.FromSeconds(4);
+			var secondDuration = TimeSpan.FromSeconds(10);
 
-			fusionCache1.Set<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromSeconds(4)));
-			Thread.Sleep(TimeSpan.FromSeconds(2));
-			var v1 = fusionCache2.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
-			Thread.Sleep(TimeSpan.FromSeconds(5));
-			var v2 = fusionCache2.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)));
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var fusionCache1 = new FusionCache(new FusionCacheOptions())
+				.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType))
+			;
+			using var fusionCache2 = new FusionCache(new FusionCacheOptions())
+				.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType))
+			;
+
+			fusionCache1.Set<int>("foo", 21, opt => opt.SetDuration(firstDuration));
+			Thread.Sleep(firstDuration / 2);
+			var v1 = fusionCache2.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(secondDuration));
+			Thread.Sleep(firstDuration + TimeSpan.FromSeconds(1));
+			var v2 = fusionCache2.GetOrDefault<int>("foo", 42, opt => opt.SetDuration(secondDuration));
+
 			Assert.Equal(21, v1);
 			Assert.Equal(42, v2);
 		}
