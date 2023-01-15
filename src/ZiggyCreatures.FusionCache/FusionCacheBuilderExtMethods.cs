@@ -135,11 +135,15 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <summary>
 	/// Indicates if the builder should try to find and use an <see cref="IDistributedCache"/> service (and a corresponding <see cref="IFusionCacheSerializer"/>) registered in the DI container.
 	/// <br/><br/>
+	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ognired. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, a <see cref="IFusionCacheSerializer"/> would also be needed: when that is not the case, by default an exception will be thrown so to avoid surprises at runtime, like thinking that a distributed cache will be used when instead it will not. If you want to avoid this and just have a best-effort approach by ignoring a distributed cache when a serializer is missing, set the <paramref name="throwIfMissingSerializer"/> param to <see langword="false"/>.
+	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
-	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work</param>
+	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
+	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid thinking of having a usable distributed cache when, in reality, that is not the case since a serializer is needed for it to work and none has been found.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredDistributedCache(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
 	{
@@ -296,19 +300,21 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <summary>
 	/// Tells the builder to try to find and use all the compatible services registered in the DI container, like a distributed cache, a backplane, plugins, etc.
 	/// <br/><br/>
-	/// To use some components, like the distributed cache, sub-components maybe be required, like a <see cref="IFusionCacheSerializer"/>: by default if a component is found a needed sub-component is NOT found, an exception will be thrown so to avoid runtime surprises, like thinking that a distributed cache will be used when instead it will not, because of the missing serializer. If you want to avoid this and just have a best-effort approach by ignoring components that have missing needed sub-components, set the <paramref name="throwIfMissingSubComponents"/> param to <see langword="false"/>.
+	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ognired. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, a <see cref="IFusionCacheSerializer"/> would also be needed: when that is not the case, by default an exception will be thrown so to avoid surprises at runtime, like thinking that a distributed cache will be used when instead it will not. If you want to avoid this and just have a best-effort approach by ignoring a distributed cache when a serializer is missing, set the <paramref name="throwIfMissingSerializer"/> param to <see langword="false"/>.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
-	/// <param name="throwIfMissingSubComponents">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work</param>
+	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithAutoSetup(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSubComponents = true)
+	public static IFusionCacheBuilder WithAutoSetup(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
 	{
 		return builder
 			.WithRegisteredMemoryCache()
-			.WithRegisteredDistributedCache(ignoreMemoryDistributedCache, throwIfMissingSubComponents)
+			.WithRegisteredDistributedCache(ignoreMemoryDistributedCache, throwIfMissingSerializer)
 			.WithRegisteredBackplane()
 			.WithAllRegisteredPlugins()
 		;
