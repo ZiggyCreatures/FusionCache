@@ -173,7 +173,7 @@ namespace FusionCacheTests
 
 			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
 			services.AddFusionCache(b => b
-				.WithAutoSetup()
+				.TryWithAutoSetup()
 				.WithOptions(options =>
 				{
 					options.EnableSyncEventHandlersExecution = true;
@@ -201,7 +201,7 @@ namespace FusionCacheTests
 
 			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
 			services.AddFusionCache(b => b
-				.WithAutoSetup()
+				.TryWithAutoSetup()
 				.WithOptions(options =>
 				{
 					options.EnableSyncEventHandlersExecution = true;

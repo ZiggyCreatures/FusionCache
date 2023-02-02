@@ -20,25 +20,31 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 		{
 			CacheName = cacheName;
 
-			UseRegisteredOptions = true;
 			UseRegisteredLogger = true;
-			UseRegisteredMemoryCache = false;
+
+			UseRegisteredOptions = true;
+
 			UseRegisteredReactor = true;
-			UseRegisteredDistributedCache = false;
+
 			UseRegisteredSerializer = true;
+
 			IgnoreRegisteredMemoryDistributedCache = true;
-			UseRegisteredBackplane = false;
-			UseAllRegisteredPlugins = false;
+
 			Plugins = new List<IFusionCachePlugin>();
+			PluginsFactories = new List<Func<IServiceProvider, IFusionCachePlugin>>();
 		}
 
 		public string CacheName { get; }
 
 		public bool UseRegisteredLogger { get; set; }
 		public ILogger<FusionCache>? Logger { get; set; }
+		public Func<IServiceProvider, ILogger<FusionCache>>? LoggerFactory { get; set; }
+		public bool ThrowIfMissingLogger { get; set; }
 
 		public bool UseRegisteredMemoryCache { get; set; }
 		public IMemoryCache? MemoryCache { get; set; }
+		public Func<IServiceProvider, IMemoryCache>? MemoryCacheFactory { get; set; }
+		public bool ThrowIfMissingMemoryCache { get; set; }
 
 		private bool UseRegisteredReactor { get; set; }
 
@@ -50,23 +56,32 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 		public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 		public bool UseRegisteredSerializer { get; set; }
-		public bool ThrowIfMissingSerializer { get; set; }
 		public IFusionCacheSerializer? Serializer { get; set; }
+		public Func<IServiceProvider, IFusionCacheSerializer>? SerializerFactory { get; set; }
+		public bool ThrowIfMissingSerializer { get; set; }
 
 		public bool UseRegisteredDistributedCache { get; set; }
 		public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
 		public IDistributedCache? DistributedCache { get; set; }
+		public Func<IServiceProvider, IDistributedCache>? DistributedCacheFactory { get; set; }
+		public bool ThrowIfMissingDistributedCache { get; set; }
 
 		public bool UseRegisteredBackplane { get; set; }
 		public IFusionCacheBackplane? Backplane { get; set; }
+		public Func<IServiceProvider, IFusionCacheBackplane>? BackplaneFactory { get; set; }
+		public bool ThrowIfMissingBackplane { get; set; }
 
 		public bool UseAllRegisteredPlugins { get; set; }
 		public List<IFusionCachePlugin> Plugins { get; }
+		public List<Func<IServiceProvider, IFusionCachePlugin>> PluginsFactories { get; }
 
 		public Action<IServiceProvider, IFusionCache>? PostSetupAction { get; set; }
 
 		public IFusionCache Build(IServiceProvider serviceProvider)
 		{
+			if (serviceProvider is null)
+				throw new ArgumentNullException(nameof(serviceProvider));
+
 			// OPTIONS
 			FusionCacheOptions? options = null;
 
@@ -105,14 +120,24 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 			}
 
 			// LOGGER
-			ILogger<FusionCache>? logger = null;
+			ILogger<FusionCache>? logger;
+
 			if (UseRegisteredLogger)
 			{
 				logger = serviceProvider.GetService<ILogger<FusionCache>>();
 			}
+			else if (LoggerFactory is not null)
+			{
+				logger = LoggerFactory?.Invoke(serviceProvider);
+			}
 			else
 			{
 				logger = Logger;
+			}
+
+			if (logger is null && ThrowIfMissingLogger)
+			{
+				throw new InvalidOperationException("A logger has not been specified, or found in the DI container.");
 			}
 
 			// MEMORY CACHE
@@ -122,9 +147,18 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 			{
 				memoryCache = serviceProvider.GetService<IMemoryCache>();
 			}
+			else if (MemoryCacheFactory is not null)
+			{
+				memoryCache = MemoryCacheFactory?.Invoke(serviceProvider);
+			}
 			else
 			{
 				memoryCache = MemoryCache;
+			}
+
+			if (memoryCache is null && ThrowIfMissingMemoryCache)
+			{
+				throw new InvalidOperationException("A memory cache has not been specified, or found in the DI container.");
 			}
 
 			// REACTOR
@@ -148,9 +182,18 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 					distributedCache = null;
 				}
 			}
+			else if (DistributedCacheFactory is not null)
+			{
+				distributedCache = DistributedCacheFactory?.Invoke(serviceProvider);
+			}
 			else
 			{
 				distributedCache = DistributedCache;
+			}
+
+			if (distributedCache is null && ThrowIfMissingDistributedCache)
+			{
+				throw new InvalidOperationException("A distributed cache has not been specified, or found in the DI container.");
 			}
 
 			if (distributedCache is not null)
@@ -159,6 +202,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 				if (UseRegisteredSerializer)
 				{
 					serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+				}
+				else if (SerializerFactory is not null)
+				{
+					serializer = SerializerFactory?.Invoke(serviceProvider);
 				}
 				else
 				{
@@ -182,33 +229,55 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 			}
 
 			// BACKPLANE
+			IFusionCacheBackplane? backplane;
 			if (UseRegisteredBackplane)
 			{
-				var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+				backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+			}
+			else if (BackplaneFactory is not null)
+			{
+				backplane = BackplaneFactory?.Invoke(serviceProvider);
+			}
+			else
+			{
+				backplane = Backplane;
+			}
 
-				if (backplane is not null)
-				{
-					cache.SetupBackplane(backplane);
-				}
+			if (backplane is null && ThrowIfMissingBackplane)
+			{
+				throw new InvalidOperationException("A backplane has not been specified, or found in the DI container.");
+			}
+
+			if (backplane is not null)
+			{
+				cache.SetupBackplane(backplane);
 			}
 
 			// PLUGINS
-			List<IFusionCachePlugin>? plugins = null;
+			List<IFusionCachePlugin> plugins = new List<IFusionCachePlugin>();
 
 			if (UseAllRegisteredPlugins)
 			{
-				plugins = serviceProvider.GetServices<IFusionCachePlugin>()?.ToList();
+				plugins.AddRange(serviceProvider.GetServices<IFusionCachePlugin>());
 			}
 
 			if (Plugins?.Any() == true)
 			{
-				if (plugins is null)
-					plugins = new List<IFusionCachePlugin>();
-
 				plugins.AddRange(Plugins);
 			}
 
-			if (plugins?.Any() == true)
+			if (PluginsFactories?.Any() == true)
+			{
+				foreach (var pluginFactory in PluginsFactories)
+				{
+					var plugin = pluginFactory?.Invoke(serviceProvider);
+
+					if (plugin is not null)
+						plugins.Add(plugin);
+				}
+			}
+
+			if (plugins.Count > 0)
 			{
 				foreach (var plugin in plugins)
 				{

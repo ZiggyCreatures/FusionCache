@@ -1,15 +1,9 @@
 ﻿using System;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion;
-using ZiggyCreatures.Caching.Fusion.Backplane;
-using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Builder;
-using ZiggyCreatures.Caching.Fusion.Plugins;
-using ZiggyCreatures.Caching.Fusion.Serialization;
+using ZiggyCreatures.Caching.Fusion.Internals.Provider;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -18,12 +12,22 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class FusionCacheServiceCollectionExtensions
 {
+	private static IServiceCollection AddFusionCacheProvider(this IServiceCollection services)
+	{
+		//services.TryAddSingleton<FusionCacheProvider>();
+		//services.TryAddSingleton<IFusionCacheProvider>(sp => sp.GetRequiredService<FusionCacheProvider>());
+
+		services.TryAddSingleton<IFusionCacheProvider, FusionCacheProvider>();
+
+		return services;
+	}
+
 	/// <summary>
 	/// !!! OBSOLETE !!!
 	/// <br/>
 	/// This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach.
 	/// <br/>
-	/// The new call corresponding to AddFusionCache() is AddFusionCache(b => b.WithAutoSetup()) , see the docs for more.
+	/// The new call corresponding to AddFusionCache() is AddFusionCache(b => b.TryWithAutoSetup()) , see the docs for more.
 	/// <br/><br/>
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
@@ -43,71 +47,94 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddOptions();
 
-		if (setupOptionsAction is not null)
-			services.Configure(setupOptionsAction);
+		//if (setupOptionsAction is not null)
+		//	services.Configure(FusionCacheOptions.DefaultCacheName, setupOptionsAction);
 
-		services.Add(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
+		services.AddFusionCacheProvider();
+
+		// TODO: use the
+		services.AddFusionCache(b =>
 		{
-			var logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			if (setupOptionsAction is not null)
+				b = b.WithOptions(setupOptionsAction);
 
-			var cache = new FusionCache(
-				serviceProvider.GetRequiredService<IOptions<FusionCacheOptions>>(),
-				serviceProvider.GetService<IMemoryCache>(),
-				logger: logger
-			);
+			b = b.TryWithRegisteredMemoryCache();
 
-			// DISTRIBUTED CACHE
 			if (useDistributedCacheIfAvailable)
-			{
-				var distributedCache = serviceProvider.GetService<IDistributedCache>();
+				b = b.TryWithRegisteredDistributedCache(ignoreMemoryDistributedCache, false);
 
-				if (ignoreMemoryDistributedCache && distributedCache is MemoryDistributedCache)
-				{
-					distributedCache = null;
-				}
+			b = b.TryWithRegisteredBackplane();
 
-				if (distributedCache is not null)
-				{
-					var serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+			b = b.WithAllRegisteredPlugins();
 
-					if (serializer is null)
-					{
-						if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-							logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
-					}
-					else
-					{
-						cache.SetupDistributedCache(distributedCache, serializer);
-					}
-				}
-			}
+			if (setupCacheAction is not null)
+				b = b.WithPostSetup(setupCacheAction);
 
-			// BACKPLANE
-			var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+			return b;
+		});
 
-			if (backplane is not null)
-			{
-				cache.SetupBackplane(backplane);
-			}
+		//services.Add(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
+		//{
+		//	var logger = serviceProvider.GetService<ILogger<FusionCache>>();
 
-			// PLUGINS
-			foreach (var plugin in serviceProvider.GetServices<IFusionCachePlugin>())
-			{
-				try
-				{
-					cache.AddPlugin(plugin);
-				}
-				catch
-				{
-					// EMPTY: EVERYTHING HAS BEEN ALREADY LOGGED, IF NECESSARY
-				}
-			}
+		//	var cache = new FusionCache(
+		//		serviceProvider.GetRequiredService<IOptions<FusionCacheOptions>>(),
+		//		serviceProvider.GetService<IMemoryCache>(),
+		//		logger: logger
+		//	);
 
-			// CUSTOM SETUP ACTION
-			setupCacheAction?.Invoke(serviceProvider, cache);
+		//	// DISTRIBUTED CACHE
+		//	if (useDistributedCacheIfAvailable)
+		//	{
+		//		var distributedCache = serviceProvider.GetService<IDistributedCache>();
 
-			return cache;
-		}));
+		//		if (ignoreMemoryDistributedCache && distributedCache is MemoryDistributedCache)
+		//		{
+		//			distributedCache = null;
+		//		}
+
+		//		if (distributedCache is not null)
+		//		{
+		//			var serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+
+		//			if (serializer is null)
+		//			{
+		//				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+		//					logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
+		//			}
+		//			else
+		//			{
+		//				cache.SetupDistributedCache(distributedCache, serializer);
+		//			}
+		//		}
+		//	}
+
+		//	// BACKPLANE
+		//	var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+
+		//	if (backplane is not null)
+		//	{
+		//		cache.SetupBackplane(backplane);
+		//	}
+
+		//	// PLUGINS
+		//	foreach (var plugin in serviceProvider.GetServices<IFusionCachePlugin>())
+		//	{
+		//		try
+		//		{
+		//			cache.AddPlugin(plugin);
+		//		}
+		//		catch
+		//		{
+		//			// EMPTY: EVERYTHING HAS BEEN ALREADY LOGGED, IF NECESSARY
+		//		}
+		//	}
+
+		//	// CUSTOM SETUP ACTION
+		//	setupCacheAction?.Invoke(serviceProvider, cache);
+
+		//	return cache;
+		//}));
 
 		return services;
 	}
@@ -133,7 +160,7 @@ public static class FusionCacheServiceCollectionExtensions
 			throw new ArgumentNullException(nameof(cache));
 
 		if (cacheName != cache.CacheName)
-			throw new ArgumentException($"The provided FusionCache instance has a name ({cache.CacheName}) that is different from the provided name ({cacheName})", nameof(cacheName));
+			throw new InvalidOperationException($"The provided FusionCache instance has a name ({cache.CacheName}) that is different from the provided name ({cacheName})");
 
 		services.AddOptions();
 
@@ -142,9 +169,9 @@ public static class FusionCacheServiceCollectionExtensions
 			opt.CacheName = cacheName;
 		});
 
-		services.TryAddSingleton<IFusionCacheProvider, FusionCacheProvider>();
+		services.AddFusionCacheProvider();
 
-		services.Add(ServiceDescriptor.Singleton<IFusionCache>(cache));
+		services.AddSingleton<IFusionCache>(cache);
 
 		return services;
 	}
@@ -175,9 +202,9 @@ public static class FusionCacheServiceCollectionExtensions
 			opt.CacheName = cacheName;
 		});
 
-		services.TryAddSingleton<IFusionCacheProvider, FusionCacheProvider>();
+		services.AddFusionCacheProvider();
 
-		services.Add(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
+		services.AddSingleton<IFusionCache>(serviceProvider =>
 		{
 			IFusionCacheBuilder b = new FusionCacheBuilder(cacheName);
 
@@ -187,7 +214,7 @@ public static class FusionCacheServiceCollectionExtensions
 			}
 
 			return b.Build(serviceProvider);
-		}));
+		});
 
 		return services;
 	}

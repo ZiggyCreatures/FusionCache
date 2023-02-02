@@ -18,6 +18,8 @@
 			- Change EnableBackplaneNotifications option to (inverted) SkipBackplaneNotifications
 			- Better XML docs
 		</PackageReleaseNotes>
+		<EnablePackageValidation>true</EnablePackageValidation>
+		<PackageValidationBaselineVersion>0.18.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

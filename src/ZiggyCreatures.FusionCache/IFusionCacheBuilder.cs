@@ -22,6 +22,8 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		string CacheName { get; }
 
+		#region LOGGER
+
 		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="ILogger{FusionCache}"/> service registered in the DI container.
 		/// </summary>
@@ -33,14 +35,18 @@ namespace ZiggyCreatures.Caching.Fusion
 		ILogger<FusionCache>? Logger { get; set; }
 
 		/// <summary>
-		/// Indicates if the builder should try find and use an <see cref="IMemoryCache"/> service registered in the DI container.
+		/// A factory that creates the <see cref="ILogger{FusionCache}"/> instance to be used.
 		/// </summary>
-		bool UseRegisteredMemoryCache { get; set; }
+		Func<IServiceProvider, ILogger<FusionCache>>? LoggerFactory { get; set; }
 
 		/// <summary>
-		/// A specific <see cref="IMemoryCache"/> instance to be used.
+		/// Throws an <see cref="InvalidOperationException"/> if a logger (an instance of <see cref="ILogger{FusionCache}"/>) is not specified or is not found in the DI container.
 		/// </summary>
-		IMemoryCache? MemoryCache { get; set; }
+		bool ThrowIfMissingLogger { get; set; }
+
+		#endregion
+
+		#region OPTIONS
 
 		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IOptions{FusionCacheOptions}"/> service registered in the DI container.
@@ -57,6 +63,10 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
 
+		#endregion
+
+		#region DEFAULT ENTRY OPTIONS
+
 		/// <summary>
 		/// A custom <see cref="FusionCacheEntryOptions"/> object to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/>.
 		/// </summary>
@@ -67,20 +77,57 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// </summary>
 		Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
+		#endregion
+
+		#region MEMORY CACHE
+
+		/// <summary>
+		/// Indicates if the builder should try find and use an <see cref="IMemoryCache"/> service registered in the DI container.
+		/// </summary>
+		bool UseRegisteredMemoryCache { get; set; }
+
+		/// <summary>
+		/// A specific <see cref="IMemoryCache"/> instance to be used.
+		/// </summary>
+		IMemoryCache? MemoryCache { get; set; }
+
+		/// <summary>
+		/// A factory that creates the <see cref="IMemoryCache"/> instance to be used.
+		/// </summary>
+		Func<IServiceProvider, IMemoryCache>? MemoryCacheFactory { get; set; }
+
+		/// <summary>
+		/// Throws an <see cref="InvalidOperationException"/> if a memory cache (an instance of <see cref="IMemoryCache"/>) is not specified or is not found in the DI container.
+		/// </summary>
+		bool ThrowIfMissingMemoryCache { get; set; }
+
+		#endregion
+
+		#region SERIALIZER
+
 		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
 		/// </summary>
 		bool UseRegisteredSerializer { get; set; }
 
 		/// <summary>
-		/// If an <see cref="IDistributedCache"/> service is about to be used, but a valid <see cref="IFusionCacheSerializer"/> has not been provided, throw an exception: this is useful to avoid being convinced of having a distributed cache when, in reality, that is not the case since a serializer is needed for it to work.
-		/// </summary>
-		bool ThrowIfMissingSerializer { get; set; }
-
-		/// <summary>
 		/// A specific <see cref="IFusionCacheSerializer"/> instance to be used.
 		/// </summary>
 		IFusionCacheSerializer? Serializer { get; set; }
+
+		/// <summary>
+		/// A factory that creates the <see cref="IFusionCacheSerializer"/> instance to be used.
+		/// </summary>
+		Func<IServiceProvider, IFusionCacheSerializer>? SerializerFactory { get; set; }
+
+		/// <summary>
+		/// When a distributed cache has been specified or found in the DI container, throws an <see cref="InvalidOperationException"/> if a serializer (an instance of <see cref="IFusionCacheSerializer"/>) is not specified or is not found in the DI container, too.
+		/// </summary>
+		bool ThrowIfMissingSerializer { get; set; }
+
+		#endregion
+
+		#region DISTRIBUTED CACHE
 
 		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IDistributedCache"/> service registered in the DI container.
@@ -98,6 +145,20 @@ namespace ZiggyCreatures.Caching.Fusion
 		IDistributedCache? DistributedCache { get; set; }
 
 		/// <summary>
+		/// A factory that creates the <see cref="IDistributedCache"/> instance to be used.
+		/// </summary>
+		Func<IServiceProvider, IDistributedCache>? DistributedCacheFactory { get; set; }
+
+		/// <summary>
+		/// Throws an <see cref="InvalidOperationException"/> if a distributed cache (an instance of <see cref="IDistributedCache"/>) is not specified or is not found in the DI container.
+		/// </summary>
+		bool ThrowIfMissingDistributedCache { get; set; }
+
+		#endregion
+
+		#region BACKPLANE
+
+		/// <summary>
 		/// Indicates if the builder should try find and use an <see cref="IFusionCacheBackplane"/> service registered in the DI container.
 		/// </summary>
 		bool UseRegisteredBackplane { get; set; }
@@ -108,6 +169,20 @@ namespace ZiggyCreatures.Caching.Fusion
 		IFusionCacheBackplane? Backplane { get; set; }
 
 		/// <summary>
+		/// A factory that creates the <see cref="IFusionCacheBackplane"/> instance to be used.
+		/// </summary>
+		Func<IServiceProvider, IFusionCacheBackplane>? BackplaneFactory { get; set; }
+
+		/// <summary>
+		/// Throws an <see cref="InvalidOperationException"/> if a backplane (an instance of <see cref="IFusionCacheBackplane"/>) is not specified or is not found in the DI container.
+		/// </summary>
+		bool ThrowIfMissingBackplane { get; set; }
+
+		#endregion
+
+		#region PLUGINS
+
+		/// <summary>
 		/// Indicates if the builder should try find and use any available <see cref="IFusionCachePlugin"/> services registered in the DI container.
 		/// </summary>
 		bool UseAllRegisteredPlugins { get; set; }
@@ -116,6 +191,13 @@ namespace ZiggyCreatures.Caching.Fusion
 		/// A specific set of <see cref="IFusionCachePlugin"/> instances to be used.
 		/// </summary>
 		List<IFusionCachePlugin> Plugins { get; }
+
+		/// <summary>
+		/// A specific set of <see cref="IFusionCachePlugin"/> factories to be used.
+		/// </summary>
+		List<Func<IServiceProvider, IFusionCachePlugin>> PluginsFactories { get; }
+
+		#endregion
 
 		/// <summary>
 		/// A custom post-setup action, that will be invoked just after the creation of the FusionCache instance, and before returning it to the caller.
