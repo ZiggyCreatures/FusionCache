@@ -180,6 +180,10 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <summary>
 	/// The builder will look for an <see cref="IMemoryCache"/> service registered in the DI container and use it, and throws if it cannot find one.
 	/// <br/><br/>
+	/// <strong>⚠ WARNING:</strong> normally the memory cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches, all of them will use THE SAME memory cache instance and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+	/// <br/>
+	/// To avoid this, either don't use WithRegisteredMemoryCache() and let FusionCache create one for you (which will be different per cache instance) or use WithMemoryCache() and provide one directly.
+	/// <br/><br/>
 	/// <strong>NOTE:</strong> if a memory cache is not found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredMemoryCache().
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
@@ -201,6 +205,10 @@ public static partial class FusionCacheBuilderExtMethods
 
 	/// <summary>
 	/// Indicates if the builder should try to find and use an <see cref="IMemoryCache"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>⚠ WARNING:</strong> normally the memory cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches, all of them will use THE SAME memory cache instance and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+	/// <br/>
+	/// To avoid this, either don't use TryWithRegisteredMemoryCache() and let FusionCache create one for you (which will be different per cache instance) or use WithMemoryCache() and provide one directly.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
