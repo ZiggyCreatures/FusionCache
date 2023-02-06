@@ -617,7 +617,7 @@
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> service registered in the DI container and use it, and throws if it cannot find one.
             <br/><br/>
-            <strong>⚠ WARNING:</strong> normally the memory cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches, all of them will use THE SAME memory cache instance and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+            <strong>⚠ WARNING:</strong> normally the memory cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches and also use WithRegisteredMemoryCache() on all of them, they will use THE SAME memory cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
             <br/>
             To avoid this, either don't use WithRegisteredMemoryCache() and let FusionCache create one for you (which will be different per cache instance) or use WithMemoryCache() and provide one directly.
             <br/><br/>
@@ -694,6 +694,8 @@
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container and use them, and throws if it cannot find them.
             <br/><br/>
+            <strong>⚠ WARNING:</strong> normally the distributed cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches and also use WithRegisteredDistributedCache() on all of them, they will use THE SAME distributed cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+            <br/><br/>
             <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> is found, an <see cref="T:System.InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredDistributedCache().
             <br/><br/>
             <strong>NOTE:</strong> normally if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found in the DI container, it will be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
@@ -707,6 +709,8 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredDistributedCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Boolean,System.Boolean)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container.
+            <br/><br/>
+            <strong>⚠ WARNING:</strong> normally the distributed cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches by using WithRegisteredDistributedCache() on all of them, they will use THE SAME distributed cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
             <br/><br/>
             <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
             <br/><br/>
