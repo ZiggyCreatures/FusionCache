@@ -2358,6 +2358,13 @@
             <param name="cacheName">The name of the cache: it must match the one provided during registration.</param>
             <returns>The FusionCache instance corresponding to the cache name specified.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCacheProvider.GetCacheOrNull(System.String)">
+            <summary>
+            Returns the FusionCache instance with the corresponding name, or <see langword="null"/> if none found.
+            </summary>
+            <param name="cacheName">The name of the cache: it must match the one provided during registration.</param>
+            <returns>The FusionCache instance corresponding to the cache name specified.</returns>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom">
             <summary>
             A thread-safe version of the Random class.

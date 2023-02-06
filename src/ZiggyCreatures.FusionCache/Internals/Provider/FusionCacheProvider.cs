@@ -26,5 +26,18 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 
 			throw new ArgumentException($"No FusionCache registration has been found with the provided name ({cacheName})", nameof(cacheName));
 		}
+
+		public IFusionCache? GetCacheOrNull(string cacheName)
+		{
+			var matchingCaches = _caches.Where(x => x.CacheName == cacheName).ToArray();
+
+			if (matchingCaches.Length == 1)
+				return matchingCaches[0];
+
+			if (matchingCaches.Length > 1)
+				throw new InvalidOperationException($"Multiple FusionCache registrations have been found with the provided name ({cacheName})");
+
+			return null;
+		}
 	}
 }

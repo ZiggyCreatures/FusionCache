@@ -479,6 +479,21 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
+		public void DontThrowWhenRequestingAnUnregisteredCache()
+		{
+			var services = new ServiceCollection();
+
+			services.AddFusionCache("FooCache", b => b);
+			services.AddFusionCache(b => b);
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+
+			Assert.Null(cacheProvider.GetCacheOrNull("BarCache"));
+		}
+
+		[Fact]
 		public void ThrowsWhenRequestingAnUnregisteredCache()
 		{
 			var services = new ServiceCollection();
