@@ -632,7 +632,7 @@
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> service registered in the DI container.
             <br/><br/>
-            <strong>⚠ WARNING:</strong> normally the memory cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches, all of them will use THE SAME memory cache instance and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+            <strong>⚠ WARNING:</strong> normally the memory cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches and also use WithRegisteredMemoryCache() on all of them, they will use THE SAME memory cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
             <br/>
             To avoid this, either don't use TryWithRegisteredMemoryCache() and let FusionCache create one for you (which will be different per cache instance) or use WithMemoryCache() and provide one directly.
             <br/><br/>
