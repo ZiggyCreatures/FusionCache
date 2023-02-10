@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>10.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<Version>0.17.0</Version>
+		<PackageId>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</PackageId>
+		<PackageIcon>logo-128x128.png</PackageIcon>
+		<Description>FusionCache serializer based on ServiceStack's Json serializer</Description>
+		<PackageTags>json;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
+		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</RootNamespace>
+		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.xml</DocumentationFile>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageReleaseNotes>Initial releae</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ServiceStack.Text" Version="6.5.0" />
+	</ItemGroup>
+
+</Project>
