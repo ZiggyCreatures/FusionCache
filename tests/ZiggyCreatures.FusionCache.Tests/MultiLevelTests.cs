@@ -729,7 +729,7 @@ namespace FusionCacheTests
 			Assert.Equal(1, v1);
 			Assert.Equal(1, v2);
 
-			await Task.Delay(TimeSpan.FromSeconds(2));
+			await Task.Delay(TimeSpan.FromSeconds(2).PlusALittleBit());
 
 			v1 = await fusionCache1.GetOrSetAsync<int>("foo", 3, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
 			v2 = await fusionCache2.GetOrSetAsync<int>("foo", 4, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
@@ -752,7 +752,7 @@ namespace FusionCacheTests
 			Assert.Equal(1, v1);
 			Assert.Equal(1, v2);
 
-			Thread.Sleep(TimeSpan.FromSeconds(2));
+			Thread.Sleep(TimeSpan.FromSeconds(2).PlusALittleBit());
 
 			v1 = fusionCache1.GetOrSet<int>("foo", 3, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
 			v2 = fusionCache2.GetOrSet<int>("foo", 4, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
