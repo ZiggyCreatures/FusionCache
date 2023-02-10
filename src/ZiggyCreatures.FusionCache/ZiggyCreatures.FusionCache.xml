@@ -593,9 +593,9 @@
             <br/><br/>
             Specifically:
             <br/>
-            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/>: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems.
+            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified Duration: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems;
             <br/>
-            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored.
+            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored;
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
             </summary>
@@ -636,6 +636,19 @@
             The duration specific for the distributed cache, if any. If not set, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> will be used.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheFailSafeMaxDuration">
+            <summary>
+            When fail-safe is enabled this is the maximum amount of time a cache entry can be used in case of problems, even if expired, in the distributed cache.
+            <br/><br/>
+            Specifically:
+            <br/>
+            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified Duration: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems;
+            <br/>
+            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored;
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheSoftTimeout">
@@ -795,6 +808,15 @@
             <param name="isEnabled">Enable or disable the fail-safe mechanism.</param>
             <param name="maxDuration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeMaxDuration"/> property.</param>
             <param name="throttleDuration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeThrottleDuration"/> property.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDistributedCacheFailSafeOptions(System.Nullable{System.TimeSpan})">
+            <summary>
+            Set various options related to the fail-safe mechanism, related to the distributed cache.
+            <br/><br/>
+            <strong>NOTE:</strong> this will not enable or disable the fail-safe mechanism, but only set some overrides.
+            </summary>
+            <param name="distributedCacheMaxDuration"></param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetFactoryTimeouts(System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Nullable{System.Boolean})">
@@ -1393,6 +1415,11 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheDuration">
             <summary>
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheDuration"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheFailSafeMaxDuration">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheFailSafeMaxDuration"/>.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout">

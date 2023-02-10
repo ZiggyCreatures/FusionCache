@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -29,16 +28,17 @@ public class FusionCacheEntryOptions
 		FactoryHardTimeout = FusionCacheGlobalDefaults.EntryOptionsFactoryHardTimeout;
 		AllowTimedOutFactoryBackgroundCompletion = FusionCacheGlobalDefaults.EntryOptionsAllowTimedOutFactoryBackgroundCompletion;
 
+		IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
+		FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
+		FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
+
 		DistributedCacheDuration = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheDuration;
+		DistributedCacheFailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheFailSafeMaxDuration;
 		DistributedCacheSoftTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout;
 		DistributedCacheHardTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheHardTimeout;
 		AllowBackgroundDistributedCacheOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations;
 		ReThrowDistributedCacheExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions;
 		ReThrowSerializationExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowSerializationExceptions;
-
-		IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
-		FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
-		FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
 
 		SkipBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications;
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
@@ -98,9 +98,9 @@ public class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// Specifically:
 	/// <br/>
-	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified <see cref="Duration"/>: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems.
+	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified Duration: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems;
 	/// <br/>
-	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored.
+	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored;
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 	/// </summary>
@@ -143,6 +143,19 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public TimeSpan? DistributedCacheDuration { get; set; }
+
+	/// <summary>
+	/// When fail-safe is enabled this is the maximum amount of time a cache entry can be used in case of problems, even if expired, in the distributed cache.
+	/// <br/><br/>
+	/// Specifically:
+	/// <br/>
+	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified Duration: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems;
+	/// <br/>
+	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored;
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+	/// </summary>
+	public TimeSpan? DistributedCacheFailSafeMaxDuration { get; set; }
 
 	/// <summary>
 	/// The maximum execution time allowed for each operation on the distributed cache, applied only if fail-safe is enabled and there is a fallback value to return.
@@ -244,7 +257,7 @@ public class FusionCacheEntryOptions
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} SKD={SkipDistributedCache.ToStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} SBN={SkipBackplaneNotifications.ToStringYN()} BBO={AllowBackgroundBackplaneOperations.ToStringYN()}]";
+		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} SKD={SkipDistributedCache.ToStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} SBN={SkipBackplaneNotifications.ToStringYN()} BBO={AllowBackgroundBackplaneOperations.ToStringYN()}]";
 	}
 
 	/// <summary>
@@ -355,6 +368,19 @@ public class FusionCacheEntryOptions
 			FailSafeMaxDuration = maxDuration.Value;
 		if (throttleDuration is not null)
 			FailSafeThrottleDuration = throttleDuration.Value;
+		return this;
+	}
+
+	/// <summary>
+	/// Set various options related to the fail-safe mechanism, related to the distributed cache.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this will not enable or disable the fail-safe mechanism, but only set some overrides.
+	/// </summary>
+	/// <param name="distributedCacheMaxDuration"></param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDistributedCacheFailSafeOptions(TimeSpan? distributedCacheMaxDuration)
+	{
+		DistributedCacheFailSafeMaxDuration = distributedCacheMaxDuration;
 		return this;
 	}
 
@@ -491,7 +517,11 @@ public class FusionCacheEntryOptions
 	{
 		var res = new DistributedCacheEntryOptions();
 
-		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : DistributedCacheDuration.GetValueOrDefault(Duration));
+		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(
+			IsFailSafeEnabled
+			? DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration
+			: DistributedCacheDuration ?? Duration
+		);
 
 		return res;
 	}
@@ -564,6 +594,7 @@ public class FusionCacheEntryOptions
 			AllowTimedOutFactoryBackgroundCompletion = AllowTimedOutFactoryBackgroundCompletion,
 
 			DistributedCacheDuration = DistributedCacheDuration,
+			DistributedCacheFailSafeMaxDuration = DistributedCacheFailSafeMaxDuration,
 			DistributedCacheSoftTimeout = DistributedCacheSoftTimeout,
 			DistributedCacheHardTimeout = DistributedCacheHardTimeout,
 
