@@ -6,7 +6,7 @@
     <members>
         <member name="T:ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson.FusionCacheServiceStackJsonSerializer">
             <summary>
-            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses the Newtonsoft Json.NET serializer.
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson.FusionCacheServiceStackJsonSerializer.Serialize``1(``0)">

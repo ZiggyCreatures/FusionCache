@@ -5,7 +5,7 @@ using ServiceStack.Text;
 namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 
 /// <summary>
-/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the Newtonsoft Json.NET serializer.
+/// An implementation of <see cref="IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
 /// </summary>
 public class FusionCacheServiceStackJsonSerializer
 	: IFusionCacheSerializer
