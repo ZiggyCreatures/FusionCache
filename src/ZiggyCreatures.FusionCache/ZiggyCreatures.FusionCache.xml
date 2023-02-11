@@ -389,7 +389,12 @@
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactoryError">
             <summary>
-            The event for a generic error during a factory execution (excluding synthetic timeouts, for which there is the specific <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactorySyntheticTimeout"/> event).
+            The event for a generic error during a non-background factory execution (excluding synthetic timeouts, for which there is the specific <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactorySyntheticTimeout"/> event).
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactorySuccess">
+            <summary>
+            The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponsing cache entry.
             </summary>
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.BackgroundFactoryError">

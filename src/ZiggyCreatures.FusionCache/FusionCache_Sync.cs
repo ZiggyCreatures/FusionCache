@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 public partial class FusionCache
 	: IFusionCache
 {
-	private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue?>? factory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue?>? factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		if (options is null)
 			options = _options.DefaultEntryOptions;
@@ -199,6 +199,10 @@ public partial class FusionCache
 						var maybeNewOptions = ctx.GetOptions();
 						if (maybeNewOptions is not null && options != maybeNewOptions)
 							options = maybeNewOptions;
+
+						// EVENTS
+						if (isRealFactory)
+							_events.OnFactorySuccess(operationId, key);
 					}
 					catch (OperationCanceledException)
 					{
@@ -286,7 +290,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, failSafeDefaultValue, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, true, failSafeDefaultValue, options, token);
 
 		if (entry is null)
 		{
@@ -314,7 +318,7 @@ public partial class FusionCache
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
 		// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, false, default, options, token);
 
 		if (entry is null)
 		{
@@ -341,7 +345,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling TryGet<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, false, default, options, token);
 
 		if (entry is null)
 		{
@@ -369,7 +373,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrDefault<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, false, default, options, token);
 
 		if (entry is null)
 		{

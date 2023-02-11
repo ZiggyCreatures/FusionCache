@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 public partial class FusionCache
 	: IFusionCache
 {
-	private async ValueTask<IFusionCacheEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, Task<TValue?>>? factory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private async ValueTask<IFusionCacheEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, Task<TValue?>>? factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		if (options is null)
 			options = _options.DefaultEntryOptions;
@@ -199,6 +199,10 @@ public partial class FusionCache
 						var maybeNewOptions = ctx.GetOptions();
 						if (maybeNewOptions is not null && options != maybeNewOptions)
 							options = maybeNewOptions;
+
+						// EVENTS
+						if (isRealFactory)
+							_events.OnFactorySuccess(operationId, key);
 					}
 					catch (OperationCanceledException)
 					{
@@ -286,7 +290,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, factory, true, failSafeDefaultValue, options, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{
@@ -314,7 +318,7 @@ public partial class FusionCache
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", operationId, key, options.ToLogString());
 
 		// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternalAsync METHOD
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, (_, _) => Task.FromResult(defaultValue), default, options, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, (_, _) => Task.FromResult(defaultValue), false, default, options, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{
@@ -341,7 +345,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling TryGetAsync<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, default, options, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, false, default, options, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{
@@ -369,7 +373,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrDefaultAsync<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, default, options, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, null, false, default, options, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{

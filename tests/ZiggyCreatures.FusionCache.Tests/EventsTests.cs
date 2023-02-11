@@ -21,8 +21,9 @@ namespace FusionCacheTests
 			Remove = 4,
 			FailSafeActivate = 5,
 			FactoryError = 6,
-			BackplaneMessagePublished = 7,
-			BackplaneMessageReceived = 8
+			FactorySuccess = 7,
+			BackplaneMessagePublished = 8,
+			BackplaneMessageReceived = 9
 		}
 
 		public class EntryActionsStats
@@ -65,6 +66,7 @@ namespace FusionCacheTests
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 				EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
+				EventHandler<FusionCacheEntryEventArgs> onFactorySuccess = (s, e) => stats.RecordAction(EntryActionKind.FactorySuccess);
 
 				// SETUP HANDLERS
 				cache.Events.Miss += onMiss;
@@ -73,6 +75,7 @@ namespace FusionCacheTests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 				cache.Events.FactoryError += onFactoryError;
+				cache.Events.FactorySuccess += onFactorySuccess;
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("foo");
@@ -94,7 +97,7 @@ namespace FusionCacheTests
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
 				// FACTORY ERROR: +1
-				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
+				_ = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
 				await cache.TryGetAsync<int>("bar");
@@ -105,10 +108,15 @@ namespace FusionCacheTests
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
 				// FACTORY ERROR: +1
-				_ = await cache.GetOrSetAsync<int>("foo", _ => throw new Exception("Sloths are cool"));
+				_ = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
 				await cache.RemoveAsync("foo");
+
+				// MISS: +1
+				// SET: +1
+				// FACTORY SUCCESS: +1
+				_ = await cache.GetOrSetAsync<int>("foo", async _ => 123);
 
 				// REMOVE: +1
 				await cache.RemoveAsync("bar");
@@ -122,14 +130,16 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 				cache.Events.FactoryError -= onFactoryError;
+				cache.Events.FactorySuccess -= onFactorySuccess;
 
-				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(4, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
 				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
+				Assert.Equal(1, stats.Data[EntryActionKind.FactorySuccess]);
 			}
 		}
 
@@ -155,6 +165,7 @@ namespace FusionCacheTests
 				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 				EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
+				EventHandler<FusionCacheEntryEventArgs> onFactorySuccess = (s, e) => stats.RecordAction(EntryActionKind.FactorySuccess);
 
 				// SETUP HANDLERS
 				cache.Events.Miss += onMiss;
@@ -163,6 +174,7 @@ namespace FusionCacheTests
 				cache.Events.Remove += onRemove;
 				cache.Events.FailSafeActivate += onFailSafeActivate;
 				cache.Events.FactoryError += onFactoryError;
+				cache.Events.FactorySuccess += onFactorySuccess;
 
 				// MISS: +1
 				cache.TryGet<int>("foo");
@@ -184,7 +196,7 @@ namespace FusionCacheTests
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
 				// FACTORY ERROR: +1
-				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
+				_ = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// MISS: +1
 				cache.TryGet<int>("bar");
@@ -195,10 +207,15 @@ namespace FusionCacheTests
 				// HIT (STALE): +1
 				// FAIL-SAFE: +1
 				// FACTORY ERROR: +1
-				cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
+				_ = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
 
 				// REMOVE: +1
 				cache.Remove("foo");
+
+				// MISS: +1
+				// SET: +1
+				// FACTORY SUCCESS: +1
+				_ = cache.GetOrSet<int>("foo", _ => 123);
 
 				// REMOVE: +1
 				cache.Remove("bar");
@@ -212,14 +229,16 @@ namespace FusionCacheTests
 				cache.Events.Remove -= onRemove;
 				cache.Events.FailSafeActivate -= onFailSafeActivate;
 				cache.Events.FactoryError -= onFactoryError;
+				cache.Events.FactorySuccess -= onFactorySuccess;
 
-				Assert.Equal(3, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(4, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
 				Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
 				Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
+				Assert.Equal(1, stats.Data[EntryActionKind.FactorySuccess]);
 			}
 		}
 
