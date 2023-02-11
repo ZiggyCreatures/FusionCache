@@ -73,7 +73,7 @@ internal partial class DistributedCacheAccessor
 			return;
 
 		// SAVE TO DISTRIBUTED CACHE
-		var distributedOptions = options.ToDistributedCacheEntryOptions();
+		var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 		ExecuteOperation(
 			operationId,
 			key,

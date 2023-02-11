@@ -75,7 +75,7 @@ public partial class FusionCache
 		_plugins = new List<IFusionCachePlugin>();
 
 		// MEMORY CACHE
-		_mca = new MemoryCacheAccessor(memoryCache, _logger, _events.Memory);
+		_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
 
 		// DISTRIBUTED CACHE
 		_dca = null;

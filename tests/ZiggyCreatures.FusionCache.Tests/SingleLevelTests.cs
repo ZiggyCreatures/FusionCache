@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -814,6 +816,36 @@ namespace FusionCacheTests
 				);
 
 				Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
+			}
+		}
+
+		[Fact]
+		public async Task FailSafeMaxDurationNormalizationOccursAsync()
+		{
+			var duration = TimeSpan.FromSeconds(5);
+			var maxDuration = TimeSpan.FromSeconds(1);
+
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()))
+			{
+				await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetDuration(duration).SetFailSafe(true, maxDuration));
+				await Task.Delay(maxDuration.PlusALittleBit());
+				var value = await fusionCache.GetOrDefaultAsync<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Fact]
+		public void FailSafeMaxDurationNormalizationOccurs()
+		{
+			var duration = TimeSpan.FromSeconds(5);
+			var maxDuration = TimeSpan.FromSeconds(1);
+
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()))
+			{
+				fusionCache.Set<int>("foo", 21, opt => opt.SetDuration(duration).SetFailSafe(true, maxDuration));
+				Thread.Sleep(maxDuration.PlusALittleBit());
+				var value = fusionCache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
 			}
 		}
 	}

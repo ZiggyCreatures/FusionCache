@@ -2,6 +2,7 @@
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -481,7 +482,7 @@ public class FusionCacheEntryOptions
 	/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 	/// </summary>
 	/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
-	public MemoryCacheEntryOptions ToMemoryCacheEntryOptions(FusionCacheMemoryEventsHub events)
+	internal MemoryCacheEntryOptions ToMemoryCacheEntryOptions(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key)
 	{
 		var res = new MemoryCacheEntryOptions
 		{
@@ -489,21 +490,50 @@ public class FusionCacheEntryOptions
 			Priority = Priority
 		};
 
-		if (JitterMaxDuration <= TimeSpan.Zero)
+		// PHYSICAL DURATION
+		TimeSpan physicalDuration;
+		bool incoherentFailSafeMaxDuration = false;
+
+		if (IsFailSafeEnabled == false)
 		{
-			res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration);
+			physicalDuration = Duration;
 		}
 		else
 		{
-			res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(IsFailSafeEnabled ? FailSafeMaxDuration : Duration).AddMilliseconds(GetJitterDurationMs());
+			if (FailSafeMaxDuration < Duration)
+			{
+				incoherentFailSafeMaxDuration = true;
+				physicalDuration = Duration;
+			}
+			else
+			{
+				physicalDuration = FailSafeMaxDuration;
+			}
 		}
 
+		// ABSOLUTE EXPIRATION
+		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(physicalDuration);
+
+		// ADD JITTERING
+		if (JitterMaxDuration > TimeSpan.Zero)
+		{
+			res.AbsoluteExpiration = res.AbsoluteExpiration.Value.AddMilliseconds(GetJitterDurationMs());
+		}
+
+		// EVENTS
 		if (events.HasEvictionSubscribers())
 		{
 			res.RegisterPostEvictionCallback(
 				(key, _, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
 				events
 			);
+		}
+
+		// INCOHERENT DURATION
+		if (incoherentFailSafeMaxDuration)
+		{
+			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
@@ -513,15 +543,44 @@ public class FusionCacheEntryOptions
 	/// Creates a new <see cref="DistributedCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 	/// </summary>
 	/// <returns>The newly created <see cref="DistributedCacheEntryOptions"/> instance.</returns>
-	public DistributedCacheEntryOptions ToDistributedCacheEntryOptions()
+	internal DistributedCacheEntryOptions ToDistributedCacheEntryOptions(FusionCacheOptions options, ILogger? logger, string operationId, string key)
 	{
 		var res = new DistributedCacheEntryOptions();
 
-		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(
-			IsFailSafeEnabled
-			? DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration
-			: DistributedCacheDuration ?? Duration
-		);
+		// PHYSICAL DURATION
+		TimeSpan physicalDuration;
+		TimeSpan durationToUse;
+		TimeSpan failSafeMaxDurationToUse;
+		bool incoherentFailSafeMaxDuration = false;
+
+		durationToUse = DistributedCacheDuration ?? Duration;
+
+		if (IsFailSafeEnabled == false)
+		{
+			physicalDuration = durationToUse;
+		}
+		else
+		{
+			failSafeMaxDurationToUse = DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration;
+			if (failSafeMaxDurationToUse < durationToUse)
+			{
+				incoherentFailSafeMaxDuration = true;
+				physicalDuration = durationToUse;
+			}
+			else
+			{
+				physicalDuration = failSafeMaxDurationToUse;
+			}
+		}
+
+		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(physicalDuration);
+
+		// INCOHERENT DURATION
+		if (incoherentFailSafeMaxDuration)
+		{
+			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
+		}
 
 		return res;
 	}

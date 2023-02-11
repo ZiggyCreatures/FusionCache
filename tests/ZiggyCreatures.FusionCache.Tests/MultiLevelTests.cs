@@ -641,6 +641,40 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task DistributedCacheFailSafeMaxDurationNormalizationOccursAsync(SerializerType serializerType)
+		{
+			var duration = TimeSpan.FromSeconds(5);
+			var maxDuration = TimeSpan.FromSeconds(1);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+			{
+				await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetDuration(duration).SetFailSafe(true, maxDuration).SetDistributedCacheFailSafeOptions(maxDuration));
+				await Task.Delay(maxDuration.PlusALittleBit());
+				var value = await fusionCache.GetOrDefaultAsync<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void DistributedCacheFailSafeMaxDurationNormalizationOccurs(SerializerType serializerType)
+		{
+			var duration = TimeSpan.FromSeconds(5);
+			var maxDuration = TimeSpan.FromSeconds(1);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+			{
+				fusionCache.Set<int>("foo", 21, opt => opt.SetDuration(duration).SetFailSafe(true, maxDuration).SetDistributedCacheFailSafeOptions(maxDuration));
+				Thread.Sleep(maxDuration.PlusALittleBit());
+				var value = fusionCache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task MemoryExpirationAlignedWithDistributedAsync(SerializerType serializerType)
 		{
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
