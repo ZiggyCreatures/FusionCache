@@ -562,18 +562,21 @@ namespace FusionCacheTests
 				await Task.Delay(duration.PlusALittleBit()).ConfigureAwait(false);
 				// CHECK EXPIRED (WITHOUT FAIL-SAFE)
 				var nope = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+				// DO NOT ACTIVATE FAIL-SAFE AND THROTTLE DURATION
+				var default1 = await cache.GetOrDefaultAsync("foo", 1);
 				// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
 				var throttled1 = await cache.GetOrDefaultAsync("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
 				// WAIT A LITTLE BIT (LESS THAN THE DURATION)
 				await Task.Delay(100).ConfigureAwait(false);
 				// GET THE THROTTLED (NON EXPIRED) VALUE
-				var throttled2 = await cache.GetOrDefaultAsync("foo", 2, opt => opt.SetFailSafe(false));
+				var throttled2 = await cache.GetOrDefaultAsync("foo", 2, opt => opt.SetFailSafe(true));
 				// LET THE THROTTLE DURATION PASS
 				await Task.Delay(throttleDuration).ConfigureAwait(false);
 				// FALLBACK TO THE DEFAULT VALUE
 				var default3 = await cache.GetOrDefaultAsync("foo", 3, opt => opt.SetFailSafe(false));
 
 				Assert.False(nope.HasValue);
+				Assert.Equal(1, default1);
 				Assert.Equal(42, throttled1);
 				Assert.Equal(42, throttled2);
 				Assert.Equal(3, default3);
@@ -594,18 +597,21 @@ namespace FusionCacheTests
 				Thread.Sleep(duration.PlusALittleBit());
 				// CHECK EXPIRED (WITHOUT FAIL-SAFE)
 				var nope = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+				// DO NOT ACTIVATE FAIL-SAFE AND THROTTLE DURATION
+				var default1 = cache.GetOrDefault("foo", 1);
 				// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
 				var throttled1 = cache.GetOrDefault("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
 				// WAIT A LITTLE BIT (LESS THAN THE DURATION)
 				Thread.Sleep(100);
 				// GET THE THROTTLED (NON EXPIRED) VALUE
-				var throttled2 = cache.GetOrDefault("foo", 2, opt => opt.SetFailSafe(false));
+				var throttled2 = cache.GetOrDefault("foo", 2, opt => opt.SetFailSafe(true));
 				// LET THE THROTTLE DURATION PASS
 				Thread.Sleep(throttleDuration);
 				// FALLBACK TO THE DEFAULT VALUE
 				var default3 = cache.GetOrDefault("foo", 3, opt => opt.SetFailSafe(false));
 
 				Assert.False(nope.HasValue);
+				Assert.Equal(1, default1);
 				Assert.Equal(42, throttled1);
 				Assert.Equal(42, throttled2);
 				Assert.Equal(3, default3);
@@ -846,6 +852,46 @@ namespace FusionCacheTests
 				Thread.Sleep(maxDuration.PlusALittleBit());
 				var value = fusionCache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
 				Assert.Equal(21, value);
+			}
+		}
+
+		[Fact]
+		public async Task ReturnsStaleDataWithoutSavingItWhenNoFactoryAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)));
+				await Task.Delay(1_500);
+				var maybeValue = await cache.TryGetAsync<int>("foo", opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var defaultValue1 = await cache.GetOrDefaultAsync<int>("foo", 1);
+				var defaultValue2 = await cache.GetOrDefaultAsync<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var defaultValue3 = await cache.GetOrDefaultAsync<int>("foo", 3);
+
+				Assert.True(maybeValue.HasValue);
+				Assert.Equal(42, maybeValue.Value);
+				Assert.Equal(1, defaultValue1);
+				Assert.Equal(42, defaultValue2);
+				Assert.Equal(3, defaultValue3);
+			}
+		}
+
+		[Fact]
+		public void ReturnsStaleDataWithoutSavingItWhenNoFactory()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)));
+				Thread.Sleep(1_500);
+				var maybeValue = cache.TryGet<int>("foo", opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var defaultValue1 = cache.GetOrDefault<int>("foo", 1);
+				var defaultValue2 = cache.GetOrDefault<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+				var defaultValue3 = cache.GetOrDefault<int>("foo", 3);
+
+				Assert.True(maybeValue.HasValue);
+				Assert.Equal(42, maybeValue.Value);
+				Assert.Equal(1, defaultValue1);
+				Assert.Equal(42, defaultValue2);
+				Assert.Equal(3, defaultValue3);
 			}
 		}
 	}

@@ -64,17 +64,18 @@ public partial class FusionCache
 
 			if (options.IsFailSafeEnabled && memoryEntry is not null)
 			{
-				// CREATE A NEW (THROTTLED) ENTRY
-				memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(memoryEntry.Value, options, true);
+				// CREATE A NEW ENTRY
+				//memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(memoryEntry.Value, options, true);
 
-				// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
-				_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+				//// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
+				//_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+				//_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+				_events.OnHit(operationId, key, true);
 
 				return memoryEntry;
 			}
