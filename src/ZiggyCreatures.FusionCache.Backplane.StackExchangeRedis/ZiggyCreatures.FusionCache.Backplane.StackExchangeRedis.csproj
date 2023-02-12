@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>10.0</LangVersion>
+		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<Version>0.18.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
