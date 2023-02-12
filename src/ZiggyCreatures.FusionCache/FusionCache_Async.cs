@@ -292,7 +292,6 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", operationId, key, options.ToLogString());
 
-		// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternalAsync METHOD
 		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, (_, _) => Task.FromResult(defaultValue), false, default, options, token).ConfigureAwait(false);
 
 		if (entry is null)

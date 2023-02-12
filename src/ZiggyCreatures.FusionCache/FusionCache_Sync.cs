@@ -292,7 +292,6 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
-		// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
 		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, false, default, options, token);
 
 		if (entry is null)

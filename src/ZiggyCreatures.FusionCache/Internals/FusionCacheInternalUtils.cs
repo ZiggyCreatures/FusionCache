@@ -99,9 +99,9 @@ internal static class FusionCacheInternalUtils
 
 	public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
 	{
-		// TODO: NOT SURE ABOUT THIS
-		//if (exc is null)
-		//	return null;
+		if (exc is null)
+			throw new ArgumentNullException(nameof(exc));
+
 		return (exc.InnerException is not null && exc.InnerExceptions?.Count <= 1)
 			? exc.InnerException
 			: exc
