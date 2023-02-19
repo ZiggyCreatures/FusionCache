@@ -2773,12 +2773,27 @@
             </summary>
             <param name="maybe">The <see cref="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1"/> instance.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.op_Equality(ZiggyCreatures.Caching.Fusion.MaybeValue{`0},ZiggyCreatures.Caching.Fusion.MaybeValue{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.op_Inequality(ZiggyCreatures.Caching.Fusion.MaybeValue{`0},ZiggyCreatures.Caching.Fusion.MaybeValue{`0})">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.FromValue(`0)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1"/> instance for a successful case by providing the <paramref name="value"/>.
             </summary>
             <param name="value">The value of type <typeparamref name="TValue"/> to use.</param>
             <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1"/> instance.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.Equals(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.Equals(ZiggyCreatures.Caching.Fusion.MaybeValue{`0})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.GetHashCode">
+            <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin">
             <summary>
