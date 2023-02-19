@@ -33,7 +33,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-		[Params(20)]
+		[Params(200)]
 		public int FactoryDurationMs;
 
 		[Params(10, 100)]

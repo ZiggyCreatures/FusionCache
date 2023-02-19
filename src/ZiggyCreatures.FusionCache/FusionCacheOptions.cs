@@ -31,6 +31,8 @@ public class FusionCacheOptions
 		BackplaneAutoRecoveryMaxItems = 100;
 
 		// LOG LEVELS
+		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
+
 		SerializationErrorsLogLevel = LogLevel.Error;
 
 		DistributedCacheSyntheticTimeoutsLogLevel = LogLevel.Warning;
@@ -81,6 +83,13 @@ public class FusionCacheOptions
 			_defaultEntryOptions = value;
 		}
 	}
+
+	/// <summary>
+	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// </summary>
+	public LogLevel IncoherentOptionsNormalizationLogLevel { get; set; }
 
 	/// <summary>
 	/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.

@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
-		<LangVersion>9.0</LangVersion>
 		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Playground</RootNamespace>

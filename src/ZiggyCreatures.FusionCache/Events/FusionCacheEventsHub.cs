@@ -50,9 +50,14 @@ public class FusionCacheEventsHub
 	public event EventHandler<FusionCacheEntryEventArgs>? FactorySyntheticTimeout;
 
 	/// <summary>
-	/// The event for a generic error during a factory execution (excluding synthetic timeouts, for which there is the specific <see cref="FactorySyntheticTimeout"/> event).
+	/// The event for a generic error during a non-background factory execution (excluding synthetic timeouts, for which there is the specific <see cref="FactorySyntheticTimeout"/> event).
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? FactoryError;
+
+	/// <summary>
+	/// The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponsing cache entry.
+	/// </summary>
+	public event EventHandler<FusionCacheEntryEventArgs>? FactorySuccess;
 
 	/// <summary>
 	/// The event for a generic error during a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution).
@@ -77,6 +82,11 @@ public class FusionCacheEventsHub
 	internal void OnFactoryError(string operationId, string key)
 	{
 		FactoryError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal void OnFactorySuccess(string operationId, string key)
+	{
+		FactorySuccess?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactoryError(string operationId, string key)

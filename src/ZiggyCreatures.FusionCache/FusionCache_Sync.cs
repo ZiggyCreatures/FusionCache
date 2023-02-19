@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 public partial class FusionCache
 	: IFusionCache
 {
-	private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue?>? factory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private IFusionCacheEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext, CancellationToken, TValue?>? factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		if (options is null)
 			options = _options.DefaultEntryOptions;
@@ -41,40 +41,13 @@ public partial class FusionCache
 		// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
 		if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
 		{
-			//if (failSafeDefaultValue.HasValue)
-			//{
-			//	// CREATE A NEW ENTRY
-			//	memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(failSafeDefaultValue, options, false);
-
-			//	if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			//		_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): using the default value", operationId, key);
-
-			//	// SAVING THE DATA IN THE MEMORY CACHE
-			//	_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
-
-			//	// EVENT
-			//	_events.OnSet(operationId, key);
-
-			//	// BACKPLANE
-			//	if (options.SkipBackplaneNotifications == false)
-			//		PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options);
-
-			//	return memoryEntry;
-			//}
-
 			if (options.IsFailSafeEnabled && memoryEntry is not null)
 			{
-				// CREATE A NEW (THROTTLED) ENTRY
-				memoryEntry = FusionCacheMemoryEntry.CreateFromOptions(memoryEntry.Value, options, true);
-
-				// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
-				_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
-
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+				_events.OnHit(operationId, key, true);
 
 				return memoryEntry;
 			}
@@ -145,7 +118,6 @@ public partial class FusionCache
 			if (distributedEntryIsValid)
 			{
 				isStale = false;
-				//entry = FusionCacheMemoryEntry.CreateFromOptions(distributedEntry!.Value, options, distributedEntry?.Metadata?.IsFromFailSafe ?? false);
 				entry = FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options);
 			}
 			else
@@ -157,10 +129,13 @@ public partial class FusionCache
 				{
 					// NO FACTORY
 
-					var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, out failSafeActivated);
+					var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, false, out failSafeActivated);
 					if (fallbackEntry is not null)
 					{
-						value = fallbackEntry.GetValue<TValue>();
+						// EVENT
+						_events.OnHit(operationId, key, true);
+
+						return fallbackEntry;
 					}
 					else
 					{
@@ -199,6 +174,10 @@ public partial class FusionCache
 						var maybeNewOptions = ctx.GetOptions();
 						if (maybeNewOptions is not null && options != maybeNewOptions)
 							options = maybeNewOptions;
+
+						// EVENTS
+						if (isRealFactory)
+							_events.OnFactorySuccess(operationId, key);
 					}
 					catch (OperationCanceledException)
 					{
@@ -210,7 +189,7 @@ public partial class FusionCache
 
 						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
 
-						var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, out failSafeActivated);
+						var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, true, out failSafeActivated);
 						if (fallbackEntry is not null)
 						{
 							value = fallbackEntry.GetValue<TValue>();
@@ -286,7 +265,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, failSafeDefaultValue, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, true, failSafeDefaultValue, options, token);
 
 		if (entry is null)
 		{
@@ -313,8 +292,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", operationId, key, options.ToLogString());
 
-		// TODO: MAYBE WE SHOULD AVOID ALLOCATING A LAMBDA HERE, BY CHANGING THE INTERNAL LOGIC OF THE GetOrSetEntryInternal METHOD
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, false, default, options, token);
 
 		if (entry is null)
 		{
@@ -341,7 +319,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling TryGet<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, false, default, options, token);
 
 		if (entry is null)
 		{
@@ -369,7 +347,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling GetOrDefault<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, null, false, default, options, token);
 
 		if (entry is null)
 		{

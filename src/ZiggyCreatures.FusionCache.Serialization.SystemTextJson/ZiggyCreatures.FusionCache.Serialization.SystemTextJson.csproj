@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>10.0</LangVersion>
+		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.18.0</Version>
+		<Version>0.19.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on System.Text.Json</Description>
@@ -25,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="System.Text.Json" Version="4.7.2" />
+		<PackageReference Include="System.Text.Json" Version="6.0.7" />
 	</ItemGroup>
 
 </Project>

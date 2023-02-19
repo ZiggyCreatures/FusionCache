@@ -623,6 +623,68 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task DistributedCacheFailSafeMaxDurationWorksAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+			{
+				await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(2)).SetDistributedCacheFailSafeOptions(TimeSpan.FromMinutes(10)));
+				await Task.Delay(TimeSpan.FromSeconds(2));
+				var value = await fusionCache.GetOrDefaultAsync<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void DistributedCacheFailSafeMaxDurationWorks(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+			{
+				fusionCache.Set<int>("foo", 21, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(2)).SetDistributedCacheFailSafeOptions(TimeSpan.FromMinutes(10)));
+				Thread.Sleep(TimeSpan.FromSeconds(2));
+				var value = fusionCache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task DistributedCacheFailSafeMaxDurationNormalizationOccursAsync(SerializerType serializerType)
+		{
+			var duration = TimeSpan.FromSeconds(5);
+			var maxDuration = TimeSpan.FromSeconds(1);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+			{
+				await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetDuration(duration).SetFailSafe(true, maxDuration).SetDistributedCacheFailSafeOptions(maxDuration));
+				await Task.Delay(maxDuration.PlusALittleBit());
+				var value = await fusionCache.GetOrDefaultAsync<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void DistributedCacheFailSafeMaxDurationNormalizationOccurs(SerializerType serializerType)
+		{
+			var duration = TimeSpan.FromSeconds(5);
+			var maxDuration = TimeSpan.FromSeconds(1);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using (var fusionCache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
+			{
+				fusionCache.Set<int>("foo", 21, opt => opt.SetDuration(duration).SetFailSafe(true, maxDuration).SetDistributedCacheFailSafeOptions(maxDuration));
+				Thread.Sleep(maxDuration.PlusALittleBit());
+				var value = fusionCache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
+				Assert.Equal(21, value);
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task MemoryExpirationAlignedWithDistributedAsync(SerializerType serializerType)
 		{
 			var firstDuration = TimeSpan.FromSeconds(4);
@@ -727,7 +789,7 @@ namespace FusionCacheTests
 			Assert.Equal(1, v1);
 			Assert.Equal(1, v2);
 
-			await Task.Delay(TimeSpan.FromSeconds(2));
+			await Task.Delay(TimeSpan.FromSeconds(2).PlusALittleBit());
 
 			v1 = await fusionCache1.GetOrSetAsync<int>("foo", 3, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
 			v2 = await fusionCache2.GetOrSetAsync<int>("foo", 4, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
@@ -750,7 +812,7 @@ namespace FusionCacheTests
 			Assert.Equal(1, v1);
 			Assert.Equal(1, v2);
 
-			Thread.Sleep(TimeSpan.FromSeconds(2));
+			Thread.Sleep(TimeSpan.FromSeconds(2).PlusALittleBit());
 
 			v1 = fusionCache1.GetOrSet<int>("foo", 3, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
 			v2 = fusionCache2.GetOrSet<int>("foo", 4, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));

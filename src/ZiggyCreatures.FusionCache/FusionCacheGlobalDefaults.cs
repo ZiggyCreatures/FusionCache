@@ -55,6 +55,11 @@ public static class FusionCacheGlobalDefaults
 	public static TimeSpan? EntryOptionsDistributedCacheDuration { get; set; } = null;
 
 	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.DistributedCacheFailSafeMaxDuration"/>.
+	/// </summary>
+	public static TimeSpan? EntryOptionsDistributedCacheFailSafeMaxDuration { get; set; } = null;
+
+	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.DistributedCacheSoftTimeout"/>.
 	/// </summary>
 	public static TimeSpan EntryOptionsDistributedCacheSoftTimeout { get; set; } = Timeout.InfiniteTimeSpan;

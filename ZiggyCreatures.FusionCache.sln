@@ -37,7 +37,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.ProtoBufNet", "src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj", "{FC2C7F03-69E0-4CCE-A582-1FB6D8D11560}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack", "src\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj", "{919CDF8C-463A-4E82-AFFD-DF8A6B904600}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack", "src\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj", "{919CDF8C-463A-4E82-AFFD-DF8A6B904600}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Serialization.ServiceStackJson", "src\ZiggyCreatures.FusionCache.Serialization.ServiceStackJson\ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.csproj", "{CE437FB2-510F-4DCE-8A1F-AED747DAA4EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +95,10 @@ Global
 		{919CDF8C-463A-4E82-AFFD-DF8A6B904600}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{919CDF8C-463A-4E82-AFFD-DF8A6B904600}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{919CDF8C-463A-4E82-AFFD-DF8A6B904600}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE437FB2-510F-4DCE-8A1F-AED747DAA4EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE437FB2-510F-4DCE-8A1F-AED747DAA4EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE437FB2-510F-4DCE-8A1F-AED747DAA4EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE437FB2-510F-4DCE-8A1F-AED747DAA4EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -110,6 +116,7 @@ Global
 		{DD0A6164-CE88-49A0-AF4E-7A56ACBB13BB} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{FC2C7F03-69E0-4CCE-A582-1FB6D8D11560} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{919CDF8C-463A-4E82-AFFD-DF8A6B904600} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
+		{CE437FB2-510F-4DCE-8A1F-AED747DAA4EB} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {92916FA2-FCAC-406E-BF3F-0A2CE9512EF0}

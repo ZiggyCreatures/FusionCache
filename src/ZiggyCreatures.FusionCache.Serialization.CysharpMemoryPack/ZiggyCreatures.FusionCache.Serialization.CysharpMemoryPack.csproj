@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
-		<LangVersion>11.0</LangVersion>
+		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.18.0</Version>
+		<Version>0.19.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Cysharp's MemoryPack serializer</Description>
@@ -12,10 +12,7 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>
-			- Better support for .NET 7 (see https://github.com/ZiggyCreatures/FusionCache/issues/93)
-			- Add missing service collection extensions
-		</PackageReleaseNotes>
+		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -24,7 +21,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MemoryPack" Version="1.9.12" />
+		<PackageReference Include="MemoryPack" Version="1.9.13" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -75,7 +75,7 @@ public partial class FusionCache
 		_plugins = new List<IFusionCachePlugin>();
 
 		// MEMORY CACHE
-		_mca = new MemoryCacheAccessor(memoryCache, _logger, _events.Memory);
+		_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
 
 		// DISTRIBUTED CACHE
 		_dca = null;
@@ -123,49 +123,58 @@ public partial class FusionCache
 		return options.SkipDistributedCache ? null : _dca;
 	}
 
-	private IFusionCacheEntry? MaybeGetFallbackEntry<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry, FusionCacheEntryOptions options, out bool failSafeActivated)
+	private IFusionCacheEntry? MaybeGetFallbackEntry<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry, FusionCacheEntryOptions options, bool allowFailSafeActivation, out bool failSafeActivated)
 	{
 		failSafeActivated = false;
 
 		if (options.IsFailSafeEnabled)
 		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", operationId, key);
+			if (allowFailSafeActivation)
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", operationId, key);
 			if (distributedEntry is not null)
 			{
-				// FAIL SAFE (FROM DISTRIBUTED)
-				if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-					_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", operationId, key);
-				failSafeActivated = true;
+				if (allowFailSafeActivation)
+				{
+					// FAIL SAFE (FROM DISTRIBUTED)
+					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", operationId, key);
+					failSafeActivated = true;
 
-				// EVENT
-				_events.OnFailSafeActivate(operationId, key);
+					// EVENT
+					_events.OnFailSafeActivate(operationId, key);
+				}
 
 				return distributedEntry;
 			}
 			else if (memoryEntry is not null)
 			{
-				// FAIL SAFE (FROM MEMORY)
-				if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-					_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", operationId, key);
-				failSafeActivated = true;
+				if (allowFailSafeActivation)
+				{
+					// FAIL SAFE (FROM MEMORY)
+					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", operationId, key);
+					failSafeActivated = true;
 
-				// EVENT
-				_events.OnFailSafeActivate(operationId, key);
+					// EVENT
+					_events.OnFailSafeActivate(operationId, key);
+				}
 
 				return memoryEntry;
 			}
 			else
 			{
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
+				if (allowFailSafeActivation)
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
 				return null;
 			}
 		}
 		else
 		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", operationId, key);
+			if (allowFailSafeActivation)
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", operationId, key);
 			return null;
 		}
 	}

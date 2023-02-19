@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal sealed class MemoryCacheAccessor
 	: IDisposable
 {
-	public MemoryCacheAccessor(IMemoryCache? memoryCache, ILogger? logger, FusionCacheMemoryEventsHub events)
+	public MemoryCacheAccessor(IMemoryCache? memoryCache, FusionCacheOptions options, ILogger? logger, FusionCacheMemoryEventsHub events)
 	{
 		if (memoryCache is not null)
 		{
@@ -19,18 +19,20 @@ internal sealed class MemoryCacheAccessor
 			_cache = new MemoryCache(new MemoryCacheOptions());
 			_cacheShouldBeDisposed = true;
 		}
+		_options = options;
 		_logger = logger;
 		_events = events;
 	}
 
 	private IMemoryCache _cache;
 	private readonly bool _cacheShouldBeDisposed;
+	private readonly FusionCacheOptions _options;
 	private readonly ILogger? _logger;
 	private readonly FusionCacheMemoryEventsHub _events;
 
 	public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 	{
-		var memoryOptions = options.ToMemoryCacheEntryOptions(_events);
+		var memoryOptions = options.ToMemoryCacheEntryOptions(_events, _options, _logger, operationId, key);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", operationId, key, memoryOptions.ToLogString(), entry.ToLogString());

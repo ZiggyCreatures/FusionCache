@@ -99,6 +99,7 @@ Serializers:
 | [ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/) <br/> A MessagePack serializer, based on the most used [MessagePack](https://github.com/neuecc/MessagePack-CSharp) serializer on .NET | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack) |
 | [ZiggyCreatures.FusionCache.Serialization.ProtoBufNet](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet/) <br/> A Protobuf serializer, based on one of the most used [protobuf-net](https://github.com/protobuf-net/protobuf-net) serializer on .NET | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet) |
 | [ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/) <br/> A serializer based on the uber fast new serializer by Neuecc, [MemoryPack](https://github.com/Cysharp/MemoryPack) | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack) |
+| [ZiggyCreatures.FusionCache.Serialization.ServiceStackJson](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) <br/> A serializer based on the [ServiceStack](https://servicestack.net/) JSON serializer | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson) |
 
 Backplanes:
 
@@ -297,6 +298,8 @@ And if you really want to talk about money, please consider making  **❤ a dona
 ## 💼 Is it Production Ready :tm: ?
 Yes!
 
-Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of. Considering that just the main package has surpassed the **80K downloads mark** (thanks everybody!) it's probably used even more.
+Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
+
+Considering that the FusionCache packages have been downloaded more than **half a million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
