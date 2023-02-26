@@ -50,6 +50,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 
 		public bool UseRegisteredOptions { get; set; }
 		public FusionCacheOptions? Options { get; set; }
+		public bool UseCacheKeyPrefix { get; set; }
+		public string? CacheKeyPrefix { get; set; }
 		public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
 
 		public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
@@ -102,6 +104,12 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 
 			// ENSURE CACHE NAME
 			options.CacheName = CacheName;
+
+			// CACHE KEY PREFIX
+			if (UseCacheKeyPrefix)
+			{
+				options.CacheKeyPrefix = CacheKeyPrefix;
+			}
 
 			if (SetupOptionsAction is not null)
 			{

@@ -139,6 +139,59 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
+	/// Set the cache key prefix to use.
+	/// <br/><br/>
+	/// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="cacheKeyPrefix">The cache key prefix to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder, string? cacheKeyPrefix)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseCacheKeyPrefix = true;
+		builder.CacheKeyPrefix = cacheKeyPrefix;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify to use a cache key prefix, composed by the CacheName and a ":" separator.
+	/// <br/><br/>
+	/// <strong>EXAMPLE</strong>: if the CacheName is "MyCache" the CacheKeyPrefix will be "MyCache:", so that a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder)
+	{
+		return builder.WithCacheKeyPrefix(builder.CacheName + ":");
+	}
+
+	/// <summary>
+	/// Specify NOT to use a cache key prefix.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithoutCacheKeyPrefix(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseCacheKeyPrefix = false;
+		builder.CacheKeyPrefix = null;
+
+		return builder;
+	}
+
+	/// <summary>
 	/// Specify a <see cref="FusionCacheEntryOptions"/> instance to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/> option.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
@@ -345,6 +398,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// The builder will look for an <see cref="IDistributedCache"/> service (and a corresponding <see cref="IFusionCacheSerializer"/>) registered in the DI container and use them, and throws if it cannot find them.
 	/// <br/><br/>
 	/// <strong>⚠ WARNING:</strong> normally the distributed cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches and also use WithRegisteredDistributedCache() on all of them, they will use THE SAME distributed cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+	/// <br/>
+	/// One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="IFusionCacheSerializer"/> is found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredDistributedCache().
 	/// <br/><br/>
@@ -374,6 +429,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// Indicates if the builder should try to find and use an <see cref="IDistributedCache"/> service (and a corresponding <see cref="IFusionCacheSerializer"/>) registered in the DI container.
 	/// <br/><br/>
 	/// <strong>⚠ WARNING:</strong> normally the distributed cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches by using WithRegisteredDistributedCache() on all of them, they will use THE SAME distributed cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+	/// <br/>
+	/// One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
 	/// <br/><br/>

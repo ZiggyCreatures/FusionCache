@@ -27,6 +27,7 @@ public partial class FusionCache
 	: IFusionCache
 {
 	private readonly FusionCacheOptions _options;
+	private readonly string? _cacheKeyPrefix;
 	private readonly ILogger? _logger;
 	private readonly IFusionCacheReactor _reactor;
 	private MemoryCacheAccessor _mca;
@@ -53,6 +54,10 @@ public partial class FusionCache
 
 		// OPTIONS
 		_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
+
+		// CACHE KEY PREFIX
+		if (string.IsNullOrEmpty(_options.CacheKeyPrefix) == false)
+			_cacheKeyPrefix = _options.CacheKeyPrefix;
 
 		// LOGGING
 		if (logger is NullLogger<FusionCache>)
@@ -111,6 +116,12 @@ public partial class FusionCache
 	{
 		if (key is null)
 			throw new ArgumentNullException(nameof(key));
+	}
+
+	private void MaybePreProcessCacheKey(ref string key)
+	{
+		if (_cacheKeyPrefix is not null)
+			key = _cacheKeyPrefix + key;
 	}
 
 	private string GenerateOperationId()
@@ -344,7 +355,7 @@ public partial class FusionCache
 
 		// CHECK: WARN THE USER IN CASE OF
 		// - HAS A MEMORY CACHE (ALWAYS)
-		// - HAS BACKPLANE
+		// - HAS A BACKPLANE
 		// - DOES *NOT* HAVE A DISTRIBUTED CACHE
 		// - THE OPTION DefaultEntryOptions.SkipBackplaneNotifications IS FALSE
 		if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.SkipBackplaneNotifications == false)

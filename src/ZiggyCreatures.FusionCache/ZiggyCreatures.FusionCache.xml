@@ -598,6 +598,38 @@
             <param name="action">The custom action that configure the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithCacheKeyPrefix(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+            <summary>
+            Set the cache key prefix to use.
+            <br/><br/>
+            <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <param name="cacheKeyPrefix">The cache key prefix to use.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithCacheKeyPrefix(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+            <summary>
+            Specify to use a cache key prefix, composed by the CacheName and a ":" separator.
+            <br/><br/>
+            <strong>EXAMPLE</strong>: if the CacheName is "MyCache" the CacheKeyPrefix will be "MyCache:", so that a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithoutCacheKeyPrefix(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+            <summary>
+            Specify NOT to use a cache key prefix.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithDefaultEntryOptions(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
             <summary>
             Specify a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance to be used as the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions"/> option.
@@ -700,6 +732,8 @@
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container and use them, and throws if it cannot find them.
             <br/><br/>
             <strong>⚠ WARNING:</strong> normally the distributed cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches and also use WithRegisteredDistributedCache() on all of them, they will use THE SAME distributed cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+            <br/>
+            One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
             <br/><br/>
             <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> is found, an <see cref="T:System.InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredDistributedCache().
             <br/><br/>
@@ -716,6 +750,8 @@
             Indicates if the builder should try to find and use an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container.
             <br/><br/>
             <strong>⚠ WARNING:</strong> normally the distributed cache is registered in the DI container as a SINGLETON. This means that, if you use multiple named caches by using WithRegisteredDistributedCache() on all of them, they will use THE SAME distributed cache and without extra care in creating cache keys YOU MAY HAVE COLLISIONS.
+            <br/>
+            One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
             <br/><br/>
             <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
             <br/><br/>
@@ -1884,13 +1920,6 @@
             </summary>
             <exception cref="T:System.ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IncoherentOptionsNormalizationLogLevel">
-            <summary>
-            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
-            <br/><br/>
-            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
-            </summary>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheCircuitBreakerDuration">
             <summary>
             The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="F:System.TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
@@ -1907,9 +1936,16 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md"/>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix">
+            <summary>
+            A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
+            <br/><br/>
+            <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
-            Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version).
+            Specify the mode in which cache key will be changed for the distributed cache, for internal purposes (eg: to specify the wire format version).
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneCircuitBreakerDuration">
@@ -1938,6 +1974,13 @@
             The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IncoherentOptionsNormalizationLogLevel">
+            <summary>
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SerializationErrorsLogLevel">
@@ -2008,6 +2051,12 @@
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SetCacheNameAsCacheKeyPrefix">
+            <summary>
+            Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix"/> to the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>, and a ":" separator.
+            </summary>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
@@ -2254,6 +2303,18 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Options">
             <summary>
             A custom <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseCacheKeyPrefix">
+            <summary>
+            Indicates if the builder should use the specified <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.CacheKeyPrefix"/>, overwriting the one in the options as configured.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.CacheKeyPrefix">
+            <summary>
+            A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
+            <br/><br/>
+            <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.SetupOptionsAction">

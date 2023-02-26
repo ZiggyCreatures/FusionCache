@@ -85,13 +85,6 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
-	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
-	/// </summary>
-	public LogLevel IncoherentOptionsNormalizationLogLevel { get; set; }
-
-	/// <summary>
 	/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
@@ -108,7 +101,14 @@ public class FusionCacheOptions
 	public bool EnableSyncEventHandlersExecution { get; set; }
 
 	/// <summary>
-	/// Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version).
+	/// A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
+	/// <br/><br/>
+	/// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+	/// </summary>
+	public string? CacheKeyPrefix { get; set; }
+
+	/// <summary>
+	/// Specify the mode in which cache key will be changed for the distributed cache, for internal purposes (eg: to specify the wire format version).
 	/// </summary>
 	public CacheKeyModifierMode DistributedCacheKeyModifierMode { get; set; }
 
@@ -139,6 +139,13 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public int? BackplaneAutoRecoveryMaxItems { get; set; }
+
+	/// <summary>
+	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// </summary>
+	public LogLevel IncoherentOptionsNormalizationLogLevel { get; set; }
 
 	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when an error occurs during serialization or deserialization while working with the distributed cache.
@@ -212,5 +219,16 @@ public class FusionCacheOptions
 	FusionCacheOptions IOptions<FusionCacheOptions>.Value
 	{
 		get { return this; }
+	}
+
+	/// <summary>
+	/// Set the <see cref="CacheKeyPrefix"/> to the <see cref="CacheName"/>, and a ":" separator.
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheOptions SetCacheNameAsCacheKeyPrefix()
+	{
+		CacheKeyPrefix = $"{CacheName}:";
+
+		return this;
 	}
 }

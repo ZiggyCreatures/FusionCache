@@ -59,6 +59,18 @@ namespace ZiggyCreatures.Caching.Fusion
 		FusionCacheOptions? Options { get; set; }
 
 		/// <summary>
+		/// Indicates if the builder should use the specified <see cref="CacheKeyPrefix"/>, overwriting the one in the options as configured.
+		/// </summary>
+		bool UseCacheKeyPrefix { get; set; }
+
+		/// <summary>
+		/// A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
+		/// <br/><br/>
+		/// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+		/// </summary>
+		string? CacheKeyPrefix { get; set; }
+
+		/// <summary>
 		/// A custom setup logic for the <see cref="FusionCacheOptions"/> object, to allow for fine-grained customization.
 		/// </summary>
 		Action<FusionCacheOptions>? SetupOptionsAction { get; set; }

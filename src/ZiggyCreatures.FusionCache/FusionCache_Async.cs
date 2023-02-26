@@ -255,6 +255,8 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		MaybePreProcessCacheKey(ref key);
+
 		token.ThrowIfCancellationRequested();
 
 		if (factory is null)
@@ -285,6 +287,8 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		MaybePreProcessCacheKey(ref key);
+
 		token.ThrowIfCancellationRequested();
 
 		var operationId = GenerateOperationId();
@@ -311,6 +315,8 @@ public partial class FusionCache
 	public async ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		ValidateCacheKey(key);
+
+		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
 
@@ -340,6 +346,8 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		MaybePreProcessCacheKey(ref key);
+
 		token.ThrowIfCancellationRequested();
 
 		var operationId = GenerateOperationId();
@@ -366,6 +374,8 @@ public partial class FusionCache
 	public async ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		ValidateCacheKey(key);
+
+		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
 
@@ -400,6 +410,8 @@ public partial class FusionCache
 	public async ValueTask RemoveAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		ValidateCacheKey(key);
+
+		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
 
