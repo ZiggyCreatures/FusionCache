@@ -184,7 +184,7 @@ namespace FusionCacheTests
 
 			var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			// GET THE PLUGIN (SHOULD RETURN THE SME INSTANCE, BECAUSE SINGLETON)
+			// GET THE PLUGIN (SHOULD RETURN THE SAME INSTANCE, BECAUSE SINGLETON)
 			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
 
 			// MISS: +1
@@ -212,7 +212,7 @@ namespace FusionCacheTests
 
 			var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			// GET THE PLUGIN (SHOULD RETURN THE SME INSTANCE, BECAUSE SINGLETON)
+			// GET THE PLUGIN (SHOULD RETURN THE SAME INSTANCE, BECAUSE SINGLETON)
 			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
 
 			// MISS: +1

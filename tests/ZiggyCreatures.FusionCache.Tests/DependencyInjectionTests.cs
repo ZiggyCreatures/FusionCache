@@ -563,7 +563,7 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void DifferentNamedCachesCanShareTheSameMemoryCache()
+		public void DifferentNamedCachesCanShareTheSameMemoryCacheWithCollisions()
 		{
 			var services = new ServiceCollection();
 
@@ -593,6 +593,39 @@ namespace FusionCacheTests
 			Assert.Equal(1, defaultCacheValue);
 			Assert.Equal(1, fooCacheValue);
 			Assert.Equal(1, barCacheValue);
+		}
+
+		[Fact]
+		public void DifferentNamedCachesCanShareTheSameMemoryCacheWithoutCollisions()
+		{
+			var services = new ServiceCollection();
+
+			services.AddMemoryCache();
+
+			// DEFAULT
+			services.AddFusionCache(b => b.WithRegisteredMemoryCache());
+
+			// FOO
+			services.AddFusionCache("FooCache", b => b.WithRegisteredMemoryCache().WithCacheKeyPrefix());
+
+			// BAR
+			services.AddFusionCache("BarCache", b => b.WithRegisteredMemoryCache().WithCacheKeyPrefix());
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+
+			var defaultCache = cacheProvider.GetDefaultCache();
+			var fooCache = cacheProvider.GetCache("FooCache");
+			var barCache = cacheProvider.GetCache("BarCache");
+
+			var defaultCacheValue = defaultCache.GetOrSet("sloth", 1);
+			var fooCacheValue = fooCache.GetOrSet("sloth", 2);
+			var barCacheValue = barCache.GetOrSet("sloth", 3);
+
+			Assert.Equal(1, defaultCacheValue);
+			Assert.Equal(2, fooCacheValue);
+			Assert.Equal(3, barCacheValue);
 		}
 
 		[Fact]

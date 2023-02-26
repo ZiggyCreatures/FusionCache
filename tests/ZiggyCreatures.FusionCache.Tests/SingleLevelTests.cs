@@ -669,7 +669,8 @@ namespace FusionCacheTests
 						innerOpt = ctx.Options;
 
 						return 3;
-					}
+					},
+					opt => opt.SetFailSafe(false)
 				);
 
 				Thread.Sleep(TimeSpan.FromSeconds(2));
