@@ -561,6 +561,15 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ExpirationTokens">
+            <summary>
+             Gets the Microsoft.Extensions.Primitives.IChangeToken instances which cause the cache entry to expire.
+            <br/><br/>	
+            Cancelling th source forces an instant eviction from cache and calls FusionCache.Remove on the key to remove from distributed cache and send backplane anotification
+            <br/><br/>	
+            If set on DefaultEntryOptions, reinstantiate this property every time the CancellationTokenSource is Cancelled.
+            </summary>	
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.LockTimeout">
             <summary>
             The timeout to apply when trying to acquire a lock during a factory execution.

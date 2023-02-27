@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Primitives;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
@@ -23,7 +24,8 @@ namespace FusionCacheTests
 			FactoryError = 6,
 			FactorySuccess = 7,
 			BackplaneMessagePublished = 8,
-			BackplaneMessageReceived = 9
+			BackplaneMessageReceived = 9,
+			Evict = 10
 		}
 
 		public class EntryActionsStats
@@ -339,6 +341,346 @@ namespace FusionCacheTests
 				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
 				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
 				Assert.Equal(4, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void GetOrSetTokenExpiry_Add_Cancel()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+			CancellationTokenSource source = new CancellationTokenSource();
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				cache.DefaultEntryOptions.ExpirationTokens.Add(new CancellationChangeToken(source.Token));
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => stats.RecordAction(EntryActionKind.Evict);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Memory.Eviction += onEvict;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo", _ => 42);
+
+				// EVICT: +1
+				// REMOVE: +1
+				source.Cancel();
+				//Delay to allow Event to run
+				Thread.Sleep(50);
+
+
+				// REMOVE HANDLERS
+				cache.Events.Memory.Eviction -= onEvict;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Evict]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(4, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void GetOrSetTokenExpiry_Add_Add_Cancel()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+			CancellationTokenSource source = new CancellationTokenSource();
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+				// if added in DefaultEntryOptions, then once cancelled once will cancel all newly added key. Use with caution
+				cache.DefaultEntryOptions.ExpirationTokens.Add(new CancellationChangeToken(source.Token));
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => stats.RecordAction(EntryActionKind.Evict);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Memory.Eviction += onEvict;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo", _ => 42);
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo2", _ => 42);
+
+				// EVICT: +2
+				// REMOVE: +2
+				source.Cancel();
+				//Delay to allow Event to run
+				Thread.Sleep(50);
+
+
+				// REMOVE HANDLERS
+				cache.Events.Memory.Eviction -= onEvict;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(2, stats.Data[EntryActionKind.Evict]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(8, stats.Data.Values.Sum());
+			}
+		}
+
+
+
+		[Fact]
+		public void GetOrSetTokenExpiry_Add_Cancel_Add()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => stats.RecordAction(EntryActionKind.Evict);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Memory.Eviction += onEvict;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				// SET: +1
+				CancellationTokenSource source = new CancellationTokenSource();
+				cache.GetOrSet<int>("foo", _ => 42, options => options.ExpirationTokens.Add(new CancellationChangeToken(source.Token)));
+
+				// EVICT: +1
+				// REMOVE: +1
+				source.Cancel();
+				//Delay to allow Event to run
+				Thread.Sleep(50);
+
+				source = new CancellationTokenSource();
+
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo2", _ => 42, options => options.ExpirationTokens.Add(new CancellationChangeToken(source.Token)));
+
+
+				// REMOVE HANDLERS
+				cache.Events.Memory.Eviction -= onEvict;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Evict]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(6, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void GetOrSetTokenExpiry_Add_Cancel_Add_Cancel()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => stats.RecordAction(EntryActionKind.Evict);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Memory.Eviction += onEvict;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				// SET: +1
+				CancellationTokenSource source = new CancellationTokenSource();
+				cache.GetOrSet<int>("foo", _ => 42, options => options.ExpirationTokens.Add(new CancellationChangeToken(source.Token)));
+
+				// EVICT: +1
+				// REMOVE: +1
+				source.Cancel();
+				Thread.Sleep(50);
+
+				source = new CancellationTokenSource();
+
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo2", _ => 42, options => options.ExpirationTokens.Add(new CancellationChangeToken(source.Token)));
+
+				// EVICT: +1
+				// REMOVE: +1
+				source.Cancel();
+				//Delay to allow Event to run
+				Thread.Sleep(50);
+
+				// REMOVE HANDLERS
+				cache.Events.Memory.Eviction -= onEvict;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(2, stats.Data[EntryActionKind.Evict]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(8, stats.Data.Values.Sum());
+			}
+		}
+
+		[Fact]
+		public void GetOrSetTokenExpiryMultiToken_Add_Add_Cancel()
+		{
+			var stats = new EntryActionsStats();
+
+			var duration = TimeSpan.FromSeconds(2);
+			var maxDuration = TimeSpan.FromDays(1);
+			var throttleDuration = TimeSpan.FromSeconds(3);
+
+
+			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
+			{
+
+				cache.DefaultEntryOptions.Duration = duration;
+				cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+				cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+				cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+
+				EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+				EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) => stats.RecordAction(EntryActionKind.Evict);
+				EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+				EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+				EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+				EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+				// SETUP HANDLERS
+				cache.Events.Memory.Eviction += onEvict;
+				cache.Events.Miss += onMiss;
+				cache.Events.Hit += onHit;
+				cache.Events.Set += onSet;
+				cache.Events.Remove += onRemove;
+				cache.Events.FailSafeActivate += onFailSafeActivate;
+
+				// MISS: +1
+				// SET: +1
+				CancellationTokenSource source = new CancellationTokenSource();
+				CancellationTokenSource source2 = new CancellationTokenSource();
+				cache.GetOrSet<int>("foo", _ => 42, options => { options.ExpirationTokens.Add(new CancellationChangeToken(source.Token)); options.ExpirationTokens.Add(new CancellationChangeToken(source2.Token)); });
+
+				// MISS: +1
+				// SET: +1
+				cache.GetOrSet<int>("foo2", _ => 42, options => options.ExpirationTokens.Add(new CancellationChangeToken(source.Token)));
+
+				// EVICT: +1
+				// REMOVE: +1
+				source2.Cancel();
+				//Delay to allow Event to run
+				Thread.Sleep(50);
+
+
+				// REMOVE HANDLERS
+				cache.Events.Memory.Eviction -= onEvict;
+				cache.Events.Miss -= onMiss;
+				cache.Events.Hit -= onHit;
+				cache.Events.Set -= onSet;
+				cache.Events.Remove -= onRemove;
+				cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+				Assert.Equal(1, stats.Data[EntryActionKind.Evict]);
+				Assert.Equal(1, stats.Data[EntryActionKind.Remove]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+				Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+				Assert.Equal(6, stats.Data.Values.Sum());
 			}
 		}
 

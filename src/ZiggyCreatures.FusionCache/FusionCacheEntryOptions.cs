@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -62,6 +64,16 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 	/// </summary>
 	public TimeSpan Duration { get; set; }
+
+	/// <summary>
+	///  Gets the Microsoft.Extensions.Primitives.IChangeToken instances which cause the cache entry to expire.
+	/// <br/><br/>	
+	/// Cancelling th source forces an instant eviction from cache and calls FusionCache.Remove on the key to remove from distributed cache and send backplane anotification
+	/// <br/><br/>	
+	/// If set on DefaultEntryOptions, reinstantiate this property every time the CancellationTokenSource is Cancelled.
+	/// </summary>	
+	public IList<IChangeToken> ExpirationTokens { get; } = new List<IChangeToken>();
+
 
 	/// <summary>
 	/// The timeout to apply when trying to acquire a lock during a factory execution.
@@ -518,6 +530,12 @@ public class FusionCacheEntryOptions
 		if (JitterMaxDuration > TimeSpan.Zero)
 		{
 			res.AbsoluteExpiration = res.AbsoluteExpiration.Value.AddMilliseconds(GetJitterDurationMs());
+		}
+		
+		// TOKEN EXPIRATION
+		foreach (var token in ExpirationTokens)
+		{
+			res.AddExpirationToken(token);
 		}
 
 		// EVENTS

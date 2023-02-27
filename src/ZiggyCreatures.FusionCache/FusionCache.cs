@@ -71,6 +71,21 @@ public partial class FusionCache
 		// EVENTS
 		_events = new FusionCacheEventsHub(this, _options, _logger);
 
+		// MEMORY CACHE TOKENEXPIRED EVICTION EVENT
+		EventHandler<FusionCacheEntryEvictionEventArgs> onEvict = (s, e) =>
+		{
+			if (e.Reason == EvictionReason.TokenExpired)
+			{
+				if (s is IFusionCache cache)
+				{
+					cache.Remove(e.Key);
+				}
+			}
+		};
+
+		_events.Memory.Eviction += onEvict;
+
+
 		// PLUGINS
 		_plugins = new List<IFusionCachePlugin>();
 
