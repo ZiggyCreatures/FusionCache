@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.19.0</Version>
+		<Version>0.20.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on ServiceStack's Json serializer</Description>
@@ -12,7 +12,7 @@
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Initial releae</PackageReleaseNotes>
+		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
