@@ -1173,7 +1173,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDurationInfinite">
             <summary>
             Set the duration to be infinite, so it will never expire.
-            <strong>NOTE:</strong> the expiration will not become effectively "infinite", but it will be set to <see cref="F:System.DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
+            <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="F:System.DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
             </summary>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
@@ -1187,7 +1187,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDistributedCacheDurationInfinite">
             <summary>
             Set the distributed cache duration to be infinite, so it will never expire.
-            <strong>NOTE:</strong> the expiration will not become effectively "infinite", but it will be set to <see cref="F:System.DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
+            <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="F:System.DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
             </summary>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
