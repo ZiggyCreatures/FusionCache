@@ -275,6 +275,17 @@ public class FusionCacheEntryOptions
 		return ConcurrentRandom.NextDouble() * JitterMaxDuration.TotalMilliseconds;
 	}
 
+	/// <summary>
+	/// Set the jitter max duration.
+	/// </summary>
+	/// <param name="jitterMaxDuration">The jitter max duration.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetJittering(TimeSpan jitterMaxDuration)
+	{
+		JitterMaxDuration = jitterMaxDuration;
+		return this;
+	}
+
 	internal FusionCacheEntryOptions SetIsSafeForAdaptiveCaching()
 	{
 		IsSafeForAdaptiveCaching = true;
@@ -293,6 +304,17 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the duration to be infinite, so it will never expire.
+	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDurationInfinite()
+	{
+		Duration = TimeSpan.MaxValue;
+		return this;
+	}
+
+	/// <summary>
 	/// Set the distributed cache duration to the specified <see cref="TimeSpan"/> value.
 	/// </summary>
 	/// <param name="duration">The duration to set.</param>
@@ -300,6 +322,17 @@ public class FusionCacheEntryOptions
 	public FusionCacheEntryOptions SetDistributedCacheDuration(TimeSpan? duration)
 	{
 		DistributedCacheDuration = duration;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the distributed cache duration to be infinite, so it will never expire.
+	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDistributedCacheDurationInfinite()
+	{
+		DistributedCacheDuration = TimeSpan.MaxValue;
 		return this;
 	}
 
@@ -512,13 +545,7 @@ public class FusionCacheEntryOptions
 		}
 
 		// ABSOLUTE EXPIRATION
-		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(physicalDuration);
-
-		// ADD JITTERING
-		if (JitterMaxDuration > TimeSpan.Zero)
-		{
-			res.AbsoluteExpiration = res.AbsoluteExpiration.Value.AddMilliseconds(GetJitterDurationMs());
-		}
+		res.AbsoluteExpiration = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, true);
 
 		// EVENTS
 		if (events.HasEvictionSubscribers())
@@ -573,7 +600,7 @@ public class FusionCacheEntryOptions
 			}
 		}
 
-		res.AbsoluteExpiration = DateTimeOffset.UtcNow.Add(physicalDuration);
+		res.AbsoluteExpiration = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, false);
 
 		// INCOHERENT DURATION
 		if (incoherentFailSafeMaxDuration)

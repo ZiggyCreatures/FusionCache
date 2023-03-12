@@ -895,5 +895,16 @@ namespace FusionCacheTests
 				Assert.Equal(3, defaultValue3);
 			}
 		}
+
+		[Fact]
+		public void CanHandleADurationOfTimeSpanMaxValue()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.Set<int>("foo", 42, opt => opt.SetDuration(TimeSpan.MaxValue - TimeSpan.FromMilliseconds(1)).SetJittering(TimeSpan.FromMinutes(10)));
+				var foo = cache.GetOrDefault<int>("foo", 0);
+				Assert.Equal(42, foo);
+			}
+		}
 	}
 }

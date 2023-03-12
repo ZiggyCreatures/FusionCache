@@ -66,12 +66,7 @@ internal sealed class FusionCacheMemoryEntry
 		if (options.IsFailSafeEnabled == false)
 			return new FusionCacheMemoryEntry(value, null);
 
-		var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
-
-		if (options.JitterMaxDuration > TimeSpan.Zero)
-		{
-			exp = exp.AddMilliseconds(options.GetJitterDurationMs());
-		}
+		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
 
 		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 	}
@@ -97,12 +92,7 @@ internal sealed class FusionCacheMemoryEntry
 		}
 		else
 		{
-			exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration);
-		}
-
-		if (options.JitterMaxDuration > TimeSpan.Zero)
-		{
-			exp = exp.AddMilliseconds(options.GetJitterDurationMs());
+			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
 		}
 
 		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe));

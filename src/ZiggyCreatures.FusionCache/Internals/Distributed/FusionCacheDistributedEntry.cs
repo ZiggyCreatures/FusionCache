@@ -84,10 +84,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <returns>The newly created entry.</returns>
 	public static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, FusionCacheEntryOptions options, bool isFromFailSafe)
 	{
-		//if (options.IsFailSafeEnabled == false)
-		//	return new FusionCacheDistributedEntry<TValue>(value, null);
-
-		var exp = DateTimeOffset.UtcNow.Add(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration));
+		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
 
 		return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
 	}

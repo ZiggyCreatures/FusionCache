@@ -1156,6 +1156,13 @@
             </summary>
             <returns>An additional cache duration (in ms) to slightly vary the entry duration</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetJittering(System.TimeSpan)">
+            <summary>
+            Set the jitter max duration.
+            </summary>
+            <param name="jitterMaxDuration">The jitter max duration.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDuration(System.TimeSpan)">
             <summary>
             Set the duration to the specified <see cref="T:System.TimeSpan"/> value.
@@ -1163,11 +1170,25 @@
             <param name="duration">The duration to set.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDurationInfinite">
+            <summary>
+            Set the duration to be infinite, so it will never expire.
+            <strong>NOTE:</strong> the expiration will not become effectively "infinite", but it will be set to <see cref="F:System.DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
+            </summary>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDistributedCacheDuration(System.Nullable{System.TimeSpan})">
             <summary>
             Set the distributed cache duration to the specified <see cref="T:System.TimeSpan"/> value.
             </summary>
             <param name="duration">The duration to set.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDistributedCacheDurationInfinite">
+            <summary>
+            Set the distributed cache duration to be infinite, so it will never expire.
+            <strong>NOTE:</strong> the expiration will not become effectively "infinite", but it will be set to <see cref="F:System.DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
+            </summary>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDurationMs(System.Int32)">
@@ -2486,6 +2507,19 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom.Next(System.Int32,System.Int32)">
             <summary>
             Returns a random integer that is within a specified range.
+            </summary>
+            <param name="minValue">The inclusive lower bound of the random number returned.</param>
+            <param name="maxValue">The exclusive upper bound of the random number returned: <paramref name="maxValue"/> must be greater than or equal to <paramref name="minValue"/>.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom.NextInt64(System.Int64)">
+            <summary>
+            Returns a random long that is within a specified range.
+            </summary>
+            <param name="maxValue">The exclusive upper bound of the random number returned: must be greater than or equal to 0.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.ConcurrentRandom.NextInt64(System.Int64,System.Int64)">
+            <summary>
+            Returns a random long that is within a specified range.
             </summary>
             <param name="minValue">The inclusive lower bound of the random number returned.</param>
             <param name="maxValue">The exclusive upper bound of the random number returned: <paramref name="maxValue"/> must be greater than or equal to <paramref name="minValue"/>.</param>

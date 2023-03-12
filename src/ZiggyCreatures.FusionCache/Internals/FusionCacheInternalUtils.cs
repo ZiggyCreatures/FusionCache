@@ -15,6 +15,8 @@ internal static class FusionCacheInternalUtils
 	private static readonly char[] _chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV".ToCharArray();
 	private static long _lastId = DateTime.UtcNow.Ticks;
 	private static readonly ThreadLocal<char[]> _buffer = new ThreadLocal<char[]>(() => new char[13]);
+	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
+	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 
 	public static string GenerateOperationId_V1()
 	{
@@ -279,5 +281,29 @@ internal static class FusionCacheInternalUtils
 			prefix = "FusionCache";
 
 		return $"{prefix}.Backplane";
+	}
+
+	public static DateTimeOffset GetNormalizedAbsoluteExpiration(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
+	{
+		// SHORT CIRCUIT: COMMON CASE FOR WHEN USERS DO NOT WANT EXPIRATION
+		if (duration == TimeSpanMaxValue)
+			return DateTimeOffsetMaxValue;
+
+		if (allowJittering && options.JitterMaxDuration > TimeSpan.Zero)
+		{
+			// SHORT CIRCUIT: WHEN THE VALUES ARE NOT THE LIMITS BUT ARE STRETCHED VERY NEAR THEM
+			if (duration > (TimeSpanMaxValue - options.JitterMaxDuration))
+				return DateTimeOffsetMaxValue;
+
+			// ADD JITTERING
+			duration += TimeSpan.FromMilliseconds(options.GetJitterDurationMs());
+		}
+
+		// SHORT CIRCUIT: WHEN OVERFLOWING DateTimeOffset.MaxValue
+		var now = DateTimeOffset.UtcNow;
+		if (duration > (DateTimeOffsetMaxValue - now))
+			return DateTimeOffsetMaxValue;
+
+		return now.Add(duration);
 	}
 }
