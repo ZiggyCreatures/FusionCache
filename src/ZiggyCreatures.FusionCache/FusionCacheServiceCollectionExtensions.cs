@@ -14,9 +14,6 @@ public static class FusionCacheServiceCollectionExtensions
 {
 	private static IServiceCollection AddFusionCacheProvider(this IServiceCollection services)
 	{
-		//services.TryAddSingleton<FusionCacheProvider>();
-		//services.TryAddSingleton<IFusionCacheProvider>(sp => sp.GetRequiredService<FusionCacheProvider>());
-
 		services.TryAddSingleton<IFusionCacheProvider, FusionCacheProvider>();
 
 		return services;
@@ -47,9 +44,6 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddOptions();
 
-		//if (setupOptionsAction is not null)
-		//	services.Configure(FusionCacheOptions.DefaultCacheName, setupOptionsAction);
-
 		services.AddFusionCacheProvider();
 
 		// TODO: use the
@@ -73,69 +67,6 @@ public static class FusionCacheServiceCollectionExtensions
 			return b;
 		});
 
-		//services.Add(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
-		//{
-		//	var logger = serviceProvider.GetService<ILogger<FusionCache>>();
-
-		//	var cache = new FusionCache(
-		//		serviceProvider.GetRequiredService<IOptions<FusionCacheOptions>>(),
-		//		serviceProvider.GetService<IMemoryCache>(),
-		//		logger: logger
-		//	);
-
-		//	// DISTRIBUTED CACHE
-		//	if (useDistributedCacheIfAvailable)
-		//	{
-		//		var distributedCache = serviceProvider.GetService<IDistributedCache>();
-
-		//		if (ignoreMemoryDistributedCache && distributedCache is MemoryDistributedCache)
-		//		{
-		//			distributedCache = null;
-		//		}
-
-		//		if (distributedCache is not null)
-		//		{
-		//			var serializer = serviceProvider.GetService<IFusionCacheSerializer>();
-
-		//			if (serializer is null)
-		//			{
-		//				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-		//					logger.LogWarning("FUSION: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", distributedCache.GetType().FullName);
-		//			}
-		//			else
-		//			{
-		//				cache.SetupDistributedCache(distributedCache, serializer);
-		//			}
-		//		}
-		//	}
-
-		//	// BACKPLANE
-		//	var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
-
-		//	if (backplane is not null)
-		//	{
-		//		cache.SetupBackplane(backplane);
-		//	}
-
-		//	// PLUGINS
-		//	foreach (var plugin in serviceProvider.GetServices<IFusionCachePlugin>())
-		//	{
-		//		try
-		//		{
-		//			cache.AddPlugin(plugin);
-		//		}
-		//		catch
-		//		{
-		//			// EMPTY: EVERYTHING HAS BEEN ALREADY LOGGED, IF NECESSARY
-		//		}
-		//	}
-
-		//	// CUSTOM SETUP ACTION
-		//	setupCacheAction?.Invoke(serviceProvider, cache);
-
-		//	return cache;
-		//}));
-
 		return services;
 	}
 
@@ -145,29 +76,17 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
 	/// <param name="cache">The custom FusionCache instance.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, IFusionCache cache)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, IFusionCache cache)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
 
-		if (cacheName is null)
-			throw new ArgumentNullException(nameof(cacheName));
-
 		if (cache is null)
 			throw new ArgumentNullException(nameof(cache));
 
-		if (cacheName != cache.CacheName)
-			throw new InvalidOperationException($"The provided FusionCache instance has a name ({cache.CacheName}) that is different from the provided name ({cacheName})");
-
 		services.AddOptions();
-
-		services.Configure<FusionCacheOptions>(cacheName, opt =>
-		{
-			opt.CacheName = cacheName;
-		});
 
 		services.AddFusionCacheProvider();
 
@@ -219,21 +138,6 @@ public static class FusionCacheServiceCollectionExtensions
 		return services;
 	}
 
-	///// <summary>
-	///// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
-	///// <br/><br/>
-	///// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
-	///// <br/><br/>
-	///// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	///// </summary>
-	///// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	///// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
-	///// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	//public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName)
-	//{
-	//	return services.AddFusionCache(cacheName, (Func<IFusionCacheBuilder, IFusionCacheBuilder>?)null!);
-	//}
-
 	/// <summary>
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
@@ -248,18 +152,4 @@ public static class FusionCacheServiceCollectionExtensions
 	{
 		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName, setupBuilderAction);
 	}
-
-	///// <summary>
-	///// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
-	///// <br/><br/>
-	///// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
-	///// <br/><br/>
-	///// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	///// </summary>
-	///// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	///// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	//public static IServiceCollection AddFusionCache(this IServiceCollection services)
-	//{
-	//	return services.AddFusionCache((Func<IFusionCacheBuilder, IFusionCacheBuilder>?)null!);
-	//}
 }
