@@ -322,7 +322,7 @@ namespace FusionCacheTests
 					.SetDuration(TimeSpan.FromSeconds(1))
 					.SetDistributedCacheDuration(TimeSpan.FromDays(123))
 			});
-			services.AddFusionCache("QuxCache", quxCacheOriginal);
+			services.AddFusionCache(quxCacheOriginal);
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -372,6 +372,7 @@ namespace FusionCacheTests
 
 			Assert.NotNull(quxCache);
 			Assert.Equal("QuxCache", quxCache.CacheName);
+			Assert.Equal(quxCacheOriginal, quxCache);
 			Assert.Equal(TimeSpan.FromSeconds(1), quxCache.DefaultEntryOptions.Duration);
 			Assert.Equal(TimeSpan.FromDays(123), quxCache.DefaultEntryOptions.DistributedCacheDuration);
 			Assert.True(bazCache.DefaultEntryOptions.IsFailSafeEnabled);
