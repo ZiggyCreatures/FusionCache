@@ -55,10 +55,13 @@ public class RedisBackplane
 
 	private ConfigurationOptions GetConfigurationOptions()
 	{
-		if (_options.ConfigurationOptions is null && string.IsNullOrWhiteSpace(_options.Configuration))
-			throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
+		if (_options.ConfigurationOptions is not null)
+			return _options.ConfigurationOptions;
 
-		return _options.ConfigurationOptions ?? ConfigurationOptions.Parse(_options.Configuration);
+		if (string.IsNullOrWhiteSpace(_options.Configuration) == false)
+			return ConfigurationOptions.Parse(_options.Configuration);
+
+		throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
 	}
 
 	private void EnsureConnection()
