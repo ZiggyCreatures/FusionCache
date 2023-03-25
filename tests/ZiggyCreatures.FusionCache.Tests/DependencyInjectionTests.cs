@@ -45,6 +45,35 @@ namespace FusionCacheTests
 			}
 		}
 
+		static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
+		where TDistributedCache : class, IDistributedCache
+		{
+			var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
+			if (dca is null)
+				return null;
+
+			return typeof(DistributedCacheAccessor).GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as TDistributedCache;
+		}
+
+		static TBackplane? GetBackplane<TBackplane>(IFusionCache cache)
+			where TBackplane : class, IFusionCacheBackplane
+		{
+			var bpa = typeof(FusionCache).GetField("_bpa", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as BackplaneAccessor;
+			if (bpa is null)
+				return null;
+
+			return typeof(BackplaneAccessor).GetField("_backplane", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(bpa) as TBackplane;
+		}
+
+		static RedisBackplaneOptions? GetRedisBackplaneOptions(IFusionCache cache)
+		{
+			var backplane = GetBackplane<RedisBackplane>(cache);
+			if (backplane is null)
+				return null;
+
+			return typeof(RedisBackplane).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as RedisBackplaneOptions; ;
+		}
+
 		[Fact]
 		public void CanUseDependencyInjection()
 		{
@@ -630,65 +659,6 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void ExistingAndObsoleteCallsStillWork()
-		{
-			var services = new ServiceCollection();
-
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache();
-#pragma warning restore CS0618 // Type or member is obsolete
-
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				}
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				},
-				false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				},
-				false,
-				false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				useDistributedCacheIfAvailable: false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				ignoreMemoryDistributedCache: false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
-
-
-			using var serviceProvider = services.BuildServiceProvider();
-
-			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
-
-			Assert.Equal(1, 1);
-		}
-
-		[Fact]
 		public void BuilderWithSpecificComponentsWorks()
 		{
 			var services = new ServiceCollection();
@@ -748,35 +718,6 @@ namespace FusionCacheTests
 			var bazCache = cacheProvider.GetCache("Baz");
 			var defaultCache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
-				where TDistributedCache : class, IDistributedCache
-			{
-				var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
-				if (dca is null)
-					return null;
-
-				return typeof(DistributedCacheAccessor).GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as TDistributedCache;
-			}
-
-			static TBackplane? GetBackplane<TBackplane>(IFusionCache cache)
-				where TBackplane : class, IFusionCacheBackplane
-			{
-				var bpa = typeof(FusionCache).GetField("_bpa", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as BackplaneAccessor;
-				if (bpa is null)
-					return null;
-
-				return typeof(BackplaneAccessor).GetField("_backplane", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(bpa) as TBackplane;
-			}
-
-			static RedisBackplaneOptions? GetRedisBackplaneOptions(IFusionCache cache)
-			{
-				var backplane = GetBackplane<RedisBackplane>(cache);
-				if (backplane is null)
-					return null;
-
-				return typeof(RedisBackplane).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as RedisBackplaneOptions; ;
-			}
-
 			var fooDistributedCache = GetDistributedCache<MemoryDistributedCache>(fooCache);
 			var bazDistributedCache = GetDistributedCache<MemoryDistributedCache>(bazCache);
 
@@ -814,6 +755,127 @@ namespace FusionCacheTests
 			Assert.True(defaultCache.HasBackplane);
 			Assert.NotNull(defaultBackplane);
 			Assert.Equal("CONN_DEFAULT", defaultBackplaneOptions.Configuration);
+		}
+
+		[Fact]
+		public void ExistingAndObsoleteCallsStillWork()
+		{
+			static ServiceCollection CreateServiceCollection()
+			{
+				var services = new ServiceCollection();
+
+				// REGISTER SOME FUSIONCACHE-RELATED COMPONENTS, TO SEE IFTHEY ARE PICKED UP
+				services.AddStackExchangeRedisCache(opt => opt.Configuration = "CONN_FOO");
+				services.AddFusionCacheSystemTextJsonSerializer();
+
+				return services;
+			}
+
+			// 01: BASIC
+			var services = CreateServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.True(cache.HasDistributedCache);
+			}
+
+			// 02: OPTIONS
+			services = CreateServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				opt =>
+				{
+					opt.BackplaneAutoRecoveryMaxItems = 123;
+				}
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.True(cache.HasDistributedCache);
+			}
+
+			// 03: OPTIONS + FLAG1
+			services = CreateServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				opt =>
+				{
+					opt.BackplaneAutoRecoveryMaxItems = 123;
+				},
+				false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.False(cache.HasDistributedCache);
+			}
+
+			// 04: OPTIONS + FLAG1 + FLAG2
+			services = CreateServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				opt =>
+				{
+					opt.BackplaneAutoRecoveryMaxItems = 123;
+				},
+				false,
+				false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.False(cache.HasDistributedCache);
+			}
+
+			// 05: FLAG1
+			services = CreateServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				useDistributedCacheIfAvailable: false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.False(cache.HasDistributedCache);
+			}
+
+			// 06: FLAG2
+			services = CreateServiceCollection();
+
+#pragma warning disable CS0618 // Type or member is obsolete
+			services.AddFusionCache(
+				ignoreMemoryDistributedCache: false
+			);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.True(cache.HasDistributedCache);
+			}
 		}
 	}
 }
