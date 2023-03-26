@@ -37,7 +37,7 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <param name="setupCacheAction">The <see cref="Action{IServiceProvider,FusionCacheOptions}"/> to configure the newly created <see cref="IFusionCache"/> instance.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
 	[Obsolete("This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach. The new call corresponding to the parameterlss version of this is AddFusionCache().TryWithAutoSetup()")]
-	public static IFusionCacheBuilder AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -63,7 +63,7 @@ public static class FusionCacheServiceCollectionExtensions
 		if (setupCacheAction is not null)
 			builder.WithPostSetup(setupCacheAction);
 
-		return builder;
+		return services;
 	}
 
 	/// <summary>
@@ -100,7 +100,7 @@ public static class FusionCacheServiceCollectionExtensions
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
-	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AddFusionCache(this IServiceCollection services, string cacheName)
 	{
 		if (services is null)
@@ -136,7 +136,7 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AddFusionCache(this IServiceCollection services)
 	{
 		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName);
