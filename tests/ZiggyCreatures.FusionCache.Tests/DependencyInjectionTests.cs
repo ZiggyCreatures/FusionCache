@@ -783,23 +783,24 @@ namespace FusionCacheTests
 				return services;
 			}
 
-			// 01: BASIC
-			var services = CreateServiceCollection();
+			ServiceCollection services;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache();
-#pragma warning restore CS0618 // Type or member is obsolete
+			//			// 01: BASIC
+			//			// 
+			//			// NOTE: VALID ONLY BEFORE V0.20.0
+			//			var services = CreateServiceCollection();
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+			//#pragma warning disable CS0618 // Type or member is obsolete
+			//			services.AddFusionCache();
+			//#pragma warning restore CS0618 // Type or member is obsolete
 
-				// BEFORE V0.20.0
-				//Assert.True(cache.HasDistributedCache);
+			//			using (var serviceProvider = services.BuildServiceProvider())
+			//			{
+			//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				// SINCE V0.20.0
-				Assert.False(cache.HasDistributedCache);
-			}
+
+			//				Assert.True(cache.HasDistributedCache);
+			//			}
 
 			// 02: OPTIONS
 			services = CreateServiceCollection();
