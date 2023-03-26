@@ -46,7 +46,7 @@ namespace FusionCacheTests
 		}
 
 		static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
-		where TDistributedCache : class, IDistributedCache
+			where TDistributedCache : class, IDistributedCache
 		{
 			var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
 			if (dca is null)
@@ -79,7 +79,7 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b);
+			services.AddFusionCache();
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -98,8 +98,8 @@ namespace FusionCacheTests
 			services.AddFusionCacheSystemTextJsonSerializer();
 			services.AddFusionCacheMemoryBackplane();
 
-			services.AddFusionCache("Foo", b => b);
-			services.AddFusionCache(b => b);
+			services.AddFusionCache("Foo");
+			services.AddFusionCache();
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -129,7 +129,7 @@ namespace FusionCacheTests
 				BackplaneAutoRecoveryMaxItems = 123,
 			};
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithOptions(options)
 				.WithOptions(opt =>
 				{
@@ -139,7 +139,7 @@ namespace FusionCacheTests
 				{
 					opt.Duration = TimeSpan.FromMinutes(123);
 				})
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -158,11 +158,11 @@ namespace FusionCacheTests
 			var services = new ServiceCollection();
 			services.AddTransient<IFusionCachePlugin>(sp => new MyPlugin("P_1"));
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithAllRegisteredPlugins()
 				.WithPlugin(new MyPlugin("P_2"))
 				.WithPlugin(sp => new MyPlugin("P_3"))
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -193,9 +193,9 @@ namespace FusionCacheTests
 			services.AddFusionCacheSystemTextJsonSerializer();
 			services.AddFusionCacheMemoryBackplane();
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.TryWithAutoSetup(false)
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -212,9 +212,9 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithRegisteredLogger()
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -229,9 +229,9 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.TryWithRegisteredLogger()
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -245,9 +245,9 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithRegisteredDistributedCache()
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -262,9 +262,9 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.TryWithRegisteredDistributedCache()
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -281,9 +281,9 @@ namespace FusionCacheTests
 
 			services.AddDistributedMemoryCache();
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithRegisteredDistributedCache(false)
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -307,15 +307,15 @@ namespace FusionCacheTests
 				opt.BackplaneChannelPrefix = "AAA";
 			});
 
-			services.AddFusionCache("FooCache", b => b
+			services.AddFusionCache("FooCache")
 				.WithDefaultEntryOptions(opt => opt
 					.SetDuration(TimeSpan.FromMinutes(10))
 					.SetFailSafe(true)
 				)
-			);
+			;
 
 			// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
-			services.AddFusionCache("BarCache", b => b
+			services.AddFusionCache("BarCache")
 				.WithOptions(opt =>
 				{
 					opt.BackplaneChannelPrefix = "BBB";
@@ -325,10 +325,10 @@ namespace FusionCacheTests
 					.SetFactoryTimeouts(TimeSpan.FromSeconds(3))
 				)
 				.WithRegisteredDistributedCache(false)
-			);
+			;
 
 			// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE (POST-SETUP)
-			services.AddFusionCache("BazCache", b => b
+			services.AddFusionCache("BazCache")
 				.WithOptions(opt =>
 				{
 					opt.BackplaneChannelPrefix = "CCC";
@@ -341,7 +341,7 @@ namespace FusionCacheTests
 				{
 					c.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
 				})
-			);
+			;
 
 			// QUX (CUSTOM INSTANCE): 1 SEC DURATION + 123 DAYS DIST DURATION
 			var quxCacheOriginal = new FusionCache(new FusionCacheOptions()
@@ -414,18 +414,18 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache("FooCache", b => b
+			services.AddFusionCache("FooCache")
 				.TryWithAutoSetup()
-			);
-			services.AddFusionCache("BarCache", b => b
+			;
+			services.AddFusionCache("BarCache")
 				.TryWithAutoSetup()
-			);
-			services.AddFusionCache("BazCache", b => b
+			;
+			services.AddFusionCache("BazCache")
 				.TryWithAutoSetup()
-			);
-			services.AddFusionCache(b => b
+			;
+			services.AddFusionCache()
 				.TryWithAutoSetup()
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -458,13 +458,13 @@ namespace FusionCacheTests
 				.SetDuration(TimeSpan.FromMinutes(1))
 			;
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithDefaultEntryOptions(entryOptions)
 				.WithPostSetup((sp, c) =>
 				{
 					c.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(123);
 				})
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -485,7 +485,7 @@ namespace FusionCacheTests
 				.SetDuration(TimeSpan.FromMinutes(1))
 			;
 
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithDefaultEntryOptions(entryOptions)
 				.WithPostSetup((sp, c) =>
 				{
@@ -496,7 +496,7 @@ namespace FusionCacheTests
 					c.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(456);
 				})
 				.WithoutPostSetup()
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -513,8 +513,8 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache("FooCache", b => b);
-			services.AddFusionCache(b => b);
+			services.AddFusionCache("FooCache");
+			services.AddFusionCache();
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -528,8 +528,8 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache("FooCache", b => b);
-			services.AddFusionCache(b => b);
+			services.AddFusionCache("FooCache");
+			services.AddFusionCache();
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -546,8 +546,8 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache(b => b);
-			services.AddFusionCache(b => b);
+			services.AddFusionCache();
+			services.AddFusionCache();
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -567,13 +567,13 @@ namespace FusionCacheTests
 			services.AddMemoryCache();
 
 			// DEFAULT
-			services.AddFusionCache(b => b);
+			services.AddFusionCache();
 
 			// FOO
-			services.AddFusionCache("FooCache", b => b);
+			services.AddFusionCache("FooCache");
 
 			// BAR
-			services.AddFusionCache("BarCache", b => b);
+			services.AddFusionCache("BarCache");
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -600,13 +600,19 @@ namespace FusionCacheTests
 			services.AddMemoryCache();
 
 			// DEFAULT
-			services.AddFusionCache(b => b.WithRegisteredMemoryCache());
+			services.AddFusionCache()
+				.WithRegisteredMemoryCache()
+			;
 
 			// FOO
-			services.AddFusionCache("FooCache", b => b.WithRegisteredMemoryCache());
+			services.AddFusionCache("FooCache")
+				.WithRegisteredMemoryCache()
+			;
 
 			// BAR
-			services.AddFusionCache("BarCache", b => b.WithRegisteredMemoryCache());
+			services.AddFusionCache("BarCache")
+				.WithRegisteredMemoryCache()
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -633,13 +639,19 @@ namespace FusionCacheTests
 			services.AddMemoryCache();
 
 			// DEFAULT
-			services.AddFusionCache(b => b.WithRegisteredMemoryCache());
+			services.AddFusionCache()
+				.WithRegisteredMemoryCache()
+			;
 
 			// FOO
-			services.AddFusionCache("FooCache", b => b.WithRegisteredMemoryCache().WithCacheKeyPrefix());
+			services.AddFusionCache("FooCache")
+				.WithRegisteredMemoryCache().WithCacheKeyPrefix()
+			;
 
 			// BAR
-			services.AddFusionCache("BarCache", b => b.WithRegisteredMemoryCache().WithCacheKeyPrefix());
+			services.AddFusionCache("BarCache")
+				.WithRegisteredMemoryCache().WithCacheKeyPrefix()
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -671,19 +683,19 @@ namespace FusionCacheTests
 				opt.Configuration = "CONN_FOO";
 			});
 
-			services.AddFusionCache("Foo", b => b
+			services.AddFusionCache("Foo")
 				.WithSerializer(sp => new FusionCacheSystemTextJsonSerializer())
 				.WithDistributedCache(
 					new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
 				)
 				.WithStackExchangeRedisBackplane()
-			);
+			;
 
 			// BAR: PLAIN
-			services.AddFusionCache("Bar", b => b);
+			services.AddFusionCache("Bar");
 
 			// BAZ: DISTRIBUTED CACHE (MEMORY, VIA FACTORY) + BACKPLANE (MEMORY)
-			services.AddFusionCache("Baz", b => b
+			services.AddFusionCache("Baz")
 				.WithSystemTextJsonSerializer(new JsonSerializerOptions()
 				{
 					IncludeFields = false
@@ -699,15 +711,15 @@ namespace FusionCacheTests
 					);
 				})
 				.WithMemoryBackplane()
-			);
+			;
 
 			// DEFAULT: BACKPLANE (REDIS) VIA DIRECT INSTANCE
-			services.AddFusionCache(b => b
+			services.AddFusionCache()
 				.WithBackplane(new RedisBackplane(new RedisBackplaneOptions
 				{
 					Configuration = "CONN_DEFAULT"
 				}))
-			);
+			;
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -782,7 +794,11 @@ namespace FusionCacheTests
 			{
 				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.True(cache.HasDistributedCache);
+				// BEFORE V0.20.0
+				//Assert.True(cache.HasDistributedCache);
+
+				// SINCE V0.20.0
+				Assert.False(cache.HasDistributedCache);
 			}
 
 			// 02: OPTIONS

@@ -21,10 +21,10 @@ public static class FusionCacheServiceCollectionExtensions
 
 	/// <summary>
 	/// !!! OBSOLETE !!!
-	/// <br/>
+	/// <br/><br/>
 	/// This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach.
-	/// <br/>
-	/// The new call corresponding to AddFusionCache() is AddFusionCache(b => b.TryWithAutoSetup()) , see the docs for more.
+	/// <br/><br/>
+	/// The new call corresponding to the old <c>AddFusionCache()</c> (that did some auto-setup) is <c>AddFusionCache().TryWithAutoSetup()</c>, see the docs for more.
 	/// <br/><br/>
 	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
 	/// <br/><br/>
@@ -36,8 +36,8 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <param name="ignoreMemoryDistributedCache">If the registered <see cref="IDistributedCache"/> found is an instance of <see cref="MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
 	/// <param name="setupCacheAction">The <see cref="Action{IServiceProvider,FusionCacheOptions}"/> to configure the newly created <see cref="IFusionCache"/> instance.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	[Obsolete("This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach. The new call corresponding to this is AddFusionCache(b => b.WithAutoSetup())")]
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
+	[Obsolete("This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach. The new call corresponding to the parameterlss version of this is AddFusionCache().TryWithAutoSetup()")]
+	public static IFusionCacheBuilder AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -46,28 +46,24 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddFusionCacheProvider();
 
-		// TODO: use the
-		services.AddFusionCache(b =>
-		{
-			if (setupOptionsAction is not null)
-				b = b.WithOptions(setupOptionsAction);
+		var builder = services.AddFusionCache();
 
-			b = b.TryWithRegisteredMemoryCache();
+		if (setupOptionsAction is not null)
+			builder.WithOptions(setupOptionsAction);
 
-			if (useDistributedCacheIfAvailable)
-				b = b.TryWithRegisteredDistributedCache(ignoreMemoryDistributedCache, false);
+		builder.TryWithRegisteredMemoryCache();
 
-			b = b.TryWithRegisteredBackplane();
+		if (useDistributedCacheIfAvailable)
+			builder.TryWithRegisteredDistributedCache(ignoreMemoryDistributedCache, false);
 
-			b = b.WithAllRegisteredPlugins();
+		builder.TryWithRegisteredBackplane();
 
-			if (setupCacheAction is not null)
-				b = b.WithPostSetup(setupCacheAction);
+		builder.WithAllRegisteredPlugins();
 
-			return b;
-		});
+		if (setupCacheAction is not null)
+			builder.WithPostSetup(setupCacheAction);
 
-		return services;
+		return builder;
 	}
 
 	/// <summary>
@@ -104,9 +100,8 @@ public static class FusionCacheServiceCollectionExtensions
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cacheName">The name of the cache. It also automatically sets <see cref="FusionCacheOptions.CacheName"/>.</param>
-	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, string cacheName, Func<IFusionCacheBuilder, IFusionCacheBuilder> setupBuilderAction)
+	public static IFusionCacheBuilder AddFusionCache(this IServiceCollection services, string cacheName)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -123,19 +118,14 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddFusionCacheProvider();
 
+		IFusionCacheBuilder builder = new FusionCacheBuilder(cacheName);
+
 		services.AddSingleton<IFusionCache>(serviceProvider =>
 		{
-			IFusionCacheBuilder b = new FusionCacheBuilder(cacheName);
-
-			if (setupBuilderAction is not null)
-			{
-				b = setupBuilderAction(b);
-			}
-
-			return b.Build(serviceProvider);
+			return builder.Build(serviceProvider);
 		});
 
-		return services;
+		return builder;
 	}
 
 	/// <summary>
@@ -146,10 +136,9 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
-	/// <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, Func<IFusionCacheBuilder, IFusionCacheBuilder> setupBuilderAction)
+	public static IFusionCacheBuilder AddFusionCache(this IServiceCollection services)
 	{
-		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName, setupBuilderAction);
+		return services.AddFusionCache(FusionCacheOptions.DefaultCacheName);
 	}
 }

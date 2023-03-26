@@ -3018,10 +3018,10 @@
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},System.Boolean,System.Boolean,System.Action{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.IFusionCache})">
             <summary>
             !!! OBSOLETE !!!
-            <br/>
+            <br/><br/>
             This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach.
-            <br/>
-            The new call corresponding to AddFusionCache() is AddFusionCache(b => b.TryWithAutoSetup()) , see the docs for more.
+            <br/><br/>
+            The new call corresponding to the old <c>AddFusionCache()</c> (that did some auto-setup) is <c>AddFusionCache().TryWithAutoSetup()</c>, see the docs for more.
             <br/><br/>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             <br/><br/>
@@ -3044,7 +3044,7 @@
             <param name="cache">The custom FusionCache instance.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.Func{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
             <summary>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             <br/><br/>
@@ -3054,10 +3054,9 @@
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <param name="cacheName">The name of the cache. It also automatically sets <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>.</param>
-            <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Func{ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder})">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
             Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             <br/><br/>
@@ -3066,7 +3065,6 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
-            <param name="setupBuilderAction">The building logic to apply, usually consisting of a series of calls to common pre-built ext methods.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
         </member>
     </members>

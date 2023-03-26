@@ -13,6 +13,8 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// </summary>
 public static partial class FusionCacheBuilderExtMethods
 {
+	#region LOGGER
+
 	/// <summary>
 	/// The builder will look for an <see cref="ILogger{FusionCache}"/> service registered in the DI container and use it, and throws if it cannot find one.
 	/// <br/><br/>
@@ -98,6 +100,10 @@ public static partial class FusionCacheBuilderExtMethods
 
 		return builder;
 	}
+
+	#endregion
+
+	#region OPTIONS
 
 	/// <summary>
 	/// Specify a <see cref="FusionCacheOptions"/> instance to be used.
@@ -191,6 +197,10 @@ public static partial class FusionCacheBuilderExtMethods
 		return builder;
 	}
 
+	#endregion
+
+	#region DEFAULT ENTRY OPTIONS
+
 	/// <summary>
 	/// Specify a <see cref="FusionCacheEntryOptions"/> instance to be used as the <see cref="FusionCacheOptions.DefaultEntryOptions"/> option.
 	/// <br/><br/>
@@ -229,6 +239,10 @@ public static partial class FusionCacheBuilderExtMethods
 
 		return builder;
 	}
+
+	#endregion
+
+	#region MEMORY CACHE
 
 	/// <summary>
 	/// The builder will look for an <see cref="IMemoryCache"/> service registered in the DI container and use it, and throws if it cannot find one.
@@ -326,6 +340,10 @@ public static partial class FusionCacheBuilderExtMethods
 		return builder;
 	}
 
+	#endregion
+
+	#region SERIALIZER
+
 	/// <summary>
 	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
 	/// <br/><br/>
@@ -393,6 +411,10 @@ public static partial class FusionCacheBuilderExtMethods
 
 		return builder;
 	}
+
+	#endregion
+
+	#region DISTRIBUTED CACHE
 
 	/// <summary>
 	/// The builder will look for an <see cref="IDistributedCache"/> service (and a corresponding <see cref="IFusionCacheSerializer"/>) registered in the DI container and use them, and throws if it cannot find them.
@@ -534,6 +556,10 @@ public static partial class FusionCacheBuilderExtMethods
 		return builder;
 	}
 
+	#endregion
+
+	#region BACKPLANE
+
 	/// <summary>
 	/// The builder will look for an <see cref="IFusionCacheBackplane"/> service registered in the DI container and use it, and throws if it cannot find one.
 	/// <br/><br/>
@@ -641,6 +667,10 @@ public static partial class FusionCacheBuilderExtMethods
 
 		return builder;
 	}
+
+	#endregion
+
+	#region PLUGINS
 
 	/// <summary>
 	/// Indicates if the builder should try find and use any available <see cref="IFusionCachePlugin"/> services registered in the DI container.
@@ -755,6 +785,8 @@ public static partial class FusionCacheBuilderExtMethods
 
 		return builder;
 	}
+
+	#endregion
 
 	/// <summary>
 	/// Specify a custom post-setup action, that will be invoked just after the creation of the FusionCache instance, and before returning it to the caller.
