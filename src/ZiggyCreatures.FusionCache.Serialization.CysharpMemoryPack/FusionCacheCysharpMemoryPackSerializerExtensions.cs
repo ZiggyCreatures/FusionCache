@@ -29,7 +29,7 @@ public static class FusionCacheCysharpMemoryPackSerializerExtensions
 	}
 
 	/// <summary>
-	/// Adds an <see cref="IFusionCacheSerializer"/> based on the famous Neuecc's MessagePack one.
+	/// Adds an <see cref="IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to add the serializer to.</param>
 	/// <param name="options">The <see cref="MemoryPackSerializerOptions"/> to use.</param>

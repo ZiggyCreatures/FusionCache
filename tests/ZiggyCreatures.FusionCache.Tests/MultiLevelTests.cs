@@ -101,7 +101,7 @@ namespace FusionCacheTests
 					Assert.Equal(42, value);
 
 					// MEMORY CACHE HAS BEEN UPDATED
-					Assert.Equal(42, memoryCache.Get<IFusionCacheEntry>("foo").GetValue<int>());
+					Assert.Equal(42, memoryCache.Get<IFusionCacheEntry>("foo")?.GetValue<int>());
 
 					// DISTRIBUTED CACHE HAS -NOT- BEEN UPDATED
 					Assert.Null(distributedCache.GetString("foo"));

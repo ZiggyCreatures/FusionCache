@@ -60,7 +60,7 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerExtensions.WithCysharpMemoryPackSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,MemoryPack.MemoryPackSerializerOptions)">
             <summary>
-            Adds an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> based on the famous Neuecc's MessagePack one.
+            Adds an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to add the serializer to.</param>
             <param name="options">The <see cref="T:MemoryPack.MemoryPackSerializerOptions"/> to use.</param>

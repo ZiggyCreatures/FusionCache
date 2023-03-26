@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 
@@ -11,7 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class FusionCacheServiceStackJsonSerializerServiceCollectionExtensions
 {
 	/// <summary>
-	/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
+	/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
@@ -23,5 +24,20 @@ public static class FusionCacheServiceStackJsonSerializerServiceCollectionExtens
 		services.TryAddSingleton<IFusionCacheSerializer>(_ => new FusionCacheServiceStackJsonSerializer());
 
 		return services;
+	}
+
+	/// <summary>
+	/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to add the serializer to.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithServiceStackJsonSerializer(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		return builder
+			.WithSerializer(new FusionCacheServiceStackJsonSerializer())
+		;
 	}
 }

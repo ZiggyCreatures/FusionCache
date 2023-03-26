@@ -29,7 +29,7 @@ public static class FusionCacheSystemTextJsonSerializerExtensions
 	}
 
 	/// <summary>
-	/// Adds an <see cref="IFusionCacheSerializer"/> based on the famous Neuecc's MessagePack one.
+	/// Adds an <see cref="IFusionCacheSerializer"/> based on the System.Text.Json one.
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to add the serializer to.</param>
 	/// <param name="options">The <see cref="JsonSerializerOptions"/> to use.</param>

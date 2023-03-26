@@ -42,7 +42,7 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheSystemTextJsonSerializerExtensions.WithSystemTextJsonSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Text.Json.JsonSerializerOptions)">
             <summary>
-            Adds an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> based on the famous Neuecc's MessagePack one.
+            Adds an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> based on the System.Text.Json one.
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to add the serializer to.</param>
             <param name="options">The <see cref="T:System.Text.Json.JsonSerializerOptions"/> to use.</param>
