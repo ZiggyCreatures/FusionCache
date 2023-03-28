@@ -7,16 +7,21 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 	internal class FusionCacheProvider
 		: IFusionCacheProvider
 	{
-		private readonly IEnumerable<IFusionCache> _caches;
+		private readonly IFusionCache? _defaultCache;
+		private readonly IFusionCache[] _namedCaches;
 
-		public FusionCacheProvider(IEnumerable<IFusionCache> caches)
+		public FusionCacheProvider(IEnumerable<IFusionCache> defaultCaches, IEnumerable<NamedCacheWrapper> namedCaches)
 		{
-			_caches = caches;
+			_defaultCache = defaultCaches.LastOrDefault();
+			_namedCaches = namedCaches.Select(x => x.Cache).ToArray();
 		}
 
 		public IFusionCache GetCache(string cacheName)
 		{
-			var matchingCaches = _caches.Where(x => x.CacheName == cacheName).ToArray();
+			if (cacheName == FusionCacheOptions.DefaultCacheName)
+				return _defaultCache ?? throw new InvalidOperationException("No default cache has been registered");
+
+			var matchingCaches = _namedCaches.Where(x => x.CacheName == cacheName).ToArray();
 
 			if (matchingCaches.Length == 1)
 				return matchingCaches[0];
@@ -29,7 +34,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 
 		public IFusionCache? GetCacheOrNull(string cacheName)
 		{
-			var matchingCaches = _caches.Where(x => x.CacheName == cacheName).ToArray();
+			if (cacheName == FusionCacheOptions.DefaultCacheName)
+				return _defaultCache;
+
+			var matchingCaches = _namedCaches.Where(x => x.CacheName == cacheName).ToArray();
 
 			if (matchingCaches.Length == 1)
 				return matchingCaches[0];

@@ -13,96 +13,6 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// </summary>
 public static partial class FusionCacheBuilderExtMethods
 {
-	#region LOGGER
-
-	/// <summary>
-	/// The builder will look for an <see cref="ILogger{FusionCache}"/> service registered in the DI container and use it, and throws if it cannot find one.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredLogger(this IFusionCacheBuilder builder)
-	{
-		if (builder is null)
-			throw new ArgumentNullException(nameof(builder));
-
-		builder.UseRegisteredLogger = true;
-		builder.Logger = null;
-		builder.LoggerFactory = null;
-		builder.ThrowIfMissingLogger = true;
-
-		return builder;
-	}
-
-	/// <summary>
-	/// Indicates if the builder should try to find and use an <see cref="ILogger{FusionCache}"/> service registered in the DI container.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredLogger(this IFusionCacheBuilder builder)
-	{
-		if (builder is null)
-			throw new ArgumentNullException(nameof(builder));
-
-		builder.WithRegisteredLogger();
-		builder.ThrowIfMissingLogger = false;
-
-		return builder;
-	}
-
-	/// <summary>
-	/// Specify a custom <see cref="ILogger{FusionCache}"/> instance to be used.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="logger">The <see cref="ILogger{FusionCache}"/> instance to use.</param>
-	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithLogger(this IFusionCacheBuilder builder, ILogger<FusionCache> logger)
-	{
-		if (builder is null)
-			throw new ArgumentNullException(nameof(builder));
-
-		if (logger is null)
-			throw new ArgumentNullException(nameof(logger));
-
-		builder.UseRegisteredLogger = false;
-		builder.Logger = logger;
-		builder.LoggerFactory = null;
-		builder.ThrowIfMissingLogger = true;
-
-		return builder;
-	}
-
-	/// <summary>
-	/// Specify a custom <see cref="ILogger{FusionCache}"/> factory to be used.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="factory">The factory used to create the logger, with access to the <see cref="IServiceProvider"/>.</param>
-	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithLogger(this IFusionCacheBuilder builder, Func<IServiceProvider, ILogger<FusionCache>> factory)
-	{
-		if (builder is null)
-			throw new ArgumentNullException(nameof(builder));
-
-		if (factory is null)
-			throw new ArgumentNullException(nameof(factory));
-
-		builder.UseRegisteredLogger = false;
-		builder.Logger = null;
-		builder.LoggerFactory = factory;
-		builder.ThrowIfMissingLogger = true;
-
-		return builder;
-	}
-
-	#endregion
-
 	#region OPTIONS
 
 	/// <summary>
@@ -242,6 +152,96 @@ public static partial class FusionCacheBuilderExtMethods
 
 	#endregion
 
+	#region LOGGER
+
+	/// <summary>
+	/// The builder will look for an <see cref="ILogger{FusionCache}"/> service registered in the DI container and use it, and throws if it cannot find one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredLogger(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseRegisteredLogger = true;
+		builder.Logger = null;
+		builder.LoggerFactory = null;
+		builder.ThrowIfMissingLogger = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="ILogger{FusionCache}"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredLogger(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.WithRegisteredLogger();
+		builder.ThrowIfMissingLogger = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom <see cref="ILogger{FusionCache}"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="logger">The <see cref="ILogger{FusionCache}"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithLogger(this IFusionCacheBuilder builder, ILogger<FusionCache> logger)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (logger is null)
+			throw new ArgumentNullException(nameof(logger));
+
+		builder.UseRegisteredLogger = false;
+		builder.Logger = logger;
+		builder.LoggerFactory = null;
+		builder.ThrowIfMissingLogger = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom <see cref="ILogger{FusionCache}"/> factory to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="factory">The factory used to create the logger, with access to the <see cref="IServiceProvider"/>.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithLogger(this IFusionCacheBuilder builder, Func<IServiceProvider, ILogger<FusionCache>> factory)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (factory is null)
+			throw new ArgumentNullException(nameof(factory));
+
+		builder.UseRegisteredLogger = false;
+		builder.Logger = null;
+		builder.LoggerFactory = factory;
+		builder.ThrowIfMissingLogger = true;
+
+		return builder;
+	}
+
+	#endregion
+
 	#region MEMORY CACHE
 
 	/// <summary>
@@ -251,7 +251,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <br/>
 	/// To avoid this, either don't use WithRegisteredMemoryCache() and let FusionCache create one for you (which will be different per cache instance) or use WithMemoryCache() and provide one directly.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> if a memory cache is not found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredMemoryCache().
+	/// <strong>NOTE:</strong> if a memory cache is not found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behavior, use TryWithRegisteredMemoryCache().
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
@@ -423,7 +423,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <br/>
 	/// One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="IFusionCacheSerializer"/> is found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredDistributedCache().
+	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="IFusionCacheSerializer"/> is found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behavior, use TryWithRegisteredDistributedCache().
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> normally if an <see cref="IDistributedCache"/> is found in the DI container, it will be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
 	/// <br/><br/>
@@ -563,7 +563,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <summary>
 	/// The builder will look for an <see cref="IFusionCacheBackplane"/> service registered in the DI container and use it, and throws if it cannot find one.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> if a backplane is not found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behaviour, use TryWithRegisteredBackplane().
+	/// <strong>NOTE:</strong> if a backplane is not found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behavior, use TryWithRegisteredBackplane().
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>

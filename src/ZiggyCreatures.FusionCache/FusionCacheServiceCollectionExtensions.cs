@@ -88,6 +88,15 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddSingleton<IFusionCache>(cache);
 
+		if (cache.CacheName == FusionCacheOptions.DefaultCacheName)
+		{
+			services.AddSingleton<IFusionCache>(cache);
+		}
+		else
+		{
+			services.AddSingleton<NamedCacheWrapper>(new NamedCacheWrapper(cache.CacheName, cache));
+		}
+
 		return services;
 	}
 
@@ -120,10 +129,20 @@ public static class FusionCacheServiceCollectionExtensions
 
 		IFusionCacheBuilder builder = new FusionCacheBuilder(cacheName);
 
-		services.AddSingleton<IFusionCache>(serviceProvider =>
+		if (cacheName == FusionCacheOptions.DefaultCacheName)
 		{
-			return builder.Build(serviceProvider);
-		});
+			services.AddSingleton<IFusionCache>(serviceProvider =>
+			{
+				return builder.Build(serviceProvider);
+			});
+		}
+		else
+		{
+			services.AddSingleton<NamedCacheWrapper>(serviceProvider =>
+			{
+				return new NamedCacheWrapper(builder.CacheName, () => builder.Build(serviceProvider));
+			});
+		}
 
 		return builder;
 	}

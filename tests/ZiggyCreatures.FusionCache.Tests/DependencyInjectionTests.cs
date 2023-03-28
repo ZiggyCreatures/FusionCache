@@ -414,18 +414,10 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddFusionCache("FooCache")
-				.TryWithAutoSetup()
-			;
-			services.AddFusionCache("BarCache")
-				.TryWithAutoSetup()
-			;
-			services.AddFusionCache("BazCache")
-				.TryWithAutoSetup()
-			;
-			services.AddFusionCache()
-				.TryWithAutoSetup()
-			;
+			services.AddFusionCache().TryWithAutoSetup();
+			services.AddFusionCache("FooCache").TryWithAutoSetup();
+			services.AddFusionCache("BarCache").TryWithAutoSetup();
+			services.AddFusionCache("BazCache").TryWithAutoSetup();
 
 			using var serviceProvider = services.BuildServiceProvider();
 
@@ -542,12 +534,27 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void ThrowsWhenRequestingANamedCacheRegisteredMultipleTimes()
+		public void DefaultCacheIsTheSameWhenRequestedInDifferentWays()
 		{
 			var services = new ServiceCollection();
 
 			services.AddFusionCache();
 			services.AddFusionCache();
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+
+			Assert.Equal(cacheProvider.GetDefaultCache(), serviceProvider.GetService<IFusionCache>());
+		}
+
+		[Fact]
+		public void ThrowsWhenRequestingANamedCacheRegisteredMultipleTimes()
+		{
+			var services = new ServiceCollection();
+
+			services.AddFusionCache("Foo");
+			services.AddFusionCache("Foo");
 
 			using var serviceProvider = services.BuildServiceProvider();
 
