@@ -30,7 +30,7 @@ These are the **key features** of FusionCache:
 - [**⚡ High performance**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - [**💫 Natively sync/async**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
 - [**📞 Events**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
-- [**🧩 Plugins**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc...
+- [**🧩 Plugins**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behavior, like adding support for metrics, statistics, etc...
 - [**📜 Logging**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
 - [**🔃 Dependency Injection**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 

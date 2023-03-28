@@ -236,7 +236,7 @@ Oh, and if you are into *functional programming* you may smell a scent of Option
 ## 🤔 Why no `Get<T>` ?
 You may be wondering why the quite common `Get<T>` method is missing.
 
-It is because its behaviour would correspond to FusionCache's `GetOrDefault<T>` method above, but with 2 problems:
+It is because its behavior would correspond to FusionCache's `GetOrDefault<T>` method above, but with 2 problems:
 
 1) the name is not explicit about what happens when no data is in the cache: will it return some default value? Will it throw an exception? Taking a hint from .NET's `Nullable<T>` type (like `Nullable<int>` or `int?`), it is better to be explicit, so the `GetOrDefault` name has been preferred
 

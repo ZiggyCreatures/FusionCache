@@ -137,7 +137,7 @@ Finally, most of them have a set of ♻ overloads for a better ease of use.
 You can read more [**here**](CoreMethods.md).
 
 
-## 💫 Natively Sync and Async
+## 💫 Natively Sync + Async
 
 Everything is natively available for both the **sync** and **async** programming models.
 
@@ -164,6 +164,6 @@ You can read more [**here**](Plugins.md).
 
 FusionCache can log extensively to help you pinpoint any possible problem in your production environment.
 
-It uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem, allowing you to use any implementation you want that is compatible with it (Serilog, NLog, etc): it also has a series of settings you may find useful to better tune its behaviour.
+It uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem, allowing you to use any implementation you want that is compatible with it (Serilog, NLog, etc): it also has a series of settings you may find useful to better tune its behavior.
 
 You can read more [**here**](Logging.md).

@@ -14,6 +14,9 @@
 
 </div>
 
+| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](Update_v0_20_0.md). |
+|:-------|
+
 ### FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
@@ -58,7 +61,7 @@ These are the **key features** of FusionCache:
 - [**⚡ High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
 - [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
-- [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc
+- [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behavior, like adding support for metrics, statistics, etc
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
@@ -207,7 +210,7 @@ cache.GetOrSet<Product>(
 );
 ```
 
-Basically, on top of specifying the *cache key* and the *factory*, instead of specifying just a *duration* as a `TimeSpan` we specify a `FusionCacheEntryOptions` object - which contains all the options needed to control the behaviour of FusionCache during each operation - in the form of a lambda that automatically duplicates the default entry options defined before (to copy all our  defaults) while giving us a chance to modify it as we like for this specific call.
+Basically, on top of specifying the *cache key* and the *factory*, instead of specifying just a *duration* as a `TimeSpan` we specify a `FusionCacheEntryOptions` object - which contains all the options needed to control the behavior of FusionCache during each operation - in the form of a lambda that automatically duplicates the default entry options defined before (to copy all our  defaults) while giving us a chance to modify it as we like for this specific call.
 
 Now let's say we really like these set of options (*priority*, *fail-safe* and *factory timeouts*) and we want them to be the overall defaults, while keeping the ability to change something on a per-call basis (like the *duration*).
 
