@@ -68,7 +68,7 @@ So basically:
 - `IHttpClientFactory` -> `CreateClient()` -> `HttpClient`
 - `IFusionCacheProvider` -> `GetCache()` -> `IFusionCache`
 
-By using a similar apporach, hopefully we should feel at home 😊.
+By using a similar approach, hopefully we should feel at home 😊.
 
 Here's the example above, updated:
 
@@ -104,7 +104,7 @@ public class MyController : Controller
 }
 ```
 
-## Default Cache
+## ⭐ Default Cache
 
 But wait, does the "normal" way of using FusionCache - by declaring a param of type `IFusionCache` - still works?
 
@@ -116,7 +116,7 @@ Our existing code that was not using named caches will still work, without chang
 
 **ℹ NOTE:** nitpicking corner here, but the _default cache_ has a cache name equals to `FusionCacheOptions.DefaultCacheName`.
 
-## Default Cache + Named Caches
+## ⭐ Default Cache + Named Caches
 
 It is also possible to register and use the default cache, along with other named caches at the same time.
 
@@ -168,7 +168,7 @@ public class MyController : Controller
 
 FusionCache with the default cache, multiple named caches, the new `IFusionCacheProvider` and the DI container in general all work together harmoniously without unwanted runtime surprises or problems 🥳
 
-## Different configurations
+## ⚙️ Different configurations
 
 It goes without saying, but better be explicit: thanks to the [Builder](DependencyInjection.md) support we can configure each cache differently, including the default one.
 
@@ -213,7 +213,7 @@ Here we registered, on top of some default entry options:
 - the **products cache** to use memory + distributed, pointing to one Redis instance
 - the **customers cache** to use memory + distributed, pointing to anotner Redis instance
 
-## With Registered Whatever
+## ⚙️ With Registered Whatever
 
 We can also just use the same Redis instance, and maybe register a common serializer and a common distributed cache (and, why not, a common backplane) in the DI container, configure them once and just use the **registered** components where we want by just saying `WithRegisteredXyz()`:
 
@@ -256,7 +256,7 @@ services.AddFusionCache("Customers")
 ;
 ```
 
-## Collisions?
+## 💥 Collisions?
 
 But wait a minute: if the distributed cache (a Redis instance in this case) is the same, does it mean that 2 cache entries from different caches but with the same cache key would collide?
 
@@ -267,18 +267,18 @@ _productsCache.Set("Foo123", myProduct)
 _customersCache.Set("Foo123", myCustomer)
 ```
 
-Normally the answer would be yes, but in this case si a resounding "nope!".
+Normally the answer would be yes, but in this case is a resounding "nope!".
 
 Because our new friend `CacheKeyPrefix` enters the scene.
 
-### Cache Key Prefix
+### 🔑 Cache Key Prefix
 
-If you notice in the code above we also added `WithCacheKeyPrefix()`: that tells FusionCache to add a prefix to each cache keys we will pass it, solving the issue automatically.
+If you notice in the code above we also added `WithCacheKeyPrefix()`: that tells FusionCache to add a prefix to each cache key we will pass to it, solving the issue automatically.
 
 By default, when no specific prefix is specified, the `CacheName` plus a little `":"` separator will be used.
 
 Of course it can also be specified manually, by simply using the overload `WithCacheKeyPrefix(prefix)`.
 
-Basically when doing `_productsCache.Set("Foo123", myProduct)` the actual cache key used in both the underlying memory and distributed cache will be turned from `"Foo123"` to `"Products:Foo123"`, automatically and transparently avoiding any collision between different cache entries from different caches.
+Basically when doing `_productsCache.Set("Foo123", myProduct)` from the example above the actual cache key used in both the underlying memory and distributed cache will be turned from `"Foo123"` to `"Products:Foo123"`, automatically and transparently avoiding any collision between different cache entries from different caches. The transformed cache key will be used consistently throughout the entire flow: memory cache, distributed cache, events, etc.
 
 Ain't it nice 😬 ?
