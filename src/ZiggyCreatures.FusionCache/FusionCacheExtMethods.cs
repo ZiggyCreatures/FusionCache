@@ -265,5 +265,14 @@ public static partial class FusionCacheExtMethods
 		return cacheProvider.GetCache(FusionCacheOptions.DefaultCacheName);
 	}
 
+	/// <summary>
+	/// Returns the default FusionCache instance, the one with the CacheName equals to <see cref="FusionCacheOptions.DefaultCacheName"/>, or <see langword="null"/> if none found.
+	/// </summary>
+	/// <returns>The default FusionCache instance.</returns>
+	public static IFusionCache? GetDefaultCacheOrNull(this IFusionCacheProvider cacheProvider)
+	{
+		return cacheProvider.GetCacheOrNull(FusionCacheOptions.DefaultCacheName);
+	}
+
 	#endregion
 }

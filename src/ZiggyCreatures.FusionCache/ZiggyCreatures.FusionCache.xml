@@ -1508,6 +1508,12 @@
             </summary>
             <returns>The default FusionCache instance.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetDefaultCacheOrNull(ZiggyCreatures.Caching.Fusion.IFusionCacheProvider)">
+            <summary>
+            Returns the default FusionCache instance, the one with the CacheName equals to <see cref="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultCacheName"/>, or <see langword="null"/> if none found.
+            </summary>
+            <returns>The default FusionCache instance.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetOrSetAsync``1(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according with the <paramref name="options"/> provided.
