@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace ZiggyCreatures.Caching.Fusion.Backplane;
 
 /// <summary>
-/// The core interface to create a FusionCache backplane plugin.
+/// The core interface to create a FusionCache backplane.
 /// </summary>
 public interface IFusionCacheBackplane
 {

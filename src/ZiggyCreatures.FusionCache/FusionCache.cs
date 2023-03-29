@@ -405,8 +405,8 @@ public partial class FusionCache
 		{
 			if (_plugins.Contains(plugin))
 			{
-				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger?.LogError("FUSION: the same plugin instance already exists (TYPE={PluginType})", plugin.GetType().FullName);
+				if (_logger?.IsEnabled(_options.PluginsErrorsLogLevel) ?? false)
+					_logger?.Log(_options.PluginsErrorsLogLevel, "FUSION: the same plugin instance already exists (TYPE={PluginType})", plugin.GetType().FullName);
 
 				throw new InvalidOperationException($"FUSION: the same plugin instance already exists (TYPE={plugin.GetType().FullName})");
 			}
@@ -426,14 +426,14 @@ public partial class FusionCache
 				_plugins.Remove(plugin);
 			}
 
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.LogError(exc, "FUSION: an error occurred while starting a plugin (TYPE={PluginType})", plugin.GetType().FullName);
+			if (_logger?.IsEnabled(_options.PluginsErrorsLogLevel) ?? false)
+				_logger.Log(_options.PluginsErrorsLogLevel, exc, "FUSION: an error occurred while starting a plugin (TYPE={PluginType})", plugin.GetType().FullName);
 
 			throw new InvalidOperationException($"FUSION: an error occurred while starting a plugin (TYPE={plugin.GetType().FullName})", exc);
 		}
 
-		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-			_logger?.LogInformation("FUSION: a plugin has been added and started (TYPE={PluginType})", plugin.GetType().FullName);
+		if (_logger?.IsEnabled(_options.PluginsInfoLogLevel) ?? false)
+			_logger?.Log(_options.PluginsInfoLogLevel, "FUSION: a plugin has been added and started (TYPE={PluginType})", plugin.GetType().FullName);
 	}
 
 	/// <inheritdoc/>
@@ -446,8 +446,8 @@ public partial class FusionCache
 		{
 			if (_plugins.Contains(plugin) == false)
 			{
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger?.LogWarning("FUSION: the plugin cannot be removed because is not part of this FusionCache instance (TYPE={PluginType})", plugin.GetType().FullName);
+				if (_logger?.IsEnabled(_options.PluginsErrorsLogLevel) ?? false)
+					_logger?.Log(_options.PluginsErrorsLogLevel, "FUSION: the plugin cannot be removed because is not part of this FusionCache instance (TYPE={PluginType})", plugin.GetType().FullName);
 
 				// MAYBE WE SHOULD THROW (LIKE IN AddPlugin) INSTEAD OF JUST RETURNING (LIKE IN List<T>.Remove()) ?
 				return false;
@@ -461,8 +461,8 @@ public partial class FusionCache
 			}
 			catch (Exception exc)
 			{
-				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.LogError(exc, "FUSION: an error occurred while stopping a plugin (TYPE={PluginType})", plugin.GetType().FullName);
+				if (_logger?.IsEnabled(_options.PluginsErrorsLogLevel) ?? false)
+					_logger.Log(_options.PluginsErrorsLogLevel, exc, "FUSION: an error occurred while stopping a plugin (TYPE={PluginType})", plugin.GetType().FullName);
 
 				throw new InvalidOperationException($"FUSION: an error occurred while stopping a plugin (TYPE={plugin.GetType().FullName})", exc);
 			}
@@ -473,8 +473,8 @@ public partial class FusionCache
 			}
 		}
 
-		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-			_logger?.LogInformation("FUSION: a plugin has been stopped and removed (TYPE={PluginType})", plugin.GetType().FullName);
+		if (_logger?.IsEnabled(_options.PluginsInfoLogLevel) ?? false)
+			_logger?.Log(_options.PluginsInfoLogLevel, "FUSION: a plugin has been stopped and removed (TYPE={PluginType})", plugin.GetType().FullName);
 
 		return true;
 	}

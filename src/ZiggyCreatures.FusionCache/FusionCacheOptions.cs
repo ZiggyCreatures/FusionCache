@@ -46,6 +46,9 @@ public class FusionCacheOptions
 
 		BackplaneSyntheticTimeoutsLogLevel = LogLevel.Warning;
 		BackplaneErrorsLogLevel = LogLevel.Warning;
+
+		PluginsInfoLogLevel = LogLevel.Information;
+		PluginsErrorsLogLevel = LogLevel.Error;
 	}
 
 	/// <summary>
@@ -215,6 +218,20 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 	/// </summary>
 	public LogLevel BackplaneErrorsLogLevel { get; set; }
+
+	/// <summary>
+	/// Specify the <see cref="LogLevel"/> to use when logging informations about plugins.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// </summary>
+	public LogLevel PluginsInfoLogLevel { get; set; }
+
+	/// <summary>
+	/// Specify the <see cref="LogLevel"/> to use when an error occurs while working with a plugin.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// </summary>
+	public LogLevel PluginsErrorsLogLevel { get; set; }
 
 	FusionCacheOptions IOptions<FusionCacheOptions>.Value
 	{
