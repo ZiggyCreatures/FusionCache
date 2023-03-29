@@ -4,19 +4,25 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.20.0-preview1</Version>
+		<Version>0.20.0-preview2</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
-		<Description>FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.</Description>
+		<Description>
+			FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
+
+			!!! Updating from a previous version? Read here https://bit.ly/3KsusAx
+		</Description>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
 			!!! THIS IS A PREVIEW RELEASE !!!
-			- Added: Named Caches support (preview)
-			- Added: Builder Pattern support (preview)
-			- Added: CacheKeyPrefix is back, because native support for multiple Named Caches (preview)
+			- Added: Named Caches support
+			- Added: Builder Pattern support
+			- Added: CacheKeyPrefix
+			- Added: Infinity handling
+			- Added: Custom plugins log levels
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>0.19.0</PackageValidationBaselineVersion>

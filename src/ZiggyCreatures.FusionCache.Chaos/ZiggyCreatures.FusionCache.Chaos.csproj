@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.20.0-preview1</Version>
+		<Version>0.20.0-preview2</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Chaos</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>Chaos-related utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behavior in a controlled failing environment.</Description>
