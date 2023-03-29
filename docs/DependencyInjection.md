@@ -64,7 +64,7 @@ For that we can use a **builder** approach.
 
 By calling `services.AddFusionCache()` what we get back is an instance of `IFusionCacheBuilder` from which we have access to a lot of different extension methods with a [fluent interface](https://en.wikipedia.org/wiki/Fluent_interface) design, all readily available to do whatever we want.
 
-### Configure options
+### ⚙️ Configure options
 
 To configure some cache-wide options we can use:
 
@@ -105,7 +105,7 @@ services.AddFusionCache()
 ;
 ```
 
-### Configure components
+### ⚙️ Configure components
 
 Ok, these are various types of options: but what about sub-components like the memory cache, the distributed cache, the serializer, the backplane, etc?
 
@@ -133,7 +133,7 @@ This approach is currently available for:
 - distributed cache + serializer
 - backplane
 
-### Configure distributed cache
+### ⚙️ Configure distributed cache
 
 A slightly particular case is the distributed cache, since it requires a serializer to do its job and there's a common case that we may want to ignore.
 
@@ -141,20 +141,20 @@ Because of this, in these methods there are some extra params like:
 - `bool throwIfMissingSerializer`: tells FusionCache if it should throw in case if finds a valid distributed cache but no serializer, to avoid surprises down the road like _"I specified a distributed cache, but it's not using it and it didn't tell me anything, why?"_
 - `bool ignoreMemoryDistributedCache`: tells FusionCache if it should accept an instance of `MemoryDistributedCache`, which is not really a distributed cache and is typically registered automatically by ASP.NET MVC without us being able to avoid it, and using it is just a waste of resources
 
-### Configure plugins
+### ⚙️ Configure plugins
 
 Everything is the same, but since we can have multiple plugins some methods works in a "plural" way: for example we have `WithAllRegisteredPlugins()` which will use all of the registered `IFusionCachePlugin` services, not just one.
 
 Also, we can call `WithPlugin(...)` multiple times and add multiple plugins to the same FusionCache instance.
 
 
-### Post setup
+### ⚙️ Post Setup
 
 Sometimes we may need to further customize a FusionCache instance in some ways.
 
 To do that we have at our disposal a `WithPostSetup(Action<IServiceProvider, IFusionCache> action)` method where we can specify some custom logic to apply after the creation of that FusionCache instance.
 
-### Auto setup
+### ⚙️ Auto-setup
 
 It's probably not that frequent, but let's say you would like FusionCache to try and look into the DI container and basically use everything it can. Found a backplane? Use it. Found a valid distributed cache + a valid serializer? Use them. Any plugin found? Yep, use them all.
 
@@ -167,7 +167,7 @@ In more details, it will:
 - try to look for a registered [backplane](Backplane.md) (any implementation of `IFusionCacheBackplane`) and use it
 - try to look for all registered FusionCache [plugins](Plugins.md) (all registered implementations of `IFusionCachePlugin`) and add + initialize them
 
-## Registered components and direct instances
+### ⚙️ Registered components and direct instances
 
 When specifying which components to use we have 2 choices:
 1. tell FusionCache exactly what to use (either via an direct instance or a factory)
