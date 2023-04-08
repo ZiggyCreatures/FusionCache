@@ -69,6 +69,8 @@ In general this can be used as a set of options that will act as the *baseline*,
 | `EventHandlingErrorsLogLevel`               | `LogLevel`                | `Warning` | Used when logging errors while executing event handlers. |
 | `BackplaneSyntheticTimeoutsLogLevel`        | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while using the backplane. |
 | `BackplaneErrorsLogLevel`                   | `LogLevel`                | `Warning` | Used when logging any other kind of errors while using the backplane. |
+| `PluginsInfoLogLevel`                       | `LogLevel`                | `Information` | Used when logging informations about a plugin. |
+| `PluginsErrorsLogLevel`                     | `LogLevel`                | `Error` | Used when logging an error while working with a plugin. |
 
 
 ## FusionCacheEntryOptions
