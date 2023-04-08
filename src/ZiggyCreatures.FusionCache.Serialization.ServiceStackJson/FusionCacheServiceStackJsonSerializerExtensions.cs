@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods for setting up FusionCache related services in an <see cref="IServiceCollection" />.
 /// </summary>
-public static class FusionCacheServiceStackJsonSerializerServiceCollectionExtensions
+public static class FusionCacheServiceStackJsonSerializerExtensions
 {
 	/// <summary>
 	/// Adds an implementation of <see cref="IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
