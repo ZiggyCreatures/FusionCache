@@ -254,6 +254,7 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): no more overloads during a cold start or after an expiration
 - [**💣 Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
 - [**⏱ Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
+- [**📛 Named Caches**](docs/NamedCaches.md): how to work with multiple named FusionCache instances
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
 - [**🎚 Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
