@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.20.0-preview2</Version>
+		<Version>0.20.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>
@@ -17,12 +17,11 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			!!! THIS IS A PREVIEW RELEASE !!!
 			- Added: Named Caches support
-			- Added: Builder Pattern support
+			- Added: Builder support
 			- Added: CacheKeyPrefix
 			- Added: Infinity handling
-			- Added: Custom plugins log levels
+			- Added: Custom log levels for plugins
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>0.19.0</PackageValidationBaselineVersion>
