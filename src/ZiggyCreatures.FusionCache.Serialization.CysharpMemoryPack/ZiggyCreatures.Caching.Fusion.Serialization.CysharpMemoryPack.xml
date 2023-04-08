@@ -45,18 +45,26 @@
             </code>
             </remarks>
         </member>
-        <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerServiceCollectionExtensions">
+        <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerExtensions">
             <summary>
             Extension methods for setting up FusionCache related services in an <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
             </summary>
         </member>
-        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerServiceCollectionExtensions.AddFusionCacheCysharpMemoryPackSerializer(Microsoft.Extensions.DependencyInjection.IServiceCollection,MemoryPack.MemoryPackSerializerOptions)">
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerExtensions.AddFusionCacheCysharpMemoryPackSerializer(Microsoft.Extensions.DependencyInjection.IServiceCollection,MemoryPack.MemoryPackSerializerOptions)">
             <summary>
             Adds an implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
             </summary>
             <param name="services">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" /> to add services to.</param>
             <param name="options">The <see cref="T:MemoryPack.MemoryPackSerializerOptions"/> to use.</param>
             <returns>The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheCysharpMemoryPackSerializerExtensions.WithCysharpMemoryPackSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,MemoryPack.MemoryPackSerializerOptions)">
+            <summary>
+            Adds an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to add the serializer to.</param>
+            <param name="options">The <see cref="T:MemoryPack.MemoryPackSerializerOptions"/> to use.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
     </members>
 </doc>

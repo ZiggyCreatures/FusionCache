@@ -14,6 +14,9 @@
 
 </div>
 
+| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](docs/Update_v0_20_0.md). |
+|:-------|
+
 ### FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
@@ -55,10 +58,11 @@ These are the **key features** of FusionCache:
 - [**💣 Fail-Safe**](docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
 - [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
+- [**📛 Named Caches**](docs/NamedCaches.md): FusionCache can easily work with multiple named caches, even if differently configured
 - [**⚡ High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
 - [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
-- [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behaviour, like adding support for metrics, statistics, etc
+- [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behavior, like adding support for metrics, statistics, etc
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
@@ -161,12 +165,12 @@ var cache = new FusionCache(new FusionCacheOptions() {
 Or, using DI, like this:
 
 ```csharp
-services.AddFusionCache(options => {
-	options.DefaultEntryOptions = new FusionCacheEntryOptions {
+services.AddFusionCache()
+	.WithDefaultEntryOptions(new FusionCacheEntryOptions {
 		Duration = TimeSpan.FromMinutes(2),
 		Priority = CacheItemPriority.Low
-	};
-});
+	})
+;
 ```
 
 Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec` simply do this:
@@ -207,7 +211,7 @@ cache.GetOrSet<Product>(
 );
 ```
 
-Basically, on top of specifying the *cache key* and the *factory*, instead of specifying just a *duration* as a `TimeSpan` we specify a `FusionCacheEntryOptions` object - which contains all the options needed to control the behaviour of FusionCache during each operation - in the form of a lambda that automatically duplicates the default entry options defined before (to copy all our  defaults) while giving us a chance to modify it as we like for this specific call.
+Basically, on top of specifying the *cache key* and the *factory*, instead of specifying just a *duration* as a `TimeSpan` we specify a `FusionCacheEntryOptions` object - which contains all the options needed to control the behavior of FusionCache during each operation - in the form of a lambda that automatically duplicates the default entry options defined before (to copy all our defaults) while giving us a chance to modify it as we like for this specific call.
 
 Now let's say we really like these set of options (*priority*, *fail-safe* and *factory timeouts*) and we want them to be the overall defaults, while keeping the ability to change something on a per-call basis (like the *duration*).
 

@@ -33,16 +33,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-		[Params(200)]
+		[Params(100)]
 		public int FactoryDurationMs;
 
-		[Params(10, 100)]
+		[Params(10, 1000)]
 		public int Accessors;
 
 		[Params(100)]
 		public int KeysCount;
 
-		[Params(1, 50)]
+		[Params(1, 10)]
 		public int Rounds;
 
 		private List<string> Keys;

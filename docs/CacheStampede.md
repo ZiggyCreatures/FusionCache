@@ -50,15 +50,6 @@ As you can see, when multiple concurrent `GetOrSet[Async]` calls are made for th
 This ensures that the data source (let's say a database) **will not be overloaded** with multiple requests for the same piece of data at the same time.
 
 
-## Lock Timeout
-
-Although most probably it's not something needed in any reasonable scenario, it is nonetheless possible to manually specify a `LockTimeout` in case you want to be extra sure that you prefer multiple connections to the database for the same data at the same time, instead of waiting for the first one that have been able to acquire the lock but may be stuck for some reason.
-
-As said this should not be needed in any reasonable scenario but, just as an example, a rare one that has been observed in a real world production environment is a query stuck in a deadlock or similar, for data that would be served by another query, maybe processed by another request. Another similar situation is when the remote data source is not a normal database but a web service operated in a multi-node environment: the request that obtained the lock may be served by a node that is having problems, whereas another node may responde quickly.
-
-Again, very very rare but just in case, the `LockTimeout` option is here to help.
-
-
 ## Multiple nodes
 
 It's right to point out that this automatic coordination does not extend accross multiple nodes: what this means is that although there's a guarantee only 1 factory will be executed concurrently per-key in each node, if multiple requests for the same cache key arrive at the same time on different nodes, one factory per node will be executed.

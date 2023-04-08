@@ -4,7 +4,7 @@
 		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.19.0</Version>
+		<Version>0.20.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Cysharp's MemoryPack serializer</Description>

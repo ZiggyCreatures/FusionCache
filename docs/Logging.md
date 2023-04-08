@@ -73,11 +73,7 @@ services.AddLogging(b => b
 );
 
 // THE LOGGER WILL BE AUTOMATICALLY PROVIDED
-services.AddFusionCache(options =>
-{
-    options.CacheName = "MyCache";
-    // ETC...
-});
+services.AddFusionCache();
 ```
 
 Now every service, component, controller or else that has an `ILogger<T>` param in the constructor, will be provided one automatically.
@@ -180,13 +176,15 @@ services.AddLogging(b => b
     .SetMinimumLevel(LogLevel.Warning)
 );
 
-services.AddFusionCache(options =>
-{
-    // FACTORY SYNTHETIC TIMEOUTS: Debug (SO THEY WILL BE IGNORED)
-    options.FactorySyntheticTimeoutsLogLevel = LogLevel.Debug;
-	// ANY OTHER FACTORY ERRORS: Error (SO THEY WILL -NOT- BE IGNORED)
-    options.FactoryErrorsLogLevel = LogLevel.Error;
-});
+services.AddFusionCache()
+    .WithOptions(options =>
+    {
+        // FACTORY SYNTHETIC TIMEOUTS: Debug (SO THEY WILL BE IGNORED)
+        options.FactorySyntheticTimeoutsLogLevel = LogLevel.Debug;
+        // ANY OTHER FACTORY ERRORS: Error (SO THEY WILL -NOT- BE IGNORED)
+        options.FactoryErrorsLogLevel = LogLevel.Error;
+    })
+;
 ```
 
 ## 📞 Events + Logging

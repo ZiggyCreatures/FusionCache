@@ -83,19 +83,17 @@ cache.SetupDistributedCache(redis, serializer);
 If instead you prefer a **DI (Dependency Injection)** approach you can do this:
 
 ```csharp
-// REGISTER REDIS AS A DISTRIBUTED CACHE
-services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "CONNECTION STRING";
-});
-
-// REGISTER THE FUSION CACHE SERIALIZER
-services.AddFusionCacheNewtonsoftJsonSerializer();
-
-// REGISTER FUSION CACHE
-services.AddFusionCache();
+services.AddFusionCache()
+    .WithSerializer(
+        new FusionCacheNewtonsoftJsonSerializer()
+    )
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions { Configuration = "CONNECTION STRING" })
+    )
+;
 ```
 
-and FusionCache will automatically discover the registered `IDistributedCache` implementation and, if there's also a valid implementation of `IFusionCacheSerializer`, it picks up both and starts using them.
+Easy peasy.
 
 ## 🙋‍♀️ What about a disk cache?
 
@@ -128,7 +126,7 @@ So, what should we use?
 If case you didn't know it yet, [SQLite](https://www.sqlite.org/) is an incredible piece of software:
 - it's one of the highest quality software [ever produced](https://www.i-programmer.info/news/84-database/15609-in-praise-of-sqlite.html)
 - it's used in production on [billions of devices](https://www.sqlite.org/mostdeployed.html), with a higher instance count than all the other database engines, combined
-- it's [fully tested](https://www.sqlite.org/testing.html), with millions of test cases, 100% test coverage, fuzz tests and more, way more (the link is a good read, I suggest to take a look at it)
+- it's [fully tested](https://www.sqlite.org/testing.html), with millions of test cases, 100% coverage, fuzz tests and more, way more (the link is a good read, I suggest to take a look at it)
 - it's very robust and fully [transactional](https://www.sqlite.org/hirely.html), no worries about [data corruption](https://www.sqlite.org/transactional.html)
 - it's fast, like [really really fast](https://www.sqlite.org/fasterthanfs.html). Like, 35% faster than direct file I/O!
 - has a very [small footprint](https://www.sqlite.org/footprint.html)
@@ -145,6 +143,34 @@ The package:
 - uses a [pooling mechanism](https://github.com/neosmart/AspSqliteCache/blob/master/SqliteCache/DbCommandPool.cs) which means the memory allocation will be lower since they reuse existing objects instead of creating new ones every time and consequently, because of that, less cpu usage in the long run because less pressure on the GC (Garbage Collector)
 - supports `CancellationToken`s, meaning that it will gracefully handle cancellations in case it's needed, like for example a mobile app pause/shutdown events or similar
 
-So, we simply use that package as an impl of `IDistributedCache` and we are good to go!
+So we simply use the `SqliteCache` impl instead of the `RedisCache` we used above and we'll be good to go:
 
-Oh, and give that repo a star ⭐ and share it!
+```csharp
+services.AddFusionCache()
+    .WithSerializer(
+        new FusionCacheNewtonsoftJsonSerializer()
+    )
+    .WithDistributedCache(
+        new SqliteCache(new SqliteCacheOptions { CachePath = "CACHE PATH" })
+    )
+;
+```
+
+Alternatively, we can register it as *THE* `IDistributedCache` implementation, and just tell FusionCache to use the registered one, whatever that may be:
+
+```csharp
+// REGISTER SQLITE AS THE IDistributedCache IMPL
+services.AddSqliteCache(options => {
+    options.CachePath = "CACHE PATH";
+});
+
+services.AddFusionCache()
+    .WithSerializer(
+        new FusionCacheNewtonsoftJsonSerializer()
+    )
+    // USE THE REGISTERED IDistributedCache IMPL
+    .WithRegisteredDistributedCache()
+;
+```
+
+If you like what you are seeing, remember to give that [repo](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) a star ⭐ and share it!

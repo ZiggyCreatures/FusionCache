@@ -6,15 +6,18 @@
 
 # 🔃 Dependency Injection
 
-For some time now .NET added support for [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
+In .NET there's full support for [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
 
-This is a common way to handle creation, scope and dependencies handling that facilitates working with services in an easier and more flexible way.
+This is a common way to handle creation, dependencies, scopes and disposal of resources that makes it easier and more flexible to work with any _service_ we may need.
 
-## DI with FusionCache
+| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](Update_v0_20_0.md). |
+|:-------|
 
-It's very easy to work with FusionCache with DI: all we need to do is just register FusionCache like any other service and it will try to do its best to work with what is already registered.
+## FusionCache + DI
 
-In our startup phase just add this:
+It's very easy to work with FusionCache when using DI: all we need to do is just register it like any other service and, if needed, configure it the way we want.
+
+In our startup phase we just add this:
 
 ```csharp
 services.AddFusionCache();
@@ -51,134 +54,166 @@ public class MyController : Controller
 
 In this way the `cache` param will be automatically populated by the DI framework.
 
-## Standard Behaviour
+By simply calling `services.AddFusionCache()` we will have FusionCache configured with the default options and using only a memory cache (1st level) and nothing else: no distributed cache (2nd level), no backplane nor any plugin.
 
-Normally, if we just use `services.AddFusionCache();` in the startup phase what will happen is that FusionCache will use a default behaviour, like:
+But usually we want to do more, right? Maybe add a distributed cache or configure some options.
 
-- it will name the cache with a default value of `"FusionCache"`
-- it will look for a registered distributed cache (any implementation of `IDistributedCache`) and, if it also finds a valid serializer (any implementation of `IFusionCacheSerializer`), will add a [2nd level](CacheLevels.md) for us, all automatically
-- it will look for a registered [backplane](Backplane.md) (any implementation of `IFusionCacheBackplane`) and use it, again all automatically
-- it will look for registered FusionCache [plugins](Plugins.md) (all registered implementations of `IFusionCachePlugin`) and add + initialize them
+For that we can use a **builder** approach.
 
-If we want though, we can customize that behaviour by changing the options used (`FusionCacheOptions`) and a couple of other things: keep reading to find out more.
+## 👷‍♂️ Builder
 
-## Options
+By calling `services.AddFusionCache()` what we get back is an instance of `IFusionCacheBuilder` from which we have access to a lot of different extension methods with a [fluent interface](https://en.wikipedia.org/wiki/Fluent_interface) design, all readily available to do whatever we want.
 
-Every FusionCache instance can be configured by passing some [options](Options.md) to the constructor, like this:
+### ⚙️ Options configuration
+
+To configure some cache-wide options we can use:
 
 ```csharp
-var cache = new FusionCache(new FusionCacheOptions() {
-	CacheName = "MyCache",
-	DistributedCacheErrorsLogLevel = LogLevel.Warning,
-	// CHANGE OTHER OPTIONS HERE
-});
+services.AddFusionCache()
+    .WithOptions(opt =>
+    {
+        opt.BackplaneAutoRecoveryMaxItems = 123;
+    })
+;
 ```
 
-In a DI approach we can do the same by using the [standard .NET approach](https://docs.microsoft.com/en-us/dotnet/core/extensions/options-library-authors):
+To configure some default entry options we can use:
 
 ```csharp
-services.AddFusionCache(options => {
-	options.CacheName = "MyCache";
-	options.DistributedCacheErrorsLogLevel = LogLevel.Warning;
-	// CHANGE OTHER OPTIONS HERE
-});
+services.AddFusionCache()
+    .WithDefaultEntryOptions(opt =>
+    {
+        opt.Duration = TimeSpan.FromSeconds(30);
+        opt.FactorySoftTimeout = TimeSpan.FromMilliseconds(100);
+    })
+;
 ```
 
-## Customization
-
-Some things though are not options of how FusionCache works, but just of how it should behave during the DI-based instantiation.
-Examples can be things like:
-- should it automatically use a distributed cache if there's one registered? That would be pretty common
-- should it ignore though the distributed cache, even if it finds one registered, in case it's the "fake" one (`MemoryDistributedCache`, which is not really a distributed cache) if there's one registered? That would also be pretty common, to avoid doing extra work for a 2nd level which is not really useful
-- etc
-
-Because of that it is possible to specify a couple of additional params during registration, like `useDistributedCacheIfAvailable` or `ignoreMemoryDistributedCache`.
-
-Here's an example to disable the automatic use of a 2nd layer, even if there is an `IDistributedCache` service already registered:
+Of course we can combine them (remember? fluent interface!):
 
 ```csharp
-services.AddFusionCache(
-    options => {
-	    // CHANGE OPTIONS HERE
-    },
-    false
-);
+services.AddFusionCache()
+    .WithOptions(opt =>
+    {
+        opt.BackplaneAutoRecoveryMaxItems = 123;
+    })
+    .WithDefaultEntryOptions(opt =>
+    {
+        opt.Duration = TimeSpan.FromSeconds(30);
+        opt.FactorySoftTimeout = TimeSpan.FromMilliseconds(100);
+    })
+;
 ```
 
-or, to be more explicit:
+### ⚙️ Components configuration
+
+Ok, these are various types of options, but what about sub-components like the memory cache, the distributed cache, the serializer, the backplane, etc?
+
+FusionCache has a _unified_ approach, and everything is (hopefully) very uniform for each component.
+
+For example for the memory cache we can tell FusionCache:
+
+- `WithRegisteredMemoryCache()`: USE the one REGISTERED in the DI container (if not there, an exception will be thrown)
+- `TryWithRegisteredMemoryCache()`: TRY TO USE the one REGISTERED in the DI container (if not there, no problem)
+- `WithMemoryCache(IMemoryCache memoryCache)`: USE an instance that we provide DIRECTLY
+- `WithMemoryCache(Func<IServiceProvider, IMemoryCache> factory)`: USE an instance built via a FACTORY that we provide
+
+The same is available for other components, like the backplane for example:
+
+- `WithRegisteredBackplane()`
+- `TryWithRegisteredBackplane()`
+- `WithBackplane(IFusionCacheBackplane backplane)`
+- `WithBackplane(Func<IServiceProvider, IFusionCacheBackplane> factory)`
+
+and so on.
+
+This approach is currently available for these components:
+- logger
+- memory cache
+- distributed cache + serializer
+- backplane
+
+Of course you can mix these approach for the different components for example by using the registered logger, a specific memory cache via an instance, a backplane via a factory and so on.
+
+### ⚙️ Distributed cache configuration
+
+A slightly particular case is the distributed cache, since it requires a serializer to do its job and there's a common case that we may want to ignore.
+
+Because of this, in these methods there are some extra params like:
+- `bool throwIfMissingSerializer`: tells FusionCache if it should throw in case if finds a valid distributed cache but no serializer, to avoid surprises down the road like _"I specified a distributed cache, but it's not using it and it didn't tell me anything, why?"_
+- `bool ignoreMemoryDistributedCache`: tells FusionCache if it should accept an instance of `MemoryDistributedCache`, which is not really a distributed cache and is typically registered automatically by ASP.NET MVC without us being able to avoid it, and using it is just a waste of resources
+
+### ⚙️ Plugins configuration
+
+Everything is the same, but since we can have multiple plugins some methods works in a "plural" way: for example we have `WithAllRegisteredPlugins()` which will use all of the registered `IFusionCachePlugin` services, not just one.
+
+Also, we can call `WithPlugin(...)` multiple times and add multiple plugins to the same FusionCache instance.
+
+
+### ⚙️ Post Setup
+
+Sometimes we may need to further customize a FusionCache instance in some ways.
+
+To do that we have at our disposal a `WithPostSetup(Action<IServiceProvider, IFusionCache> action)` method where we can specify some custom logic to apply after the creation of that FusionCache instance.
+
+### ⚙️ Auto-setup
+
+It's probably not that frequent, but let's say you would like FusionCache to try and look into the DI container and basically use everything it can. Found a backplane? Use it. Found a valid distributed cache + a valid serializer? Use them. Any plugin found? Yep, use them all.
+
+In this way we don't have a lot of control about what has been done so we may have surprises at runtime, but if this is what we want then we can use the `TryWithAutoSetup()` method: as the name implies, it will _try_ to _automatically_ do a _setup_ of what it can find.
+
+In more details, it will:
+- try to look for a registered [logger](Logging.md) (any implementation of `ILogger<FusionCache>`), and use it
+- try to look for a registered memory cache (any implementation of `IMemoryCache`), and use it
+- try to look for a registered distributed cache (any implementation of `IDistributedCache`) and, if it also finds a valid serializer (any implementation of `IFusionCacheSerializer`), add add a [2nd level](CacheLevels.md)
+- try to look for a registered [backplane](Backplane.md) (any implementation of `IFusionCacheBackplane`) and use it
+- try to look for all registered FusionCache [plugins](Plugins.md) (all registered implementations of `IFusionCachePlugin`) and add + initialize them
+
+### ⚙️ Registered components and direct instances
+
+When specifying which components to use we have 2 choices:
+1. tell FusionCache exactly what to use (either via an direct **instance** or a **factory**)
+2. **register** a component in the DI container, then tell FusionCache to use **what is registered**
+
+This is an example of the first approach, via a direct instance:
 
 ```csharp
-services.AddFusionCache(
-    options => {
-	    // CHANGE OPTIONS HERE
-    },
-    useDistributedCacheIfAvailable: false
-);
+services.AddFusionCache()
+    .WithBackplane(new RedisBackplane(new RedisBackplaneOptions
+    {
+        Configuration = "CONNECTION_STRING_HERE"
+    }))
+;
 ```
 
-Finally it is also possible to customize our FusionCache instance even more *after* the initial automatic setup, thanks to a lambda which allows us to fine tune whatever we want on the instance that has been just created:
+Again the first approach, but with a factory:
 
 ```csharp
-services.AddFusionCache(
-    options => {
-	    // CHANGE OPTIONS HERE
-    },
-    setupCacheAction: (serviceProvider, cache) => {
-        // CUSTOM SETUP
-        var now = DateTime.UtcNow;
-        cache.CacheName = $"Cache_{now.Year}_{now.Month}_{now.Day}";
-
-        // CUSTOM INTEGRATION VIA SERVICE PROVIDER
-        var myThing = serviceProvider.GetService<IMyThing>();
-        myThing.DoSomethingWithFusionCache(cache);
-    }
-);
+services.AddFusionCache()
+    .WithBackplane(serviceProvider => new RedisBackplane(new RedisBackplaneOptions
+    {
+        Configuration = serviceProvider.GetService<MyConfigStuff>().RedisConfig
+    }))
+;
 ```
 
-With these approaches available we should be able to achieve whatever we want.
-
-But let's say we want to have even more control, for example in how FusionCache instances are actually created, and for some reason we don't want to use the standard flow: can we do that?
-
-Yep, keep reading.
-
-## Advanced Customization
-
-This is not specific to FusionCache, but is more like a general approach we can use with the DI framework in .NET.
-
-We can simply NOT call the standard `services.AddFusionCache();` method and instead do it ourselves, manually.
-
-It will be something like this:
+And this is an example of the second approach:
 
 ```csharp
-services.TryAdd(ServiceDescriptor.Singleton<IFusionCache>(serviceProvider =>
+services.AddFusionCacheStackExchangeRedisBackplane(opt =>
 {
-    // INTERACT WITH THE DI FRAMEWORK VIA SERVICE PROVIDER
-    var logger = serviceProvider.GetService<ILogger<FusionCache>>();
+    opt.Configuration = "CONNECTION_STRING_HERE";
+});
 
-    // CREATE THE CACHE INSTANCE, PASSING ALONG THE LOGGER OBTAINED ABOVE
-    var cache = new FusionCache(
-        new FusionCacheOptions() {
-            CacheName = "MyAwesomeCache"
-        },
-        logger: logger
-    );
-    
-    // ADD THE BACKPLANE, BUT ONLY ON FRIDAY (BECAUSE, YOU KNOW, WHATEVER :D)
-    if (DateTime.UtcNow.DayOfWeek == DayOfWeek.Friday) {
-        var backplane = serviceProvider.GetService<IFusionCacheBackplane>();
-        if (backplane is object)
-        {
-            cache.SetupBackplane(backplane);
-        }
-    }
-
-    // MAYBE DO OTHER THINGS
-
-    // RETURN THE INSTANCE
-    return cache;
-};
+services.AddFusionCache()
+    .WithRegisteredBackplane()
+;
 ```
 
-In this way we are free to really do whatever we want, even crazy things like adding a backplane but only on Friday 😜.
+As previously stated, by default nothing is done automagically: the only exceptions to this rule - because of how these specific components work - are the logger, the options and the serializer. The serializer by the way will only be used if it's needed (eg: when also using a distributed cache).
 
-The downside of this approach though is that we loose the automatic behaviours included in the standard way of registering it, like plugins discovery and auto-setup, etc and any future features that will be added in the standard way: of course we can do those things ourselves manually, there's nothing magic about it, but still it's important to keep that in mind.
+### 💪 It's our choice
+
+All in all, we may prefer flexibility in what we register and then use what is registered, or we may prefer to directly specify what we want to use.
+
+FusionCache supports both approaches, and let us choose what we prefer.

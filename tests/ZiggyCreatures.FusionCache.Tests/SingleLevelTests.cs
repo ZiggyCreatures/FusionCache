@@ -669,7 +669,8 @@ namespace FusionCacheTests
 						innerOpt = ctx.Options;
 
 						return 3;
-					}
+					},
+					opt => opt.SetFailSafe(false)
 				);
 
 				Thread.Sleep(TimeSpan.FromSeconds(2));
@@ -892,6 +893,17 @@ namespace FusionCacheTests
 				Assert.Equal(1, defaultValue1);
 				Assert.Equal(42, defaultValue2);
 				Assert.Equal(3, defaultValue3);
+			}
+		}
+
+		[Fact]
+		public void CanHandleADurationOfTimeSpanMaxValue()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				cache.Set<int>("foo", 42, opt => opt.SetDuration(TimeSpan.MaxValue - TimeSpan.FromMilliseconds(1)).SetJittering(TimeSpan.FromMinutes(10)));
+				var foo = cache.GetOrDefault<int>("foo", 0);
+				Assert.Equal(42, foo);
 			}
 		}
 	}

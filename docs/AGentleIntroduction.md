@@ -23,7 +23,7 @@ FusionCache also includes some advanced features like a **fail-safe** mechanism,
 </div>
 
 
-## 🏡 Feels Like Home
+## 🏠 Feels Like Home
 
 FusionCache tries to feel like a native part of .NET by adhering to the naming conventions of the standard **memory** and **distributed** cache components:
 
@@ -42,8 +42,8 @@ If you've ever used one of those you'll feel at home with FusionCache.
 There are 2 caching levels, transparently handled by FusionCache for you.
 
 These are:
-- **Primary**: it's a memory cache, is always there and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
-- **Secondary**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **coordinating with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
+- **1️⃣ Primary**: it's a memory cache, is always there and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
+- **2️⃣ Secondary**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **coordinating with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
 
 Everything is handled transparently for you.
 
@@ -137,11 +137,28 @@ Finally, most of them have a set of ♻ overloads for a better ease of use.
 You can read more [**here**](CoreMethods.md).
 
 
-## 💫 Natively Sync and Async
+## 💫 Natively Sync + Async
 
 Everything is natively available for both the **sync** and **async** programming models.
 
 Any operation works seamlessly with any other, even if one is **sync** and the other is **async**: an example is multiple concurrent factory calls for the same cache key, some of them **sync** while others **async**, all coordinated together at the same time with no problems and a guarantee that only one will be executed at the same time.
+
+## 🔃 Dependency Injection ([more](DependencyInjection.md))
+
+FusionCache fully supports [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
+
+It also supports the modern and easy to use Builder approach.
+
+You can read more [**here**](DependencyInjection.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
+
+## 📛 Named Caches ([more](NamedCaches.md))
+
+Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
+
+Thanks to the native [builder](DependencyInjection.md) support, it's very easy to configure different caches identified by different names.
+
+You can read more [**here**](NamedCaches.md).
 
 
 ## 📞 Events ([more](Events.md))
@@ -164,6 +181,6 @@ You can read more [**here**](Plugins.md).
 
 FusionCache can log extensively to help you pinpoint any possible problem in your production environment.
 
-It uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem, allowing you to use any implementation you want that is compatible with it (Serilog, NLog, etc): it also has a series of settings you may find useful to better tune its behaviour.
+It uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem, allowing you to use any implementation you want that is compatible with it (Serilog, NLog, etc): it also has a series of settings you may find useful to better tune its behavior.
 
 You can read more [**here**](Logging.md).

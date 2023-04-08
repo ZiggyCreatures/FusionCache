@@ -139,27 +139,21 @@ var backplane = new RedisBackplane(new RedisBackplaneOptions() {
 cache.SetupBackplane(backplane);
 ```
 
-If instead we prefer a **DI (Dependency Injection)** approach we can do this:
+Of course we can also use the **DI (Dependency Injection)** approach, thanks to the [Builder](DependencyInjection.md) support:
 
 ```csharp
-// REGISTER REDIS AS A DISTRIBUTED CACHE
-services.AddStackExchangeRedisCache(options => {
-    options.Configuration = "CONNECTION STRING";
-});
-
-// REGISTER THE FUSION CACHE SERIALIZER
-services.AddFusionCacheNewtonsoftJsonSerializer();
-
-// REGISTER THE FUSION CACHE BACKPLANE
-services.AddFusionCacheStackExchangeRedisBackplane(options => {
-    options.Configuration = "CONNECTION STRING";
-});
-
-// REGISTER FUSION CACHE
-services.AddFusionCache();
+services.AddFusionCache()
+    .WithSerializer(
+        new FusionCacheNewtonsoftJsonSerializer()
+    )
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions { Configuration = "CONNECTION STRING" })
+    )
+    .WithBackplane(
+        new RedisBackplane(new RedisBackplaneOptions { Configuration = "CONNECTION STRING" })
+    )
+;
 ```
-
-and FusionCache will automatically discover the **distributed cache** and the **backplane** and immediately starts using them.
 
 The most common scenario is probably to use both a distributed cache and a backplane, working together: the former used as a shared state that all nodes can use, and the latter used to notify all the nodes about synchronization events so that every node is perfectly updated.
 
@@ -259,4 +253,4 @@ As we saw there are basically 2 ways of using a backplane:
 - **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything, everything just works and it's hard to have inconsistencies between different nodes
 - **2️⃣ MEMORY + BACKPLANE (NO DISTRIBUTED)**: probably the less common, where we have to skip automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes. It's easier to have inconsistencies between different nodes
 
-So remember: without a distributed cache we should **⚠ SKIP** backplane notifications by default, otherwise our system may suffer.
+⚠ So remember: without a distributed cache we should **SKIP** backplane notifications by default, otherwise our system may suffer.

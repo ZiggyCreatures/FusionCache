@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package contains [chaos-related](https://en.wikipedia.org/wiki/Chaos_engineering) utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behaviour in a controlled failing environment.
+This package contains [chaos-related](https://en.wikipedia.org/wiki/Chaos_engineering) utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behavior in a controlled failing environment.

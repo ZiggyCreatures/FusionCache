@@ -51,6 +51,29 @@ public static class ConcurrentRandom
 	}
 
 	/// <summary>
+	/// Returns a random long that is within a specified range.
+	/// </summary>
+	/// <param name="maxValue">The exclusive upper bound of the random number returned: must be greater than or equal to 0.</param>
+	public static long NextInt64(long maxValue)
+	{
+		var buf = new byte[8];
+		Random.NextBytes(buf);
+		return Math.Abs(BitConverter.ToInt64(buf, 0) % maxValue);
+	}
+
+	/// <summary>
+	/// Returns a random long that is within a specified range.
+	/// </summary>
+	/// <param name="minValue">The inclusive lower bound of the random number returned.</param>
+	/// <param name="maxValue">The exclusive upper bound of the random number returned: <paramref name="maxValue"/> must be greater than or equal to <paramref name="minValue"/>.</param>
+	public static long NextInt64(long minValue, long maxValue)
+	{
+		var buf = new byte[8];
+		Random.NextBytes(buf);
+		return Math.Abs(BitConverter.ToInt64(buf, 0) % (maxValue - minValue)) + minValue;
+	}
+
+	/// <summary>
 	/// Fills the elements of a specified array of bytes with random numbers.
 	/// </summary>
 	/// <param name="buffer">The array to be filled with random numbers.</param>

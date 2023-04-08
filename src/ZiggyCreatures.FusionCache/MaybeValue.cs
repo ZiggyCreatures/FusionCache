@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
@@ -9,6 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// </summary>
 /// <typeparam name="TValue">The type of the value.</typeparam>
 public struct MaybeValue<TValue>
+	: IEquatable<MaybeValue<TValue>>
 {
 	private readonly TValue _value;
 
@@ -27,7 +29,7 @@ public struct MaybeValue<TValue>
 	/// <summary>
 	/// Indicates if the value is there.
 	/// </summary>
-	public bool HasValue { get; private set; }
+	public bool HasValue { get; }
 
 	/// <summary>
 	/// If the value is there (you can check <see cref="HasValue"/> to know that) the actual value is returned, otherwise an <see cref="InvalidOperationException"/> will be thrown.
@@ -86,6 +88,18 @@ public struct MaybeValue<TValue>
 		return maybe.Value;
 	}
 
+	/// <inheritdoc/>
+	public static bool operator ==(MaybeValue<TValue> left, MaybeValue<TValue> right)
+	{
+		return left.Equals(right);
+	}
+
+	/// <inheritdoc/>
+	public static bool operator !=(MaybeValue<TValue> left, MaybeValue<TValue> right)
+	{
+		return !(left == right);
+	}
+
 	/// <summary>
 	/// Creates a new <see cref="MaybeValue{TValue}"/> instance for a successful case by providing the <paramref name="value"/>.
 	/// </summary>
@@ -94,5 +108,27 @@ public struct MaybeValue<TValue>
 	public static MaybeValue<TValue> FromValue(TValue value)
 	{
 		return new MaybeValue<TValue>(value);
+	}
+
+	/// <inheritdoc/>
+	public override bool Equals(object? obj)
+	{
+		return obj is MaybeValue<TValue> value && Equals(value);
+	}
+
+	/// <inheritdoc/>
+	public bool Equals(MaybeValue<TValue> other)
+	{
+		return EqualityComparer<TValue>.Default.Equals(_value, other._value) &&
+			   HasValue == other.HasValue;
+	}
+
+	/// <inheritdoc/>
+	public override int GetHashCode()
+	{
+		var hashCode = 1814622215;
+		hashCode = hashCode * -1521134295 + EqualityComparer<TValue>.Default.GetHashCode(_value);
+		hashCode = hashCode * -1521134295 + HasValue.GetHashCode();
+		return hashCode;
 	}
 }
