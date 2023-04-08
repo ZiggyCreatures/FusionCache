@@ -64,7 +64,7 @@ For that we can use a **builder** approach.
 
 By calling `services.AddFusionCache()` what we get back is an instance of `IFusionCacheBuilder` from which we have access to a lot of different extension methods with a [fluent interface](https://en.wikipedia.org/wiki/Fluent_interface) design, all readily available to do whatever we want.
 
-### ⚙️ Configure options
+### ⚙️ Options configuration
 
 To configure some cache-wide options we can use:
 
@@ -105,7 +105,7 @@ services.AddFusionCache()
 ;
 ```
 
-### ⚙️ Configure components
+### ⚙️ Components configuration
 
 Ok, these are various types of options: but what about sub-components like the memory cache, the distributed cache, the serializer, the backplane, etc?
 
@@ -127,13 +127,15 @@ The same is available for other components, like the backplane for example:
 
 and so on.
 
-This approach is currently available for:
+This approach is currently available for these components:
 - logger
 - memory cache
 - distributed cache + serializer
 - backplane
 
-### ⚙️ Configure distributed cache
+Of course you can mix these approach for the different components for example by using the registered logger, a specific memory cache via an instance, a backplane via a factory and so on.
+
+### ⚙️ Distributed cache configuration
 
 A slightly particular case is the distributed cache, since it requires a serializer to do its job and there's a common case that we may want to ignore.
 
@@ -141,7 +143,7 @@ Because of this, in these methods there are some extra params like:
 - `bool throwIfMissingSerializer`: tells FusionCache if it should throw in case if finds a valid distributed cache but no serializer, to avoid surprises down the road like _"I specified a distributed cache, but it's not using it and it didn't tell me anything, why?"_
 - `bool ignoreMemoryDistributedCache`: tells FusionCache if it should accept an instance of `MemoryDistributedCache`, which is not really a distributed cache and is typically registered automatically by ASP.NET MVC without us being able to avoid it, and using it is just a waste of resources
 
-### ⚙️ Configure plugins
+### ⚙️ Plugins configuration
 
 Everything is the same, but since we can have multiple plugins some methods works in a "plural" way: for example we have `WithAllRegisteredPlugins()` which will use all of the registered `IFusionCachePlugin` services, not just one.
 
@@ -170,8 +172,8 @@ In more details, it will:
 ### ⚙️ Registered components and direct instances
 
 When specifying which components to use we have 2 choices:
-1. tell FusionCache exactly what to use (either via an direct instance or a factory)
-2. register a component in the DI container, then tell FusionCache to use what is registered
+1. tell FusionCache exactly what to use (either via an direct **instance** or a **factory**)
+2. **register** a component in the DI container, then tell FusionCache to use **what is registered**
 
 This is an example of the first approach, via a direct instance:
 

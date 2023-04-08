@@ -2,6 +2,9 @@
 
 ![FusionCache logo](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/logo-256x256.png)
 
+| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Update_v0_20_0.md). |
+|:-------|
+
 ### FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
@@ -79,12 +82,12 @@ var cache = new FusionCache(new FusionCacheOptions() {
 Or, using DI, like this:
 
 ```csharp
-services.AddFusionCache(options => {
-	options.DefaultEntryOptions = new FusionCacheEntryOptions {
+services.AddFusionCache()
+	.WithDefaultEntryOptions(new FusionCacheEntryOptions {
 		Duration = TimeSpan.FromMinutes(2),
 		Priority = CacheItemPriority.Low
-	}
-});
+	})
+;
 ```
 
 Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec` simply do this:

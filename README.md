@@ -14,7 +14,7 @@
 
 </div>
 
-| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](Update_v0_20_0.md). |
+| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](docs/Update_v0_20_0.md). |
 |:-------|
 
 ### FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
@@ -164,12 +164,12 @@ var cache = new FusionCache(new FusionCacheOptions() {
 Or, using DI, like this:
 
 ```csharp
-services.AddFusionCache(options => {
-	options.DefaultEntryOptions = new FusionCacheEntryOptions {
+services.AddFusionCache()
+	.WithDefaultEntryOptions(new FusionCacheEntryOptions {
 		Duration = TimeSpan.FromMinutes(2),
 		Priority = CacheItemPriority.Low
-	};
-});
+	})
+;
 ```
 
 Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec` simply do this:
@@ -210,7 +210,7 @@ cache.GetOrSet<Product>(
 );
 ```
 
-Basically, on top of specifying the *cache key* and the *factory*, instead of specifying just a *duration* as a `TimeSpan` we specify a `FusionCacheEntryOptions` object - which contains all the options needed to control the behavior of FusionCache during each operation - in the form of a lambda that automatically duplicates the default entry options defined before (to copy all our  defaults) while giving us a chance to modify it as we like for this specific call.
+Basically, on top of specifying the *cache key* and the *factory*, instead of specifying just a *duration* as a `TimeSpan` we specify a `FusionCacheEntryOptions` object - which contains all the options needed to control the behavior of FusionCache during each operation - in the form of a lambda that automatically duplicates the default entry options defined before (to copy all our defaults) while giving us a chance to modify it as we like for this specific call.
 
 Now let's say we really like these set of options (*priority*, *fail-safe* and *factory timeouts*) and we want them to be the overall defaults, while keeping the ability to change something on a per-call basis (like the *duration*).
 

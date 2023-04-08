@@ -6,7 +6,7 @@
 
 # 📛 Named Caches
 
-Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it is possible to have multiple named caches.
+Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
 
 Thanks to the native [builder](DependencyInjection.md) support, it's very easy to configure different caches identified by different names.
 
@@ -31,7 +31,7 @@ services.AddFusionCache("Products");
 services.AddFusionCache("Customers");
 ```
 
-To consume FusionCache in, say, a controller we would normally add an `IFusionCache` param in a controller constructor:
+To use FusionCache in, say, a controller we would normally add an `IFusionCache` param in a controller constructor:
 
 ```csharp
 public class MyController : Controller
@@ -59,14 +59,14 @@ public class MyController : Controller
 
 But of course we cannot do that with multiple named caches, because... which one would be picked?
 
-The aforementioned [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) solve this by simply not having a param of type `HttpClient`, but of type `IHttpClientFactory` and then ask it to create a client with `CreateClient(name)`.
+The aforementioned [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) approch solves this by simply not having a param of type `HttpClient`, but of type `IHttpClientFactory` and then ask it to create a client with `CreateClient(name)`.
 
 In FusionCache it's the same, and we can simply change the param from `IFusionCache` to `IFusionCacheProvider`, and then ask it to get a cache with `GetCache(name)`.
 
 So basically:
 
-- `IHttpClientFactory` -> `CreateClient()` -> `HttpClient`
-- `IFusionCacheProvider` -> `GetCache()` -> `IFusionCache`
+- `IHttpClientFactory` -> `CreateClient(name)` -> `HttpClient`
+- `IFusionCacheProvider` -> `GetCache(name)` -> `IFusionCache`
 
 By using a similar approach, hopefully we should feel at home 😊.
 
@@ -213,7 +213,7 @@ Here we registered, on top of some default entry options:
 - the **products cache** to use memory + distributed, pointing to one Redis instance
 - the **customers cache** to use memory + distributed, pointing to anotner Redis instance
 
-## ⚙️ With Registered Whatever
+## ⚙️ With Registered _Whatever_
 
 We can also just use the same Redis instance, and maybe register a common serializer and a common distributed cache (and, why not, a common backplane) in the DI container, configure them once and just use the **registered** components where we want by just saying `WithRegisteredXyz()`:
 
@@ -267,9 +267,7 @@ _productsCache.Set("Foo123", myProduct)
 _customersCache.Set("Foo123", myCustomer)
 ```
 
-Normally the answer would be yes, but in this case is a resounding "nope!".
-
-Because our new friend `CacheKeyPrefix` enters the scene.
+Normally the answer would be yes, but in this case is a resounding _"nope!"_ because our new friend `CacheKeyPrefix` enters the scene.
 
 ### 🔑 Cache Key Prefix
 

@@ -10,10 +10,9 @@ Let's say we want to create a [plugin](Plugins.md) that sends an email when a fa
 
 For this example we will use the awesome [MailKit](https://github.com/jstedfast/MailKit) and [MimeKit](https://github.com/jstedfast/MimeKit) libraries by the great [Jeffrey Stedfast](https://github.com/jstedfast) and the free [Ethereal](https://ethereal.email/) fake smtp service.
 
-| 🚨 WARNING |
+| 🚨 IT'S JUST AN EXAMPLE |
 |:-------|
 | Please keep in mind this is just an example: **don't send emails this way in real world projects!** |
-
 
 ## Getting started
 
@@ -82,10 +81,14 @@ Anything bad that may happen in the handler itself will be automatically logged 
 
 ## Usage
 
-When using DI we can then simply register it to be used in the ConfigureServices method in our classic Startup.cs file (or wherever we wire up our DI container), like this:
+When using DI we can then simply register it to be used in the ConfigureServices method in our classic `Startup.cs` file (or wherever we wire up our DI container) and tell FusionCache to use it, like this:
 
 ```csharp
 services.AddSingleton<IFusionCachePlugin, FailSafeEMailPlugin>();
+
+services.AddFusionCache()
+  .WithAllRegisteredPlugins()
+;
 ```
 
 and FusionCache will pick it up automatically.
@@ -372,8 +375,6 @@ namespace Microsoft.Extensions.DependencyInjection
 }
 ```
 
-<br/>
-<br/>
 <br/>
 <br/>
 
