@@ -10,9 +10,8 @@ What follows is an example scenario on which we can reason about: we've built a 
 
 The hypothetical infrastructure involved is somewhat bad on purpose, and is used just to illustrate some points like why a cache is useful in general, what FusionCache in particular can do, and also to have some nice round numbers to play with.
 
-| **:bulb: NOTE** |
-|:----------------|
-| It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
+| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](Update_v0_20_0.md). |
+|:-------|
 
 <br/>
 <br/>
@@ -36,7 +35,9 @@ In the **10 min** period suppose we have a nice, uniform usage pattern where **e
 - **`100` ms** of average response time from the database, with sometimes peaks of **1 sec**
 - our service is deployed on **`3` nodes** to better handle the traffic
 
-:bulb: Again: remember we are **oversimplifying** here.
+| **:bulb: NOTE** |
+|:----------------|
+| It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
 
 <br/>
 <br/>
@@ -90,9 +91,7 @@ To add a memory cache we go in the `ConfigureServices` method in the `Startup.cs
 ```csharp
 public void ConfigureServices(IServiceCollection services)
 {
-    [...]
     services.AddMemoryCache();
-    [...]
 }
 ```
 
@@ -108,7 +107,7 @@ public class MyController : Controller
         _cache = cache;
     }
 
-    [...]
+    // [...]
 ```
 
 and, in the action, we simply use the `GetOrCreate<T>` with a *1 min* cache duration:
@@ -184,7 +183,7 @@ public class MyController : Controller
         _cache = cache;
     }
 
-    [...]
+    // [...]
 ```
 
 and slightly change the call in the **action**, like this:

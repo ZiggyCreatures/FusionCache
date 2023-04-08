@@ -107,7 +107,7 @@ services.AddFusionCache()
 
 ### ⚙️ Components configuration
 
-Ok, these are various types of options: but what about sub-components like the memory cache, the distributed cache, the serializer, the backplane, etc?
+Ok, these are various types of options, but what about sub-components like the memory cache, the distributed cache, the serializer, the backplane, etc?
 
 FusionCache has a _unified_ approach, and everything is (hopefully) very uniform for each component.
 
@@ -210,8 +210,10 @@ services.AddFusionCache()
 ;
 ```
 
-Maybe we prefer flexibility in what we register, and then always use what is registered.
+As previously stated, by default nothing is done automagically: the only exceptions to this rule - because of how these specific components work - are the logger, the options and the serializer. The serializer by the way will only be used if it's needed (eg: when also using a distributed cache).
 
-Maybe we prefer to directly specify what we want to use.
+### 💪 It's our choice
+
+All in all, we may prefer flexibility in what we register and then use what is registered, or we may prefer to directly specify what we want to use.
 
 FusionCache supports both approaches, and let us choose what we prefer.
