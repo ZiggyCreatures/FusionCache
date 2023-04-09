@@ -6,7 +6,7 @@
 
 # 🆙 Update to v0.20.0
 
-With the `v0.20.0` release, FusionCache introduced an important feature: [Builder Pattern](BuilderPattern.md) support.
+With the `v0.20.0` release, FusionCache introduced an important feature: [Builder](DependencyInjection.md) support.
 
 This has made the experience of using FusionCache much easier and clearer, allowing us to be more precise in what we want to do and also allowing us to work with multiple [Named Caches](NamedCaches.md), also introduced in `v0.20.0`.
 
