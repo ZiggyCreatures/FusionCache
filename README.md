@@ -67,8 +67,8 @@ These are the **key features** of FusionCache:
 - [**📢 Backplane**](docs/Backplane.md): when using a distributed cache as a 2nd layer in a multi-node scenario, you can also enable a backplane to immediately notify the other nodes about changes in the cache, to keep everything synchronized without having to do anything
 - [**💣 Fail-Safe**](docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
 - [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
-- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
 - [**📛 Named Caches**](docs/NamedCaches.md): FusionCache can easily work with multiple named caches, even if differently configured
+- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**⚡ High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
@@ -264,12 +264,12 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**⏱ Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**📛 Named Caches**](docs/NamedCaches.md): how to work with multiple named FusionCache instances
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
+- [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 - [**🎚 Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
 - [**📞 Events**](docs/Events.md): the events hub and how to use it
 - [**🧩 Plugins**](docs/Plugins.md): how to create and use plugins
 - [**📜 Logging**](docs/Logging.md): logging configuration and usage
-- [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 
 ## **👩‍🏫 Step By Step**
