@@ -27,7 +27,7 @@ Of course in both cases you will also have at your disposal the added ability to
 
 Finally, if needed you can also specify a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option, so that updates to the distributed cache can be picked up more frequently, in case you don't want to use a [backplane](Backplane.md) for some reason.
 
-## Packages
+## 📦 Packages
 
 There are a variety of already existing `IDistributedCache` implementations available, just pick one:
 
@@ -54,7 +54,7 @@ As for an implementation of `IFusionCacheSerializer`, pick one of these:
 | [ZiggyCreatures.FusionCache.Serialization.ServiceStackJson](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) <br/> A serializer based on the [ServiceStack](https://servicestack.net/) JSON serializer | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) |
 
 
-## Example
+### Example
 
 As an example let's use FusionCache with [Redis](https://redis.io/) as a distributed cache and [Newtonsoft Json.NET](https://www.newtonsoft.com/json) as the serializer:
 
