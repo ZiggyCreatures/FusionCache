@@ -51,7 +51,7 @@ Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) f
 
 Curious about what you can achieve from start to finish? There's a [:woman_teacher: Step By Step ](docs/StepByStep.md) guide.
 
-More into videos? The great Anna Hoffman has been so nice to hear me mumble random stuff on [Data Exposed](https://learn.microsoft.com/en-us/shows/data-exposed/caching-made-easy-in-azure-sql-db-with-fusioncache-data-exposed).
+More into videos? The great Anna Hoffman has been so nice to listen to me mumble random stuff on [Data Exposed](https://learn.microsoft.com/en-us/shows/data-exposed/caching-made-easy-in-azure-sql-db-with-fusioncache-data-exposed).
 
 <div align="center">
 
