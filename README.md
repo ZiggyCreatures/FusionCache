@@ -21,25 +21,19 @@
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
-It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
-
-Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep all the memory caches involved perfectly synchronized, without any additional work.
-
 <div style="text-align:center;">
 
 ![FusionCache diagram](docs/images/diagram.png)
 
 </div>
 
+It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
+
+Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep all the memory caches involved perfectly synchronized, without any additional work.
+
 FusionCache also includes some advanced features like **cache stampede** prevention, a **fail-safe** mechanism, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
-If you want to get yourself **comfortable with the overall concepts** there's [:unicorn: A Gentle Introduction](docs/AGentleIntroduction.md) available.
-
-If you want to see what you can achieve **from start to finish** with FusionCache, there's a [:woman_teacher: Step By Step ](docs/StepByStep.md) guide.
-
-If instead you want to start using it **immediately** there's a [:star: Quick Start](#-quick-start) for you.
-
-## :trophy: Award
+## 🏆 Award
 
 <div align="center">
 
@@ -47,9 +41,25 @@ If instead you want to start using it **immediately** there's a [:star: Quick St
 
 </div>
 
-On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666). Here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
+On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
 
-## :heavy_check_mark: Features
+## 📕 Getting Started
+
+With [🦄 A Gentle Introduction](docs/AGentleIntroduction.md) you'll get yourself comfortable with the overall concepts.
+
+Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) for you.
+
+Curious about what you can achieve from start to finish? There's a [:woman_teacher: Step By Step ](docs/StepByStep.md) guide.
+
+More into videos? The great Anna Hoffman has been so nice to hear me mumble random stuff on [Data Exposed](https://learn.microsoft.com/en-us/shows/data-exposed/caching-made-easy-in-azure-sql-db-with-fusioncache-data-exposed).
+
+<div align="center">
+
+[![Data Exposed Talk](docs/images/talk-data-exposed.jpg)](https://www.youtube.com/watch?v=V2fCUoJgVAo)
+
+</div>
+
+## ✔ Features
 These are the **key features** of FusionCache:
 
 - [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires
@@ -59,12 +69,12 @@ These are the **key features** of FusionCache:
 - [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
 - [**📛 Named Caches**](docs/NamedCaches.md): FusionCache can easily work with multiple named caches, even if differently configured
+- [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**⚡ High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
 - [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
 - [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
 - [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behavior, like adding support for metrics, statistics, etc
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
-- [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 
 <details>
 	<summary>Something more 😏 ?</summary>
@@ -85,7 +95,7 @@ Also, FusionCache has some nice **additional features**:
 </details>
 
 
-## 📦 Distribution
+## 📦 Packages
 
 Main packages:
 
@@ -151,13 +161,12 @@ If instead you are using [DI (Dependency Injection)](docs/DependencyInjection.md
 services.AddFusionCache();
 ```
 
-We can also specify some global options, like a default `FusionCacheEntryOptions` object to serve as a default for each call we'll make, with a duration of `2 minutes` and a `Low` priority:
+We can also specify some global options, like a default `FusionCacheEntryOptions` object to serve as a default for each call we'll make, with a duration of `2 minutes`:
 
 ```csharp
 var cache = new FusionCache(new FusionCacheOptions() {
 	DefaultEntryOptions = new FusionCacheEntryOptions {
-		Duration = TimeSpan.FromMinutes(2),
-		Priority = CacheItemPriority.Low
+		Duration = TimeSpan.FromMinutes(2)
 	}
 });
 ```
@@ -167,13 +176,12 @@ Or, using DI, like this:
 ```csharp
 services.AddFusionCache()
 	.WithDefaultEntryOptions(new FusionCacheEntryOptions {
-		Duration = TimeSpan.FromMinutes(2),
-		Priority = CacheItemPriority.Low
+		Duration = TimeSpan.FromMinutes(2)
 	})
 ;
 ```
 
-Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec` simply do this:
+Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec` (overriding the default `2 min` we set above) simply do this:
 
 ```csharp
 var id = 42;
@@ -215,7 +223,7 @@ Basically, on top of specifying the *cache key* and the *factory*, instead of sp
 
 Now let's say we really like these set of options (*priority*, *fail-safe* and *factory timeouts*) and we want them to be the overall defaults, while keeping the ability to change something on a per-call basis (like the *duration*).
 
-To do that we simply **move** the customization of the entry options to the `DefaultEntryOptions` in the snippet where we created the FusionCache instance, to something like this:
+To do that we simply **move** the customization of the entry options where we created the `DefaultEntryOptions`, by changing it to something like this (the same is true for the DI way):
 
 ```csharp
 var cache = new FusionCache(new FusionCacheOptions() {
@@ -244,7 +252,7 @@ cache.GetOrSet<Product>(
 The `DefaultEntryOptions` we did set before will be duplicated and only the duration will be changed for this call.
 </details>
 
-## :book: Documentation
+## 📖 Documentation
 
 The documentation is available in the :open_file_folder: [docs](docs/README.md) folder, with:
 
