@@ -898,7 +898,18 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void CanHandleADurationOfTimeSpanMaxValue()
+		public async Task CanHandleInfiniteOrSimilarDurationsAsync()
+		{
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				await cache.SetAsync<int>("foo", 42, opt => opt.SetDuration(TimeSpan.MaxValue - TimeSpan.FromMilliseconds(1)).SetJittering(TimeSpan.FromMinutes(10)));
+				var foo = await cache.GetOrDefaultAsync<int>("foo", 0);
+				Assert.Equal(42, foo);
+			}
+		}
+
+		[Fact]
+		public void CanHandleInfiniteOrSimilarDurations()
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
