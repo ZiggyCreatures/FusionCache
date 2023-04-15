@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
-namespace FusionCacheTests
+namespace FusionCacheTests.Stuff
 {
 	internal class ListLogger<T>
 		: ILogger<T>
@@ -21,7 +21,7 @@ namespace FusionCacheTests
 
 		public ListLogger(LogLevel minLogLevel)
 		{
-			this._minLogLevel = minLogLevel;
+			_minLogLevel = minLogLevel;
 		}
 
 		public IDisposable BeginScope<TState>(TState state)

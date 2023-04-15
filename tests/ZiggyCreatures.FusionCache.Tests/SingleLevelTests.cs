@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Xunit;
@@ -20,64 +21,6 @@ namespace FusionCacheTests
 			if (keepTimedOutFactoryResult is not null)
 				options.AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
 			return options;
-		}
-	}
-
-	internal class FakeHttpResponse
-	{
-		public bool NotModified { get; set; }
-		public int? Value { get; set; }
-		public DateTimeOffset? LastModified { get; set; }
-	}
-
-	internal class FakeHttpEndpoint
-	{
-		public FakeHttpEndpoint(int value)
-		{
-			SetValue(value);
-		}
-
-		private int Value { get; set; }
-		private DateTimeOffset? LastModified { get; set; }
-
-		public int TotalRequestsCount { get; private set; }
-		public int ConditionalRequestsCount { get; private set; }
-		public int FullResponsesCount { get; private set; }
-		public int NotModifiedResponsesCount { get; private set; }
-
-		public void SetValue(int value)
-		{
-			Value = value;
-			LastModified = DateTimeOffset.UtcNow;
-		}
-
-		public FakeHttpResponse Get(DateTimeOffset? ifModifiedSince = null)
-		{
-			TotalRequestsCount++;
-
-			if (ifModifiedSince is not null)
-				ConditionalRequestsCount++;
-
-			if (ifModifiedSince is null || ifModifiedSince < LastModified)
-			{
-				// FULL RESPONSE
-				FullResponsesCount++;
-				return new FakeHttpResponse
-				{
-					NotModified = false,
-					Value = Value,
-					LastModified = LastModified
-				};
-			}
-
-			// NOT MODIFIED RESPONSE
-			NotModifiedResponsesCount++;
-			return new FakeHttpResponse
-			{
-				NotModified = true,
-				Value = null,
-				LastModified = LastModified
-			};
 		}
 	}
 
