@@ -156,7 +156,22 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
 
-					var ctx = new FusionCacheFactoryExecutionContext(options);
+					MaybeValue<TValue> _staleValue;
+
+					if (distributedEntry is not null)
+					{
+						_staleValue = MaybeValue<TValue>.FromValue(distributedEntry.GetValue<TValue>());
+					}
+					else if (memoryEntry is not null)
+					{
+						_staleValue = MaybeValue<TValue>.FromValue(memoryEntry.GetValue<TValue>());
+					}
+					else
+					{
+						_staleValue = default;
+					}
+
+					var ctx = new FusionCacheFactoryExecutionContextInternal<TValue>(options, _staleValue);
 
 					try
 					{

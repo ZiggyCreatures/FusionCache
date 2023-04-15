@@ -23,6 +23,64 @@ namespace FusionCacheTests
 		}
 	}
 
+	internal class FakeHttpResponse
+	{
+		public bool NotModified { get; set; }
+		public int? Value { get; set; }
+		public DateTimeOffset? LastModified { get; set; }
+	}
+
+	internal class FakeHttpEndpoint
+	{
+		public FakeHttpEndpoint(int value)
+		{
+			SetValue(value);
+		}
+
+		private int Value { get; set; }
+		private DateTimeOffset? LastModified { get; set; }
+
+		public int TotalRequestsCount { get; private set; }
+		public int ConditionalRequestsCount { get; private set; }
+		public int FullResponsesCount { get; private set; }
+		public int NotModifiedResponsesCount { get; private set; }
+
+		public void SetValue(int value)
+		{
+			Value = value;
+			LastModified = DateTimeOffset.UtcNow;
+		}
+
+		public FakeHttpResponse Get(DateTimeOffset? ifModifiedSince = null)
+		{
+			TotalRequestsCount++;
+
+			if (ifModifiedSince is not null)
+				ConditionalRequestsCount++;
+
+			if (ifModifiedSince is null || ifModifiedSince < LastModified)
+			{
+				// FULL RESPONSE
+				FullResponsesCount++;
+				return new FakeHttpResponse
+				{
+					NotModified = false,
+					Value = Value,
+					LastModified = LastModified
+				};
+			}
+
+			// NOT MODIFIED RESPONSE
+			NotModifiedResponsesCount++;
+			return new FakeHttpResponse
+			{
+				NotModified = true,
+				Value = null,
+				LastModified = LastModified
+			};
+		}
+	}
+
 	public class SingleLevelTests
 	{
 		[Fact]
@@ -904,6 +962,78 @@ namespace FusionCacheTests
 				cache.Set<int>("foo", 42, opt => opt.SetDuration(TimeSpan.MaxValue - TimeSpan.FromMilliseconds(1)).SetJittering(TimeSpan.FromMinutes(10)));
 				var foo = cache.GetOrDefault<int>("foo", 0);
 				Assert.Equal(42, foo);
+			}
+		}
+
+		[Fact]
+		public async Task CanHandleConditionalRefreshAsync()
+		{
+			static async Task<FakeHttpResponse> FakeGetAsync(FusionCacheFactoryExecutionContext ctx, FakeHttpEndpoint endpoint)
+			{
+				// TRY TO GET THE STALE VALUE
+				var staleValue = ctx.TryGetStaleValue<FakeHttpResponse>();
+
+				if (staleValue.HasValue == false)
+				{
+					// NO STALE VALUE -> NORMAL (FULL) GET
+					return endpoint.Get();
+				}
+
+				// CONDITIONAL GET
+				var tmp = endpoint.Get(staleValue.Value.LastModified);
+
+				if (tmp.NotModified)
+				{
+					// NOT MODIFIED -> RETURN STALE VALUE
+					return staleValue.Value;
+				}
+
+				// MODIFIED -> RETURN NEW VALUE
+				return tmp;
+			}
+
+			var duration = TimeSpan.FromSeconds(1);
+			var endpoint = new FakeHttpEndpoint(1);
+
+			using (var cache = new FusionCache(new FusionCacheOptions()))
+			{
+				// TOT REQ + 1 / FULL RESP + 1
+				var v1 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+				// CACHED -> NO INCR
+				var v2 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+				// LET THE CACHE EXPIRE
+				await Task.Delay(duration.PlusALittleBit());
+
+				// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
+				var v3 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+				// LET THE CACHE EXPIRE
+				await Task.Delay(duration.PlusALittleBit());
+
+				// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
+				var v4 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+				// SET VALUE -> CHANGE LAST MODIFIED
+				endpoint.SetValue(42);
+
+				// LET THE CACHE EXPIRE
+				await Task.Delay(duration.PlusALittleBit());
+
+				// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
+				var v5 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+				Assert.Equal(4, endpoint.TotalRequestsCount);
+				Assert.Equal(3, endpoint.ConditionalRequestsCount);
+				Assert.Equal(2, endpoint.FullResponsesCount);
+				Assert.Equal(2, endpoint.NotModifiedResponsesCount);
+
+				Assert.Equal(1, v1!.Value);
+				Assert.Equal(1, v2!.Value);
+				Assert.Equal(1, v3!.Value);
+				Assert.Equal(1, v4!.Value);
+				Assert.Equal(42, v5!.Value);
 			}
 		}
 	}

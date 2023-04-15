@@ -24,7 +24,7 @@
 			- Added: Custom log levels for plugins
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
-		<PackageValidationBaselineVersion>0.19.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

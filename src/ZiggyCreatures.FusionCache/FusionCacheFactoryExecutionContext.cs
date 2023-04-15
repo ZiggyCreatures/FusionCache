@@ -1,9 +1,11 @@
-﻿namespace ZiggyCreatures.Caching.Fusion;
+﻿using System;
+
+namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// Models the execution context passed to a FusionCache factory. Right now it just contains the options so they can be modified based of the factory execution (see adaptive caching), but in the future this may contain more.
 /// </summary>
-public class FusionCacheFactoryExecutionContext
+public abstract class FusionCacheFactoryExecutionContext
 {
 	private FusionCacheEntryOptions _options;
 
@@ -49,4 +51,6 @@ public class FusionCacheFactoryExecutionContext
 	{
 		return _options;
 	}
+
+	public abstract MaybeValue<TValue> TryGetStaleValue<TValue>();
 }
