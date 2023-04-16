@@ -173,6 +173,7 @@ namespace FusionCacheTests
 			var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 			var softTimeout = TimeSpan.FromMilliseconds(100);
 			var hardTimeout = TimeSpan.FromMilliseconds(1_000);
+			var duration = TimeSpan.FromSeconds(1);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
@@ -181,8 +182,8 @@ namespace FusionCacheTests
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
 					fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
-					await Task.Delay(TimeSpan.FromSeconds(1)).ConfigureAwait(false);
+					await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDuration(duration).SetFailSafe(true));
+					await Task.Delay(duration.PlusALittleBit()).ConfigureAwait(false);
 					var sw = Stopwatch.StartNew();
 					chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 					var res = await fusionCache.GetOrSetAsync<int>("foo", async ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
@@ -202,6 +203,7 @@ namespace FusionCacheTests
 			var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 			var softTimeout = TimeSpan.FromMilliseconds(100);
 			var hardTimeout = TimeSpan.FromMilliseconds(1_000);
+			var duration = TimeSpan.FromSeconds(1);
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
@@ -210,8 +212,8 @@ namespace FusionCacheTests
 				using (var fusionCache = new FusionCache(new FusionCacheOptions(), memoryCache))
 				{
 					fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
-					Thread.Sleep(TimeSpan.FromSeconds(1));
+					fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDuration(duration).SetFailSafe(true));
+					Thread.Sleep(duration.PlusALittleBit());
 					var sw = Stopwatch.StartNew();
 					chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 					var res = fusionCache.GetOrSet<int>("foo", ct => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout));
