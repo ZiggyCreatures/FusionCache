@@ -170,5 +170,37 @@ namespace FusionCacheTests
 			Assert.Equal(SampleString, looped!.Value);
 			Assert.Null(looped!.Metadata);
 		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task LoopSucceedsWithDistributedEntryAndComplexTypesAsync(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true));
+
+			var data = await serializer.SerializeAsync(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<ComplexType>>(data);
+			Assert.NotNull(looped);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void LoopSucceedsWithDistributedEntryAndComplexTypes(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true));
+
+			var data = serializer.Serialize(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = serializer.Deserialize<FusionCacheDistributedEntry<ComplexType>>(data);
+			Assert.NotNull(looped);
+		}
 	}
 }

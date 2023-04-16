@@ -7,26 +7,34 @@ namespace FusionCacheTests
 {
 	[DataContract]
 	[MemoryPackable]
-	public partial class ComplexType
+	public partial class ComplexType : IEquatable<ComplexType?>
 	{
-		[DataMember(Name = "pi", Order = 1)]
+		[DataMember(Name = "pi1", Order = 1)]
 		public int PropInt { get; set; }
-		[DataMember(Name = "ps", Order = 2)]
+		[DataMember(Name = "pi2", Order = 2)]
+		public int? PropIntNullable { get; set; }
+		[DataMember(Name = "ps", Order = 3)]
 		public string? PropString { get; set; }
-		[DataMember(Name = "pb", Order = 3)]
+		[DataMember(Name = "pb", Order = 4)]
 		public bool PropBool { get; set; }
 
 		public override bool Equals(object? obj)
 		{
-			return obj is ComplexType type &&
-				   PropInt == type.PropInt &&
-				   PropString == type.PropString &&
-				   PropBool == type.PropBool;
+			return Equals(obj as ComplexType);
+		}
+
+		public bool Equals(ComplexType? other)
+		{
+			return other is not null &&
+				   PropInt == other.PropInt &&
+				   PropIntNullable == other.PropIntNullable &&
+				   PropString == other.PropString &&
+				   PropBool == other.PropBool;
 		}
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(PropInt, PropString, PropBool);
+			return HashCode.Combine(PropInt, PropIntNullable, PropString, PropBool);
 		}
 
 		public static bool operator ==(ComplexType? left, ComplexType? right)
@@ -44,6 +52,7 @@ namespace FusionCacheTests
 			return new ComplexType
 			{
 				PropInt = 42,
+				PropIntNullable = null,
 				PropString = "sloths!",
 				PropBool = true
 			};
