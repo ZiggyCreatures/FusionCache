@@ -25,6 +25,7 @@ namespace FusionCacheTests.Stuff
 		}
 
 		public IDisposable BeginScope<TState>(TState state)
+			where TState : notnull
 		{
 			return new Scope();
 		}
