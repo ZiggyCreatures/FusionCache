@@ -4,9 +4,9 @@ namespace FusionCacheTests.Stuff
 {
 	internal class FakeHttpEndpoint
 	{
-		public FakeHttpEndpoint(int value)
+		public FakeHttpEndpoint(int initialValue)
 		{
-			SetValue(value);
+			SetValue(initialValue);
 		}
 
 		private int Value { get; set; }
