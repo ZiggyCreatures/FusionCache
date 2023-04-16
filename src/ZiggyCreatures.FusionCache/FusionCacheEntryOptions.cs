@@ -367,10 +367,10 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the 
+	/// Set the size of the entry.
 	/// </summary>
 	/// <param name="size">The (unitless) size value to set.</param>
-	/// <returns></returns>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSize(long size)
 	{
 		Size = size;
