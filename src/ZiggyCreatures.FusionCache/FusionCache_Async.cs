@@ -109,11 +109,14 @@ public partial class FusionCache
 
 			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
 			{
-				if ((memoryEntry is object && options.SkipDistributedCacheReadWhenStale) == false)
+				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
 				{
 					(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
 				}
 			}
+
+			DateTimeOffset? lastModified = null;
+			string? etag = null;
 
 			if (distributedEntryIsValid)
 			{
@@ -156,22 +159,26 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
 
-					MaybeValue<TValue> _staleValue;
+					MaybeValue<TValue> staleValue;
 
 					if (distributedEntry is not null)
 					{
-						_staleValue = MaybeValue<TValue>.FromValue(distributedEntry.GetValue<TValue>());
+						staleValue = MaybeValue<TValue>.FromValue(distributedEntry.GetValue<TValue>());
+						lastModified = distributedEntry.Metadata?.LastModified;
+						etag = distributedEntry.Metadata?.ETag;
 					}
 					else if (memoryEntry is not null)
 					{
-						_staleValue = MaybeValue<TValue>.FromValue(memoryEntry.GetValue<TValue>());
+						staleValue = MaybeValue<TValue>.FromValue(memoryEntry.GetValue<TValue>());
+						lastModified = memoryEntry.Metadata?.LastModified;
+						etag = memoryEntry.Metadata?.ETag;
 					}
 					else
 					{
-						_staleValue = default;
+						staleValue = default;
 					}
 
-					var ctx = new FusionCacheFactoryExecutionContextInternal<TValue>(options, _staleValue);
+					var ctx = new FusionCacheFactoryExecutionContextInternal<TValue>(options, lastModified, etag, staleValue);
 
 					try
 					{
@@ -189,6 +196,10 @@ public partial class FusionCache
 						var maybeNewOptions = ctx.GetOptions();
 						if (maybeNewOptions is not null && options != maybeNewOptions)
 							options = maybeNewOptions;
+
+						// UPDATE LASTMODIFIED/ETAG
+						lastModified = ctx.LastModified;
+						etag = ctx.ETag;
 
 						// EVENTS
 						if (isRealFactory)
@@ -221,7 +232,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated);
+				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag);
 				isStale = failSafeActivated;
 
 				if ((dca?.IsCurrentlyUsable(operationId, key) ?? false) && failSafeActivated == false)
@@ -402,7 +413,8 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling SetAsync<T> {Options}", operationId, key, options.ToLogString());
 
-		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false);
+		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
+		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null);
 
 		_mca.SetEntry<TValue>(operationId, key, entry, options);
 

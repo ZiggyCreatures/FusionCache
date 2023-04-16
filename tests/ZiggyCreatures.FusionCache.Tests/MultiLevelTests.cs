@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
@@ -819,6 +820,83 @@ namespace FusionCacheTests
 
 			Assert.Equal(3, v1);
 			Assert.Equal(4, v2);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanHandleConditionalRefreshAsync(SerializerType serializerType)
+		{
+			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext ctx, FakeHttpEndpoint endpoint)
+			{
+				// TRY TO GET THE STALE VALUE
+				var staleValue = ctx.TryGetStaleValue<int>();
+
+				FakeHttpResponse resp;
+
+				if (ctx.LastModified is not null && staleValue.HasValue)
+				{
+					// LAST MODIFIED + STALE VALUE -> TRY WITH A CONDITIONAL GET
+					resp = endpoint.Get(ctx.LastModified);
+
+					if (resp.NotModified)
+					{
+						// NOT MODIFIED -> RETURN STALE VALUE
+						return staleValue.Value;
+					}
+				}
+				else
+				{
+					// NO STALE VALUE OR NO LAST MODIFIED -> NORMAL (FULL) GET
+					resp = endpoint.Get();
+				}
+
+				ctx.LastModified = resp.LastModified;
+				return resp.Value.GetValueOrDefault();
+			}
+
+			var duration = TimeSpan.FromSeconds(1);
+			var endpoint = new FakeHttpEndpoint(1);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var cache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			// TOT REQ + 1 / FULL RESP + 1
+			var v1 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// CACHED -> NO INCR
+			var v2 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// LET THE CACHE EXPIRE
+			await Task.Delay(duration.PlusALittleBit());
+
+			// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
+			var v3 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// LET THE CACHE EXPIRE
+			await Task.Delay(duration.PlusALittleBit());
+
+			// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
+			var v4 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// SET VALUE -> CHANGE LAST MODIFIED
+			endpoint.SetValue(42);
+
+			// LET THE CACHE EXPIRE
+			await Task.Delay(duration.PlusALittleBit());
+
+			// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
+			var v5 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			Assert.Equal(4, endpoint.TotalRequestsCount);
+			Assert.Equal(3, endpoint.ConditionalRequestsCount);
+			Assert.Equal(2, endpoint.FullResponsesCount);
+			Assert.Equal(2, endpoint.NotModifiedResponsesCount);
+
+			Assert.Equal(1, v1);
+			Assert.Equal(1, v2);
+			Assert.Equal(1, v3);
+			Assert.Equal(1, v4);
+			Assert.Equal(42, v5);
 		}
 	}
 }

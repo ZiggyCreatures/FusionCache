@@ -227,7 +227,7 @@ public partial class FusionCache
 				if (maybeNewOptions is not null && options != maybeNewOptions)
 					options = maybeNewOptions;
 
-				var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
+				var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag);
 				_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 				_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 

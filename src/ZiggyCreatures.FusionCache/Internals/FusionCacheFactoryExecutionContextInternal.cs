@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals
 {
@@ -9,16 +7,15 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 	{
 		private readonly MaybeValue<T> _staleValue;
 
-		public FusionCacheFactoryExecutionContextInternal(FusionCacheEntryOptions options, MaybeValue<T> staleValue)
-			: base(options)
+		public FusionCacheFactoryExecutionContextInternal(FusionCacheEntryOptions options, DateTimeOffset? lastModified, string? etag, MaybeValue<T> staleValue)
+			: base(options, lastModified, etag)
 		{
 			_staleValue = staleValue;
 		}
 
 		public override MaybeValue<TValue> TryGetStaleValue<TValue>()
 		{
-			return
-				_staleValue.HasValue == false
+			return _staleValue.HasValue == false
 				? MaybeValue<TValue>.None
 				: MaybeValue<TValue>.FromValue((TValue)(object)_staleValue.Value)
 			;

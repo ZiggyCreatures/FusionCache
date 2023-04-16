@@ -922,28 +922,32 @@ namespace FusionCacheTests
 		[Fact]
 		public async Task CanHandleConditionalRefreshAsync()
 		{
-			static async Task<FakeHttpResponse> FakeGetAsync(FusionCacheFactoryExecutionContext ctx, FakeHttpEndpoint endpoint)
+			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext ctx, FakeHttpEndpoint endpoint)
 			{
 				// TRY TO GET THE STALE VALUE
-				var staleValue = ctx.TryGetStaleValue<FakeHttpResponse>();
+				var staleValue = ctx.TryGetStaleValue<int>();
 
-				if (staleValue.HasValue == false)
+				FakeHttpResponse resp;
+
+				if (ctx.LastModified is not null && staleValue.HasValue)
 				{
-					// NO STALE VALUE -> NORMAL (FULL) GET
-					return endpoint.Get();
+					// LAST MODIFIED + STALE VALUE -> TRY WITH A CONDITIONAL GET
+					resp = endpoint.Get(ctx.LastModified);
+
+					if (resp.NotModified)
+					{
+						// NOT MODIFIED -> RETURN STALE VALUE
+						return staleValue.Value;
+					}
+				}
+				else
+				{
+					// NO STALE VALUE OR NO LAST MODIFIED -> NORMAL (FULL) GET
+					resp = endpoint.Get();
 				}
 
-				// CONDITIONAL GET
-				var tmp = endpoint.Get(staleValue.Value.LastModified);
-
-				if (tmp.NotModified)
-				{
-					// NOT MODIFIED -> RETURN STALE VALUE
-					return staleValue.Value;
-				}
-
-				// MODIFIED -> RETURN NEW VALUE
-				return tmp;
+				ctx.LastModified = resp.LastModified;
+				return resp.Value.GetValueOrDefault();
 			}
 
 			var duration = TimeSpan.FromSeconds(1);
@@ -983,11 +987,11 @@ namespace FusionCacheTests
 				Assert.Equal(2, endpoint.FullResponsesCount);
 				Assert.Equal(2, endpoint.NotModifiedResponsesCount);
 
-				Assert.Equal(1, v1!.Value);
-				Assert.Equal(1, v2!.Value);
-				Assert.Equal(1, v3!.Value);
-				Assert.Equal(1, v4!.Value);
-				Assert.Equal(42, v5!.Value);
+				Assert.Equal(1, v1);
+				Assert.Equal(1, v2);
+				Assert.Equal(1, v3);
+				Assert.Equal(1, v4);
+				Assert.Equal(42, v5);
 			}
 		}
 	}

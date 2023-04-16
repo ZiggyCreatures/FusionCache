@@ -13,6 +13,12 @@ internal class FusionCacheEntryMetadataSurrogate
 	[ProtoMember(2)]
 	public bool IsFromFailSafe { get; set; }
 
+	[ProtoMember(3)]
+	public long? LastModifiedUtcTicks { get; set; }
+
+	[ProtoMember(4)]
+	public string? ETag { get; set; }
+
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
 	{
 		if (value is null)
@@ -21,7 +27,9 @@ internal class FusionCacheEntryMetadataSurrogate
 		return new FusionCacheEntryMetadataSurrogate
 		{
 			LogicalExpirationUtcTicks = value.LogicalExpiration.UtcTicks,
-			IsFromFailSafe = value.IsFromFailSafe
+			IsFromFailSafe = value.IsFromFailSafe,
+			LastModifiedUtcTicks = value.LastModified?.UtcTicks,
+			ETag = value.ETag
 		};
 	}
 
@@ -32,7 +40,9 @@ internal class FusionCacheEntryMetadataSurrogate
 
 		return new FusionCacheEntryMetadata(
 			new DateTimeOffset(value.LogicalExpirationUtcTicks, TimeSpan.Zero),
-			value.IsFromFailSafe
+			value.IsFromFailSafe,
+			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null,
+			value.ETag
 		);
 	}
 }

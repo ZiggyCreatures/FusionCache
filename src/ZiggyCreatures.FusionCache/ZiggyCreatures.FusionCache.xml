@@ -1214,10 +1214,10 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSize(System.Int64)">
             <summary>
-            Set the 
+            Set the size of the entry.
             </summary>
             <param name="size">The (unitless) size value to set.</param>
-            <returns></returns>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetPriority(Microsoft.Extensions.Caching.Memory.CacheItemPriority)">
             <summary>
@@ -1793,15 +1793,34 @@
             Models the execution context passed to a FusionCache factory. Right now it just contains the options so they can be modified based of the factory execution (see adaptive caching), but in the future this may contain more.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext.#ctor(ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext.#ctor(ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Nullable{System.DateTimeOffset},System.String)">
             <summary>
             Creates a new instance.
             </summary>
             <param name="options">The options to start from.</param>
+            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext.Options">
             <summary>
             The options currently used, and that can be modified or changed completely.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext.TryGetStaleValue``1">
+            <summary>
+            Tries to get the previous stale value, in present.
+            </summary>
+            <typeparam name="TValue">The type of the value in the cache.</typeparam>
+            <returns>The stale value, if present, in the form of a <see cref="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1"/>.</returns>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext.LastModified">
+            <summary>
+            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext.ETag">
+            <summary>
+            If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults">
@@ -2592,13 +2611,15 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOptions(`0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOptions(`0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/> instance from a value and some options.
             </summary>
             <param name="value">The value to be cached.</param>
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
+            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
             <returns>The newly created entry.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata">
@@ -2606,12 +2627,14 @@
             Metadata for an entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> .
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.#ctor(System.DateTimeOffset,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.#ctor(System.DateTimeOffset,System.Boolean,System.Nullable{System.DateTimeOffset},System.String)">
             <summary>
             Creates a new instance.
             </summary>
             <param name="logicalExpiration">THe logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
             <param name="isFromFailSafe">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
+            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LogicalExpiration">
             <summary>
@@ -2623,6 +2646,16 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.IsFromFailSafe">
             <summary>
             Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LastModified">
+            <summary>
+            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.ETag">
+            <summary>
+            If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.IsLogicallyExpired">
@@ -2792,13 +2825,15 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOptions(System.Object,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOptions(System.Object,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from a value and some options.
             </summary>
             <param name="value">The value to be cached.</param>
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
             <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
+            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
             <returns>The newly created entry.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOtherEntry``1(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">

@@ -14,10 +14,14 @@ public class FusionCacheEntryMetadata
 	/// </summary>
 	/// <param name="logicalExpiration">THe logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
 	/// <param name="isFromFailSafe">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
-	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe)
+	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
 	{
 		LogicalExpiration = logicalExpiration;
 		IsFromFailSafe = isFromFailSafe;
+		LastModified = lastModified;
+		ETag = etag;
 	}
 
 	// TYPICALLY USED BY SERIALIZERS
@@ -40,6 +44,18 @@ public class FusionCacheEntryMetadata
 	public bool IsFromFailSafe { get; set; }
 
 	/// <summary>
+	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// </summary>
+	[DataMember(Name = "lm", EmitDefaultValue = false)]
+	public DateTimeOffset? LastModified { get; set; }
+
+	/// <summary>
+	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// </summary>
+	[DataMember(Name = "et", EmitDefaultValue = false)]
+	public string? ETag { get; set; }
+
+	/// <summary>
 	/// Checks if the entry is logically expired.
 	/// </summary>
 	/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
@@ -51,6 +67,6 @@ public class FusionCacheEntryMetadata
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[FFS={IsFromFailSafe.ToStringYN()} LEXP={LogicalExpiration.ToLogString_Expiration()}]";
+		return $"[FFS={IsFromFailSafe.ToStringYN()} LEXP={LogicalExpiration.ToLogString_Expiration()}, LM={LastModified.ToLogString()}, ET={(string.IsNullOrEmpty(ETag) ? "/" : ETag)}]";
 	}
 }

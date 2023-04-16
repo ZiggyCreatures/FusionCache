@@ -60,15 +60,17 @@ internal sealed class FusionCacheMemoryEntry
 	/// <param name="value">The value to be cached.</param>
 	/// <param name="options">The <see cref="FusionCacheEntryOptions"/> object to configure the entry.</param>
 	/// <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
+	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <returns>The newly created entry.</returns>
-	public static FusionCacheMemoryEntry CreateFromOptions(object? value, FusionCacheEntryOptions options, bool isFromFailSafe)
+	public static FusionCacheMemoryEntry CreateFromOptions(object? value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
 	{
 		if (options.IsFailSafeEnabled == false)
 			return new FusionCacheMemoryEntry(value, null);
 
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
 
-		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe));
+		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, lastModified, etag));
 	}
 
 	/// <summary>
@@ -95,6 +97,6 @@ internal sealed class FusionCacheMemoryEntry
 			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
 		}
 
-		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe));
+		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe, entry.Metadata?.LastModified, entry.Metadata?.ETag));
 	}
 }

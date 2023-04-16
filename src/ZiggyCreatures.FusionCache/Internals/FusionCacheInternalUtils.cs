@@ -130,6 +130,14 @@ internal static class FusionCacheInternalUtils
 		return dt.ToString("o");
 	}
 
+	public static string? ToLogString(this DateTimeOffset? dt)
+	{
+		if (dt is null)
+			return "/";
+
+		return dt.Value.ToString("o");
+	}
+
 	public static string? ToLogString(this MemoryCacheEntryOptions? options)
 	{
 		if (options is null)
@@ -224,7 +232,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheDistributedEntry<TValue>)
 			return (FusionCacheDistributedEntry<TValue>)entry;
 
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
 	}
 
 	public static FusionCacheMemoryEntry AsMemoryEntry(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -232,7 +240,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheMemoryEntry)
 			return (FusionCacheMemoryEntry)entry;
 
-		return FusionCacheMemoryEntry.CreateFromOptions(entry.GetValue<object>(), options, entry.Metadata?.IsFromFailSafe ?? false);
+		return FusionCacheMemoryEntry.CreateFromOptions(entry.GetValue<object>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
 	}
 
 	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)

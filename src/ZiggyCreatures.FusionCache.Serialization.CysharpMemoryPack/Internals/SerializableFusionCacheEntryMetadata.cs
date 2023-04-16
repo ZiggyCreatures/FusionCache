@@ -16,15 +16,21 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		[MemoryPackInclude]
 		public bool IsFromFailSafe => Metadata?.IsFromFailSafe ?? default;
 
+		[MemoryPackInclude]
+		public DateTimeOffset? LastModified => Metadata?.LastModified;
+
+		[MemoryPackInclude]
+		public string? ETag => Metadata?.ETag;
+
 		[MemoryPackConstructor]
-		SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe)
+		SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
 		{
-			this.Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe);
+			Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe, lastModified, etag);
 		}
 
 		public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)
 		{
-			this.Metadata = metadata;
+			Metadata = metadata;
 		}
 	}
 
