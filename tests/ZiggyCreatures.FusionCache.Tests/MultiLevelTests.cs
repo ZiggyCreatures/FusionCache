@@ -6,6 +6,7 @@ using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
@@ -828,14 +829,11 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task CanHandleConditionalRefreshAsync(SerializerType serializerType)
 		{
-			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext ctx, FakeHttpEndpoint endpoint)
+			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
 			{
-				// TRY TO GET THE STALE VALUE
-				var staleValue = ctx.TryGetStaleValue<int>();
-
 				FakeHttpResponse resp;
 
-				if (ctx.LastModified is not null && staleValue.HasValue)
+				if (ctx.LastModified is not null && ctx.StaleValue.HasValue)
 				{
 					// LAST MODIFIED + STALE VALUE -> TRY WITH A CONDITIONAL GET
 					resp = endpoint.Get(ctx.LastModified);
@@ -843,7 +841,7 @@ namespace FusionCacheTests
 					if (resp.NotModified)
 					{
 						// NOT MODIFIED -> RETURN STALE VALUE
-						return staleValue.Value;
+						return ctx.StaleValue.Value;
 					}
 				}
 				else
@@ -863,22 +861,22 @@ namespace FusionCacheTests
 			using var cache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 			// TOT REQ + 1 / FULL RESP + 1
-			var v1 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+			var v1 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 			// CACHED -> NO INCR
-			var v2 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+			var v2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 			// LET THE CACHE EXPIRE
 			await Task.Delay(duration.PlusALittleBit());
 
 			// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
-			var v3 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+			var v3 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 			// LET THE CACHE EXPIRE
 			await Task.Delay(duration.PlusALittleBit());
 
 			// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
-			var v4 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+			var v4 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 			// SET VALUE -> CHANGE LAST MODIFIED
 			endpoint.SetValue(42);
@@ -887,7 +885,7 @@ namespace FusionCacheTests
 			await Task.Delay(duration.PlusALittleBit());
 
 			// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
-			var v5 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+			var v5 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 			Assert.Equal(4, endpoint.TotalRequestsCount);
 			Assert.Equal(3, endpoint.ConditionalRequestsCount);

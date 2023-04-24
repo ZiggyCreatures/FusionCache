@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -628,7 +629,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.Duration = dur;
 				FusionCacheEntryOptions? innerOpt = null;
 
-				var default3 = await cache.GetOrSetAsync(
+				var default3 = await cache.GetOrSetAsync<int>(
 					"foo",
 					async (ctx, _) =>
 					{
@@ -661,7 +662,7 @@ namespace FusionCacheTests
 				cache.DefaultEntryOptions.Duration = dur;
 				FusionCacheEntryOptions? innerOpt = null;
 
-				var default3 = cache.GetOrSet(
+				var default3 = cache.GetOrSet<int>(
 					"foo",
 					(ctx, _) =>
 					{
@@ -700,7 +701,7 @@ namespace FusionCacheTests
 				await Task.Delay(TimeSpan.FromSeconds(2));
 
 				// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
-				var value21 = await cache.GetOrSetAsync(
+				var value21 = await cache.GetOrSetAsync<int>(
 					"foo",
 					async (ctx, _) =>
 					{
@@ -750,7 +751,7 @@ namespace FusionCacheTests
 				Thread.Sleep(TimeSpan.FromSeconds(2));
 
 				// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
-				var value21 = cache.GetOrSet(
+				var value21 = cache.GetOrSet<int>(
 					"foo",
 					(ctx, _) =>
 					{
@@ -792,7 +793,7 @@ namespace FusionCacheTests
 			{
 				var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
 
-				_ = await cache.GetOrSetAsync(
+				_ = await cache.GetOrSetAsync<int>(
 					"foo",
 					async (ctx, _) =>
 					{
@@ -813,7 +814,7 @@ namespace FusionCacheTests
 			{
 				var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
 
-				_ = cache.GetOrSet(
+				_ = cache.GetOrSet<int>(
 					"foo",
 					(ctx, _) =>
 					{
@@ -922,14 +923,12 @@ namespace FusionCacheTests
 		[Fact]
 		public async Task CanHandleConditionalRefreshAsync()
 		{
-			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext ctx, FakeHttpEndpoint endpoint)
+			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
 			{
 				// TRY TO GET THE STALE VALUE
-				var staleValue = ctx.TryGetStaleValue<int>();
-
 				FakeHttpResponse resp;
 
-				if (ctx.LastModified is not null && staleValue.HasValue)
+				if (ctx.LastModified is not null && ctx.StaleValue.HasValue)
 				{
 					// LAST MODIFIED + STALE VALUE -> TRY WITH A CONDITIONAL GET
 					resp = endpoint.Get(ctx.LastModified);
@@ -937,7 +936,7 @@ namespace FusionCacheTests
 					if (resp.NotModified)
 					{
 						// NOT MODIFIED -> RETURN STALE VALUE
-						return staleValue.Value;
+						return ctx.StaleValue.Value;
 					}
 				}
 				else
@@ -956,22 +955,22 @@ namespace FusionCacheTests
 			using (var cache = new FusionCache(new FusionCacheOptions()))
 			{
 				// TOT REQ + 1 / FULL RESP + 1
-				var v1 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+				var v1 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 				// CACHED -> NO INCR
-				var v2 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+				var v2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 				// LET THE CACHE EXPIRE
 				await Task.Delay(duration.PlusALittleBit());
 
 				// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
-				var v3 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+				var v3 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 				// LET THE CACHE EXPIRE
 				await Task.Delay(duration.PlusALittleBit());
 
 				// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
-				var v4 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+				var v4 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 				// SET VALUE -> CHANGE LAST MODIFIED
 				endpoint.SetValue(42);
@@ -980,7 +979,7 @@ namespace FusionCacheTests
 				await Task.Delay(duration.PlusALittleBit());
 
 				// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
-				var v5 = await cache.GetOrSetAsync("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+				var v5 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 				Assert.Equal(4, endpoint.TotalRequestsCount);
 				Assert.Equal(3, endpoint.ConditionalRequestsCount);
