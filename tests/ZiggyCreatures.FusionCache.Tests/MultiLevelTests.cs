@@ -6,7 +6,6 @@ using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
@@ -886,6 +885,80 @@ namespace FusionCacheTests
 
 			// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
 			var v5 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			Assert.Equal(4, endpoint.TotalRequestsCount);
+			Assert.Equal(3, endpoint.ConditionalRequestsCount);
+			Assert.Equal(2, endpoint.FullResponsesCount);
+			Assert.Equal(2, endpoint.NotModifiedResponsesCount);
+
+			Assert.Equal(1, v1);
+			Assert.Equal(1, v2);
+			Assert.Equal(1, v3);
+			Assert.Equal(1, v4);
+			Assert.Equal(42, v5);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanHandleConditionalRefresh(SerializerType serializerType)
+		{
+			static int FakeGet(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
+			{
+				FakeHttpResponse resp;
+
+				if (ctx.LastModified is not null && ctx.StaleValue.HasValue)
+				{
+					// LAST MODIFIED + STALE VALUE -> TRY WITH A CONDITIONAL GET
+					resp = endpoint.Get(ctx.LastModified);
+
+					if (resp.NotModified)
+					{
+						// NOT MODIFIED -> RETURN STALE VALUE
+						return ctx.StaleValue.Value;
+					}
+				}
+				else
+				{
+					// NO STALE VALUE OR NO LAST MODIFIED -> NORMAL (FULL) GET
+					resp = endpoint.Get();
+				}
+
+				ctx.LastModified = resp.LastModified;
+				return resp.Value.GetValueOrDefault();
+			}
+
+			var duration = TimeSpan.FromSeconds(1);
+			var endpoint = new FakeHttpEndpoint(1);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var cache = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			// TOT REQ + 1 / FULL RESP + 1
+			var v1 = cache.GetOrSet<int>("foo", (ctx, _) => FakeGet(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// CACHED -> NO INCR
+			var v2 = cache.GetOrSet<int>("foo", (ctx, _) => FakeGet(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// LET THE CACHE EXPIRE
+			Thread.Sleep(duration.PlusALittleBit());
+
+			// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
+			var v3 = cache.GetOrSet<int>("foo", (ctx, _) => FakeGet(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// LET THE CACHE EXPIRE
+			Thread.Sleep(duration.PlusALittleBit());
+
+			// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
+			var v4 = cache.GetOrSet<int>("foo", (ctx, _) => FakeGet(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+
+			// SET VALUE -> CHANGE LAST MODIFIED
+			endpoint.SetValue(42);
+
+			// LET THE CACHE EXPIRE
+			Thread.Sleep(duration.PlusALittleBit());
+
+			// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
+			var v5 = cache.GetOrSet<int>("foo", (ctx, _) => FakeGet(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 			Assert.Equal(4, endpoint.TotalRequestsCount);
 			Assert.Equal(3, endpoint.ConditionalRequestsCount);
