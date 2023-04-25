@@ -177,7 +177,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 				reactor = serviceProvider.GetService<IFusionCacheReactor>();
 			}
 
-			// CREATE CACHE
+			// CREATE THE CACHE
 			var cache = new FusionCache(options, memoryCache, logger, reactor);
 
 			// DISTRIBUTED CACHE

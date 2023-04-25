@@ -23,6 +23,11 @@ namespace FusionCacheTests
 {
 	public class DependencyInjectionTests
 	{
+		static ILogger? GetLogger(IFusionCache cache)
+		{
+			return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;
+		}
+
 		static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
 				where TDistributedCache : class, IDistributedCache
 		{
@@ -877,6 +882,25 @@ namespace FusionCacheTests
 				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
 				Assert.True(cache.HasDistributedCache);
+			}
+		}
+
+		[Fact]
+		public void CanDoWithoutLogger()
+		{
+			var services = new ServiceCollection();
+
+			services.AddLogging();
+
+			services.AddFusionCache()
+				.WithoutLogger()
+			;
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.Null(GetLogger(cache));
 			}
 		}
 	}

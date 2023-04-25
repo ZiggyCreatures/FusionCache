@@ -650,6 +650,13 @@
             <param name="factory">The factory used to create the logger, with access to the <see cref="T:System.IServiceProvider"/>.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithoutLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+            <summary>
+            Indicates that the builder should not use a logger at all.
+            </summary>
+            <param name="builder"></param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> service registered in the DI container and use it, and throws if it cannot find one.
