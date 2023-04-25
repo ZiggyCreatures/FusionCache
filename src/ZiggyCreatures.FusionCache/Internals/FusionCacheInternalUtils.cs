@@ -130,6 +130,14 @@ internal static class FusionCacheInternalUtils
 		return dt.ToString("o");
 	}
 
+	public static string? ToLogString_Expiration(this DateTimeOffset? dt)
+	{
+		if (dt.HasValue == false)
+			return "/";
+
+		return dt.Value.ToLogString_Expiration();
+	}
+
 	public static string? ToLogString(this DateTimeOffset? dt)
 	{
 		if (dt is null)
@@ -313,5 +321,18 @@ internal static class FusionCacheInternalUtils
 			return DateTimeOffsetMaxValue;
 
 		return now.Add(duration);
+	}
+
+	public static DateTimeOffset? GetNormalizedEagerExpiration(bool isFromFailSafe, float? eagerRefreshThreshold, DateTimeOffset normalizedExpiration)
+	{
+		if (isFromFailSafe)
+			return null;
+
+		if (eagerRefreshThreshold.HasValue == false)
+			return null;
+
+		var now = DateTimeOffset.UtcNow;
+
+		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
 	}
 }

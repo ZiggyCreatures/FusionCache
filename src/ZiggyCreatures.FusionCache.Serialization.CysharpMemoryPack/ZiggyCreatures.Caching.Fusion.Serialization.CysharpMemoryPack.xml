@@ -44,6 +44,7 @@
             <b>bool</b> IsFromFailSafe<br/>
             <b>System.DateTimeOffset?</b> LastModified<br/>
             <b>string</b> ETag<br/>
+            <b>System.DateTimeOffset?</b> EagerExpiration<br/>
             </code>
             </remarks>
         </member>

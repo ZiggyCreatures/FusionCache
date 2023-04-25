@@ -111,11 +111,6 @@ internal sealed class MemoryCacheAccessor
 		{
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
-
-			// NOTE: WE DON'T FIRE THIS BECAUSE NORMALLY WE ALREADY DON'T FIRE IT WHEN AN ENTRY "LOGICALLY" EXPIRES
-			//
-			//// EVENT
-			//_events.OnEviction(operationId, key, EvictionReason.None);
 		}
 		else
 		{
@@ -129,7 +124,6 @@ internal sealed class MemoryCacheAccessor
 
 	// IDISPOSABLE
 	private bool disposedValue = false;
-	//protected virtual void Dispose(bool disposing)
 	private void Dispose(bool disposing)
 	{
 		if (!disposedValue)

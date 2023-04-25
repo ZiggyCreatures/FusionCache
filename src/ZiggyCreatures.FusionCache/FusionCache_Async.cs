@@ -22,80 +22,85 @@ public partial class FusionCache
 
 		FusionCacheMemoryEntry? memoryEntry;
 		bool memoryEntryIsValid;
+		object? lockObj = null;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry<TValue>(operationId, key);
-		if (memoryEntryIsValid)
-		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
-
-			// EVENT
-			_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
-
-			return memoryEntry;
-		}
-
-		var dca = GetCurrentDistributedAccessor(options);
-
-		// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
-		if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
-		{
-			if (options.IsFailSafeEnabled && memoryEntry is not null)
-			{
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
-
-				// EVENT
-				_events.OnHit(operationId, key, true);
-
-				return memoryEntry;
-			}
-
-			// EVENT
-			_events.OnMiss(operationId, key);
-
-			return null;
-		}
-
-		// LOCK
-		var lto = options.LockTimeout;
-		if (lto == Timeout.InfiniteTimeSpan && memoryEntry is not null && options.IsFailSafeEnabled && options.FactorySoftTimeout != Timeout.InfiniteTimeSpan)
-		{
-			// IF THERE IS NO SPECIFIC LOCK TIMEOUT
-			// + THERE IS A FALLBACK ENTRY
-			// + FAIL-SAFE IS ENABLED
-			// + THERE IS A FACTORY SOFT TIMEOUT
-			// --> USE IT AS A LOCK TIMEOUT
-			lto = options.FactorySoftTimeout;
-		}
-		var lockObj = await _reactor.AcquireLockAsync(key, operationId, lto, _logger, token).ConfigureAwait(false);
-
-		if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
-		{
-			// IF THE LOCK HAS NOT BEEN ACQUIRED
-			// + THERE IS A FALLBACK ENTRY
-			// + FAIL-SAFE IS ENABLED
-			// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
-
-			// EVENT
-			_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
-
-			return memoryEntry;
-		}
 
 		IFusionCacheEntry? entry;
 		bool isStale;
 		bool hasNewValue = false;
+		bool isEagerlyRefreshing = false;
 
 		try
 		{
-			// TRY AGAIN WITH MEMORY CACHE (AFTER THE LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
-			(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry<TValue>(operationId, key);
-			if (memoryEntryIsValid)
+			// CHECK FOR EAGER REFRESH
+			if (factory is not null && memoryEntryIsValid && (memoryEntry!.Metadata?.ShouldEagerlyRefresh() ?? false))
+			{
+				// EAGERLY REFRESH: TRY TO GET THE LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST ONE WILL ACTUALLY REFRESH THE ENTRY
+				lockObj = await _reactor.AcquireLockAsync(key, operationId, TimeSpan.Zero, _logger, token).ConfigureAwait(false);
+				if (lockObj is not null)
+				{
+					isEagerlyRefreshing = true;
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): eagerly refreshing", operationId, key);
+				}
+			}
+
+			if (memoryEntryIsValid && lockObj is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
+
+				// EVENT
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry!.Metadata?.IsFromFailSafe ?? false));
+
+				return memoryEntry;
+			}
+
+			var dca = GetCurrentDistributedAccessor(options);
+
+			// SHORT-CIRCUIT: NO FACTORY AND NO USABLE DISTRIBUTED CACHE
+			if (factory is null && (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
+			{
+				if (options.IsFailSafeEnabled && memoryEntry is not null)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", operationId, key);
+
+					// EVENT
+					_events.OnHit(operationId, key, true);
+
+					return memoryEntry;
+				}
+
+				// EVENT
+				_events.OnMiss(operationId, key);
+
+				return null;
+			}
+
+			// LOCK
+			var lto = options.LockTimeout;
+			if (lto == Timeout.InfiniteTimeSpan && memoryEntry is not null && options.IsFailSafeEnabled && options.FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+			{
+				// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+				// + THERE IS A FALLBACK ENTRY
+				// + FAIL-SAFE IS ENABLED
+				// + THERE IS A FACTORY SOFT TIMEOUT
+				// --> USE IT AS A LOCK TIMEOUT
+				lto = options.FactorySoftTimeout;
+			}
+
+			if (lockObj is null)
+				lockObj = await _reactor.AcquireLockAsync(key, operationId, lto, _logger, token).ConfigureAwait(false);
+
+			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
+			{
+				// IF THE LOCK HAS NOT BEEN ACQUIRED
+				// + THERE IS A FALLBACK ENTRY
+				// + FAIL-SAFE IS ENABLED
+				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
 
 				// EVENT
 				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
@@ -103,11 +108,27 @@ public partial class FusionCache
 				return memoryEntry;
 			}
 
+			// TRY AGAIN WITH MEMORY CACHE (AFTER THE LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
+			if (isEagerlyRefreshing == false)
+			{
+				(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry<TValue>(operationId, key);
+				if (memoryEntryIsValid)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using memory entry", operationId, key);
+
+					// EVENT
+					_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+
+					return memoryEntry;
+				}
+			}
+
 			// TRY WITH DISTRIBUTED CACHE (IF ANY)
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
-			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+			if (isEagerlyRefreshing == false && (dca?.IsCurrentlyUsable(operationId, key) ?? false))
 			{
 				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
 				{
@@ -190,6 +211,7 @@ public partial class FusionCache
 						{
 							value = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
 						}
+
 						hasNewValue = true;
 
 						// UPDATE ADAPTIVE OPTIONS

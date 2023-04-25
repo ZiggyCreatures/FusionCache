@@ -108,7 +108,7 @@ namespace FusionCacheTests
 		public async Task LoopSucceedsWithDistributedEntryAndSimpleTypesAsync(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
-			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123"));
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123", DateTimeOffset.UtcNow.AddSeconds(9)));
 
 			var data = await serializer.SerializeAsync(obj);
 
@@ -121,6 +121,7 @@ namespace FusionCacheTests
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		}
 
 		[Theory]
@@ -128,7 +129,7 @@ namespace FusionCacheTests
 		public void LoopSucceedsWithDistributedEntryAndSimpleTypes(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
-			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123"));
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123", DateTimeOffset.UtcNow.AddSeconds(9)));
 
 			var data = serializer.Serialize(obj);
 
@@ -141,6 +142,7 @@ namespace FusionCacheTests
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		}
 
 		[Theory]
@@ -184,7 +186,7 @@ namespace FusionCacheTests
 		public async Task LoopSucceedsWithDistributedEntryAndComplexTypesAsync(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
-			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123"));
+			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123", DateTimeOffset.UtcNow.AddSeconds(9)));
 
 			var data = await serializer.SerializeAsync(obj);
 
@@ -197,6 +199,7 @@ namespace FusionCacheTests
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		}
 
 		[Theory]
@@ -204,7 +207,7 @@ namespace FusionCacheTests
 		public void LoopSucceedsWithDistributedEntryAndComplexTypes(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
-			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123"));
+			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow, "abc123", DateTimeOffset.UtcNow.AddSeconds(9)));
 
 			var data = serializer.Serialize(obj);
 
@@ -217,6 +220,7 @@ namespace FusionCacheTests
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		}
 	}
 }

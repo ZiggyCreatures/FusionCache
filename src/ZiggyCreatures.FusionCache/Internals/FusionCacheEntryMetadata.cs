@@ -12,21 +12,24 @@ public class FusionCacheEntryMetadata
 	/// <summary>
 	/// Creates a new instance.
 	/// </summary>
-	/// <param name="logicalExpiration">THe logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
+	/// <param name="logicalExpiration">The logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
 	/// <param name="isFromFailSafe">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
 	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
+	/// <param name="eagerExpiration">The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.</param>
+	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, DateTimeOffset? eagerExpiration)
 	{
 		LogicalExpiration = logicalExpiration;
 		IsFromFailSafe = isFromFailSafe;
 		LastModified = lastModified;
 		ETag = etag;
+		EagerExpiration = eagerExpiration;
 	}
 
-	// TYPICALLY USED BY SERIALIZERS
+	// SOMETIMES USED BY SERIALIZERS
 	private FusionCacheEntryMetadata()
 	{
+		// EMPTY
 	}
 
 	/// <summary>
@@ -56,6 +59,12 @@ public class FusionCacheEntryMetadata
 	public string? ETag { get; set; }
 
 	/// <summary>
+	/// The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.
+	/// </summary>
+	[DataMember(Name = "ea", EmitDefaultValue = false)]
+	public DateTimeOffset? EagerExpiration { get; set; }
+
+	/// <summary>
 	/// Checks if the entry is logically expired.
 	/// </summary>
 	/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
@@ -64,9 +73,27 @@ public class FusionCacheEntryMetadata
 		return LogicalExpiration < DateTimeOffset.UtcNow;
 	}
 
+	/// <summary>
+	/// Checks if an eager refresh should happen.
+	/// </summary>
+	/// <returns>A <see cref="bool"/> indicating an eager refresh should happen.</returns>
+	public bool ShouldEagerlyRefresh()
+	{
+		if (EagerExpiration.HasValue == false)
+			return false;
+
+		if (EagerExpiration.Value >= DateTimeOffset.UtcNow)
+			return false;
+
+		if (IsLogicallyExpired())
+			return false;
+
+		return true;
+	}
+
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[FFS={IsFromFailSafe.ToStringYN()} LEXP={LogicalExpiration.ToLogString_Expiration()}, LM={LastModified.ToLogString()}, ET={(string.IsNullOrEmpty(ETag) ? "/" : ETag)}]";
+		return $"[FFS={IsFromFailSafe.ToStringYN()}, LEXP={LogicalExpiration.ToLogString_Expiration()}, EEXP={EagerExpiration.ToLogString_Expiration()}, LM={LastModified.ToLogString()}, ET={(string.IsNullOrEmpty(ETag) ? "/" : ETag)}]";
 	}
 }

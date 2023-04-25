@@ -65,12 +65,14 @@ internal sealed class FusionCacheMemoryEntry
 	/// <returns>The newly created entry.</returns>
 	public static FusionCacheMemoryEntry CreateFromOptions(object? value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
 	{
-		if (options.IsFailSafeEnabled == false)
+		if (options.IsFailSafeEnabled == false && options.EagerRefreshThreshold.HasValue == false)
 			return new FusionCacheMemoryEntry(value, null);
 
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
 
-		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, lastModified, etag));
+		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
+
+		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, lastModified, etag, eagerExp));
 	}
 
 	/// <summary>
@@ -81,7 +83,7 @@ internal sealed class FusionCacheMemoryEntry
 	/// <returns>The newly created entry.</returns>
 	public static FusionCacheMemoryEntry CreateFromOtherEntry<TValue>(IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (options.IsFailSafeEnabled == false && entry.Metadata is null)
+		if (options.IsFailSafeEnabled == false && entry.Metadata is null && options.EagerRefreshThreshold.HasValue == false)
 			return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), null);
 
 		var isFromFailSafe = entry.Metadata?.IsFromFailSafe ?? false;
@@ -97,6 +99,8 @@ internal sealed class FusionCacheMemoryEntry
 			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
 		}
 
-		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe, entry.Metadata?.LastModified, entry.Metadata?.ETag));
+		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
+
+		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe, entry.Metadata?.LastModified, entry.Metadata?.ETag, eagerExp));
 	}
 }

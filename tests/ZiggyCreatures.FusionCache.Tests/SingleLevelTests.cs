@@ -1066,5 +1066,117 @@ namespace FusionCacheTests
 				Assert.Equal(42, v5);
 			}
 		}
+
+		[Fact]
+		public async Task CanHandleEagerRefreshAsync()
+		{
+			var duration = TimeSpan.FromSeconds(3);
+			var eagerRefreshThreshold = 0.5f;
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.DefaultEntryOptions.Duration = duration;
+			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+			// EXECUTE FACTORY
+			var v1 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			// USE CACHED VALUE
+			var v2 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			// WAIT FOR EAGER REFRESH TO KICK IN
+			var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+			await Task.Delay(eagerDuration);
+
+			// EAGER REFRESH
+			var v3 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			// WAIT FOR EXPIRATION
+			await Task.Delay(duration.PlusALittleBit());
+
+			// EXECUTE FACTORY AGAIN
+			var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			// USE CACHED VALUE
+			var v5 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			Assert.Equal(v1, v2);
+			Assert.True(v3 > v2);
+			Assert.True(v4 > v3);
+			Assert.Equal(v4, v5);
+		}
+
+		[Fact]
+		public void CanHandleEagerRefresh()
+		{
+			var duration = TimeSpan.FromSeconds(3);
+			var eagerRefreshThreshold = 0.5f;
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.DefaultEntryOptions.Duration = duration;
+			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+			// EXECUTE FACTORY
+			var v1 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			// USE CACHED VALUE
+			var v2 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			// WAIT FOR EAGER REFRESH TO KICK IN
+			var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+			Thread.Sleep(eagerDuration);
+
+			// EAGER REFRESH
+			var v3 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			// WAIT FOR EXPIRATION
+			Thread.Sleep(duration.PlusALittleBit());
+
+			// EXECUTE FACTORY AGAIN
+			var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			// USE CACHED VALUE
+			var v5 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			Assert.Equal(v1, v2);
+			Assert.True(v3 > v2);
+			Assert.True(v4 > v3);
+			Assert.Equal(v4, v5);
+		}
+
+		[Fact]
+		public async Task CanHandleEagerRefreshWithInfiniteDurationAsync()
+		{
+			var duration = TimeSpan.MaxValue;
+			var eagerRefreshThreshold = 0.5f;
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.DefaultEntryOptions.Duration = duration;
+			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+			// EXECUTE FACTORY
+			var v1 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			Assert.True(v1 > 0);
+		}
+
+		[Fact]
+		public void CanHandleEagerRefreshWithInfiniteDuration()
+		{
+			var duration = TimeSpan.MaxValue;
+			var eagerRefreshThreshold = 0.5f;
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.DefaultEntryOptions.Duration = duration;
+			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+			// EXECUTE FACTORY
+			var v1 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			Assert.True(v1 > 0);
+		}
 	}
 }

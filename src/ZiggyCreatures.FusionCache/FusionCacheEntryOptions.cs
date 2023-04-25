@@ -63,6 +63,30 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	public TimeSpan Duration { get; set; }
 
+	private float? _eagerRefreshThreshold = null;
+
+	/// <summary>
+	/// The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration).
+	/// This value must be intended as a percentage of the <see cref="Duration"/> property, expressed as a value between 0.0 and 1.0.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+	/// </summary>
+	public float? EagerRefreshThreshold
+	{
+		get { return _eagerRefreshThreshold; }
+		set
+		{
+			if (value.HasValue)
+			{
+				if (value.Value < 0.0f)
+					value = 0.0f;
+				else if (value.Value > 1.0f)
+					value = 1.0f;
+			}
+			_eagerRefreshThreshold = value;
+		}
+	}
+
 	/// <summary>
 	/// The timeout to apply when trying to acquire a lock during a factory execution.
 	/// <br/><br/>
@@ -293,7 +317,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified <see cref="TimeSpan"/> value.
+	/// Set the <see cref="Duration"/> to the specified <see cref="TimeSpan"/> value.
 	/// </summary>
 	/// <param name="duration">The duration to set.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -304,7 +328,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to be infinite, so it will never expire.
+	/// Set the <see cref="Duration"/> to be infinite, so it will never expire.
 	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
 	/// </summary>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -315,7 +339,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the distributed cache duration to the specified <see cref="TimeSpan"/> value.
+	/// Set the <see cref="DistributedCacheDuration"/> to the specified <see cref="TimeSpan"/> value.
 	/// </summary>
 	/// <param name="duration">The duration to set.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -326,7 +350,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the distributed cache duration to be infinite, so it will never expire.
+	/// Set the <see cref="DistributedCacheDuration"/> to be infinite, so it will never expire.
 	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
 	/// </summary>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -337,7 +361,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified number of milliseconds.
+	/// Set the <see cref="Duration"/> to the specified number of milliseconds.
 	/// </summary>
 	/// <param name="durationMs">The duration to set, in milliseconds.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -347,7 +371,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified number of seconds.
+	/// Set the <see cref="Duration"/> to the specified number of seconds.
 	/// </summary>
 	/// <param name="durationSec">The duration to set, in seconds.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -357,13 +381,24 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified number of minutes.
+	/// Set the <see cref="Duration"/> to the specified number of minutes.
 	/// </summary>
 	/// <param name="durationMin">The duration to set, in minutes.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetDurationMin(int durationMin)
 	{
 		return SetDuration(TimeSpan.FromMinutes(durationMin));
+	}
+
+	/// <summary>
+	/// Set the <see cref="EagerRefreshThreshold"/>.
+	/// </summary>
+	/// <param name="threshold">The amount to set.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetEagerRefresh(float? threshold)
+	{
+		EagerRefreshThreshold = threshold;
+		return this;
 	}
 
 	/// <summary>
@@ -670,6 +705,9 @@ public class FusionCacheEntryOptions
 			Size = Size,
 			Priority = Priority,
 			JitterMaxDuration = JitterMaxDuration,
+
+			// NOTE: PERF MICRO-OPT
+			_eagerRefreshThreshold = _eagerRefreshThreshold,
 
 			IsFailSafeEnabled = IsFailSafeEnabled,
 			FailSafeMaxDuration = FailSafeMaxDuration,
