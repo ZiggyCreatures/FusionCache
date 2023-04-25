@@ -165,7 +165,7 @@ In this way we don't have a lot of control about what has been done so we may ha
 In more details, it will:
 - try to look for a registered [logger](Logging.md) (any implementation of `ILogger<FusionCache>`), and use it
 - try to look for a registered memory cache (any implementation of `IMemoryCache`), and use it
-- try to look for a registered distributed cache (any implementation of `IDistributedCache`) and, if it also finds a valid serializer (any implementation of `IFusionCacheSerializer`), add add a [2nd level](CacheLevels.md)
+- try to look for a registered distributed cache (any implementation of `IDistributedCache`) and, if it also finds a valid serializer (any implementation of `IFusionCacheSerializer`), add a [2nd level](CacheLevels.md)
 - try to look for a registered [backplane](Backplane.md) (any implementation of `IFusionCacheBackplane`) and use it
 - try to look for all registered FusionCache [plugins](Plugins.md) (all registered implementations of `IFusionCachePlugin`) and add + initialize them
 
