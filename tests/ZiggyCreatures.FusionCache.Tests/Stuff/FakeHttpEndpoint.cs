@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FusionCacheTests.Stuff
+﻿namespace FusionCacheTests.Stuff
 {
 	internal class FakeHttpEndpoint
 	{
@@ -10,7 +8,7 @@ namespace FusionCacheTests.Stuff
 		}
 
 		private int Value { get; set; }
-		private DateTimeOffset? LastModified { get; set; }
+		private string? ETag { get; set; }
 
 		public int TotalRequestsCount { get; private set; }
 		public int ConditionalRequestsCount { get; private set; }
@@ -20,36 +18,28 @@ namespace FusionCacheTests.Stuff
 		public void SetValue(int value)
 		{
 			Value = value;
-			LastModified = DateTimeOffset.UtcNow;
+			ETag = Value.GetHashCode().ToString();
 		}
 
-		public FakeHttpResponse Get(DateTimeOffset? ifModifiedSince = null)
+		public FakeHttpResponse Get(string? etag = null)
 		{
 			TotalRequestsCount++;
 
-			if (ifModifiedSince is not null)
+			var isRequestWithETag = string.IsNullOrWhiteSpace(etag) == false;
+
+			if (isRequestWithETag)
 				ConditionalRequestsCount++;
 
-			if (ifModifiedSince is null || ifModifiedSince < LastModified)
+			if (isRequestWithETag == false || etag != ETag)
 			{
 				// FULL RESPONSE
 				FullResponsesCount++;
-				return new FakeHttpResponse
-				{
-					NotModified = false,
-					Value = Value,
-					LastModified = LastModified
-				};
+				return new FakeHttpResponse(200, Value, ETag);
 			}
 
 			// NOT MODIFIED RESPONSE
 			NotModifiedResponsesCount++;
-			return new FakeHttpResponse
-			{
-				NotModified = true,
-				Value = null,
-				LastModified = LastModified
-			};
+			return new FakeHttpResponse(304, null, ETag);
 		}
 	}
 }

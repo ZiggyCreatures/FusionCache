@@ -1,18 +1,16 @@
-﻿using System;
-using System.Runtime.Serialization;
-using MemoryPack;
-
-namespace FusionCacheTests.Stuff
+﻿namespace FusionCacheTests.Stuff
 {
-	[DataContract]
-	[MemoryPackable]
-	internal partial class FakeHttpResponse
+	internal class FakeHttpResponse
 	{
-		[DataMember(Name = "nm", Order = 1)]
-		public bool NotModified { get; set; }
-		[DataMember(Name = "v", Order = 2)]
-		public int? Value { get; set; }
-		[DataMember(Name = "lm", Order = 3)]
-		public DateTimeOffset? LastModified { get; set; }
+		public FakeHttpResponse(int statusCode, int? content, string? etag = null)
+		{
+			StatusCode = statusCode;
+			Content = content;
+			ETag = etag;
+		}
+
+		public int StatusCode { get; set; }
+		public int? Content { get; set; }
+		public string? ETag { get; set; }
 	}
 }
