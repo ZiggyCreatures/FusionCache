@@ -90,6 +90,6 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
 
-		return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, lastModified, etag, eagerExp));
+		return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified));
 	}
 }

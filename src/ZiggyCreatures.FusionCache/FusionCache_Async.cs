@@ -199,7 +199,7 @@ public partial class FusionCache
 						staleValue = default;
 					}
 
-					var ctx = new FusionCacheFactoryExecutionContext<TValue>(options, lastModified, etag, staleValue);
+					var ctx = new FusionCacheFactoryExecutionContext<TValue>(options, staleValue, etag, lastModified);
 
 					try
 					{

@@ -72,7 +72,7 @@ internal sealed class FusionCacheMemoryEntry
 
 		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
 
-		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, lastModified, etag, eagerExp));
+		return new FusionCacheMemoryEntry(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified));
 	}
 
 	/// <summary>
@@ -101,6 +101,6 @@ internal sealed class FusionCacheMemoryEntry
 
 		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
 
-		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe, entry.Metadata?.LastModified, entry.Metadata?.ETag, eagerExp));
+		return new FusionCacheMemoryEntry(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified));
 	}
 }

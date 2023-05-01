@@ -1815,14 +1815,14 @@
             Models the execution context passed to a FusionCache factory. Right now it just contains the options so they can be modified based of the factory execution (see adaptive caching), but in the future this may contain more.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.#ctor(ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Nullable{System.DateTimeOffset},System.String,ZiggyCreatures.Caching.Fusion.MaybeValue{`0})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.#ctor(ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,ZiggyCreatures.Caching.Fusion.MaybeValue{`0},System.String,System.Nullable{System.DateTimeOffset})">
             <summary>
             Creates a new instance.
             </summary>
             <param name="options">The options to start from.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
             <param name="staleValue">If provided, is the stale value available to FusionCache.</param>
+            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.Options">
             <summary>
@@ -1834,15 +1834,40 @@
             The stale value, maybe.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.ETag">
+            <summary>
+            If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.LastModified">
             <summary>
             If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.ETag">
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.HasETag">
             <summary>
-            If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+            Indicates if there is an ETag value for the cached value.
             </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.HasLastModified">
+            <summary>
+            Indicates if there is a LastModified value for the cached value.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.NotModified">
+            <summary>
+            For when the value is not modified, so that the stale value can be automatically returned.
+            </summary>
+            <returns>The stale value, for when it is not changed.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.Modified(`0,System.String,System.Nullable{System.DateTimeOffset})">
+            <summary>
+            For when the value is modified, so that the new value can be returned and cached, along with the ETag and/or the LastModified values.
+            </summary>
+            <param name="value">The new value.</param>
+            <param name="etag">The new value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.ETag"/> property.</param>
+            <param name="lastModified">The new value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.LastModified"/> property.</param>
+            <returns>The new value to be cached.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults">
             <summary>
@@ -2670,9 +2695,9 @@
             Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LastModified">
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.EagerExpiration">
             <summary>
-            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+            The eager expiration, based on the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EagerRefreshThreshold"/>.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.ETag">
@@ -2680,9 +2705,9 @@
             If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.EagerExpiration">
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LastModified">
             <summary>
-            The eager expiration, based on the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EagerRefreshThreshold"/>.
+            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.IsLogicallyExpired">

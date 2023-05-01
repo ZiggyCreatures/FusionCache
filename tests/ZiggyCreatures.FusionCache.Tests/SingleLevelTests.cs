@@ -823,15 +823,15 @@ namespace FusionCacheTests
 				// TRY TO GET THE STALE VALUE
 				FakeHttpResponse resp;
 
-				if (string.IsNullOrWhiteSpace(ctx.Version) == false && ctx.StaleValue.HasValue)
+				if (ctx.HasETag && ctx.StaleValue.HasValue)
 				{
 					// ETAG + STALE VALUE -> TRY WITH A CONDITIONAL GET
-					resp = endpoint.Get(ctx.Version);
+					resp = endpoint.Get(ctx.ETag);
 
 					if (resp.StatusCode == 304)
 					{
 						// NOT MODIFIED -> RETURN STALE VALUE
-						return ctx.StaleValue.Value;
+						return ctx.NotModified();
 					}
 				}
 				else
@@ -840,8 +840,10 @@ namespace FusionCacheTests
 					resp = endpoint.Get();
 				}
 
-				ctx.Version = resp.ETag;
-				return resp.Content.GetValueOrDefault();
+				return ctx.Modified(
+					resp.Content.GetValueOrDefault(),
+					resp.ETag
+				);
 			}
 
 			var duration = TimeSpan.FromSeconds(1);
@@ -895,15 +897,15 @@ namespace FusionCacheTests
 				// TRY TO GET THE STALE VALUE
 				FakeHttpResponse resp;
 
-				if (string.IsNullOrWhiteSpace(ctx.Version) == false && ctx.StaleValue.HasValue)
+				if (ctx.HasETag && ctx.StaleValue.HasValue)
 				{
 					// ETAG + STALE VALUE -> TRY WITH A CONDITIONAL GET
-					resp = endpoint.Get(ctx.Version);
+					resp = endpoint.Get(ctx.ETag);
 
 					if (resp.StatusCode == 304)
 					{
 						// NOT MODIFIED -> RETURN STALE VALUE
-						return ctx.StaleValue.Value;
+						return ctx.NotModified();
 					}
 				}
 				else
@@ -912,8 +914,10 @@ namespace FusionCacheTests
 					resp = endpoint.Get();
 				}
 
-				ctx.Version = resp.ETag;
-				return resp.Content.GetValueOrDefault();
+				return ctx.Modified(
+					resp.Content.GetValueOrDefault(),
+					resp.ETag
+				);
 			}
 
 			var duration = TimeSpan.FromSeconds(1);
@@ -962,7 +966,7 @@ namespace FusionCacheTests
 		[Fact]
 		public async Task CanHandleEagerRefreshAsync()
 		{
-			var duration = TimeSpan.FromSeconds(3);
+			var duration = TimeSpan.FromSeconds(1);
 			var eagerRefreshThreshold = 0.5f;
 
 			using var cache = new FusionCache(new FusionCacheOptions());
@@ -1001,7 +1005,7 @@ namespace FusionCacheTests
 		[Fact]
 		public void CanHandleEagerRefresh()
 		{
-			var duration = TimeSpan.FromSeconds(3);
+			var duration = TimeSpan.FromSeconds(1);
 			var eagerRefreshThreshold = 0.5f;
 
 			using var cache = new FusionCache(new FusionCacheOptions());

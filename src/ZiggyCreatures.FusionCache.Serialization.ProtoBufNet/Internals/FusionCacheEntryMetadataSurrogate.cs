@@ -13,14 +13,14 @@ internal class FusionCacheEntryMetadataSurrogate
 	[ProtoMember(2)]
 	public bool IsFromFailSafe { get; set; }
 
-	[ProtoMember(3)]
-	public long? LastModifiedUtcTicks { get; set; }
+	[ProtoMember(5)]
+	public long? EagerExpirationUtcTicks { get; set; }
 
 	[ProtoMember(4)]
 	public string? ETag { get; set; }
 
-	[ProtoMember(5)]
-	public long? EagerExpirationUtcTicks { get; set; }
+	[ProtoMember(3)]
+	public long? LastModifiedUtcTicks { get; set; }
 
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
 	{
@@ -31,9 +31,9 @@ internal class FusionCacheEntryMetadataSurrogate
 		{
 			LogicalExpirationUtcTicks = value.LogicalExpiration.UtcTicks,
 			IsFromFailSafe = value.IsFromFailSafe,
-			LastModifiedUtcTicks = value.LastModified?.UtcTicks,
+			EagerExpirationUtcTicks = value.EagerExpiration?.UtcTicks,
 			ETag = value.ETag,
-			EagerExpirationUtcTicks = value.EagerExpiration?.UtcTicks
+			LastModifiedUtcTicks = value.LastModified?.UtcTicks
 		};
 	}
 
@@ -45,9 +45,9 @@ internal class FusionCacheEntryMetadataSurrogate
 		return new FusionCacheEntryMetadata(
 			new DateTimeOffset(value.LogicalExpirationUtcTicks, TimeSpan.Zero),
 			value.IsFromFailSafe,
-			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null,
+			value.EagerExpirationUtcTicks.HasValue ? new DateTimeOffset(value.EagerExpirationUtcTicks.Value, TimeSpan.Zero) : null,
 			value.ETag,
-			value.EagerExpirationUtcTicks.HasValue ? new DateTimeOffset(value.EagerExpirationUtcTicks.Value, TimeSpan.Zero) : null
+			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null
 		);
 	}
 }

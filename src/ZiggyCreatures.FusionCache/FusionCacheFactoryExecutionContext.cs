@@ -13,10 +13,10 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	/// Creates a new instance.
 	/// </summary>
 	/// <param name="options">The options to start from.</param>
-	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="staleValue">If provided, is the stale value available to FusionCache.</param>
-	public FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, DateTimeOffset? lastModified, string? etag, MaybeValue<TValue> staleValue)
+	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	public FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified)
 	{
 		if (options is null)
 			throw new ArgumentNullException(nameof(options));
@@ -61,12 +61,51 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	public MaybeValue<TValue> StaleValue { get; }
 
 	/// <summary>
+	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// </summary>
+	public string? ETag { get; set; }
+
+	/// <summary>
 	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
 	public DateTimeOffset? LastModified { get; set; }
 
 	/// <summary>
-	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// Indicates if there is an ETag value for the cached value.
 	/// </summary>
-	public string? ETag { get; set; }
+	public bool HasETag
+	{
+		get { return string.IsNullOrWhiteSpace(ETag) == false; }
+	}
+
+	/// <summary>
+	/// Indicates if there is a LastModified value for the cached value.
+	/// </summary>
+	public bool HasLastModified
+	{
+		get { return LastModified.HasValue; }
+	}
+
+	/// <summary>
+	/// For when the value is not modified, so that the stale value can be automatically returned.
+	/// </summary>
+	/// <returns>The stale value, for when it is not changed.</returns>
+	public TValue NotModified()
+	{
+		return StaleValue.Value;
+	}
+
+	/// <summary>
+	/// For when the value is modified, so that the new value can be returned and cached, along with the ETag and/or the LastModified values.
+	/// </summary>
+	/// <param name="value">The new value.</param>
+	/// <param name="etag">The new value for the <see cref="ETag"/> property.</param>
+	/// <param name="lastModified">The new value for the <see cref="LastModified"/> property.</param>
+	/// <returns>The new value to be cached.</returns>
+	public TValue Modified(TValue value, string? etag = null, DateTimeOffset? lastModified = null)
+	{
+		ETag = etag;
+		LastModified = lastModified;
+		return value;
+	}
 }

@@ -17,13 +17,13 @@ public class FusionCacheEntryMetadata
 	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="eagerExpiration">The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.</param>
-	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, DateTimeOffset? eagerExpiration)
+	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? eagerExpiration, string? etag, DateTimeOffset? lastModified)
 	{
 		LogicalExpiration = logicalExpiration;
 		IsFromFailSafe = isFromFailSafe;
-		LastModified = lastModified;
-		ETag = etag;
 		EagerExpiration = eagerExpiration;
+		ETag = etag;
+		LastModified = lastModified;
 	}
 
 	// SOMETIMES USED BY SERIALIZERS
@@ -47,10 +47,10 @@ public class FusionCacheEntryMetadata
 	public bool IsFromFailSafe { get; set; }
 
 	/// <summary>
-	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.
 	/// </summary>
-	[DataMember(Name = "lm", EmitDefaultValue = false)]
-	public DateTimeOffset? LastModified { get; set; }
+	[DataMember(Name = "ea", EmitDefaultValue = false)]
+	public DateTimeOffset? EagerExpiration { get; set; }
 
 	/// <summary>
 	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
@@ -59,10 +59,10 @@ public class FusionCacheEntryMetadata
 	public string? ETag { get; set; }
 
 	/// <summary>
-	/// The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.
+	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
-	[DataMember(Name = "ea", EmitDefaultValue = false)]
-	public DateTimeOffset? EagerExpiration { get; set; }
+	[DataMember(Name = "lm", EmitDefaultValue = false)]
+	public DateTimeOffset? LastModified { get; set; }
 
 	/// <summary>
 	/// Checks if the entry is logically expired.
