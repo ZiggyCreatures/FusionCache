@@ -61,14 +61,17 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	public MaybeValue<TValue> StaleValue { get; }
 
 	/// <summary>
+	/// Indicates if there is a cached stale value.
+	/// </summary>
+	public bool HasStaleValue
+	{
+		get { return StaleValue.HasValue; }
+	}
+
+	/// <summary>
 	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
 	public string? ETag { get; set; }
-
-	/// <summary>
-	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
-	/// </summary>
-	public DateTimeOffset? LastModified { get; set; }
 
 	/// <summary>
 	/// Indicates if there is an ETag value for the cached value.
@@ -77,6 +80,11 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	{
 		get { return string.IsNullOrWhiteSpace(ETag) == false; }
 	}
+
+	/// <summary>
+	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// </summary>
+	public DateTimeOffset? LastModified { get; set; }
 
 	/// <summary>
 	/// Indicates if there is a LastModified value for the cached value.

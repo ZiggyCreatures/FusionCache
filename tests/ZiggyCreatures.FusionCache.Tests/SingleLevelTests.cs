@@ -820,10 +820,9 @@ namespace FusionCacheTests
 		{
 			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
 			{
-				// TRY TO GET THE STALE VALUE
 				FakeHttpResponse resp;
 
-				if (ctx.HasETag && ctx.StaleValue.HasValue)
+				if (ctx.HasETag && ctx.HasStaleValue)
 				{
 					// ETAG + STALE VALUE -> TRY WITH A CONDITIONAL GET
 					resp = endpoint.Get(ctx.ETag);
@@ -894,10 +893,9 @@ namespace FusionCacheTests
 		{
 			static int FakeGet(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
 			{
-				// TRY TO GET THE STALE VALUE
 				FakeHttpResponse resp;
 
-				if (ctx.HasETag && ctx.StaleValue.HasValue)
+				if (ctx.HasETag && ctx.HasStaleValue)
 				{
 					// ETAG + STALE VALUE -> TRY WITH A CONDITIONAL GET
 					resp = endpoint.Get(ctx.ETag);

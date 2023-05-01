@@ -1834,19 +1834,24 @@
             The stale value, maybe.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.HasStaleValue">
+            <summary>
+            Indicates if there is a cached stale value.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.ETag">
             <summary>
             If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.LastModified">
-            <summary>
-            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
-            </summary>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.HasETag">
             <summary>
             Indicates if there is an ETag value for the cached value.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.LastModified">
+            <summary>
+            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.HasLastModified">
