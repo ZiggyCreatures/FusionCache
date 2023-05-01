@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.20.0</Version>
+		<Version>0.21.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>
@@ -17,14 +17,12 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added: Named Caches support
-			- Added: Builder support
-			- Added: CacheKeyPrefix
-			- Added: Infinity handling
-			- Added: Custom log levels for plugins
+			- Added: Eager Refresh
+			- Added: Conditional Refresh
+			- Added: WithoutLogger() method for builder
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
-		<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>
+		<!--<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>-->
 	</PropertyGroup>
 
 	<ItemGroup>
