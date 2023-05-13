@@ -12,21 +12,17 @@ internal sealed class FusionCacheMemoryEntry
 	/// Creates a new instance.
 	/// </summary>
 	/// <param name="value">The actual value.</param>
-	/// <param name="metadata">The metadata for the entry</param>
+	/// <param name="metadata">The metadata for the entry.</param>
 	public FusionCacheMemoryEntry(object? value, FusionCacheEntryMetadata? metadata)
 	{
 		Value = value;
 		Metadata = metadata;
 	}
 
-	/// <summary>
-	/// The value inside the entry.
-	/// </summary>
+	/// <inheritdoc/>
 	public object? Value { get; set; }
 
-	/// <summary>
-	/// Metadata about the cache entry.
-	/// </summary>
+	/// <inheritdoc/>
 	public FusionCacheEntryMetadata? Metadata { get; }
 
 	/// <inheritdoc/>
