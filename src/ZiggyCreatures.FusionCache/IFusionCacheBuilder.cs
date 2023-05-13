@@ -219,7 +219,7 @@ namespace ZiggyCreatures.Caching.Fusion
 		Action<IServiceProvider, IFusionCache>? PostSetupAction { get; set; }
 
 		/// <summary>
-		/// Creates a new FusionCache instante, and set it up based on the configured builder options.
+		/// Creates a new FusionCache instance, and set it up based on the configured builder options.
 		/// </summary>
 		/// <param name="serviceProvider">The needed <see cref="IServiceProvider"/> instance.</param>
 		/// <returns>The <see cref="IFusionCache"/> instance created.</returns>
