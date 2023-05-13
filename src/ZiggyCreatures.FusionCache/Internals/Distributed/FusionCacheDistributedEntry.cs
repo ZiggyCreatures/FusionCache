@@ -15,7 +15,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// Creates a new instance.
 	/// </summary>
 	/// <param name="value">The actual value.</param>
-	/// <param name="metadata">The metadata for the entry</param>
+	/// <param name="metadata">The metadata for the entry.</param>
 	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata)
 	{
 		Value = value;
@@ -34,15 +34,11 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	}
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-	/// <summary>
-	/// The value inside the entry.
-	/// </summary>
+	/// <inheritdoc/>
 	[DataMember(Name = "v", EmitDefaultValue = false)]
 	public TValue Value { get; set; }
 
-	/// <summary>
-	/// Metadata about the cache entry.
-	/// </summary>
+	/// <inheritdoc/>
 	[DataMember(Name = "m", EmitDefaultValue = false)]
 	public FusionCacheEntryMetadata? Metadata { get; set; }
 
