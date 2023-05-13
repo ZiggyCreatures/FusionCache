@@ -1815,15 +1815,6 @@
             Models the execution context passed to a FusionCache factory. Right now it just contains the options so they can be modified based of the factory execution (see adaptive caching), but in the future this may contain more.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.#ctor(ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,ZiggyCreatures.Caching.Fusion.MaybeValue{`0},System.String,System.Nullable{System.DateTimeOffset})">
-            <summary>
-            Creates a new instance.
-            </summary>
-            <param name="options">The options to start from.</param>
-            <param name="staleValue">If provided, is the stale value available to FusionCache.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.Options">
             <summary>
             The options currently used, and that can be modified or changed completely.
@@ -2552,7 +2543,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.Build(System.IServiceProvider)">
             <summary>
-            Creates a new FusionCache instante, and set it up based on the configured builder options.
+            Creates a new FusionCache instance, and set it up based on the configured builder options.
             </summary>
             <param name="serviceProvider">The needed <see cref="T:System.IServiceProvider"/> instance.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance created.</returns>
@@ -2636,7 +2627,7 @@
             Creates a new instance.
             </summary>
             <param name="value">The actual value.</param>
-            <param name="metadata">The metadata for the entry</param>
+            <param name="metadata">The metadata for the entry.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.#ctor">
             <summary>
@@ -2644,14 +2635,10 @@
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.Value">
-            <summary>
-            The value inside the entry.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.Metadata">
-            <summary>
-            Metadata about the cache entry.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.GetValue``1">
             <inheritdoc/>
@@ -2867,17 +2854,13 @@
             Creates a new instance.
             </summary>
             <param name="value">The actual value.</param>
-            <param name="metadata">The metadata for the entry</param>
+            <param name="metadata">The metadata for the entry.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Value">
-            <summary>
-            The value inside the entry.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Metadata">
-            <summary>
-            Metadata about the cache entry.
-            </summary>
+            <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.GetValue``1">
             <inheritdoc/>

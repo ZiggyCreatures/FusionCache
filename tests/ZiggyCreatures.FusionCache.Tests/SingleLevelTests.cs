@@ -964,8 +964,8 @@ namespace FusionCacheTests
 		[Fact]
 		public async Task CanHandleEagerRefreshAsync()
 		{
-			var duration = TimeSpan.FromSeconds(1);
-			var eagerRefreshThreshold = 0.5f;
+			var duration = TimeSpan.FromSeconds(2);
+			var eagerRefreshThreshold = 0.2f;
 
 			using var cache = new FusionCache(new FusionCacheOptions());
 
@@ -978,33 +978,40 @@ namespace FusionCacheTests
 			// USE CACHED VALUE
 			var v2 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
 
-			// WAIT FOR EAGER REFRESH TO KICK IN
+			// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
 			var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
 			await Task.Delay(eagerDuration);
 
-			// EAGER REFRESH
+			// EAGER REFRESH KICKS IN
 			var v3 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+			// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+			await Task.Delay(TimeSpan.FromMilliseconds(50));
+
+			// GET THE REFRESHED VALUE
+			var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
 
 			// WAIT FOR EXPIRATION
 			await Task.Delay(duration.PlusALittleBit());
 
 			// EXECUTE FACTORY AGAIN
-			var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
-
-			// USE CACHED VALUE
 			var v5 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
 
+			// USE CACHED VALUE
+			var v6 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
 			Assert.Equal(v1, v2);
-			Assert.True(v3 > v2);
+			Assert.Equal(v2, v3);
 			Assert.True(v4 > v3);
-			Assert.Equal(v4, v5);
+			Assert.True(v5 > v4);
+			Assert.Equal(v5, v6);
 		}
 
 		[Fact]
 		public void CanHandleEagerRefresh()
 		{
-			var duration = TimeSpan.FromSeconds(1);
-			var eagerRefreshThreshold = 0.5f;
+			var duration = TimeSpan.FromSeconds(2);
+			var eagerRefreshThreshold = 0.2f;
 
 			using var cache = new FusionCache(new FusionCacheOptions());
 
@@ -1017,26 +1024,33 @@ namespace FusionCacheTests
 			// USE CACHED VALUE
 			var v2 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
 
-			// WAIT FOR EAGER REFRESH TO KICK IN
+			// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
 			var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
 			Thread.Sleep(eagerDuration);
 
-			// EAGER REFRESH
+			// EAGER REFRESH KICKS IN
 			var v3 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+			// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+			Thread.Sleep(TimeSpan.FromMilliseconds(50));
+
+			// GET THE REFRESHED VALUE
+			var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
 
 			// WAIT FOR EXPIRATION
 			Thread.Sleep(duration.PlusALittleBit());
 
 			// EXECUTE FACTORY AGAIN
-			var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
-
-			// USE CACHED VALUE
 			var v5 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
 
+			// USE CACHED VALUE
+			var v6 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
 			Assert.Equal(v1, v2);
-			Assert.True(v3 > v2);
+			Assert.Equal(v2, v3);
 			Assert.True(v4 > v3);
-			Assert.Equal(v4, v5);
+			Assert.True(v5 > v4);
+			Assert.Equal(v5, v6);
 		}
 
 		[Fact]

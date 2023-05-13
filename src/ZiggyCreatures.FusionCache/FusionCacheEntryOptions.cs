@@ -647,6 +647,22 @@ public class FusionCacheEntryOptions
 		return res;
 	}
 
+	internal TimeSpan GetAppropriateLockTimeout(bool hasFallbackValue)
+	{
+		var res = LockTimeout;
+		if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+		{
+			// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+			// + THERE IS A FALLBACK ENTRY
+			// + FAIL-SAFE IS ENABLED
+			// + THERE IS A FACTORY SOFT TIMEOUT
+			// --> USE IT AS A LOCK TIMEOUT
+			res = FactorySoftTimeout;
+		}
+
+		return res;
+	}
+
 	internal TimeSpan GetAppropriateFactoryTimeout(bool hasFallbackValue)
 	{
 		// SHORT CIRCUIT WHEN NO TIMEOUTS AT ALL

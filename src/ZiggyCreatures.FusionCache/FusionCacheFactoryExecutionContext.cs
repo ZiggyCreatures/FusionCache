@@ -1,4 +1,6 @@
 ﻿using System;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
@@ -9,14 +11,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 {
 	private FusionCacheEntryOptions _options;
 
-	/// <summary>
-	/// Creates a new instance.
-	/// </summary>
-	/// <param name="options">The options to start from.</param>
-	/// <param name="staleValue">If provided, is the stale value available to FusionCache.</param>
-	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	public FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified)
+	internal FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified)
 	{
 		if (options is null)
 			throw new ArgumentNullException(nameof(options));
@@ -115,5 +110,33 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		ETag = etag;
 		LastModified = lastModified;
 		return value;
+	}
+
+	internal static FusionCacheFactoryExecutionContext<TValue> CreateFromEntries(FusionCacheEntryOptions options, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry)
+	{
+		MaybeValue<TValue> staleValue;
+		string? etag;
+		DateTimeOffset? lastModified;
+
+		if (distributedEntry is not null)
+		{
+			staleValue = MaybeValue<TValue>.FromValue(distributedEntry.GetValue<TValue>());
+			etag = distributedEntry.Metadata?.ETag;
+			lastModified = distributedEntry.Metadata?.LastModified;
+		}
+		else if (memoryEntry is not null)
+		{
+			staleValue = MaybeValue<TValue>.FromValue(memoryEntry.GetValue<TValue>());
+			etag = memoryEntry.Metadata?.ETag;
+			lastModified = memoryEntry.Metadata?.LastModified;
+		}
+		else
+		{
+			staleValue = default;
+			etag = null;
+			lastModified = null;
+		}
+
+		return new FusionCacheFactoryExecutionContext<TValue>(options, staleValue, etag, lastModified);
 	}
 }
