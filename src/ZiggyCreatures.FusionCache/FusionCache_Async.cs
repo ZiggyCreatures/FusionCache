@@ -229,16 +229,21 @@ public partial class FusionCache
 		return entry;
 	}
 
-	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
+	private Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): eagerly refreshing", operationId, key);
+
+		// EVENT
+		_events.OnEagerRefresh(operationId, key);
 
 		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
 		var factoryTask = factory(ctx, token);
 
 		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, lockObj, token);
+
+		return Task.CompletedTask;
 	}
 
 	/// <inheritdoc/>

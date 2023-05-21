@@ -69,6 +69,11 @@ public class FusionCacheEventsHub
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactorySuccess;
 
+	/// <summary>
+	/// The event for when a factory is being executed in advance, because a request came in during the eager refresh window (after the eager refresh threshold and before the expiration).
+	/// </summary>
+	public event EventHandler<FusionCacheEntryEventArgs>? EagerRefresh;
+
 	internal void OnFailSafeActivate(string operationId, string key)
 	{
 		FailSafeActivate?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _errorsLogLevel, _syncExecution);
@@ -97,5 +102,10 @@ public class FusionCacheEventsHub
 	internal void OnBackgroundFactorySuccess(string operationId, string key)
 	{
 		BackgroundFactorySuccess?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal void OnEagerRefresh(string operationId, string key)
+	{
+		EagerRefresh?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(EagerRefresh), _logger, _errorsLogLevel, _syncExecution);
 	}
 }

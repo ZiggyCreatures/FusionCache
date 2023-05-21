@@ -407,6 +407,11 @@
             The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponsing cache entry.
             </summary>
         </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.EagerRefresh">
+            <summary>
+            The event for when a factory is being executed in advance, because a request came in during the eager refresh window (after the eager refresh threshold and before the expiration).
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub">
             <summary>
             The events hub for events specific for the memory layer.
@@ -970,9 +975,12 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EagerRefreshThreshold">
             <summary>
             The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration).
-            This value must be intended as a percentage of the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property, expressed as a value between 0.0 and 1.0.
+            <br/>
+            This value is intended as a percentage of the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
             <br/><br/>
-            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+            For example by setting it to 0.8 (80%) with a <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returing the (still valid) cached value to the caller.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.LockTimeout">

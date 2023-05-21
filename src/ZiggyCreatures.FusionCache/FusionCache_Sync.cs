@@ -234,6 +234,9 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): eagerly refreshing", operationId, key);
 
+		// EVENT
+		_events.OnEagerRefresh(operationId, key);
+
 		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
 		var factoryTask = Task.Run(() => factory(ctx, token));
