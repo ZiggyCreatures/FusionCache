@@ -300,7 +300,6 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
-		// TODO: BETTER CHECK THIS POTENTIAL NullReferenceException HERE
 		if (_mca is null)
 			return;
 
