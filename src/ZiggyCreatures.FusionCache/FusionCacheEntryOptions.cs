@@ -67,9 +67,12 @@ public class FusionCacheEntryOptions
 
 	/// <summary>
 	/// The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration).
-	/// This value must be intended as a percentage of the <see cref="Duration"/> property, expressed as a value between 0.0 and 1.0.
+	/// <br/>
+	/// This value is intended as a percentage of the <see cref="Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+	/// For example by setting it to 0.8 (80%) with a <see cref="Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returing the (still valid) cached value to the caller.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 	/// </summary>
 	public float? EagerRefreshThreshold
 	{
