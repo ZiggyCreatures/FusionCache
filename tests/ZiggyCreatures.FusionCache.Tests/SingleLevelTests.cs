@@ -1086,5 +1086,139 @@ namespace FusionCacheTests
 
 			Assert.True(v1 > 0);
 		}
+
+		[Fact]
+		public async Task NormalFactoryExecutionWaitsForInFlightEagerRefreshAsync()
+		{
+			var duration = TimeSpan.FromSeconds(2);
+			var eagerRefreshThreshold = 0.2f;
+			var eagerRefreshThresholdDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold);
+			var simulatedDelay = TimeSpan.FromSeconds(4);
+			var value = 0;
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.DefaultEntryOptions.Duration = duration;
+			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+			// EXECUTE FACTORY
+			var v1 = await cache.GetOrSetAsync<long>("foo", async _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// USE CACHED VALUE
+			var v2 = await cache.GetOrSetAsync<long>("foo", async _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+			await Task.Delay(eagerRefreshThresholdDuration.Add(TimeSpan.FromMilliseconds(10)));
+
+			// EAGER REFRESH KICKS IN (WITH DELAY)
+			var v3 = await cache.GetOrSetAsync<long>("foo", async _ =>
+			{
+				await Task.Delay(simulatedDelay);
+
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// WAIT FOR EXPIRATION
+			await Task.Delay(duration.PlusALittleBit());
+
+			// TRY TO GET EXPIRED ENTRY: NORMALLY THIS WOULD FIRE THE FACTORY, BUT SINCE IT
+			// IS ALRADY RUNNING BECAUSE OF EAGER REFRESH, IT WILL WAIT FOR IT TO COMPLETE
+			// AND USE THE RESULT, SAVING ONE FACTORY EXECUTION
+			var v4 = await cache.GetOrSetAsync<long>("foo", async _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// USE CACHED VALUE
+			var v5 = await cache.GetOrSetAsync<long>("foo", async _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			Assert.Equal(1, v1);
+			Assert.Equal(1, v2);
+			Assert.Equal(1, v3);
+			Assert.Equal(2, v4);
+			Assert.Equal(2, v5);
+			Assert.Equal(2, value);
+		}
+
+		[Fact]
+		public void NormalFactoryExecutionWaitsForInFlightEagerRefresh()
+		{
+			var duration = TimeSpan.FromSeconds(2);
+			var eagerRefreshThreshold = 0.2f;
+			var eagerRefreshThresholdDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold);
+			var simulatedDelay = TimeSpan.FromSeconds(4);
+			var value = 0;
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.DefaultEntryOptions.Duration = duration;
+			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+			// EXECUTE FACTORY
+			var v1 = cache.GetOrSet<long>("foo", _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// USE CACHED VALUE
+			var v2 = cache.GetOrSet<long>("foo", _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+			Thread.Sleep(eagerRefreshThresholdDuration.Add(TimeSpan.FromMilliseconds(10)));
+
+			// EAGER REFRESH KICKS IN (WITH DELAY)
+			var v3 = cache.GetOrSet<long>("foo", _ =>
+			{
+				Thread.Sleep(simulatedDelay);
+
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// WAIT FOR EXPIRATION
+			Thread.Sleep(duration.PlusALittleBit());
+
+			// TRY TO GET EXPIRED ENTRY: NORMALLY THIS WOULD FIRE THE FACTORY, BUT SINCE IT
+			// IS ALRADY RUNNING BECAUSE OF EAGER REFRESH, IT WILL WAIT FOR IT TO COMPLETE
+			// AND USE THE RESULT, SAVING ONE FACTORY EXECUTION
+			var v4 = cache.GetOrSet<long>("foo", _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			// USE CACHED VALUE
+			var v5 = cache.GetOrSet<long>("foo", _ =>
+			{
+				Interlocked.Increment(ref value);
+				return value;
+			});
+
+			Assert.Equal(1, v1);
+			Assert.Equal(1, v2);
+			Assert.Equal(1, v3);
+			Assert.Equal(2, v4);
+			Assert.Equal(2, v5);
+			Assert.Equal(2, value);
+		}
 	}
 }
