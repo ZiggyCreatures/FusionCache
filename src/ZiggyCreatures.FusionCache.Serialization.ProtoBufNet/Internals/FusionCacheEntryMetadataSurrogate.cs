@@ -13,14 +13,14 @@ internal class FusionCacheEntryMetadataSurrogate
 	[ProtoMember(2)]
 	public bool IsFromFailSafe { get; set; }
 
-	[ProtoMember(5)]
-	public long? EagerExpirationUtcTicks { get; set; }
+	[ProtoMember(3)]
+	public long? LastModifiedUtcTicks { get; set; }
 
 	[ProtoMember(4)]
 	public string? ETag { get; set; }
 
-	[ProtoMember(3)]
-	public long? LastModifiedUtcTicks { get; set; }
+	[ProtoMember(5)]
+	public long? EagerExpirationUtcTicks { get; set; }
 
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
 	{

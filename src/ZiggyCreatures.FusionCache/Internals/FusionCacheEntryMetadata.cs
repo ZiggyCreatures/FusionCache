@@ -26,7 +26,7 @@ public class FusionCacheEntryMetadata
 		LastModified = lastModified;
 	}
 
-	// SOMETIMES USED BY SERIALIZERS
+	// USED BY SOME SERIALIZERS
 	private FusionCacheEntryMetadata()
 	{
 		// EMPTY
