@@ -31,7 +31,7 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep all the memory caches involved perfectly synchronized, without any additional work.
 
-FusionCache also includes some advanced features like **cache stampede** prevention, a **fail-safe** mechanism, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache also includes some advanced resiliency features like **cache stampede** prevention, a **fail-safe** mechanism, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
 ## 🏆 Award
 
@@ -62,19 +62,20 @@ More into videos? The great Anna Hoffman has been so nice to listen to me mumble
 ## ✔ Features
 These are the **key features** of FusionCache:
 
-- [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 will be executed at the same time for the same key. This avoids overloading the data source when no data is in the cache or when a cache entry expires
-- [**🔀 2nd level (optional)**](docs/CacheLevels.md): FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported like Redis, MongoDB, CosmosDB, SqlServer and others, including a local disk-cache, too
-- [**📢 Backplane**](docs/Backplane.md): when using a distributed cache as a 2nd layer in a multi-node scenario, you can also enable a backplane to immediately notify the other nodes about changes in the cache, to keep everything synchronized without having to do anything
-- [**💣 Fail-Safe**](docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
-- [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
-- [**📛 Named Caches**](docs/NamedCaches.md): FusionCache can easily work with multiple named caches, even if differently configured
-- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
+- [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🔀 Optional 2nd level**](docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
+- [**💣 Fail-Safe**](docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
+- [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
+- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
+- [**🔂 Conditional Refresh**](docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
+- [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
+- [**📢 Backplane**](docs/Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
-- [**⚡ High performance**](docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
-- [**💫 Natively sync/async**](docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
-- [**📞 Events**](docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
-- [**🧩 Plugins**](docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behavior, like adding support for metrics, statistics, etc
-- [**📜 Logging**](docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger<T>` interface (you can use Serilog, NLog, etc)
+- [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**💫 Natively sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
+- [**📞 Events**](docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
+- [**🧩 Plugins**](docs/Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
+- [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 
 <details>
 	<summary>Something more 😏 ?</summary>
@@ -83,14 +84,15 @@ These are the **key features** of FusionCache:
 
 Also, FusionCache has some nice **additional features**:
 
-- **Portable**: targets .NET Standard 2.0, so it can run almost everywhere
-- **Null caching**: explicitly supports caching of `null` values differently than "no value". This creates a less ambiguous usage, and typically leads to better performance because it avoids the classic problem of not being able to differentiate between *"the value was not in the cache, go check the database"* and *"the value was in the cache, and it was `null`"*
-- **Circuit-breaker**: it is possible to enable a simple circuit-breaker for when the distributed cache or the backplane become temporarily unavailable. This will prevent those components to be hit with an excessive load of requests (that would probably fail anyway) in a problematic moment, so it can gracefully get back on its feet. More advanced scenarios can be covered using a dedicated solution, like <a href="https://github.com/App-vNext/Polly">Polly</a>
-- **Dynamic Jittering**: setting `JitterMaxDuration` will add a small randomized extra duration to a cache entry's normal duration. This is useful to prevent variations of the <a href="https://en.wikipedia.org/wiki/Cache_stampede">Cache Stampede problem</a> in a multi-node scenario
-- **Hot Swap**: supports thread-safe changes of the entire distributed cache or backplane implementation (add/swap/removal)
-- **Cancellation**: every method supports cancellation via the standard `CancellationToken`, so it is easy to cancel an entire pipeline of operation gracefully
-- **Code comments**: every property and method is fully documented in code, with useful informations provided via IntelliSense or similar technologies
-- **Fully annotated for [nullability](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)**: every usage of nullable references has been annotated for a better flow analysis by the compiler
+- **✅ Portable**: targets .NET Standard 2.0, so it can run almost everywhere
+- **✅ High Performance**: FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
+- **✅ Null caching**: explicitly supports caching of `null` values differently than "no value". This creates a less ambiguous usage, and typically leads to better performance because it avoids the classic problem of not being able to differentiate between *"the value was not in the cache, go check the database"* and *"the value was in the cache, and it was `null`"*
+- **✅ Circuit-breaker**: it is possible to enable a simple circuit-breaker for when the distributed cache or the backplane become temporarily unavailable. This will prevent those components to be hit with an excessive load of requests (that would probably fail anyway) in a problematic moment, so it can gracefully get back on its feet. More advanced scenarios can be covered using a dedicated solution, like <a href="https://github.com/App-vNext/Polly">Polly</a>
+- **✅ Dynamic Jittering**: setting `JitterMaxDuration` will add a small randomized extra duration to a cache entry's normal duration. This is useful to prevent variations of the <a href="https://en.wikipedia.org/wiki/Cache_stampede">Cache Stampede problem</a> in a multi-node scenario
+- **✅ Hot Swap**: supports thread-safe changes of the entire distributed cache or backplane implementation (add/swap/removal)
+- **✅ Cancellation**: every method supports cancellation via the standard `CancellationToken`, so it is easy to cancel an entire pipeline of operation gracefully
+- **✅ Code comments**: every property and method is fully documented in code, with useful informations provided via IntelliSense or similar technologies
+- **✅ Fully annotated for [nullability](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)**: every usage of nullable references has been annotated for a better flow analysis by the compiler
 
 </details>
 
@@ -250,6 +252,7 @@ cache.GetOrSet<Product>(
 ```
 
 The `DefaultEntryOptions` we did set before will be duplicated and only the duration will be changed for this call.
+
 </details>
 
 ## 📖 Documentation
@@ -264,6 +267,8 @@ The documentation is available in the :open_file_folder: [docs](docs/README.md) 
 - [**⏱ Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
 - [**📛 Named Caches**](docs/NamedCaches.md): how to work with multiple named FusionCache instances
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
+- [**🔂 Conditional Refresh**](ConditionalRefresh.md): how to save resources when the remote data is not changed
+- [**🦅 Eager Refresh**](EagerRefresh.md): how to start a background refresh eagerly, before the expiration occurs
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
 - [**🎚 Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
 - [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
@@ -304,7 +309,7 @@ Nothing to do here.
 
 After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
 
-If you find FusionCache useful please just [**:envelope: drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
+If you find FusionCache useful please just [**✉ drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
 
 And if you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and maybe let me know about that.
 
@@ -313,6 +318,6 @@ Yes!
 
 Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
 
-Considering that the FusionCache packages have been downloaded more than **half a million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **a million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!

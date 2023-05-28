@@ -15,9 +15,10 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep each node's memory cache perfectly synchronized, without any additional work.
 
-FusionCache also includes some advanced features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache also includes some advanced resiliency features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
 
 ## 🏆 Award
+
 On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
 
 ## 📕 Getting Started
@@ -35,20 +36,20 @@ More into videos? The great Anna Hoffman has been so nice to listen to me mumble
 ## ✔ Features
 These are the **key features** of FusionCache:
 
-- [**🚀 Cache Stampede prevention**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md): using the optimized `GetOrSet[Async]` method prevents multiple concurrent factory calls per key, with a guarantee that only 1 factory will be called at the same time for the same key (this avoids overloading the data source when no data is in the cache or when a cache entry expires)
-- [**🔀 Optional 2nd level**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md): FusionCache can transparently handle an optional 2nd level cache: anything that implements the standard `IDistributedCache` interface is supported (eg: Redis, MongoDB, SqlServer, etc)
-- [**📢 Backplane**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md): when using a distributed cache as a 2nd layer in a multi-node scenario, you can also enable a backplane to immediately notify the other nodes about changes in the cache, to keep everything synchronized without having to do anything
-- [**💣 Fail-Safe**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md): enabling the fail-safe mechanism prevents throwing an exception when a factory or a distributed cache call would fail, by reusing an expired entry as a temporary fallback, all transparently and with no additional code required
-- [**⏱ Soft/Hard timeouts**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md): advanced timeouts management prevents waiting for too long when calling a factory or the distributed cache, to avoid hanging your application. It is possible to specify both *soft* and *hard* timeouts, and thanks to automatic background completion no data will be wasted
-- [**📛 Named Caches**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md): FusionCache can easily work with multiple named caches, even if differently configured
-- [**🧙‍♂️ Adaptive Caching**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AdaptiveCaching.md): there are times when you don't know upfront what the cache duration for a piece of data should be, maybe because it depends on the object being cached itself. Adaptive caching solves this elegantly
-- [**🔃 Dependency Injection**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
-- [**⚡ High performance**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md): FusionCache is optimized to minimize CPU usage and memory allocations to get better performance and lower the cost of your infrastructure all while obtaining a more stable, error resilient application
-- [**💫 Natively sync/async**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CoreMethods.md): full native support for both the synchronous and asynchronous programming model, with sync/async methods working together harmoniously
-- [**📞 Events**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md): there's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers)
-- [**🧩 Plugins**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Plugins.md): thanks to a plugin subsystem it is possible to extend FusionCache with additional behavior, like adding support for metrics, statistics, etc...
-- [**📜 Logging**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md): comprehensive, structured, detailed and customizable logging via the standard `ILogger` interface (you can use Serilog, NLog, etc)
-
+- [**🚀 Cache Stampede prevention**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🔀 Optional 2nd level**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
+- [**💣 Fail-Safe**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
+- [**⏱ Soft/Hard timeouts**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
+- [**🧙‍♂️ Adaptive Caching**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
+- [**🔂 Conditional Refresh**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
+- [**🦅 Eager Refresh**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
+- [**📢 Backplane**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
+- [**🔃 Dependency Injection**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
+- [**📛 Named Caches**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**💫 Natively sync/async**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
+- [**📞 Events**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
+- [**🧩 Plugins**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
+- [**📜 Logging**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 
 ## ⭐ Quick Start
 
