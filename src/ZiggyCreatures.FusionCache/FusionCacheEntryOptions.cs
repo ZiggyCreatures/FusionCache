@@ -81,10 +81,10 @@ public class FusionCacheEntryOptions
 		{
 			if (value.HasValue)
 			{
-				if (value.Value < 0.0f)
-					value = 0.0f;
-				else if (value.Value > 1.0f)
-					value = 1.0f;
+				if (value.Value <= 0.0f)
+					value = null;
+				else if (value.Value >= 1.0f)
+					value = null;
 			}
 			_eagerRefreshThreshold = value;
 		}
@@ -396,7 +396,7 @@ public class FusionCacheEntryOptions
 	/// <summary>
 	/// Set the <see cref="EagerRefreshThreshold"/>.
 	/// </summary>
-	/// <param name="threshold">The amount to set.</param>
+	/// <param name="threshold">The amount to set: values &lt;= 0.0 or &gt;= 1.0 will be normalized to <see langword="null"/>, meaning "no eager refresh".</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetEagerRefresh(float? threshold)
 	{
