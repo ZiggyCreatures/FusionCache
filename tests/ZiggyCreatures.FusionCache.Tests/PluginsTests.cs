@@ -1,63 +1,21 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
-using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 
 namespace FusionCacheTests
 {
 	public class PluginsTests
 	{
-		private class SamplePlugin
-			: IFusionCachePlugin
-		{
-			private readonly bool _throwOnStart = false;
-			private int _missCount = 0;
-
-			public SamplePlugin(bool throwOnStart = false)
-			{
-				_throwOnStart = throwOnStart;
-			}
-
-			public void Start(IFusionCache cache)
-			{
-				IsStarted = true;
-
-				if (_throwOnStart)
-					throw new Exception("Uooops ¯\\_(ツ)_/¯");
-
-				cache.Events.Miss += OnMiss;
-			}
-
-			public void Stop(IFusionCache cache)
-			{
-				IsStopped = true;
-				cache.Events.Miss -= OnMiss;
-			}
-
-			private void OnMiss(object? sender, FusionCacheEntryEventArgs e)
-			{
-				Interlocked.Increment(ref _missCount);
-			}
-
-			public bool IsStarted { get; private set; }
-			public bool IsStopped { get; private set; }
-
-			public int MissCount
-			{
-				get { return _missCount; }
-			}
-		}
-
 		[Fact]
 		public async Task PluginBasicsWorkAsync()
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
-				var plugin = new SamplePlugin();
+				var plugin = new SimpleEventsPlugin();
 
 				// ADD PLUGIN AND START IT
 				cache.AddPlugin(plugin);
@@ -85,7 +43,7 @@ namespace FusionCacheTests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
-				var plugin = new SamplePlugin();
+				var plugin = new SimpleEventsPlugin();
 
 				// ADD PLUGIN AND START IT
 				cache.AddPlugin(plugin);
@@ -113,7 +71,7 @@ namespace FusionCacheTests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
-				var plugin = new SamplePlugin(true);
+				var plugin = new SimpleEventsPlugin(true);
 
 				// ADD PLUGIN AND START IT (AND THROW)
 				Assert.Throws<InvalidOperationException>(() =>
@@ -142,7 +100,7 @@ namespace FusionCacheTests
 		{
 			using (var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true }))
 			{
-				var plugin = new SamplePlugin(true);
+				var plugin = new SimpleEventsPlugin(true);
 
 				// ADD PLUGIN AND START IT (AND THROW)
 				Assert.Throws<InvalidOperationException>(() =>
@@ -171,7 +129,7 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
+			services.AddSingleton<IFusionCachePlugin, SimpleEventsPlugin>();
 			services.AddFusionCache()
 				.TryWithAutoSetup()
 				.WithOptions(options =>
@@ -185,7 +143,7 @@ namespace FusionCacheTests
 			var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
 			// GET THE PLUGIN (SHOULD RETURN THE SAME INSTANCE, BECAUSE SINGLETON)
-			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
+			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SimpleEventsPlugin;
 
 			// MISS: +1
 			await cache.TryGetAsync<int>("foo");
@@ -199,7 +157,7 @@ namespace FusionCacheTests
 		{
 			var services = new ServiceCollection();
 
-			services.AddSingleton<IFusionCachePlugin, SamplePlugin>();
+			services.AddSingleton<IFusionCachePlugin, SimpleEventsPlugin>();
 			services.AddFusionCache()
 				.TryWithAutoSetup()
 				.WithOptions(options =>
@@ -213,7 +171,7 @@ namespace FusionCacheTests
 			var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
 			// GET THE PLUGIN (SHOULD RETURN THE SAME INSTANCE, BECAUSE SINGLETON)
-			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SamplePlugin;
+			var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SimpleEventsPlugin;
 
 			// MISS: +1
 			cache.TryGet<int>("foo");

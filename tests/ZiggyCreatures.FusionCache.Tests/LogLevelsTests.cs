@@ -1,29 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
-using ZiggyCreatures.Caching.Fusion.Plugins;
 
 namespace FusionCacheTests
 {
 	public class LogLevelsTests
 	{
-		private class SamplePlugin
-			: IFusionCachePlugin
-		{
-			public void Start(IFusionCache cache)
-			{
-				// EMPTY
-			}
-
-			public void Stop(IFusionCache cache)
-			{
-				// EMPTY
-			}
-		}
-
 		private ListLogger<FusionCache> CreateListLogger(LogLevel minLogLevel)
 		{
 			return new ListLogger<FusionCache>(minLogLevel);
@@ -35,7 +21,7 @@ namespace FusionCacheTests
 			var logger = CreateListLogger(LogLevel.Debug);
 			using (var cache = new FusionCache(new FusionCacheOptions(), logger: logger))
 			{
-				cache.AddPlugin(new SamplePlugin());
+				cache.AddPlugin(new NullPlugin());
 
 				cache.TryGet<int>("foo");
 				cache.TryGet<int>("bar");
@@ -55,7 +41,7 @@ namespace FusionCacheTests
 			var options = new FusionCacheOptions();
 			using (var cache = new FusionCache(options, logger: logger))
 			{
-				cache.AddPlugin(new SamplePlugin());
+				cache.AddPlugin(new NullPlugin());
 			}
 
 			Assert.Equal(2, logger.Items.Count);
@@ -67,7 +53,7 @@ namespace FusionCacheTests
 			};
 			using (var cache = new FusionCache(options, logger: logger))
 			{
-				cache.AddPlugin(new SamplePlugin());
+				cache.AddPlugin(new NullPlugin());
 			}
 
 			Assert.Empty(logger.Items);

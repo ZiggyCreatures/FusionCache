@@ -63,6 +63,33 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	public TimeSpan Duration { get; set; }
 
+	private float? _eagerRefreshThreshold = null;
+
+	/// <summary>
+	/// The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration).
+	/// <br/>
+	/// This value is intended as a percentage of the <see cref="Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
+	/// <br/><br/>
+	/// For example by setting it to 0.8 (80%) with a <see cref="Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returing the (still valid) cached value to the caller.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
+	/// </summary>
+	public float? EagerRefreshThreshold
+	{
+		get { return _eagerRefreshThreshold; }
+		set
+		{
+			if (value.HasValue)
+			{
+				if (value.Value <= 0.0f)
+					value = null;
+				else if (value.Value >= 1.0f)
+					value = null;
+			}
+			_eagerRefreshThreshold = value;
+		}
+	}
+
 	/// <summary>
 	/// The timeout to apply when trying to acquire a lock during a factory execution.
 	/// <br/><br/>
@@ -293,7 +320,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified <see cref="TimeSpan"/> value.
+	/// Set the <see cref="Duration"/> to the specified <see cref="TimeSpan"/> value.
 	/// </summary>
 	/// <param name="duration">The duration to set.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -304,7 +331,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to be infinite, so it will never expire.
+	/// Set the <see cref="Duration"/> to be infinite, so it will never expire.
 	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
 	/// </summary>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -315,7 +342,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the distributed cache duration to the specified <see cref="TimeSpan"/> value.
+	/// Set the <see cref="DistributedCacheDuration"/> to the specified <see cref="TimeSpan"/> value.
 	/// </summary>
 	/// <param name="duration">The duration to set.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -326,7 +353,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the distributed cache duration to be infinite, so it will never expire.
+	/// Set the <see cref="DistributedCacheDuration"/> to be infinite, so it will never expire.
 	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
 	/// </summary>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -337,7 +364,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified number of milliseconds.
+	/// Set the <see cref="Duration"/> to the specified number of milliseconds.
 	/// </summary>
 	/// <param name="durationMs">The duration to set, in milliseconds.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -347,7 +374,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified number of seconds.
+	/// Set the <see cref="Duration"/> to the specified number of seconds.
 	/// </summary>
 	/// <param name="durationSec">The duration to set, in seconds.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -357,7 +384,7 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the duration to the specified number of minutes.
+	/// Set the <see cref="Duration"/> to the specified number of minutes.
 	/// </summary>
 	/// <param name="durationMin">The duration to set, in minutes.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
@@ -367,10 +394,21 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the 
+	/// Set the <see cref="EagerRefreshThreshold"/>.
+	/// </summary>
+	/// <param name="threshold">The amount to set: values &lt;= 0.0 or &gt;= 1.0 will be normalized to <see langword="null"/>, meaning "no eager refresh".</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetEagerRefresh(float? threshold)
+	{
+		EagerRefreshThreshold = threshold;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the size of the entry.
 	/// </summary>
 	/// <param name="size">The (unitless) size value to set.</param>
-	/// <returns></returns>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSize(long size)
 	{
 		Size = size;
@@ -612,6 +650,22 @@ public class FusionCacheEntryOptions
 		return res;
 	}
 
+	internal TimeSpan GetAppropriateLockTimeout(bool hasFallbackValue)
+	{
+		var res = LockTimeout;
+		if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+		{
+			// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+			// + THERE IS A FALLBACK ENTRY
+			// + FAIL-SAFE IS ENABLED
+			// + THERE IS A FACTORY SOFT TIMEOUT
+			// --> USE IT AS A LOCK TIMEOUT
+			res = FactorySoftTimeout;
+		}
+
+		return res;
+	}
+
 	internal TimeSpan GetAppropriateFactoryTimeout(bool hasFallbackValue)
 	{
 		// SHORT CIRCUIT WHEN NO TIMEOUTS AT ALL
@@ -670,6 +724,9 @@ public class FusionCacheEntryOptions
 			Size = Size,
 			Priority = Priority,
 			JitterMaxDuration = JitterMaxDuration,
+
+			// NOTE: PERF MICRO-OPT
+			_eagerRefreshThreshold = _eagerRefreshThreshold,
 
 			IsFailSafeEnabled = IsFailSafeEnabled,
 			FailSafeMaxDuration = FailSafeMaxDuration,

@@ -190,29 +190,41 @@ public partial class FusionCache
 		}
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
 	{
-		if (options.AllowTimedOutFactoryBackgroundCompletion == false || factoryTask is null)
+		if (factoryTask is null || options.AllowTimedOutFactoryBackgroundCompletion == false)
 			return;
 
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, null, token);
+	}
+
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, object? lockObj, CancellationToken token)
+	{
 		if (factoryTask.IsFaulted)
 		{
 			if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-				_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (O={CacheOperationId} K={CacheKey}): a timed-out factory thrown an exception", operationId, key);
+				_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", operationId, key);
+
+			// EVENT
+			_events.OnBackgroundFactoryError(operationId, key);
+
+			ReleaseLock(operationId, key, lockObj);
+
 			return;
 		}
 
 		// CONTINUE IN THE BACKGROUND TO TRY TO KEEP THE RESULT AS SOON AS IT WILL COMPLETE SUCCESSFULLY
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): trying to complete the timed-out factory in the background", operationId, key);
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): trying to complete a background factory", operationId, key);
 
 		_ = factoryTask.ContinueWith(antecedent =>
 		{
 			if (antecedent.Status == TaskStatus.Faulted)
 			{
 				if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-					_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (O={CacheOperationId} K={CacheKey}): a timed-out factory thrown an exception", operationId, key);
+					_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", operationId, key);
 
 				// EVENT
 				_events.OnBackgroundFactoryError(operationId, key);
@@ -220,22 +232,23 @@ public partial class FusionCache
 			else if (antecedent.Status == TaskStatus.RanToCompletion)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): a timed-out factory successfully completed in the background: keeping the result", operationId, key);
+					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): a background factory successfully completed, keeping the result", operationId, key);
 
 				// UPDATE ADAPTIVE OPTIONS
 				var maybeNewOptions = ctx.GetOptions();
 				if (maybeNewOptions is not null && options != maybeNewOptions)
 					options = maybeNewOptions;
 
-				var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false);
+				var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag);
 				_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 				_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
-				_events.OnSet(operationId, key);
-
 				// EVENT
 				_events.OnBackgroundFactorySuccess(operationId, key);
+				_events.OnSet(operationId, key);
 			}
+
+			ReleaseLock(operationId, key, lockObj);
 		});
 	}
 
@@ -287,7 +300,6 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
-		// TODO: BETTER CHECK THIS POTENTIAL NullReferenceException HERE
 		if (_mca is null)
 			return;
 

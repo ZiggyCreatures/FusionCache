@@ -9,7 +9,7 @@ namespace FusionCacheTests
 {
 	public class SerializationTests
 	{
-		private static readonly string SampleString = "Supercalifragilisticexpialidocious";
+		private const string SampleString = "Supercalifragilisticexpialidocious";
 
 		private static T? LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
 		{
@@ -108,7 +108,7 @@ namespace FusionCacheTests
 		public async Task LoopSucceedsWithDistributedEntryAndSimpleTypesAsync(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
-			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true));
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow.AddSeconds(9), "abc123", DateTimeOffset.UtcNow));
 
 			var data = await serializer.SerializeAsync(obj);
 
@@ -117,6 +117,12 @@ namespace FusionCacheTests
 
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
+			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
+			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 		}
 
 		[Theory]
@@ -124,7 +130,7 @@ namespace FusionCacheTests
 		public void LoopSucceedsWithDistributedEntryAndSimpleTypes(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
-			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true));
+			var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow.AddSeconds(9), "abc123", DateTimeOffset.UtcNow));
 
 			var data = serializer.Serialize(obj);
 
@@ -133,6 +139,12 @@ namespace FusionCacheTests
 
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
+			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
+			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 		}
 
 		[Theory]
@@ -149,7 +161,7 @@ namespace FusionCacheTests
 
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
-			Assert.Equal(SampleString, looped!.Value);
+			Assert.Equal(obj.Value, looped.Value);
 			Assert.Null(looped!.Metadata);
 		}
 
@@ -167,8 +179,52 @@ namespace FusionCacheTests
 
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
-			Assert.Equal(SampleString, looped!.Value);
+			Assert.Equal(obj.Value, looped.Value);
 			Assert.Null(looped!.Metadata);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task LoopSucceedsWithDistributedEntryAndComplexTypesAsync(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow.AddSeconds(9), "abc123", DateTimeOffset.UtcNow));
+
+			var data = await serializer.SerializeAsync(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<ComplexType>>(data);
+			Assert.NotNull(looped);
+			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
+			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void LoopSucceedsWithDistributedEntryAndComplexTypes(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+			var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow.AddSeconds(9), "abc123", DateTimeOffset.UtcNow));
+
+			var data = serializer.Serialize(obj);
+
+			Assert.NotNull(data);
+			Assert.NotEmpty(data);
+
+			var looped = serializer.Deserialize<FusionCacheDistributedEntry<ComplexType>>(data);
+			Assert.NotNull(looped);
+			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
+			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
+			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
+			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 		}
 	}
 }

@@ -27,6 +27,8 @@ A deeper description of the main features:
 - [**🔃 Dependency Injection**](DependencyInjection.md): how to work with FusionCache + DI in .NET
 - [**📛 Named Caches**](NamedCaches.md): how to work with multiple named FusionCache instances
 - [**🧙‍♂️ Adaptive Caching**](AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
+- [**🔂 Conditional Refresh**](ConditionalRefresh.md): how to save resources when the remote data is not changed
+- [**🦅 Eager Refresh**](EagerRefresh.md): how to start a background refresh eagerly, before the expiration occurs
 - [**🎚 Options**](Options.md): everything about the available options, both cache-wide and per-call
 - [**🕹 Core Methods**](CoreMethods.md): what you need to know about the core methods available
 - [**📞 Events**](Events.md): the events hub and how to use it

@@ -2,7 +2,7 @@
 
 ![FusionCache logo](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/logo-256x256.png)
 
-### FusionCache is an easy to use, high performance and robust cache with an optional distributed 2nd layer and some advanced features.
+### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd layer.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 

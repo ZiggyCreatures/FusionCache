@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,31 +23,13 @@ namespace FusionCacheTests
 {
 	public class DependencyInjectionTests
 	{
-
-		internal class MyPlugin
-			: IFusionCachePlugin
+		static ILogger? GetLogger(IFusionCache cache)
 		{
-			public MyPlugin(string name)
-			{
-				Name = name;
-			}
-
-			public string Name { get; }
-			public bool IsRunning { get; private set; }
-
-			public void Start(IFusionCache cache)
-			{
-				IsRunning = true;
-			}
-
-			public void Stop(IFusionCache cache)
-			{
-				IsRunning = false;
-			}
+			return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;
 		}
 
 		static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
-			where TDistributedCache : class, IDistributedCache
+				where TDistributedCache : class, IDistributedCache
 		{
 			var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
 			if (dca is null)
@@ -156,12 +139,12 @@ namespace FusionCacheTests
 		public void CanAddPlugins()
 		{
 			var services = new ServiceCollection();
-			services.AddTransient<IFusionCachePlugin>(sp => new MyPlugin("P_1"));
+			services.AddTransient<IFusionCachePlugin>(sp => new SimplePlugin("P_1"));
 
 			services.AddFusionCache()
 				.WithAllRegisteredPlugins()
-				.WithPlugin(new MyPlugin("P_2"))
-				.WithPlugin(sp => new MyPlugin("P_3"))
+				.WithPlugin(new SimplePlugin("P_2"))
+				.WithPlugin(sp => new SimplePlugin("P_3"))
 			;
 
 			using var serviceProvider = services.BuildServiceProvider();
@@ -174,7 +157,7 @@ namespace FusionCacheTests
 				return (typeof(FusionCache).GetField("_plugins", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as List<IFusionCachePlugin>)!.Cast<TPlugin>().ToList();
 			}
 
-			var allPlugins = GetAllPlugins<MyPlugin>(cache);
+			var allPlugins = GetAllPlugins<SimplePlugin>(cache);
 
 			Assert.NotNull(cache);
 			Assert.NotNull(allPlugins);
@@ -899,6 +882,25 @@ namespace FusionCacheTests
 				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
 				Assert.True(cache.HasDistributedCache);
+			}
+		}
+
+		[Fact]
+		public void CanDoWithoutLogger()
+		{
+			var services = new ServiceCollection();
+
+			services.AddLogging();
+
+			services.AddFusionCache()
+				.WithoutLogger()
+			;
+
+			using (var serviceProvider = services.BuildServiceProvider())
+			{
+				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+				Assert.Null(GetLogger(cache));
 			}
 		}
 	}

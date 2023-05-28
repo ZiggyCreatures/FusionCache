@@ -101,9 +101,6 @@ internal static class FusionCacheInternalUtils
 
 	public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
 	{
-		if (exc is null)
-			throw new ArgumentNullException(nameof(exc));
-
 		return (exc.InnerException is not null && exc.InnerExceptions?.Count <= 1)
 			? exc.InnerException
 			: exc
@@ -128,6 +125,22 @@ internal static class FusionCacheInternalUtils
 			return delta.TotalMinutes.ToString("0") + "m";
 
 		return dt.ToString("o");
+	}
+
+	public static string? ToLogString_Expiration(this DateTimeOffset? dt)
+	{
+		if (dt.HasValue == false)
+			return "/";
+
+		return dt.Value.ToLogString_Expiration();
+	}
+
+	public static string? ToLogString(this DateTimeOffset? dt)
+	{
+		if (dt is null)
+			return "/";
+
+		return dt.Value.ToString("o");
 	}
 
 	public static string? ToLogString(this MemoryCacheEntryOptions? options)
@@ -224,7 +237,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheDistributedEntry<TValue>)
 			return (FusionCacheDistributedEntry<TValue>)entry;
 
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
 	}
 
 	public static FusionCacheMemoryEntry AsMemoryEntry(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -232,7 +245,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheMemoryEntry)
 			return (FusionCacheMemoryEntry)entry;
 
-		return FusionCacheMemoryEntry.CreateFromOptions(entry.GetValue<object>(), options, entry.Metadata?.IsFromFailSafe ?? false);
+		return FusionCacheMemoryEntry.CreateFromOptions(entry.GetValue<object>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
 	}
 
 	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
@@ -305,5 +318,18 @@ internal static class FusionCacheInternalUtils
 			return DateTimeOffsetMaxValue;
 
 		return now.Add(duration);
+	}
+
+	public static DateTimeOffset? GetNormalizedEagerExpiration(bool isFromFailSafe, float? eagerRefreshThreshold, DateTimeOffset normalizedExpiration)
+	{
+		if (isFromFailSafe)
+			return null;
+
+		if (eagerRefreshThreshold.HasValue == false)
+			return null;
+
+		var now = DateTimeOffset.UtcNow;
+
+		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
 	}
 }

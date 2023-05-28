@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -16,15 +17,24 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		[MemoryPackInclude]
 		public bool IsFromFailSafe => Metadata?.IsFromFailSafe ?? default;
 
+		[MemoryPackInclude]
+		public DateTimeOffset? EagerExpiration => Metadata?.EagerExpiration;
+
+		[MemoryPackInclude]
+		public string? ETag => Metadata?.ETag;
+
+		[MemoryPackInclude]
+		public DateTimeOffset? LastModified => Metadata?.LastModified;
+
 		[MemoryPackConstructor]
-		SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe)
+		SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? eagerExpiration, string? etag, DateTimeOffset? lastModified)
 		{
-			this.Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe);
+			Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe, eagerExpiration, etag, lastModified);
 		}
 
 		public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)
 		{
-			this.Metadata = metadata;
+			Metadata = metadata;
 		}
 	}
 

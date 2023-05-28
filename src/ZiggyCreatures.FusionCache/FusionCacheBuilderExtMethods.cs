@@ -240,6 +240,24 @@ public static partial class FusionCacheBuilderExtMethods
 		return builder;
 	}
 
+	/// <summary>
+	/// Indicates that the builder should not use a logger at all.
+	/// </summary>
+	/// <param name="builder"></param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithoutLogger(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseRegisteredLogger = false;
+		builder.Logger = null;
+		builder.LoggerFactory = null;
+		builder.ThrowIfMissingLogger = false;
+
+		return builder;
+	}
+
 	#endregion
 
 	#region MEMORY CACHE

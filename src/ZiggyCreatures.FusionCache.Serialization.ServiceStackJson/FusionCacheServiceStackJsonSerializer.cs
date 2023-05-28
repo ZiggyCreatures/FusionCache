@@ -10,6 +10,13 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 public class FusionCacheServiceStackJsonSerializer
 	: IFusionCacheSerializer
 {
+	static FusionCacheServiceStackJsonSerializer()
+	{
+		JsConfig.Init(new Config
+		{
+			DateHandler = DateHandler.ISO8601
+		});
+	}
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
