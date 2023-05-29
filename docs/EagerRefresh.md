@@ -86,7 +86,7 @@ product = cache.GetOrSet<Product>(
 
 In this way FusionCache will have `100 ms` to refresh the data, and after that will simply return the stale one and let the factory keep running in the background: as soon as it will finish, the data in the cache will be updated.
 
-But what it instead we don't want to wait at all, and be sure we always get fresh data as soon as possible (as long as requests come in for that piece of data)?
+But what if instead we don't want to wait at all, and be sure we always get fresh data as soon as possible (as long as requests come in for that piece of data)?
 
 We can specify an `EagerRefreshThreshold` of `0.9` (meaning 90% of the `Duration`):
 
