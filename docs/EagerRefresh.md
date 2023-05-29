@@ -6,7 +6,7 @@
 
 # 🦅 Eager Refresh
 
-FusionCache alrady has advanced [timeouts](Timeouts.md) features, so that a slow factory cannot slow down our code while refreshing the data.
+FusionCache already has advanced [timeouts](Timeouts.md) features, so that a slow factory cannot slow down our code while refreshing the data.
 
 A different approach we may take is to just start refreshing earlier (before expiration occurs) and in the background so not to slow down the normal flow.
 
