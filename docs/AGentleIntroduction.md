@@ -101,7 +101,9 @@ Wouldn't it be nice if there could be a way to simply let FusionCache temporaril
 
 Enter **soft/hard timeouts**.
 
-You can specify a **soft timeout** to be used if there's an expired cache entry to use as a fallback, and a **hard timeout** to be used in any case, no matter what: in this last case an exception will be thrown and you will have to handle it yourself, but in some cases that would be more preferable than a very slow response.
+You can specify a **soft timeout** to be used if there's an expired cache entry to use as a fallback.
+
+You can also specify a **hard timeout** to be used in any case, no matter what: in this case, if we also specified a `failSafeDefaultValue`, that will be used as a fallback, otherwise an exception will be thrown and you will have to handle it yourself, because in some cases that would be more preferable than a very slow response.
 
 In both cases it is possible (and enabled *by default*, so you don't have to do anything) to let the timed-out factory keep running in the background, and update the cached value as soon as it finishes, so you get the best of both worlds: a **fast response** and **fresh data** as soon as possible.
 
