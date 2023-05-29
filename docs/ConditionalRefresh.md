@@ -65,9 +65,9 @@ var product = await cache.GetOrSetAsync<Product>(
 
 		// NORMAL RESPONSE: SAVE ETAG + RETURN VALUE
 		return ctx.Modified(
-            await resp.Content.ReadFromJsonAsync<Product>(),
-            resp.Headers.ETag?.ToString()
-        );
+			await resp.Content.ReadFromJsonAsync<Product>(),
+			resp.Headers.ETag?.ToString()
+		);
 	},
 	opt => opt.SetDuration(duration).SetFailSafe(true)
 );
