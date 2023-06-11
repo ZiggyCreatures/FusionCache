@@ -27,7 +27,7 @@ public class RedisBackplane
 	private Action<BackplaneMessage>? _handler;
 
 	/// <summary>
-	/// Initializes a new instance of the RedisBackplanePlugin class.
+	/// Initializes a new instance of the RedisBackplane class.
 	/// </summary>
 	/// <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
 	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>

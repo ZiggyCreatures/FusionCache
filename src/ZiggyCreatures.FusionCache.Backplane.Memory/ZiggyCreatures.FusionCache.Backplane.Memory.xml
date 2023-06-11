@@ -11,7 +11,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions},Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane})">
             <summary>
-            Initializes a new instance of the MemoryBackplanePlugin class.
+            Initializes a new instance of the MemoryBackplane class.
             </summary>
             <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>

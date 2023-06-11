@@ -25,7 +25,7 @@ public class MemoryBackplane
 	private List<MemoryBackplane>? _backplanes;
 
 	/// <summary>
-	/// Initializes a new instance of the MemoryBackplanePlugin class.
+	/// Initializes a new instance of the MemoryBackplane class.
 	/// </summary>
 	/// <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
 	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
