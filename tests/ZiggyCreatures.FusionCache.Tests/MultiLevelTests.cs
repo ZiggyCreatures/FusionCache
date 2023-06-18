@@ -1011,5 +1011,30 @@ namespace FusionCacheTests
 			Assert.True(v5 > v4);
 			Assert.Equal(v5, v6);
 		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanHandleExpireOnMultiNodesAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var cacheA = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			using var cacheB = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			using var cacheC = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			await cache.SetAsync<int>("foo", 42);
+			var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+			await cache.ExpireAsync("foo");
+			var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+			var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+			Assert.True(maybeFoo1.HasValue);
+			Assert.Equal(42, maybeFoo1.Value);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.Equal(42, maybeFoo3.Value);
+		}
 	}
 }

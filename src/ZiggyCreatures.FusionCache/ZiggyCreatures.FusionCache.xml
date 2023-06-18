@@ -42,14 +42,21 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String)">
             <summary>
-            Creates a message for a single cache entry set operation (via either a Set or a GetOrSet method call).
+            Creates a message for a single cache entry set operation (via either a Set() or a GetOrSet() method call).
             </summary>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String)">
             <summary>
-            Creates a message for a single cache entry remove (via a Remove method call).
+            Creates a message for a single cache entry remove (via a Remove() method call).
+            </summary>
+            <param name="cacheKey">The cache key.</param>
+            <returns>The message.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryExpire(System.String)">
+            <summary>
+            Creates a message for a single cache entry expire operation (via an Expire() method call).
             </summary>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
@@ -66,12 +73,17 @@
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntrySet">
             <summary>
-            A cache entry has been set (via either a Set or a GetOrSet method call).
+            A cache entry has been set (via either a Set() or a GetOrSet() method call).
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntryRemove">
             <summary>
-            A cache entry has been removed (via a Remove method call).
+            A cache entry has been removed (via a Remove() method call).
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntryExpire">
+            <summary>
+            A cache entry has been manually expired (via an Expire() method call).
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions">
@@ -412,6 +424,11 @@
             The event for when a factory is being executed in advance, because a request came in during the eager refresh window (after the eager refresh threshold and before the expiration).
             </summary>
         </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Expire">
+            <summary>
+            The event for a manual cache Expire() call.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub">
             <summary>
             The events hub for events specific for the memory layer.
@@ -428,6 +445,11 @@
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction">
             <summary>
             The event for a cache eviction.
+            </summary>
+        </member>
+        <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Expire">
+            <summary>
+            The event for a manual cache Expire() call.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.HasEvictionSubscribers">
@@ -516,6 +538,9 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.ExpireAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -535,6 +560,9 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Expire(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
@@ -2313,6 +2341,43 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Removes the value in the cache for the specified <paramref name="key"/>.
+            </summary>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.ExpireAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Expires the cache entry for the specified <paramref name="key"/>.
+            <br/>
+            <br/>
+            In the memory cache:
+            <br/>
+            - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+            <br/>
+            - if fail-safe is disabled: the entry will be effectively removed
+            <br/>
+            <br/>
+            In the distributed cache (if any), the entry will be effectively removed.
+            </summary>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.Expire(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <summary>
+            Expires the cache entry for the specified <paramref name="key"/>.
+            <br/>
+            <br/>
+            In the memory cache:
+            <br/>
+            - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+            <br/>
+            - if fail-safe is disabled: the entry will be effectively removed
+            <br/>
+            <br/>
+            In the distributed cache (if any), the entry will be effectively removed.
             </summary>
             <param name="key">The cache key which identifies the entry in the cache.</param>
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>

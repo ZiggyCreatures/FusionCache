@@ -74,6 +74,11 @@ public class FusionCacheEventsHub
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? EagerRefresh;
 
+	/// <summary>
+	/// The event for a manual cache Expire() call.
+	/// </summary>
+	public event EventHandler<FusionCacheEntryEventArgs>? Expire;
+
 	internal void OnFailSafeActivate(string operationId, string key)
 	{
 		FailSafeActivate?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _errorsLogLevel, _syncExecution);
@@ -107,5 +112,10 @@ public class FusionCacheEventsHub
 	internal void OnEagerRefresh(string operationId, string key)
 	{
 		EagerRefresh?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(EagerRefresh), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal void OnExpire(string operationId, string key)
+	{
+		Expire?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 }

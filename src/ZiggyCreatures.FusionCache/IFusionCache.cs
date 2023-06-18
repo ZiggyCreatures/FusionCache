@@ -161,6 +161,43 @@ public interface IFusionCache
 	void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
+	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// <br/>
+	/// <br/>
+	/// In the memory cache:
+	/// <br/>
+	/// - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+	/// <br/>
+	/// - if fail-safe is disabled: the entry will be effectively removed
+	/// <br/>
+	/// <br/>
+	/// In the distributed cache (if any), the entry will be effectively removed.
+	/// </summary>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
+	ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+	/// <summary>
+	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// <br/>
+	/// <br/>
+	/// In the memory cache:
+	/// <br/>
+	/// - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+	/// <br/>
+	/// - if fail-safe is disabled: the entry will be effectively removed
+	/// <br/>
+	/// <br/>
+	/// In the distributed cache (if any), the entry will be effectively removed.
+	/// </summary>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+	/// <summary>
 	/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
 	/// </summary>
 	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>

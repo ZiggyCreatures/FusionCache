@@ -28,6 +28,11 @@ public class FusionCacheMemoryEventsHub
 	public event EventHandler<FusionCacheEntryEvictionEventArgs>? Eviction;
 
 	/// <summary>
+	/// The event for a manual cache Expire() call.
+	/// </summary>
+	public event EventHandler<FusionCacheEntryEventArgs>? Expire;
+
+	/// <summary>
 	/// Check if the <see cref="Eviction"/> event has subscribers or not.
 	/// </summary>
 	/// <returns><see langword="true"/> if the <see cref="Eviction"/> event has subscribers, otherwhise <see langword="false"/>.</returns>
@@ -39,5 +44,10 @@ public class FusionCacheMemoryEventsHub
 	internal void OnEviction(string operationId, string key, EvictionReason reason)
 	{
 		Eviction?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEvictionEventArgs(key, reason), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal void OnExpire(string operationId, string key)
+	{
+		Expire?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 }

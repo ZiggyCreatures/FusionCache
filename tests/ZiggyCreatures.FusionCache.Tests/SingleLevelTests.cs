@@ -36,6 +36,30 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
+		public async Task CanRemoveAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			await cache.SetAsync<int>("foo", 42);
+			var foo1 = await cache.GetOrDefaultAsync<int>("foo");
+			await cache.RemoveAsync("foo");
+			var foo2 = await cache.GetOrDefaultAsync<int>("foo");
+			Assert.Equal(42, foo1);
+			Assert.Equal(0, foo2);
+		}
+
+		[Fact]
+		public void CanRemove()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.Set<int>("foo", 42);
+			var foo1 = cache.GetOrDefault<int>("foo");
+			cache.Remove("foo");
+			var foo2 = cache.GetOrDefault<int>("foo");
+			Assert.Equal(42, foo1);
+			Assert.Equal(0, foo2);
+		}
+
+		[Fact]
 		public async Task ReturnsStaleDataWhenFactoryFailsWithFailSafeAsync()
 		{
 			using var cache = new FusionCache(new FusionCacheOptions());
@@ -1219,6 +1243,44 @@ namespace FusionCacheTests
 			Assert.Equal(2, v4);
 			Assert.Equal(2, v5);
 			Assert.Equal(2, value);
+		}
+
+		[Fact]
+		public async Task CanExpireAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			await cache.SetAsync<int>("foo", 42);
+			var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+			await cache.ExpireAsync("foo");
+			var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+			var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+			Assert.True(maybeFoo1.HasValue);
+			Assert.Equal(42, maybeFoo1.Value);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.Equal(42, maybeFoo3.Value);
+		}
+
+		[Fact]
+		public void CanExpire()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			cache.Set<int>("foo", 42);
+			var maybeFoo1 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+			cache.Expire("foo");
+			var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+			var maybeFoo3 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+			Assert.True(maybeFoo1.HasValue);
+			Assert.Equal(42, maybeFoo1.Value);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.Equal(42, maybeFoo3.Value);
 		}
 	}
 }

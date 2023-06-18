@@ -512,7 +512,7 @@ public partial class FusionCache
 		var operationId = GenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling Remove<T> {Options}", operationId, key, options.ToLogString());
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling Remove {Options}", operationId, key, options.ToLogString());
 
 		_mca.RemoveEntry(operationId, key, options);
 
@@ -529,6 +529,45 @@ public partial class FusionCache
 		// BACKPLANE
 		if (options.SkipBackplaneNotifications == false)
 			PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token);
+	}
+
+	/// <inheritdoc/>
+	public void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		ValidateCacheKey(key);
+
+		MaybePreProcessCacheKey(ref key);
+
+		token.ThrowIfCancellationRequested();
+
+		if (options is null)
+			options = _options.DefaultEntryOptions;
+
+		var operationId = GenerateOperationId();
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling Expire {Options}", operationId, key, options.ToLogString());
+
+		_mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
+
+		var dca = GetCurrentDistributedAccessor(options);
+
+		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+		{
+			dca.RemoveEntry(operationId, key, options, token);
+		}
+
+		// EVENT
+		_events.OnExpire(operationId, key);
+
+		// BACKPLANE
+		if (options.SkipBackplaneNotifications == false)
+		{
+			if (options.IsFailSafeEnabled)
+				PublishInternal(operationId, BackplaneMessage.CreateForEntryExpire(key), options, token);
+			else
+				PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token);
+		}
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

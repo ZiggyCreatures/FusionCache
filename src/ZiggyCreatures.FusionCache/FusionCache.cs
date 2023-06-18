@@ -296,7 +296,7 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
-	internal void EvictInternal(string key, bool allowFailSafe)
+	internal void ExpireMemoryInternal(string key, bool allowFailSafe)
 	{
 		ValidateCacheKey(key);
 
@@ -306,9 +306,9 @@ public partial class FusionCache
 		var operationId = GenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling Evict", operationId, key);
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryInternal (allowFailSafe={AllowFailSafe})", operationId, key, allowFailSafe);
 
-		_mca.EvictEntry(operationId, key, allowFailSafe);
+		_mca.ExpireEntry(operationId, key, allowFailSafe);
 	}
 
 	/// <inheritdoc/>

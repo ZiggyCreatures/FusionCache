@@ -514,7 +514,7 @@ public partial class FusionCache
 		var operationId = GenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling RemoveAsync<T> {Options}", operationId, key, options.ToLogString());
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling RemoveAsync {Options}", operationId, key, options.ToLogString());
 
 		_mca.RemoveEntry(operationId, key, options);
 
@@ -531,6 +531,45 @@ public partial class FusionCache
 		// BACKPLANE
 		if (options.SkipBackplaneNotifications == false)
 			await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		ValidateCacheKey(key);
+
+		MaybePreProcessCacheKey(ref key);
+
+		token.ThrowIfCancellationRequested();
+
+		if (options is null)
+			options = _options.DefaultEntryOptions;
+
+		var operationId = GenerateOperationId();
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling ExpireAsync {Options}", operationId, key, options.ToLogString());
+
+		_mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
+
+		var dca = GetCurrentDistributedAccessor(options);
+
+		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+		{
+			await dca.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
+
+		// EVENT
+		_events.OnExpire(operationId, key);
+
+		// BACKPLANE
+		if (options.SkipBackplaneNotifications == false)
+		{
+			if (options.IsFailSafeEnabled)
+				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryExpire(key), options, token).ConfigureAwait(false);
+			else
+				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token).ConfigureAwait(false);
+		}
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -187,8 +187,6 @@ public class RedisBackplane
 		if (v.IsNull)
 			return;
 
-		//try
-		//{
 		var receivedCount = await _subscriber!.PublishAsync(_channel, v).ConfigureAwait(false);
 		if (receivedCount == 0)
 		{
@@ -200,12 +198,6 @@ public class RedisBackplane
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
-		//}
-		//catch (Exception exc)
-		//{
-		//	if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-		//		_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
-		//}
 	}
 
 	/// <inheritdoc/>
@@ -218,8 +210,6 @@ public class RedisBackplane
 		if (v.IsNull)
 			return;
 
-		//try
-		//{
 		var receivedCount = _subscriber!.Publish(_channel, v);
 		if (receivedCount == 0)
 		{
@@ -231,12 +221,6 @@ public class RedisBackplane
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
-		//}
-		//catch (Exception exc)
-		//{
-		//	if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-		//		_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
-		//}
 	}
 
 	private static BackplaneMessage? FromRedisValue(RedisValue value, ILogger? logger)

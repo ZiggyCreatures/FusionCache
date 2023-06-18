@@ -96,10 +96,10 @@ internal sealed class MemoryCacheAccessor
 		_events.OnRemove(operationId, key);
 	}
 
-	public void EvictEntry(string operationId, string key, bool allowFailSafe)
+	public void ExpireEntry(string operationId, string key, bool allowFailSafe)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): evicting data (from memory)", operationId, key);
+			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): expiring data (from memory)", operationId, key);
 
 		if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry) == false)
 			return;
@@ -111,6 +111,9 @@ internal sealed class MemoryCacheAccessor
 		{
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
+
+			// EVENT
+			_events.OnExpire(operationId, key);
 		}
 		else
 		{

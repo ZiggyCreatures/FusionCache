@@ -261,16 +261,22 @@ internal sealed partial class BackplaneAccessor
 		switch (message.Action)
 		{
 			case BackplaneMessageAction.EntrySet:
-				_cache.EvictInternal(message.CacheKey!, true);
+				_cache.ExpireMemoryInternal(message.CacheKey!, true);
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (SET)", message.CacheKey);
 				break;
 			case BackplaneMessageAction.EntryRemove:
-				_cache.EvictInternal(message.CacheKey!, false);
+				_cache.ExpireMemoryInternal(message.CacheKey!, false);
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (REMOVE)", message.CacheKey);
+				break;
+			case BackplaneMessageAction.EntryExpire:
+				_cache.ExpireMemoryInternal(message.CacheKey!, true);
+
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (EXPIRE)", message.CacheKey);
 				break;
 			default:
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
