@@ -8,6 +8,9 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
+using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -15,6 +18,17 @@ namespace FusionCacheTests
 {
 	public class MultiLevelTests
 	{
+		private static readonly string? RedisConnection = null;
+		//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
+
+		private static IFusionCacheBackplane CreateBackplane()
+		{
+			if (string.IsNullOrWhiteSpace(RedisConnection))
+				return new MemoryBackplane(new MemoryBackplaneOptions());
+
+			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection });
+		}
+
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task ReturnsDataFromDistributedCacheIfNoDataInMemoryCacheAsync(SerializerType serializerType)
@@ -1016,25 +1030,174 @@ namespace FusionCacheTests
 		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task CanHandleExpireOnMultiNodesAsync(SerializerType serializerType)
 		{
+			var duration = TimeSpan.FromMinutes(10);
+
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			using var cacheA = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-			using var cacheB = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-			using var cacheC = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
-			using var cache = new FusionCache(new FusionCacheOptions());
-			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
-			cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+			using var cacheA = new FusionCache(new FusionCacheOptions());
+			cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			cacheA.SetupBackplane(CreateBackplane());
+			cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cacheA.DefaultEntryOptions.Duration = duration;
+			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-			await cache.SetAsync<int>("foo", 42);
-			var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
-			await cache.ExpireAsync("foo");
-			var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
-			var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
-			Assert.True(maybeFoo1.HasValue);
-			Assert.Equal(42, maybeFoo1.Value);
-			Assert.False(maybeFoo2.HasValue);
-			Assert.True(maybeFoo3.HasValue);
-			Assert.Equal(42, maybeFoo3.Value);
+			using var cacheB = new FusionCache(new FusionCacheOptions());
+			cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			cacheB.SetupBackplane(CreateBackplane());
+			cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cacheB.DefaultEntryOptions.Duration = duration;
+			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			using var cacheC = new FusionCache(new FusionCacheOptions());
+			cacheC.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			cacheC.SetupBackplane(CreateBackplane());
+			cacheC.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cacheC.DefaultEntryOptions.Duration = duration;
+			cacheC.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			// SET ON CACHE A
+			await cacheA.SetAsync<int>("foo", 42);
+
+			// GET ON CACHE A
+			var maybeFooA1 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+
+			// GET ON CACHE B (WILL GET FROM DISTRIBUTED CACHE AND SAVE ON LOCAL MEMORY CACHE)
+			var maybeFooB1 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+
+			// NOW CACHE A + B HAVE THE VALUE CACHED IN THEIR LOCAL MEMORY CACHE, WHILE CACHE C DOES NOT
+
+			// EXPIRE ON CACHE A, WHIS WILL:
+			// - EXPIRE ON CACHE A
+			// - REMOVE ON DISTRIBUTED CACHE
+			// - NOTIFY CACHE B AND CACHE C OF THE EXPIRATION AND THAT, IN TURN, WILL:
+			//   - EXPIRE ON CACHE B
+			//   - DO NOTHING ON CACHE C (IT WAS NOT IN ITS MEMORY CACHE)
+			await cacheA.ExpireAsync("foo");
+
+			await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+			// GET ON CACHE A: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
+			var maybeFooA2 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+
+			// GET ON CACHE B: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
+			var maybeFooB2 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+
+			// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
+			var maybeFooC2 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+
+			// GET ON CACHE A: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
+			var maybeFooA3 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+
+			// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
+			var maybeFooB3 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+
+			// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
+			var maybeFooC3 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+
+			Assert.True(maybeFooA1.HasValue);
+			Assert.Equal(42, maybeFooA1.Value);
+
+			Assert.True(maybeFooB1.HasValue);
+			Assert.Equal(42, maybeFooB1.Value);
+
+			Assert.False(maybeFooA2.HasValue);
+			Assert.False(maybeFooB2.HasValue);
+			Assert.False(maybeFooC2.HasValue);
+
+			Assert.True(maybeFooA3.HasValue);
+			Assert.Equal(42, maybeFooA3.Value);
+
+			Assert.True(maybeFooB3.HasValue);
+			Assert.Equal(42, maybeFooB3.Value);
+
+			Assert.False(maybeFooC3.HasValue);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanHandleExpireOnMultiNodes(SerializerType serializerType)
+		{
+			var duration = TimeSpan.FromMinutes(10);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
+			using var cacheA = new FusionCache(new FusionCacheOptions());
+			cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			cacheA.SetupBackplane(CreateBackplane());
+			cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cacheA.DefaultEntryOptions.Duration = duration;
+			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			using var cacheB = new FusionCache(new FusionCacheOptions());
+			cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			cacheB.SetupBackplane(CreateBackplane());
+			cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cacheB.DefaultEntryOptions.Duration = duration;
+			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			using var cacheC = new FusionCache(new FusionCacheOptions());
+			cacheC.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			cacheC.SetupBackplane(CreateBackplane());
+			cacheC.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cacheC.DefaultEntryOptions.Duration = duration;
+			cacheC.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			// SET ON CACHE A
+			cacheA.Set<int>("foo", 42);
+
+			// GET ON CACHE A
+			var maybeFooA1 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+			// GET ON CACHE B (WILL GET FROM DISTRIBUTED CACHE AND SAVE ON LOCAL MEMORY CACHE)
+			var maybeFooB1 = cacheB.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+			// NOW CACHE A + B HAVE THE VALUE CACHED IN THEIR LOCAL MEMORY CACHE, WHILE CACHE C DOES NOT
+
+			// EXPIRE ON CACHE A, WHIS WILL:
+			// - EXPIRE ON CACHE A
+			// - REMOVE ON DISTRIBUTED CACHE
+			// - NOTIFY CACHE B AND CACHE C OF THE EXPIRATION AND THAT, IN TURN, WILL:
+			//   - EXPIRE ON CACHE B
+			//   - DO NOTHING ON CACHE C (IT WAS NOT IN ITS MEMORY CACHE)
+			cacheA.Expire("foo");
+
+			Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
+			// GET ON CACHE A: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
+			var maybeFooA2 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+
+			// GET ON CACHE B: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
+			var maybeFooB2 = cacheB.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+
+			// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
+			var maybeFooC2 = cacheC.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+
+			// GET ON CACHE A: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
+			var maybeFooA3 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+			// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
+			var maybeFooB3 = cacheB.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+			// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
+			var maybeFooC3 = cacheC.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+			Assert.True(maybeFooA1.HasValue);
+			Assert.Equal(42, maybeFooA1.Value);
+
+			Assert.True(maybeFooB1.HasValue);
+			Assert.Equal(42, maybeFooB1.Value);
+
+			Assert.False(maybeFooA2.HasValue);
+			Assert.False(maybeFooB2.HasValue);
+			Assert.False(maybeFooC2.HasValue);
+
+			Assert.True(maybeFooA3.HasValue);
+			Assert.Equal(42, maybeFooA3.Value);
+
+			Assert.True(maybeFooB3.HasValue);
+			Assert.Equal(42, maybeFooB3.Value);
+
+			Assert.False(maybeFooC3.HasValue);
 		}
 	}
 }
