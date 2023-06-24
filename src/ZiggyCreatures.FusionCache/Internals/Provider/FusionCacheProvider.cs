@@ -8,28 +8,12 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 		: IFusionCacheProvider
 	{
 		private readonly IFusionCache? _defaultCache;
-		private readonly IFusionCache[] _namedCaches;
+		private readonly NamedCacheWrapper[] _namedCacheWrappers;
 
 		public FusionCacheProvider(IEnumerable<IFusionCache> defaultCaches, IEnumerable<NamedCacheWrapper> namedCaches)
 		{
 			_defaultCache = defaultCaches.LastOrDefault();
-			_namedCaches = namedCaches.Select(x => x.Cache).ToArray();
-		}
-
-		public IFusionCache GetCache(string cacheName)
-		{
-			if (cacheName == FusionCacheOptions.DefaultCacheName)
-				return _defaultCache ?? throw new InvalidOperationException("No default cache has been registered");
-
-			var matchingCaches = _namedCaches.Where(x => x.CacheName == cacheName).ToArray();
-
-			if (matchingCaches.Length == 1)
-				return matchingCaches[0];
-
-			if (matchingCaches.Length > 1)
-				throw new InvalidOperationException($"Multiple FusionCache registrations have been found with the provided name ({cacheName})");
-
-			throw new ArgumentException($"No FusionCache registration has been found with the provided name ({cacheName})", nameof(cacheName));
+			_namedCacheWrappers = namedCaches.ToArray();
 		}
 
 		public IFusionCache? GetCacheOrNull(string cacheName)
@@ -37,15 +21,29 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 			if (cacheName == FusionCacheOptions.DefaultCacheName)
 				return _defaultCache;
 
-			var matchingCaches = _namedCaches.Where(x => x.CacheName == cacheName).ToArray();
+			var matchingWrappers = _namedCacheWrappers.Where(x => x.CacheName == cacheName).ToArray();
 
-			if (matchingCaches.Length == 1)
-				return matchingCaches[0];
+			if (matchingWrappers.Length == 1)
+				return matchingWrappers[0].Cache;
 
-			if (matchingCaches.Length > 1)
+			if (matchingWrappers.Length > 1)
 				throw new InvalidOperationException($"Multiple FusionCache registrations have been found with the provided name ({cacheName})");
 
 			return null;
+		}
+
+		public IFusionCache GetCache(string cacheName)
+		{
+			var maybeCache = GetCacheOrNull(cacheName);
+
+			if (maybeCache is not null)
+				return maybeCache;
+
+			throw new InvalidOperationException(
+				cacheName == FusionCacheOptions.DefaultCacheName
+				? "No default cache has been registered"
+				: $"No cache has been registered with name ({cacheName})"
+			);
 		}
 	}
 }
