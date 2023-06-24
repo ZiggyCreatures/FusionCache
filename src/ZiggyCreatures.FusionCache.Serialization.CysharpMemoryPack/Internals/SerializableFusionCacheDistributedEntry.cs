@@ -45,6 +45,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		{
 			if (reader.PeekIsNull())
 			{
+				reader.Advance(1);
 				value = null;
 				return;
 			}
