@@ -235,7 +235,7 @@ public class FusionCacheEntryOptions
 	/// <br/>
 	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
-	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
+	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public bool EnableBackplaneNotifications
 	{
 		get { return !SkipBackplaneNotifications; }
@@ -501,7 +501,7 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
-	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
+	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
 	{
 		return SetSkipBackplaneNotifications(!enableBackplaneNotifications);

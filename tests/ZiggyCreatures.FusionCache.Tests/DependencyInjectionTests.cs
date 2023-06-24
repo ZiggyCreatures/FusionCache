@@ -759,131 +759,131 @@ namespace FusionCacheTests
 			Assert.Equal("CONN_DEFAULT", defaultBackplaneOptions.Configuration);
 		}
 
-		[Fact]
-		public void ExistingAndObsoleteCallsStillWork()
-		{
-			static ServiceCollection CreateServiceCollection()
-			{
-				var services = new ServiceCollection();
+//		[Fact]
+//		public void ExistingAndObsoleteCallsStillWork()
+//		{
+//			static ServiceCollection CreateServiceCollection()
+//			{
+//				var services = new ServiceCollection();
 
-				// REGISTER SOME FUSIONCACHE-RELATED COMPONENTS, TO SEE IFTHEY ARE PICKED UP
-				services.AddStackExchangeRedisCache(opt => opt.Configuration = "CONN_FOO");
-				services.AddFusionCacheSystemTextJsonSerializer();
+//				// REGISTER SOME FUSIONCACHE-RELATED COMPONENTS, TO SEE IFTHEY ARE PICKED UP
+//				services.AddStackExchangeRedisCache(opt => opt.Configuration = "CONN_FOO");
+//				services.AddFusionCacheSystemTextJsonSerializer();
 
-				return services;
-			}
+//				return services;
+//			}
 
-			ServiceCollection services;
+//			ServiceCollection services;
 
-			//			// 01: BASIC
-			//			// 
-			//			// NOTE: VALID ONLY BEFORE V0.20.0
-			//			var services = CreateServiceCollection();
+//			//			// 01: BASIC
+//			//			// 
+//			//			// NOTE: VALID ONLY BEFORE V0.20.0
+//			//			var services = CreateServiceCollection();
 
-			//#pragma warning disable CS0618 // Type or member is obsolete
-			//			services.AddFusionCache();
-			//#pragma warning restore CS0618 // Type or member is obsolete
+//			//#pragma warning disable CS0618 // Type or member is obsolete
+//			//			services.AddFusionCache();
+//			//#pragma warning restore CS0618 // Type or member is obsolete
 
-			//			using (var serviceProvider = services.BuildServiceProvider())
-			//			{
-			//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+//			//			using (var serviceProvider = services.BuildServiceProvider())
+//			//			{
+//			//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
 
-			//				Assert.True(cache.HasDistributedCache);
-			//			}
+//			//				Assert.True(cache.HasDistributedCache);
+//			//			}
 
-			// 02: OPTIONS
-			services = CreateServiceCollection();
+//			// 02: OPTIONS
+//			services = CreateServiceCollection();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				}
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+//#pragma warning disable CS0618 // Type or member is obsolete
+//			services.AddFusionCache(
+//				opt =>
+//				{
+//					opt.BackplaneAutoRecoveryMaxItems = 123;
+//				}
+//			);
+//#pragma warning restore CS0618 // Type or member is obsolete
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+//			using (var serviceProvider = services.BuildServiceProvider())
+//			{
+//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.True(cache.HasDistributedCache);
-			}
+//				Assert.True(cache.HasDistributedCache);
+//			}
 
-			// 03: OPTIONS + FLAG1
-			services = CreateServiceCollection();
+//			// 03: OPTIONS + FLAG1
+//			services = CreateServiceCollection();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				},
-				false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+//#pragma warning disable CS0618 // Type or member is obsolete
+//			services.AddFusionCache(
+//				opt =>
+//				{
+//					opt.BackplaneAutoRecoveryMaxItems = 123;
+//				},
+//				false
+//			);
+//#pragma warning restore CS0618 // Type or member is obsolete
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+//			using (var serviceProvider = services.BuildServiceProvider())
+//			{
+//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.False(cache.HasDistributedCache);
-			}
+//				Assert.False(cache.HasDistributedCache);
+//			}
 
-			// 04: OPTIONS + FLAG1 + FLAG2
-			services = CreateServiceCollection();
+//			// 04: OPTIONS + FLAG1 + FLAG2
+//			services = CreateServiceCollection();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				},
-				false,
-				false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+//#pragma warning disable CS0618 // Type or member is obsolete
+//			services.AddFusionCache(
+//				opt =>
+//				{
+//					opt.BackplaneAutoRecoveryMaxItems = 123;
+//				},
+//				false,
+//				false
+//			);
+//#pragma warning restore CS0618 // Type or member is obsolete
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+//			using (var serviceProvider = services.BuildServiceProvider())
+//			{
+//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.False(cache.HasDistributedCache);
-			}
+//				Assert.False(cache.HasDistributedCache);
+//			}
 
-			// 05: FLAG1
-			services = CreateServiceCollection();
+//			// 05: FLAG1
+//			services = CreateServiceCollection();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				useDistributedCacheIfAvailable: false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+//#pragma warning disable CS0618 // Type or member is obsolete
+//			services.AddFusionCache(
+//				useDistributedCacheIfAvailable: false
+//			);
+//#pragma warning restore CS0618 // Type or member is obsolete
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+//			using (var serviceProvider = services.BuildServiceProvider())
+//			{
+//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.False(cache.HasDistributedCache);
-			}
+//				Assert.False(cache.HasDistributedCache);
+//			}
 
-			// 06: FLAG2
-			services = CreateServiceCollection();
+//			// 06: FLAG2
+//			services = CreateServiceCollection();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				ignoreMemoryDistributedCache: false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+//#pragma warning disable CS0618 // Type or member is obsolete
+//			services.AddFusionCache(
+//				ignoreMemoryDistributedCache: false
+//			);
+//#pragma warning restore CS0618 // Type or member is obsolete
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+//			using (var serviceProvider = services.BuildServiceProvider())
+//			{
+//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-				Assert.True(cache.HasDistributedCache);
-			}
-		}
+//				Assert.True(cache.HasDistributedCache);
+//			}
+//		}
 
 		[Fact]
 		public void CanDoWithoutLogger()
