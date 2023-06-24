@@ -124,64 +124,72 @@ public partial class FusionCache
 				// FACTORY
 				TValue? value;
 				bool failSafeActivated = false;
-				Task<TValue?>? factoryTask = null;
 
-				var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
-
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
-
-				var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry);
-
-				try
+				if (isRealFactory == false)
 				{
-					if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
-					{
-						value = await factory(ctx, CancellationToken.None).ConfigureAwait(false);
-					}
-					else
-					{
-						value = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
-					}
-
+					value = await factory(null!, token).ConfigureAwait(false);
 					hasNewValue = true;
+				}
+				else
+				{
+					Task<TValue?>? factoryTask = null;
 
-					// UPDATE ADAPTIVE OPTIONS
-					var maybeNewOptions = ctx.GetOptions();
-					if (maybeNewOptions is not null && options != maybeNewOptions)
-						options = maybeNewOptions;
+					var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
 
-					// UPDATE LASTMODIFIED/ETAG
-					lastModified = ctx.LastModified;
-					etag = ctx.ETag;
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", operationId, key, timeout.ToLogString_Timeout());
 
-					// EVENTS
-					if (isRealFactory)
+					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry);
+
+					try
+					{
+						if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
+						{
+							value = await factory(ctx, CancellationToken.None).ConfigureAwait(false);
+						}
+						else
+						{
+							value = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
+						}
+
+						hasNewValue = true;
+
+						// UPDATE ADAPTIVE OPTIONS
+						var maybeNewOptions = ctx.GetOptions();
+						if (maybeNewOptions is not null && options != maybeNewOptions)
+							options = maybeNewOptions;
+
+						// UPDATE LASTMODIFIED/ETAG
+						lastModified = ctx.LastModified;
+						etag = ctx.ETag;
+
+						// EVENTS
 						_events.OnFactorySuccess(operationId, key);
-				}
-				catch (OperationCanceledException)
-				{
-					throw;
-				}
-				catch (Exception exc)
-				{
-					ProcessFactoryError(operationId, key, exc);
-
-					MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
-
-					var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, true, out failSafeActivated);
-					if (fallbackEntry is not null)
-					{
-						value = fallbackEntry.GetValue<TValue>();
 					}
-					else if (options.IsFailSafeEnabled && failSafeDefaultValue.HasValue)
-					{
-						failSafeActivated = true;
-						value = failSafeDefaultValue;
-					}
-					else
+					catch (OperationCanceledException)
 					{
 						throw;
+					}
+					catch (Exception exc)
+					{
+						ProcessFactoryError(operationId, key, exc);
+
+						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
+
+						var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, true, out failSafeActivated);
+						if (fallbackEntry is not null)
+						{
+							value = fallbackEntry.GetValue<TValue>();
+						}
+						else if (options.IsFailSafeEnabled && failSafeDefaultValue.HasValue)
+						{
+							failSafeActivated = true;
+							value = failSafeDefaultValue;
+						}
+						else
+						{
+							throw;
+						}
 					}
 				}
 
