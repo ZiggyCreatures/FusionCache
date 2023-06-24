@@ -238,14 +238,15 @@ internal static class FusionCacheInternalUtils
 			return (FusionCacheDistributedEntry<TValue>)entry;
 
 		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
+		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static FusionCacheMemoryEntry AsMemoryEntry(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
+	public static FusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
 		if (entry is FusionCacheMemoryEntry)
 			return (FusionCacheMemoryEntry)entry;
 
-		return FusionCacheMemoryEntry.CreateFromOptions(entry.GetValue<object>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
+		return FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(entry, options);
 	}
 
 	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
@@ -332,4 +333,16 @@ internal static class FusionCacheInternalUtils
 
 		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
 	}
+
+	public static bool CanBeUsed(this DistributedCacheAccessor? dca, string? operationId, string? key)
+	{
+		if (dca is null)
+			return false;
+
+		if (dca.IsCurrentlyUsable(operationId, key))
+			return true;
+
+		return false;
+	}
+
 }

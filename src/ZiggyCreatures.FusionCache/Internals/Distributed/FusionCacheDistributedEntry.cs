@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
@@ -87,5 +88,34 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
 
 		return new FusionCacheDistributedEntry<TValue>(value, new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified));
+	}
+
+	/// <summary>
+	/// Creates a new <see cref="FusionCacheMemoryEntry"/> instance from another entry and some options.
+	/// </summary>
+	/// <param name="entry">The source entry.</param>
+	/// <param name="options">The <see cref="FusionCacheEntryOptions"/> object to configure the entry.</param>
+	/// <returns>The newly created entry.</returns>
+	public static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
+	{
+		//if (options.IsFailSafeEnabled == false && entry.Metadata is null && options.EagerRefreshThreshold.HasValue == false)
+		//	return new FusionCacheDistributedEntry<TValue>(entry.GetValue<TValue>(), null);
+
+		var isFromFailSafe = entry.Metadata?.IsFromFailSafe ?? false;
+
+		DateTimeOffset exp;
+
+		if (entry.Metadata is not null)
+		{
+			exp = entry.Metadata.LogicalExpiration;
+		}
+		else
+		{
+			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
+		}
+
+		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
+
+		return new FusionCacheDistributedEntry<TValue>(entry.GetValue<TValue>(), new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified));
 	}
 }

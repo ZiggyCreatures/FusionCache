@@ -103,11 +103,11 @@ public partial class FusionCache
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
-			if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+			if (dca.CanBeUsed(operationId, key))
 			{
 				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
 				{
-					(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
 				}
 			}
 
@@ -188,17 +188,17 @@ public partial class FusionCache
 				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag);
 				isStale = failSafeActivated;
 
-				if ((dca?.IsCurrentlyUsable(operationId, key) ?? false) && failSafeActivated == false)
+				if (dca.CanBeUsed(operationId, key) && failSafeActivated == false)
 				{
 					// SAVE IN THE DISTRIBUTED CACHE (BUT ONLY IF NO FAIL-SAFE HAS BEEN EXECUTED)
-					await dca.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+					await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 				}
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
 			if (entry is not null)
 			{
-				_mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry(options), options);
+				_mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
 			}
 		}
 		finally
@@ -333,7 +333,7 @@ public partial class FusionCache
 		var dca = GetCurrentDistributedAccessor(options);
 
 		// SHORT-CIRCUIT: NO USABLE DISTRIBUTED CACHE
-		if (options.SkipDistributedCacheReadWhenStale || (dca?.IsCurrentlyUsable(operationId, key) ?? false) == false)
+		if (options.SkipDistributedCacheReadWhenStale || dca.CanBeUsed(operationId, key) == false)
 		{
 			if (options.IsFailSafeEnabled && memoryEntry is not null)
 			{
@@ -356,16 +356,21 @@ public partial class FusionCache
 		FusionCacheDistributedEntry<TValue>? distributedEntry;
 		bool distributedEntryIsValid;
 
-		(distributedEntry, distributedEntryIsValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+		(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
 		if (distributedEntryIsValid)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using distributed entry", operationId, key);
 
+			memoryEntry = distributedEntry!.AsMemoryEntry<TValue>(options);
+
+			// SAVING THE DATA IN THE MEMORY CACHE
+			_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+
 			// EVENT
 			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false);
 
-			return distributedEntry;
+			return memoryEntry;
 		}
 
 		if (options.IsFailSafeEnabled)
@@ -378,10 +383,15 @@ public partial class FusionCache
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): using distributed entry (expired)", operationId, key);
 
+				memoryEntry = distributedEntry.AsMemoryEntry<TValue>(options);
+
+				// SAVING THE DATA IN THE MEMORY CACHE
+				_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+
 				// EVENT
 				_events.OnHit(operationId, key, true);
 
-				return distributedEntry;
+				return memoryEntry;
 			}
 
 			// IF MEMORY ENTRY IS THERE -> USE IT
@@ -486,9 +496,9 @@ public partial class FusionCache
 
 		var dca = GetCurrentDistributedAccessor(options);
 
-		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+		if (dca.CanBeUsed(operationId, key))
 		{
-			await dca.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+			await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 		}
 
 		// EVENT
@@ -520,9 +530,9 @@ public partial class FusionCache
 
 		var dca = GetCurrentDistributedAccessor(options);
 
-		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+		if (dca.CanBeUsed(operationId, key))
 		{
-			await dca.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+			await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 		}
 
 		// EVENT
@@ -554,9 +564,9 @@ public partial class FusionCache
 
 		var dca = GetCurrentDistributedAccessor(options);
 
-		if (dca?.IsCurrentlyUsable(operationId, key) ?? false)
+		if (dca.CanBeUsed(operationId, key))
 		{
-			await dca.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+			await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 		}
 
 		// EVENT
