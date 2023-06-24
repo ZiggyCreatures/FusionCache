@@ -87,6 +87,9 @@ public partial class FusionCache
 
 		// BACKPLANE
 		_bpa = null;
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.LogDebug("FUSION: Instance created with name {CacheName}", _options.CacheName);
 	}
 
 	/// <inheritdoc/>

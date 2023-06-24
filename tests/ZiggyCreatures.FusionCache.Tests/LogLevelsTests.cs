@@ -30,7 +30,7 @@ namespace FusionCacheTests
 				cache.GetOrSet<int>("qux", _ => throw new Exception("Sloths!"), 123, opt => opt.SetFailSafe(true));
 			}
 
-			Assert.Equal(20, logger.Items.Count);
+			Assert.Equal(21, logger.Items.Count);
 			Assert.Single(logger.Items.Where(x => x.LogLevel == LogLevel.Warning));
 		}
 
