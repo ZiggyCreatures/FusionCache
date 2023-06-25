@@ -299,7 +299,7 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
-	internal void ExpireMemoryInternal(string key, bool allowFailSafe)
+	internal void ExpireMemoryEntryInternal(string key, bool allowFailSafe)
 	{
 		ValidateCacheKey(key);
 
