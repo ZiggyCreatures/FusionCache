@@ -18,7 +18,7 @@ internal partial class BackplaneAccessor
 		var actionDescriptionInner = actionDescription + (options.AllowBackgroundBackplaneOperations ? " (background)" : null);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, _cache.CacheName, operationId, key);
 
 		await FusionCacheExecutionUtils
 			.RunAsyncActionAdvancedAsync(
@@ -47,7 +47,7 @@ internal partial class BackplaneAccessor
 		{
 			// IGNORE MESSAGES -NOT- FROM THIS SOURCE
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " with a SourceId different than the local one (IFusionCache.InstanceId)", operationId, message.CacheKey);
+				_logger.Log(LogLevel.Warning, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " with a SourceId different than the local one (IFusionCache.InstanceId)", _cache.CacheName, operationId, message.CacheKey);
 
 			return false;
 		}
@@ -56,7 +56,7 @@ internal partial class BackplaneAccessor
 		{
 			// IGNORE INVALID MESSAGES
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty), operationId, message.CacheKey);
+				_logger.Log(LogLevel.Warning, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty), _cache.CacheName, operationId, message.CacheKey);
 
 			return false;
 		}

@@ -3094,31 +3094,34 @@
             Represents one of the core pieces of an instance of an <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLockAsync(System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLockAsync(System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
             <summary>
             Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
             </summary>
+            <param name="cacheName">The name of the FusionCache instance.</param>
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+            <returns>The acquired genericlock object, later released when the critical section is over.</returns>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The acquired genericlock object, later released when the critical section is over.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLock(System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLock(System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
             </summary>
+            <param name="cacheName">The name of the FusionCache instance.</param>
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
-            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
             <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.ReleaseLock(System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.ReleaseLock(System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Release the generic lock object.
             </summary>
+            <param name="cacheName">The name of the FusionCache instance.</param>
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="lockObj">The generic lock object to release.</param>

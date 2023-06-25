@@ -38,7 +38,7 @@ internal sealed class FusionCacheReactorProbabilistic
 	}
 
 	// ACQUIRE LOCK ASYNC
-	public async ValueTask<object?> AcquireLockAsync(string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public async ValueTask<object?> AcquireLockAsync(string cacheName, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		token.ThrowIfCancellationRequested();
 
@@ -46,89 +46,89 @@ internal sealed class FusionCacheReactorProbabilistic
 		var semaphore = _lockPool[idx];
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", cacheName, operationId, key);
 
 		var acquired = semaphore.Wait(0);
 		if (acquired)
 		{
 			_lockPoolKeys[idx] = key;
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", cacheName, operationId, key);
 
 			return semaphore;
 		}
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK already taken", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK already taken", cacheName, operationId, key);
 
 		var key2 = _lockPoolKeys[idx];
 		if (key2 != key)
 		{
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", cacheName, operationId, key);
 
 			Interlocked.Increment(ref _lockPoolCollisions);
 		}
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, operationId, key);
 
 		acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
 		_lockPoolKeys[idx] = key;
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, operationId, key);
 
 		return acquired ? semaphore : null;
 	}
 
 	// ACQUIRE LOCK
-	public object? AcquireLock(string key, string operationId, TimeSpan timeout, ILogger? logger)
+	public object? AcquireLock(string cacheName, string key, string operationId, TimeSpan timeout, ILogger? logger)
 	{
 		var idx = GetLockIndex(key);
 		var semaphore = _lockPool[idx];
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", cacheName, operationId, key);
 
 		var acquired = semaphore.Wait(0);
 		if (acquired)
 		{
 			_lockPoolKeys[idx] = key;
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", cacheName, operationId, key);
 
 			return semaphore;
 		}
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK already taken", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK already taken", cacheName, operationId, key);
 
 		var key2 = _lockPoolKeys[idx];
 		if (key2 != key)
 		{
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", cacheName, operationId, key);
 
 			Interlocked.Increment(ref _lockPoolCollisions);
 		}
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, operationId, key);
 
 		acquired = semaphore.Wait(timeout);
 
 		_lockPoolKeys[idx] = key;
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, operationId, key);
 
 		return acquired ? semaphore : null;
 	}
 
 	// RELEASE LOCK ASYNC
-	public void ReleaseLock(string key, string operationId, object? lockObj, ILogger? logger)
+	public void ReleaseLock(string cacheName, string key, string operationId, object? lockObj, ILogger? logger)
 	{
 		if (lockObj is null)
 			return;
@@ -143,7 +143,7 @@ internal sealed class FusionCacheReactorProbabilistic
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
+				logger.Log(LogLevel.Warning, exc, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", cacheName, operationId, key);
 		}
 	}
 

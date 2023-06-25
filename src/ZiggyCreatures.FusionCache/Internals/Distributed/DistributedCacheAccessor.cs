@@ -72,7 +72,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -86,7 +86,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): distributed cache activated again", operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): distributed cache activated again", _options.CacheName, operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);
@@ -101,7 +101,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (exc is SyntheticTimeoutException)
 		{
 			if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
-				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, operationId, key);
+				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, _options.CacheName, operationId, key);
 
 			return;
 		}
@@ -109,6 +109,6 @@ internal sealed partial class DistributedCacheAccessor
 		UpdateLastError(key, operationId);
 
 		if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
-			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
+			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _options.CacheName, operationId, key);
 	}
 }

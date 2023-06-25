@@ -51,7 +51,7 @@ internal sealed partial class BackplaneAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", _cache.CacheName, operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -65,7 +65,7 @@ internal sealed partial class BackplaneAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): backplane activated again", operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): backplane activated again", _cache.CacheName, operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);
@@ -79,7 +79,7 @@ internal sealed partial class BackplaneAccessor
 		if (exc is SyntheticTimeoutException)
 		{
 			if (_logger?.IsEnabled(_options.BackplaneSyntheticTimeoutsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneSyntheticTimeoutsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, operationId, key);
+				_logger.Log(_options.BackplaneSyntheticTimeoutsLogLevel, exc, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, _cache.CacheName, operationId, key);
 
 			return;
 		}
@@ -87,7 +87,7 @@ internal sealed partial class BackplaneAccessor
 		UpdateLastError(key, operationId);
 
 		if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
+			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _cache.CacheName, operationId, key);
 	}
 
 	private bool TryAddAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options)
@@ -123,14 +123,14 @@ internal sealed partial class BackplaneAccessor
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, exc, "FUSION: an error occurred while deciding which item in the backplane auto-recovery queue to remove to make space for a new one");
+					_logger.Log(LogLevel.Error, exc, "FUSION [{CacheName}]: an error occurred while deciding which item in the backplane auto-recovery queue to remove to make space for a new one", _cache.CacheName);
 			}
 		}
 
 		_autoRecoveryQueue[message.CacheKey] = (message, options);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", message.CacheKey);
+			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", _cache.CacheName, message.CacheKey);
 
 		return true;
 	}
@@ -158,7 +158,7 @@ internal sealed partial class BackplaneAccessor
 				// NOTE: THE COUNT USAGE HERE IN THE LOG IS JUST AN INDICATION: PER THE MULTI-THREADED NATURE OF THIS THING
 				// IT'S OK IF THE NUMBER IS SINCE CHANGED AND IN THE FOREACH LOOP WE WILL ITERATE OVER MORE (OR LESS) ITEMS
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION: starting backplane auto-recovery of about {Count} pending notifications", _count);
+					_logger.Log(LogLevel.Debug, "FUSION [{CacheName}]: starting backplane auto-recovery of about {Count} pending notifications", _cache.CacheName, _count);
 
 				_count = 0;
 				foreach (var item in _autoRecoveryQueue)
@@ -175,14 +175,14 @@ internal sealed partial class BackplaneAccessor
 					{
 						// IF A PUBLISH DOESN'T GO THROUGH -> STOP PROCESSING THE QUEUE
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _operationId, item.Value.Message.CacheKey, _count);
+							_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _operationId, item.Value.Message.CacheKey, _count);
 
 						return;
 					}
 				}
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION: completed backplane auto-recovery of {Count} items", _count);
+					_logger.Log(LogLevel.Debug, "FUSION [{CacheName}]: completed backplane auto-recovery of {Count} items", _cache.CacheName, _count);
 			}
 			finally
 			{
