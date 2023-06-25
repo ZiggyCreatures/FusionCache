@@ -43,7 +43,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			Log.Logger = new LoggerConfiguration()
 				.MinimumLevel.Is(minLevel)
 				.Enrich.FromLogContext()
-				.WriteTo.Console()
+				.WriteTo.Console(
+					outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}{Properties}{NewLine}"
+				)
 				.CreateLogger()
 			;
 
