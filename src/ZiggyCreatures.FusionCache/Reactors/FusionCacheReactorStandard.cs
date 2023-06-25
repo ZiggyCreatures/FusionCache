@@ -66,7 +66,7 @@ internal sealed class FusionCacheReactorStandard
 				catch (Exception exc)
 				{
 					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-						logger.LogWarning(exc, "FUSION (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the reactor", key);
+						logger.Log(LogLevel.Warning, exc, "FUSION (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the reactor", key);
 				}
 			});
 
@@ -82,7 +82,7 @@ internal sealed class FusionCacheReactorStandard
 		var semaphore = GetSemaphore(key, operationId, logger);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
@@ -90,13 +90,13 @@ internal sealed class FusionCacheReactorStandard
 		{
 			// LOCK ACQUIRED
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 		}
 		else
 		{
 			// LOCK TIMEOUT
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
 		}
 
 		return acquired ? semaphore : null;
@@ -108,7 +108,7 @@ internal sealed class FusionCacheReactorStandard
 		var semaphore = GetSemaphore(key, operationId, logger);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 		var acquired = semaphore.Wait(timeout);
 
@@ -116,13 +116,13 @@ internal sealed class FusionCacheReactorStandard
 		{
 			// LOCK ACQUIRED
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 		}
 		else
 		{
 			// LOCK TIMEOUT
 			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
+				logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK timeout", operationId, key);
 		}
 
 		return acquired ? semaphore : null;
@@ -141,7 +141,7 @@ internal sealed class FusionCacheReactorStandard
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.LogWarning(exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
+				logger.Log(LogLevel.Warning, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
 		}
 	}
 

@@ -17,7 +17,7 @@ internal partial class BackplaneAccessor
 		var actionDescriptionInner = actionDescription + (options.AllowBackgroundBackplaneOperations ? " (background)" : null);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, operationId, key);
 
 		FusionCacheExecutionUtils
 			.RunSyncActionAdvanced(
@@ -73,7 +73,7 @@ internal partial class BackplaneAccessor
 
 					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
 					{
-						ProcessAutoRecoveryQueue();
+						TryProcessAutoRecoveryQueue();
 					}
 				}
 				catch

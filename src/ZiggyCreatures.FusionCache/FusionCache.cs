@@ -88,8 +88,8 @@ public partial class FusionCache
 		// BACKPLANE
 		_bpa = null;
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION [{CacheName} - {CacheInstanceId}]: instance created", _options.CacheName, InstanceId);
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [{CacheName} - {CacheInstanceId}]: instance created", _options.CacheName, InstanceId);
 	}
 
 	/// <inheritdoc/>
@@ -145,7 +145,7 @@ public partial class FusionCache
 		{
 			if (allowFailSafeActivation)
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", operationId, key);
+					_logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", operationId, key);
 			if (distributedEntry is not null)
 			{
 				if (allowFailSafeActivation)
@@ -180,7 +180,7 @@ public partial class FusionCache
 			{
 				if (allowFailSafeActivation)
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
+						_logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", operationId, key);
 				return null;
 			}
 		}
@@ -188,7 +188,7 @@ public partial class FusionCache
 		{
 			if (allowFailSafeActivation)
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", operationId, key);
+					_logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", operationId, key);
 			return null;
 		}
 	}
@@ -220,7 +220,7 @@ public partial class FusionCache
 
 		// CONTINUE IN THE BACKGROUND TO TRY TO KEEP THE RESULT AS SOON AS IT WILL COMPLETE SUCCESSFULLY
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): trying to complete a background factory", operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): trying to complete a background factory", operationId, key);
 
 		_ = factoryTask.ContinueWith(antecedent =>
 		{
@@ -235,7 +235,7 @@ public partial class FusionCache
 			else if (antecedent.Status == TaskStatus.RanToCompletion)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): a background factory successfully completed, keeping the result", operationId, key);
+					_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): a background factory successfully completed, keeping the result", operationId, key);
 
 				// UPDATE ADAPTIVE OPTIONS
 				var maybeNewOptions = ctx.GetOptions();
@@ -262,19 +262,19 @@ public partial class FusionCache
 			return;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): releasing LOCK", operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): releasing LOCK", operationId, key);
 
 		try
 		{
 			_reactor.ReleaseLock(key, operationId, lockObj, _logger);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK released", operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK released", operationId, key);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning(exc, "FUSION (O={CacheOperationId} K={CacheKey}): releasing the LOCK has thrown an exception", operationId, key);
+				_logger.Log(LogLevel.Warning, exc, "FUSION (O={CacheOperationId} K={CacheKey}): releasing the LOCK has thrown an exception", operationId, key);
 		}
 	}
 
@@ -309,7 +309,7 @@ public partial class FusionCache
 		var operationId = GenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryInternal (allowFailSafe={AllowFailSafe})", operationId, key, allowFailSafe);
+			_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryInternal (allowFailSafe={AllowFailSafe})", operationId, key, allowFailSafe);
 
 		_mca.ExpireEntry(operationId, key, allowFailSafe);
 	}
@@ -326,7 +326,7 @@ public partial class FusionCache
 		_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
+			_logger.Log(LogLevel.Debug, "FUSION: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", distributedCache.GetType().FullName, serializer.GetType().FullName);
 
 		return this;
 	}
@@ -337,7 +337,7 @@ public partial class FusionCache
 		_dca = null;
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION: distributed cache removed");
+			_logger.Log(LogLevel.Debug, "FUSION: distributed cache removed");
 
 		return this;
 	}
@@ -365,7 +365,7 @@ public partial class FusionCache
 			_bpa.Subscribe();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
+				_logger.Log(LogLevel.Debug, "FUSION: setup backplane (BACKPLANE={BackplaneType})", backplane.GetType().FullName);
 		}
 
 		// CHECK: WARN THE USER IN CASE OF
@@ -376,7 +376,7 @@ public partial class FusionCache
 		if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.SkipBackplaneNotifications == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", backplane.GetType().FullName);
+				_logger.Log(LogLevel.Warning, "FUSION: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", backplane.GetType().FullName);
 		}
 
 		return this;
@@ -393,7 +393,7 @@ public partial class FusionCache
 				_bpa = null;
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION: backplane removed");
+					_logger.Log(LogLevel.Debug, "FUSION: backplane removed");
 			}
 		}
 

@@ -51,7 +51,7 @@ internal sealed partial class BackplaneAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -65,7 +65,7 @@ internal sealed partial class BackplaneAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): backplane activated again", operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): backplane activated again", operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);
@@ -135,17 +135,20 @@ internal sealed partial class BackplaneAccessor
 		return true;
 	}
 
-	private void ProcessAutoRecoveryQueue()
+	private bool TryProcessAutoRecoveryQueue()
 	{
+		if (_options.EnableBackplaneAutoRecovery == false)
+			return false;
+
 		var _count = _autoRecoveryQueue.Count;
 		if (_count == 0)
-			return;
+			return false;
 
 		// ACQUIRE THE LOCK
 		if (_autoRecoveryLock.Wait(0) == false)
 		{
 			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY, SOMEONE ELSE IS ALREADY PROCESSING THE QUEUE, SO WE JUST RETURN
-			return;
+			return false;
 		}
 
 		_ = Task.Run(async () =>
@@ -187,6 +190,8 @@ internal sealed partial class BackplaneAccessor
 				_autoRecoveryLock.Release();
 			}
 		});
+
+		return true;
 	}
 
 	private bool CheckIncomingMessageForAutoRecoveryConflicts(BackplaneMessage message)
@@ -219,7 +224,7 @@ internal sealed partial class BackplaneAccessor
 			new BackplaneSubscriptionOptions
 			{
 				ChannelName = _options.GetBackplaneChannelName(),
-				Handler = ProcessMessage
+				Handler = HandleIncomingMessage
 			}
 		);
 	}
@@ -229,7 +234,7 @@ internal sealed partial class BackplaneAccessor
 		_backplane.Unsubscribe();
 	}
 
-	private void ProcessMessage(BackplaneMessage message)
+	private void HandleIncomingMessage(BackplaneMessage message)
 	{
 		// IGNORE INVALID MESSAGES
 		if (message is null)
@@ -246,12 +251,16 @@ internal sealed partial class BackplaneAccessor
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
 				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [{CacheName} - {CacheInstanceId}] (K={CacheKey}): an invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstanceTicks})", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId, message.Action, message.InstantTicks);
 
+			TryProcessAutoRecoveryQueue();
 			return;
 		}
 
 		// IGNORE MESSAGES FROM THIS SOURCE
 		if (message.SourceId == _cache.InstanceId)
+		{
+			TryProcessAutoRecoveryQueue();
 			return;
+		}
 
 		// AUTO-RECOVERY
 		if (_options.EnableBackplaneAutoRecovery)
@@ -261,11 +270,11 @@ internal sealed partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [{CacheName} - {CacheInstanceId}] (K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been discarded since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
 
-				ProcessAutoRecoveryQueue();
+				TryProcessAutoRecoveryQueue();
 				return;
 			}
 
-			ProcessAutoRecoveryQueue();
+			TryProcessAutoRecoveryQueue();
 		}
 
 		// PROCESS MESSAGE

@@ -72,7 +72,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -86,7 +86,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): distributed cache activated again", operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION (O={CacheOperationId} K={CacheKey}): distributed cache activated again", operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);

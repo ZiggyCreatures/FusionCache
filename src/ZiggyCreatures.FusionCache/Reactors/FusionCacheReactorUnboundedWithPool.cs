@@ -67,12 +67,12 @@ internal sealed class FusionCacheReactorUnboundedWithPool
 		var semaphore = GetSemaphore(key, operationId, logger);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 
 		return acquired ? semaphore : null;
 	}
@@ -83,12 +83,12 @@ internal sealed class FusionCacheReactorUnboundedWithPool
 		var semaphore = GetSemaphore(key, operationId, logger);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", operationId, key);
 
 		var acquired = semaphore.Wait(timeout);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
+			logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): LOCK acquired", operationId, key);
 
 		return acquired ? semaphore : null;
 	}
@@ -106,7 +106,7 @@ internal sealed class FusionCacheReactorUnboundedWithPool
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.LogWarning(exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
+				logger.Log(LogLevel.Warning, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", operationId, key);
 		}
 	}
 

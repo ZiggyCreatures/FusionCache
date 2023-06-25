@@ -19,9 +19,9 @@ internal partial class DistributedCacheAccessor
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 		{
 			if (distributedOptions is null)
-				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, operationId, key);
 			else
-				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner + " {DistributedOptions}", operationId, key, distributedOptions.ToLogString());
+				_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner + " {DistributedOptions}", operationId, key, distributedOptions.ToLogString());
 		}
 
 		FusionCacheExecutionUtils
@@ -100,7 +100,7 @@ internal partial class DistributedCacheAccessor
 			return (null, false);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to get entry from distributed", operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION (O={CacheOperationId} K={CacheKey}): trying to get entry from distributed", operationId, key);
 
 		// GET FROM DISTRIBUTED CACHE
 		byte[]? data;
@@ -131,19 +131,19 @@ internal partial class DistributedCacheAccessor
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): distributed entry not found", operationId, key);
+					_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): distributed entry not found", operationId, key);
 			}
 			else
 			{
 				if (entry.IsLogicallyExpired())
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", operationId, key, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", operationId, key, entry.ToLogString());
 				}
 				else
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", operationId, key, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", operationId, key, entry.ToLogString());
 
 					isValid = true;
 				}
