@@ -229,27 +229,20 @@ internal sealed partial class BackplaneAccessor
 
 	private void ProcessMessage(BackplaneMessage message)
 	{
-		// AUTO-RECOVERY
-		if (_options.EnableBackplaneAutoRecovery)
+		// IGNORE INVALID MESSAGES
+		if (message is null)
 		{
-			if (CheckIncomingMessageForAutoRecoveryConflicts(message) == false)
-			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey}, but has been discarded since there is a newer pending one in the auto-recovery queue", message.CacheKey);
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [{CacheName} {CacheInstanceId}]: A null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId);
 
-				ProcessAutoRecoveryQueue();
-
-				return;
-			}
-
-			ProcessAutoRecoveryQueue();
+			return;
 		}
 
 		// IGNORE INVALID MESSAGES
-		if (message is null || message.IsValid() == false)
+		if (message.IsValid() == false)
 		{
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "An invalid message has been received on the backplane from cache {CacheInstanceId} for key {CacheKey} and action {Action}", message?.SourceId, message?.CacheKey, message?.Action);
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [{CacheName} {CacheInstanceId}] (K={CacheKey}): An invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstanceTicks})", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId, message.Action, message.InstantTicks);
 
 			return;
 		}
@@ -258,29 +251,45 @@ internal sealed partial class BackplaneAccessor
 		if (message.SourceId == _cache.InstanceId)
 			return;
 
+		// AUTO-RECOVERY
+		if (_options.EnableBackplaneAutoRecovery)
+		{
+			if (CheckIncomingMessageForAutoRecoveryConflicts(message) == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [{CacheName} {CacheInstanceId}] (K={CacheKey}): A backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been discarded since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
+
+				ProcessAutoRecoveryQueue();
+				return;
+			}
+
+			ProcessAutoRecoveryQueue();
+		}
+
+		// PROCESS MESSAGE
 		switch (message.Action)
 		{
 			case BackplaneMessageAction.EntrySet:
-				_cache.ExpireMemoryInternal(message.CacheKey!, true);
+				_cache.ExpireMemoryEntryInternal(message.CacheKey!, true);
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (SET)", message.CacheKey);
+					_logger.Log(LogLevel.Debug, "FUSION [{CacheName} {CacheInstanceId}] (K={CacheKey}): A backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
 				break;
 			case BackplaneMessageAction.EntryRemove:
-				_cache.ExpireMemoryInternal(message.CacheKey!, false);
+				_cache.ExpireMemoryEntryInternal(message.CacheKey!, false);
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (REMOVE)", message.CacheKey);
+					_logger.Log(LogLevel.Debug, "FUSION [{CacheName} {CacheInstanceId}] (K={CacheKey}): A backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
 				break;
 			case BackplaneMessageAction.EntryExpire:
-				_cache.ExpireMemoryInternal(message.CacheKey!, true);
+				_cache.ExpireMemoryEntryInternal(message.CacheKey!, true);
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (EXPIRE)", message.CacheKey);
+					_logger.Log(LogLevel.Debug, "FUSION [{CacheName} {CacheInstanceId}] (K={CacheKey}): A backplane notification has been received from remote cache {RemoteCacheInstanceId} (EXPIRE)", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
 				break;
 			default:
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, "An unknown backplane notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
+					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [{CacheName} {CacheInstanceId}] (K={CacheKey}): An backplane notification has been received from remote cache {RemoteCacheInstanceId} for an unknown action {Action}", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId, message.Action);
 				break;
 		}
 
