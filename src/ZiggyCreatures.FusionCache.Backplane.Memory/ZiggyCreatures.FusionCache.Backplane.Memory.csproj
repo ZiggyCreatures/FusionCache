@@ -12,7 +12,10 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.Memory</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.Memory.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- Better log messages
+			- Dependencies update
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
