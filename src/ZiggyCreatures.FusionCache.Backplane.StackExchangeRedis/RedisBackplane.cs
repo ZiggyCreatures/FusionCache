@@ -191,13 +191,13 @@ public class RedisBackplane
 		if (receivedCount == 0)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): An error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
+				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): an error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
 
 			return;
 		}
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): A notification has been sent ({Action})", message.CacheKey, message.Action);
+			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): a notification has been sent ({Action})", message.CacheKey, message.Action);
 	}
 
 	/// <inheritdoc/>
@@ -214,13 +214,13 @@ public class RedisBackplane
 		if (receivedCount == 0)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): An error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
+				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): an error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
 
 			return;
 		}
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): A notification has been sent ({Action})", message.CacheKey, message.Action);
+			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): a notification has been sent ({Action})", message.CacheKey, message.Action);
 	}
 
 	private static BackplaneMessage? FromRedisValue(RedisValue value, ILogger? logger)
@@ -240,7 +240,7 @@ public class RedisBackplane
 			if (version != 0)
 			{
 				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.Log(LogLevel.Warning, "FUSION: The version header does not have the expected value of 0 (zero): instead the value is " + version);
+					logger.Log(LogLevel.Warning, "FUSION: the version header does not have the expected value of 0 (zero): instead the value is " + version);
 				return null;
 			}
 			pos++;
@@ -270,7 +270,7 @@ public class RedisBackplane
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION: An error occurred while converting a RedisValue into a BackplaneMessage");
+				logger.Log(LogLevel.Warning, exc, "FUSION: an error occurred while converting a RedisValue into a BackplaneMessage");
 		}
 
 		return null;
@@ -323,7 +323,7 @@ public class RedisBackplane
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION: An error occurred while converting a BackplaneMessage into a RedisValue");
+				logger.Log(LogLevel.Warning, exc, "FUSION: an error occurred while converting a BackplaneMessage into a RedisValue");
 		}
 
 		return RedisValue.Null;

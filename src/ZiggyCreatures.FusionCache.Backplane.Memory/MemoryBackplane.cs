@@ -111,7 +111,7 @@ public class MemoryBackplane
 			throw new NullReferenceException("Something went wrong :-|");
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): A backplane notification has been sent", message.CacheKey);
+			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): a backplane notification has been sent", message.CacheKey);
 
 		foreach (var backplane in _backplanes)
 		{
