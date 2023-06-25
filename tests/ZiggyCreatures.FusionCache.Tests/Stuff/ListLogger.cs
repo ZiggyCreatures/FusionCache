@@ -7,7 +7,6 @@ namespace FusionCacheTests.Stuff
 	internal class ListLogger<T>
 		: ILogger<T>
 	{
-
 		internal class Scope : IDisposable
 		{
 			public void Dispose()

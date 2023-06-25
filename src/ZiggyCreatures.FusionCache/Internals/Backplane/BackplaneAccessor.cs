@@ -18,7 +18,7 @@ internal sealed partial class BackplaneAccessor
 	private readonly FusionCacheBackplaneEventsHub _events;
 	private readonly SimpleCircuitBreaker _breaker;
 	private readonly SemaphoreSlim _autoRecoveryLock = new SemaphoreSlim(1, 1);
-	private ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)> _autoRecoveryQueue = new ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)>();
+	private readonly ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)> _autoRecoveryQueue = new ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)>();
 
 	public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
 	{
@@ -118,7 +118,6 @@ internal sealed partial class BackplaneAccessor
 						return false;
 					}
 				}
-
 			}
 			catch (Exception exc)
 			{

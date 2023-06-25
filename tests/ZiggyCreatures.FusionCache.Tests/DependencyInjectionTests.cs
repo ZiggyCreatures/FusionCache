@@ -838,7 +838,6 @@ namespace FusionCacheTests
 		//			//			{
 		//			//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-
 		//			//				Assert.True(cache.HasDistributedCache);
 		//			//			}
 

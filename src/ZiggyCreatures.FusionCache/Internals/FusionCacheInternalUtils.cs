@@ -344,5 +344,4 @@ internal static class FusionCacheInternalUtils
 
 		return false;
 	}
-
 }

@@ -77,7 +77,7 @@ internal partial class DistributedCacheAccessor
 		ExecuteOperation(
 			operationId,
 			key,
-			ct =>
+			_ =>
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", _options.CacheName, operationId, key, distributedEntry.ToLogString());

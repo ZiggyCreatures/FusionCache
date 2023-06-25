@@ -9,7 +9,6 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 	[Config(typeof(Config))]
 	public class OperationIdGenerationBenchmark
 	{
-
 		private class Config : ManualConfig
 		{
 			public Config()

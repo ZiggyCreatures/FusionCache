@@ -10,7 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 public class FusionCacheSystemTextJsonSerializer
 	: IFusionCacheSerializer
 {
-
 	/// <summary>
 	/// Create a new instance of a <see cref="FusionCacheSystemTextJsonSerializer"/> object.
 	/// </summary>
@@ -52,6 +51,4 @@ public class FusionCacheSystemTextJsonSerializer
 			return await JsonSerializer.DeserializeAsync<T>(stream, Options);
 		}
 	}
-
 }
-
