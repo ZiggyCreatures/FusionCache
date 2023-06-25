@@ -90,10 +90,10 @@ internal sealed partial class BackplaneAccessor
 			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
 	}
 
-	private void AddAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options)
+	private bool TryAddAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options)
 	{
 		if (message.CacheKey is null)
-			return;
+			return false;
 
 		if (_options.BackplaneAutoRecoveryMaxItems.HasValue && _autoRecoveryQueue.Count >= _options.BackplaneAutoRecoveryMaxItems.Value && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
 		{
@@ -115,7 +115,7 @@ internal sealed partial class BackplaneAccessor
 					else
 					{
 						// IGNORE THE NEW ITEM
-						return;
+						return false;
 					}
 				}
 
@@ -131,6 +131,8 @@ internal sealed partial class BackplaneAccessor
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", message.CacheKey);
+
+		return true;
 	}
 
 	private void ProcessAutoRecoveryQueue()

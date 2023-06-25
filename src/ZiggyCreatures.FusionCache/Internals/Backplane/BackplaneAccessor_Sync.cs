@@ -80,7 +80,7 @@ internal partial class BackplaneAccessor
 				{
 					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
 					{
-						AddAutoRecoveryItem(message, options);
+						TryAddAutoRecoveryItem(message, options);
 					}
 
 					throw;
@@ -89,7 +89,7 @@ internal partial class BackplaneAccessor
 				// EVENT
 				_events.OnMessagePublished(operationId, message);
 			},
-			"sending backplane notification" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty),
+			"sending a backplane notification" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty),
 			options,
 			token
 		);
