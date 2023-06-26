@@ -46,6 +46,8 @@ public class FusionCacheEntryOptions
 
 		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
 		SkipDistributedCacheReadWhenStale = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale;
+
+		SkipMemoryCache = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache;
 	}
 
 	/// <summary>
@@ -279,6 +281,15 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public bool SkipDistributedCacheReadWhenStale { get; set; }
+
+	/// <summary>
+	/// Skip the usage of the memory cache.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipMemoryCache { get; set; }
 
 	internal bool IsSafeForAdaptiveCaching { get; set; }
 
@@ -550,6 +561,21 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the <see cref="SkipMemoryCache"/> option.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipMemoryCache"/> property.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipMemoryCache(bool skip = true)
+	{
+		SkipMemoryCache = skip;
+		return this;
+	}
+
+	/// <summary>
 	/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
 	/// </summary>
 	/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
@@ -750,7 +776,9 @@ public class FusionCacheEntryOptions
 			SkipBackplaneNotifications = SkipBackplaneNotifications,
 
 			SkipDistributedCache = SkipDistributedCache,
-			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale
+			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
+
+			SkipMemoryCache = SkipMemoryCache,
 		};
 	}
 

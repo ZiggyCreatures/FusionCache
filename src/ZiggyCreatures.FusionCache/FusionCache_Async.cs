@@ -20,12 +20,14 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		FusionCacheMemoryEntry? memoryEntry;
-		bool memoryEntryIsValid;
+		FusionCacheMemoryEntry? memoryEntry = null;
+		bool memoryEntryIsValid = false;
 		object? lockObj = null;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
-		(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry<TValue>(operationId, key);
+		var mca = GetCurrentMemoryAccessor(options);
+		if (mca is not null)
+			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
 
 		IFusionCacheEntry? entry;
 		bool isStale;
@@ -53,7 +55,7 @@ public partial class FusionCache
 				else
 				{
 					// EXECUTE EAGER REFRESH
-					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, dca, memoryEntry, lockObj, token);
+					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, lockObj, token);
 				}
 			}
 
@@ -87,7 +89,8 @@ public partial class FusionCache
 			}
 
 			// TRY AGAIN WITH MEMORY CACHE (AFTER THE LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
-			(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry<TValue>(operationId, key);
+			if (mca is not null)
+				(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
 			if (memoryEntryIsValid)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -174,7 +177,7 @@ public partial class FusionCache
 					{
 						ProcessFactoryError(operationId, key, exc);
 
-						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, token);
+						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, token);
 
 						var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, true, out failSafeActivated);
 						if (fallbackEntry is not null)
@@ -206,7 +209,8 @@ public partial class FusionCache
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
 			if (entry is not null)
 			{
-				_mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
+				if (mca is not null)
+					mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
 			}
 		}
 		finally
@@ -237,7 +241,7 @@ public partial class FusionCache
 		return entry;
 	}
 
-	private Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
+	private Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, operationId, key);
@@ -249,7 +253,7 @@ public partial class FusionCache
 
 		var factoryTask = factory(ctx, token);
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, lockObj, token);
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, lockObj, token);
 
 		return Task.CompletedTask;
 	}
@@ -322,11 +326,14 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		FusionCacheMemoryEntry? memoryEntry;
-		bool memoryEntryIsValid;
+		FusionCacheMemoryEntry? memoryEntry = null;
+		bool memoryEntryIsValid = false;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
-		(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry<TValue>(operationId, key);
+		var mca = GetCurrentMemoryAccessor(options);
+		if (mca is not null)
+			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+
 		if (memoryEntryIsValid)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -373,7 +380,8 @@ public partial class FusionCache
 			memoryEntry = distributedEntry!.AsMemoryEntry<TValue>(options);
 
 			// SAVING THE DATA IN THE MEMORY CACHE
-			_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+			if (mca is not null)
+				mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
 
 			// EVENT
 			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false);
@@ -394,7 +402,8 @@ public partial class FusionCache
 				memoryEntry = distributedEntry.AsMemoryEntry<TValue>(options);
 
 				// SAVING THE DATA IN THE MEMORY CACHE
-				_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+				if (mca is not null)
+					mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
 
 				// EVENT
 				_events.OnHit(operationId, key, true);
@@ -500,7 +509,10 @@ public partial class FusionCache
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
 		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null);
 
-		_mca.SetEntry<TValue>(operationId, key, entry, options);
+		var mca = GetCurrentMemoryAccessor(options);
+
+		if (mca is not null)
+			mca.SetEntry<TValue>(operationId, key, entry, options);
 
 		var dca = GetCurrentDistributedAccessor(options);
 
@@ -534,10 +546,11 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): calling RemoveAsync {Options}", CacheName, operationId, key, options.ToLogString());
 
-		_mca.RemoveEntry(operationId, key, options);
+		var mca = GetCurrentMemoryAccessor(options);
+		if (mca is not null)
+			mca.RemoveEntry(operationId, key, options);
 
 		var dca = GetCurrentDistributedAccessor(options);
-
 		if (dca.CanBeUsed(operationId, key))
 		{
 			await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
@@ -568,10 +581,11 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): calling ExpireAsync {Options}", CacheName, operationId, key, options.ToLogString());
 
-		_mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
+		var mca = GetCurrentMemoryAccessor(options);
+		if (mca is not null)
+			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
 
 		var dca = GetCurrentDistributedAccessor(options);
-
 		if (dca.CanBeUsed(operationId, key))
 		{
 			await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);

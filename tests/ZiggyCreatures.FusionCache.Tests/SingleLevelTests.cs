@@ -1282,5 +1282,59 @@ namespace FusionCacheTests
 			Assert.True(maybeFoo3.HasValue);
 			Assert.Equal(42, maybeFoo3.Value);
 		}
+
+		[Fact]
+		public async Task CanSkipMemoryCacheAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			await cache.SetAsync<int>("foo", 42, opt => opt.SetSkipMemoryCache());
+			var maybeFoo1 = await cache.TryGetAsync<int>("foo");
+			await cache.SetAsync<int>("foo", 42);
+			var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo3 = await cache.TryGetAsync<int>("foo");
+			await cache.RemoveAsync("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo4 = await cache.TryGetAsync<int>("foo");
+			await cache.RemoveAsync("foo");
+			var maybeFoo5 = await cache.TryGetAsync<int>("foo");
+
+			await cache.GetOrSetAsync<int>("bar", 42, opt => opt.SetSkipMemoryCache());
+			var maybeBar = await cache.TryGetAsync<int>("bar");
+
+			Assert.False(maybeFoo1.HasValue);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.True(maybeFoo4.HasValue);
+			Assert.False(maybeFoo5.HasValue);
+
+			Assert.False(maybeBar.HasValue);
+		}
+
+		[Fact]
+		public void CanSkipMemoryCache()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.Set<int>("foo", 42, opt => opt.SetSkipMemoryCache());
+			var maybeFoo1 = cache.TryGet<int>("foo");
+			cache.Set<int>("foo", 42);
+			var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo3 = cache.TryGet<int>("foo");
+			cache.Remove("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo4 = cache.TryGet<int>("foo");
+			cache.Remove("foo");
+			var maybeFoo5 = cache.TryGet<int>("foo");
+
+			cache.GetOrSet<int>("bar", 42, opt => opt.SetSkipMemoryCache());
+			var maybeBar = cache.TryGet<int>("bar");
+
+			Assert.False(maybeFoo1.HasValue);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.True(maybeFoo4.HasValue);
+			Assert.False(maybeFoo5.HasValue);
+
+			Assert.False(maybeBar.HasValue);
+		}
 	}
 }

@@ -132,6 +132,11 @@ public partial class FusionCache
 		return FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 	}
 
+	private MemoryCacheAccessor? GetCurrentMemoryAccessor(FusionCacheEntryOptions options)
+	{
+		return options.SkipMemoryCache ? null : _mca;
+	}
+
 	private DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions options)
 	{
 		return options.SkipDistributedCache ? null : _dca;
@@ -194,16 +199,16 @@ public partial class FusionCache
 	}
 
 	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, CancellationToken token)
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (factoryTask is null || options.AllowTimedOutFactoryBackgroundCompletion == false)
 			return;
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, dca, null, token);
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, token);
 	}
 
 	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, DistributedCacheAccessor? dca, object? lockObj, CancellationToken token)
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, object? lockObj, CancellationToken token)
 	{
 		if (factoryTask.IsFaulted)
 		{
@@ -243,8 +248,14 @@ public partial class FusionCache
 					options = maybeNewOptions;
 
 				var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag);
-				_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
-				_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
+
+				var dca = GetCurrentDistributedAccessor(options);
+				if (dca.CanBeUsed(operationId, key))
+					_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
+
+				var mca = GetCurrentMemoryAccessor(options);
+				if (mca is not null)
+					mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
 				// EVENT
 				_events.OnBackgroundFactorySuccess(operationId, key);

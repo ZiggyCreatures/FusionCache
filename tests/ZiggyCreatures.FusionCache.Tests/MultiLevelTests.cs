@@ -1011,5 +1011,77 @@ namespace FusionCacheTests
 			Assert.True(v5 > v4);
 			Assert.Equal(v5, v6);
 		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanSkipMemoryCacheAsync(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var cache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			using var cache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			cache1.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+			cache2.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			// SET ON CACHE 1 AND ON DISTRIBUTED CACHE
+			var v1 = await cache1.GetOrSetAsync<int>("foo", async _ => 10);
+
+			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE 2
+			var v2 = await cache2.GetOrSetAsync<int>("foo", async _ => 20);
+
+			// SET ON DISTRIBUTED CACHE BUT SKIP CACHE 1
+			await cache1.SetAsync<int>("foo", 30, opt => opt.SetSkipMemoryCache());
+
+			// GET FROM CACHE 1 (10) AND DON'T CALL THE FACTORY
+			var v3 = await cache1.GetOrSetAsync<int>("foo", async _ => 40);
+
+			// GET FROM CACHE 2 (10) AND DON'T CALL THE FACTORY
+			var v4 = await cache2.GetOrSetAsync<int>("foo", async _ => 50);
+
+			// SKIP CACHE 2, GET FROM DISTRIBUTED CACHE (30)
+			var v5 = await cache2.GetOrSetAsync<int>("foo", async _ => 60, opt => opt.SetSkipMemoryCache());
+
+			Assert.Equal(10, v1);
+			Assert.Equal(10, v2);
+			Assert.Equal(10, v3);
+			Assert.Equal(10, v4);
+			Assert.Equal(30, v5);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanSkipMemoryCache(SerializerType serializerType)
+		{
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			using var cache1 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+			using var cache2 = new FusionCache(new FusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+			cache1.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+			cache2.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			// SET ON CACHE 1 AND ON DISTRIBUTED CACHE
+			var v1 = cache1.GetOrSet<int>("foo", _ => 10);
+
+			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE 2
+			var v2 = cache2.GetOrSet<int>("foo", _ => 20);
+
+			// SET ON DISTRIBUTED CACHE BUT SKIP CACHE 1
+			cache1.Set<int>("foo", 30, opt => opt.SetSkipMemoryCache());
+
+			// GET FROM CACHE 1 (10) AND DON'T CALL THE FACTORY
+			var v3 = cache1.GetOrSet<int>("foo", _ => 40);
+
+			// GET FROM CACHE 2 (10) AND DON'T CALL THE FACTORY
+			var v4 = cache2.GetOrSet<int>("foo", _ => 50);
+
+			// SKIP CACHE 2, GET FROM DISTRIBUTED CACHE (30)
+			var v5 = cache2.GetOrSet<int>("foo", _ => 60, opt => opt.SetSkipMemoryCache());
+
+			Assert.Equal(10, v1);
+			Assert.Equal(10, v2);
+			Assert.Equal(10, v3);
+			Assert.Equal(10, v4);
+			Assert.Equal(30, v5);
+		}
 	}
 }
