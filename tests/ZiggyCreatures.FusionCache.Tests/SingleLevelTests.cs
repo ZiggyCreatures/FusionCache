@@ -840,6 +840,82 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
+		public async Task CanHandleZeroDurationsAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			await cache.SetAsync<int>("foo", 10, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo1 = await cache.GetOrDefaultAsync<int>("foo", 1);
+
+			await cache.SetAsync<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = await cache.GetOrDefaultAsync<int>("foo", 2);
+
+			await cache.SetAsync<int>("foo", 30, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo3 = await cache.GetOrDefaultAsync<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
+		public void CanHandleZeroDurations()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.Set<int>("foo", 10, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo1 = cache.GetOrDefault<int>("foo", 1);
+
+			cache.Set<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = cache.GetOrDefault<int>("foo", 2);
+
+			cache.Set<int>("foo", 30, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo3 = cache.GetOrDefault<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
+		public async Task CanHandleNegativeDurationsAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			await cache.SetAsync<int>("foo", 10, opt => opt.SetDuration(TimeSpan.FromSeconds(-100)));
+			var foo1 = await cache.GetOrDefaultAsync<int>("foo", 1);
+
+			await cache.SetAsync<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = await cache.GetOrDefaultAsync<int>("foo", 2);
+
+			await cache.SetAsync<int>("foo", 30, opt => opt.SetDuration(TimeSpan.FromDays(-100)));
+			var foo3 = await cache.GetOrDefaultAsync<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
+		public void CanHandleNegativeDurations()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.Set<int>("foo", 10, opt => opt.SetDuration(TimeSpan.FromSeconds(-100)));
+			var foo1 = cache.GetOrDefault<int>("foo", 1);
+
+			cache.Set<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = cache.GetOrDefault<int>("foo", 2);
+
+			cache.Set<int>("foo", 30, opt => opt.SetDuration(TimeSpan.FromDays(-100)));
+			var foo3 = cache.GetOrDefault<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
 		public async Task CanHandleConditionalRefreshAsync()
 		{
 			static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)

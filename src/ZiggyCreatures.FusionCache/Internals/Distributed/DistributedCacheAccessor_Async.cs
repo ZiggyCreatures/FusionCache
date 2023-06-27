@@ -46,6 +46,13 @@ internal partial class DistributedCacheAccessor
 
 		token.ThrowIfCancellationRequested();
 
+		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
+		if (options.IsFailSafeEnabled == false && options.DistributedCacheDuration.GetValueOrDefault(options.Duration) <= TimeSpan.Zero)
+		{
+			await RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+			return;
+		}
+
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 		// SERIALIZATION

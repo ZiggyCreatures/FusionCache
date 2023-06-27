@@ -32,6 +32,13 @@ internal sealed class MemoryCacheAccessor
 
 	public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 	{
+		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
+		if (options.IsFailSafeEnabled == false && options.Duration <= TimeSpan.Zero)
+		{
+			RemoveEntry(operationId, key, options);
+			return;
+		}
+
 		var memoryOptions = options.ToMemoryCacheEntryOptions(_events, _options, _logger, operationId, key);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
