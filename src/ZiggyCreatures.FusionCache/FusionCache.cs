@@ -530,6 +530,8 @@ public partial class FusionCache
 			if (disposing)
 			{
 				RemoveAllPlugins();
+				RemoveBackplane();
+				RemoveDistributedCache();
 				_reactor.Dispose();
 				_mca.Dispose();
 			}
