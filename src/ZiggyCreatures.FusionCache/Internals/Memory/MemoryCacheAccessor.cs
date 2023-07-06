@@ -42,7 +42,7 @@ internal sealed class MemoryCacheAccessor
 		var memoryOptions = options.ToMemoryCacheEntryOptions(_events, _options, _logger, operationId, key);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", _options.CacheName, operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", _options.CacheName, operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
 
 		_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
 
@@ -56,24 +56,24 @@ internal sealed class MemoryCacheAccessor
 		bool isValid = false;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): trying to get from memory", _options.CacheName, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to get from memory", _options.CacheName, operationId, key);
 
 		if (_cache.TryGetValue<FusionCacheMemoryEntry>(key, out entry) == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry not found", _options.CacheName, operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry not found", _options.CacheName, operationId, key);
 		}
 		else
 		{
 			if (entry.IsLogicallyExpired())
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry found (expired) {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry found (expired) {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
 			}
 			else
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry found {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry found {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
 
 				isValid = true;
 			}
@@ -95,7 +95,7 @@ internal sealed class MemoryCacheAccessor
 	public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): removing data (from memory)", _options.CacheName, operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): removing data (from memory)", _options.CacheName, operationId, key);
 
 		_cache.Remove(key);
 
@@ -106,7 +106,7 @@ internal sealed class MemoryCacheAccessor
 	public void ExpireEntry(string operationId, string key, bool allowFailSafe)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): expiring data (from memory)", _options.CacheName, operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): expiring data (from memory)", _options.CacheName, operationId, key);
 
 		if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry) == false)
 			return;

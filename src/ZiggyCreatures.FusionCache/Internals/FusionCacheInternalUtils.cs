@@ -261,7 +261,7 @@ internal static class FusionCacheInternalUtils
 				}
 				catch (Exception exc)
 				{
-					logger?.Log(errorLogLevel, exc, "FUSION [{CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", cache.CacheName, operationId, key, eventName);
+					logger?.Log(errorLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", cache.CacheName, operationId, key, eventName);
 				}
 			}
 		}
