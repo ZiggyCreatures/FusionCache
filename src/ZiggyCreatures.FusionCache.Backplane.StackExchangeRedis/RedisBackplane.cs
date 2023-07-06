@@ -195,9 +195,6 @@ public class RedisBackplane
 
 			return;
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): a notification has been sent ({Action})", message.CacheKey, message.Action);
 	}
 
 	/// <inheritdoc/>
