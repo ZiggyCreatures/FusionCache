@@ -342,6 +342,16 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the <see cref="Duration"/> to be zero: this will effectively remove the entry from the cache if fail-safe is disabled, or it will set the entry as logically expired if fail-safe is enabled (so it can be used later as a fallback).
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDurationZero()
+	{
+		Duration = TimeSpan.Zero;
+		return this;
+	}
+
+	/// <summary>
 	/// Set the <see cref="Duration"/> to be infinite, so it will never expire.
 	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
 	/// </summary>
@@ -360,6 +370,16 @@ public class FusionCacheEntryOptions
 	public FusionCacheEntryOptions SetDistributedCacheDuration(TimeSpan? duration)
 	{
 		DistributedCacheDuration = duration;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="DistributedCacheDuration"/> to be zero: this will effectively remove the entry from the cache if fail-safe is disabled, or it will set the entry as logically expired if fail-safe is enabled (so it can be used later as a fallback).
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDistributedCacheDurationZero()
+	{
+		DistributedCacheDuration = TimeSpan.Zero;
 		return this;
 	}
 
