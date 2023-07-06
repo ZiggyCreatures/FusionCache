@@ -257,6 +257,10 @@ public partial class FusionCache
 				if (mca is not null)
 					mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 
+					// BACKPLANE
+					if (options.SkipBackplaneNotifications == false)
+						_ = PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token);
+
 				// EVENT
 				_events.OnBackgroundFactorySuccess(operationId, key);
 				_events.OnSet(operationId, key);
