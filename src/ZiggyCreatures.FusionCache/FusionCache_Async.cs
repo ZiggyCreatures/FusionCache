@@ -612,13 +612,4 @@ public partial class FusionCache
 
 		return await _bpa.PublishAsync(operationId, message, options, false, token);
 	}
-
-	/// <inheritdoc/>
-	internal ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		if (options is null)
-			options = _options.DefaultEntryOptions;
-
-		return PublishInternalAsync(GenerateOperationId(), message, options, token);
-	}
 }

@@ -608,13 +608,4 @@ public partial class FusionCache
 
 		return _bpa.Publish(operationId, message, options, false, token);
 	}
-
-	/// <inheritdoc/>
-	internal bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options, CancellationToken token)
-	{
-		if (options is null)
-			options = _options.DefaultEntryOptions;
-
-		return PublishInternal(GenerateOperationId(), message, options, token);
-	}
 }
