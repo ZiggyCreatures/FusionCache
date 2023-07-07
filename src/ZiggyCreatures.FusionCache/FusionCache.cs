@@ -254,13 +254,15 @@ public partial class FusionCache
 					if (maybeNewOptions is not null && options != maybeNewOptions)
 						options = maybeNewOptions;
 
+					// ADAPTIVE CACHING UPDATE
+					var dca = GetCurrentDistributedAccessor(options);
+					var mca = GetCurrentMemoryAccessor(options);
+
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag);
 
-					var dca = GetCurrentDistributedAccessor(options);
 					if (dca.CanBeUsed(operationId, key))
 						_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
 
-					var mca = GetCurrentMemoryAccessor(options);
 					if (mca is not null)
 						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 

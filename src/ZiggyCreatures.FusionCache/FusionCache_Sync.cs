@@ -166,6 +166,10 @@ public partial class FusionCache
 						lastModified = ctx.LastModified;
 						etag = ctx.ETag;
 
+						// ADAPTIVE CACHING UPDATE
+						dca = GetCurrentDistributedAccessor(options);
+						mca = GetCurrentMemoryAccessor(options);
+
 						// EVENTS
 						_events.OnFactorySuccess(operationId, key);
 					}
