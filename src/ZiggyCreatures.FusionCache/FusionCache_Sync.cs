@@ -126,6 +126,7 @@ public partial class FusionCache
 				// FACTORY
 				TValue? value;
 				bool failSafeActivated = false;
+				long? timestamp = null;
 
 				if (isRealFactory == false)
 				{
@@ -182,15 +183,9 @@ public partial class FusionCache
 
 						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, token);
 
-						var fallbackEntry = MaybeGetFallbackEntry(operationId, key, distributedEntry, memoryEntry, options, true, out failSafeActivated);
-						if (fallbackEntry is not null)
+						if (TryPickFailSafeFallbackValue(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options, out var maybeFallbackValue, out timestamp, out failSafeActivated))
 						{
-							value = fallbackEntry.GetValue<TValue>();
-						}
-						else if (options.IsFailSafeEnabled && failSafeDefaultValue.HasValue)
-						{
-							failSafeActivated = true;
-							value = failSafeDefaultValue;
+							value = maybeFallbackValue.Value;
 						}
 						else
 						{

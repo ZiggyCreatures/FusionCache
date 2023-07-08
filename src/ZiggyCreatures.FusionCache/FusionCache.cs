@@ -144,60 +144,72 @@ public partial class FusionCache
 		return options.SkipDistributedCache ? null : _dca;
 	}
 
-	private IFusionCacheEntry? MaybeGetFallbackEntry<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry, FusionCacheEntryOptions options, bool allowFailSafeActivation, out bool failSafeActivated)
+	private bool TryPickFailSafeFallbackValue<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions options, out MaybeValue<TValue?> value, out long? timestamp, out bool failSafeActivated)
 	{
-		failSafeActivated = false;
-
-		if (options.IsFailSafeEnabled)
+		// FAIL-SAFE NOT ENABLED
+		if (options.IsFailSafeEnabled == false)
 		{
-			if (allowFailSafeActivation)
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", CacheName, operationId, key);
-			if (distributedEntry is not null)
-			{
-				if (allowFailSafeActivation)
-				{
-					// FAIL SAFE (FROM DISTRIBUTED)
-					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", CacheName, operationId, key);
-					failSafeActivated = true;
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", CacheName, operationId, key);
 
-					// EVENT
-					_events.OnFailSafeActivate(operationId, key);
-				}
-
-				return distributedEntry;
-			}
-			else if (memoryEntry is not null)
-			{
-				if (allowFailSafeActivation)
-				{
-					// FAIL SAFE (FROM MEMORY)
-					if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-						_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", CacheName, operationId, key);
-					failSafeActivated = true;
-
-					// EVENT
-					_events.OnFailSafeActivate(operationId, key);
-				}
-
-				return memoryEntry;
-			}
-			else
-			{
-				if (allowFailSafeActivation)
-					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", CacheName, operationId, key);
-				return null;
-			}
+			value = default;
+			timestamp = default;
+			failSafeActivated = false;
+			return false;
 		}
+
+		// FAIL-SAFE ENABLED
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", CacheName, operationId, key);
+
+		// TRY TO PICK A FALLBACK ENTRY
+		IFusionCacheEntry? entry;
+		if (distributedEntry is not null && (memoryEntry is null || distributedEntry.Timestamp > memoryEntry.Timestamp))
+			entry = distributedEntry;
 		else
+			entry = memoryEntry;
+
+		if (entry is not null)
 		{
-			if (allowFailSafeActivation)
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", CacheName, operationId, key);
-			return null;
+			// ACTIVATE FAIL-SAFE
+			value = entry.GetValue<TValue>();
+			timestamp = entry.Timestamp;
+			failSafeActivated = true;
+
+			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from " + (entry is FusionCacheMemoryEntry ? "memory" : "distributed") + ")", CacheName, operationId, key);
+
+			// EVENT
+			_events.OnFailSafeActivate(operationId, key);
+
+			return true;
 		}
+
+		// TRY WITH THE FAIL-SAFE DEFAULT VALUE
+		if (failSafeDefaultValue.HasValue)
+		{
+			// ACTIVATE FAIL-SAFE
+			value = failSafeDefaultValue.Value;
+			timestamp = null;
+			failSafeActivated = true;
+
+			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from fail-safe default value)", CacheName, operationId, key);
+
+			// EVENT
+			_events.OnFailSafeActivate(operationId, key);
+
+			return true;
+		}
+
+		// UNABLE TO ACTIVATE FAIL-SAFE
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", CacheName, operationId, key);
+
+		value = default;
+		timestamp = default;
+		failSafeActivated = false;
+		return false;
 	}
 
 	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
