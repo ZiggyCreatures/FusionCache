@@ -20,8 +20,7 @@ namespace ZiggyCreatures.Caching.Fusion
 	: IFusionCache
 	{
 		private readonly FusionCacheOptions _options;
-		private readonly ILogger? _logger;
-		private FusionCacheEventsHub _events;
+		private readonly FusionCacheEventsHub _events;
 
 		/// <summary>
 		/// Creates a new <see cref="NullFusionCache"/> instance.
@@ -39,7 +38,7 @@ namespace ZiggyCreatures.Caching.Fusion
 			_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
 
 			// EVENTS
-			_events = new FusionCacheEventsHub(this, _options, _logger);
+			_events = new FusionCacheEventsHub(this, _options, null);
 		}
 
 		/// <inheritdoc/>
