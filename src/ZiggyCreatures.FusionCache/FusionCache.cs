@@ -260,7 +260,7 @@ public partial class FusionCache
 					var dca = GetCurrentDistributedAccessor(options);
 					var mca = GetCurrentMemoryAccessor(options);
 
-					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag);
+					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
 
 					if (dca.CanBeUsed(operationId, key))
 						_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);

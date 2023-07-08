@@ -122,6 +122,7 @@ namespace FusionCacheTests
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
@@ -144,6 +145,7 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
@@ -166,6 +168,7 @@ namespace FusionCacheTests
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Null(looped!.Metadata);
 		}
 
@@ -184,6 +187,7 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Null(looped!.Metadata);
 		}
 
@@ -202,6 +206,7 @@ namespace FusionCacheTests
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<ComplexType>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
@@ -224,6 +229,7 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<ComplexType>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);

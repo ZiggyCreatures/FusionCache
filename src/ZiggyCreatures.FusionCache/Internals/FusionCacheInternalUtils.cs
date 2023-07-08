@@ -18,6 +18,11 @@ internal static class FusionCacheInternalUtils
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 
+	public static long GetCurrentTimestamp()
+	{
+		return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+	}
+
 	public static string GenerateOperationId_V1()
 	{
 		return Guid.NewGuid().ToString("N");
@@ -237,7 +242,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheDistributedEntry<TValue>)
 			return (FusionCacheDistributedEntry<TValue>)entry;
 
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 

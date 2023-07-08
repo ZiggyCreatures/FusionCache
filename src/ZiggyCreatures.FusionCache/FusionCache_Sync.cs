@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -200,7 +199,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag);
+				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag, null);
 				isStale = failSafeActivated;
 
 				if (dca.CanBeUsed(operationId, key) && failSafeActivated == false)
@@ -247,6 +246,54 @@ public partial class FusionCache
 
 	private void ExecuteEagerRefresh<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue?> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
 	{
+		// TRY WITH DISTRIBUTED CACHE (IF ANY)
+		try
+		{
+			var dca = GetCurrentDistributedAccessor(options);
+			if (dca.CanBeUsed(operationId, key))
+			{
+				FusionCacheDistributedEntry<TValue>? distributedEntry;
+				bool distributedEntryIsValid;
+
+				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, false, token);
+				if (distributedEntryIsValid)
+				{
+					if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
+					{
+						try
+						{
+							// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
+
+							if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+								_logger.LogTrace("FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+
+							// SAVING THE DATA IN THE MEMORY CACHE
+							var mca = GetCurrentMemoryAccessor(options);
+							if (mca is not null)
+								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options), options);
+						}
+						finally
+						{
+							ReleaseLock(operationId, key, lockObj);
+						}
+
+						return;
+					}
+					else
+					{
+						if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+							_logger.LogTrace("FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is less recent than the current memory entry ({MemoryTimestamp}): ignoring it", CacheName, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+					}
+				}
+			}
+		}
+		catch
+		{
+			// EMPTY
+		}
+
+		//var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
+
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, operationId, key);
 
@@ -509,7 +556,7 @@ public partial class FusionCache
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling Set<T> {Options}", CacheName, operationId, key, options.ToLogString());
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null);
+		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null);
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)

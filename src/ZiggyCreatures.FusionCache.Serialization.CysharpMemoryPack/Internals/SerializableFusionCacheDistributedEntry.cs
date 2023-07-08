@@ -16,10 +16,13 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 		[MemoryPackAllowSerialize]
 		public FusionCacheEntryMetadata? Metadata => Entry?.Metadata;
 
+		[MemoryPackInclude]
+		public long? Timestamp => Entry?.Timestamp;
+
 		[MemoryPackConstructor]
-		SerializableFusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata)
+		SerializableFusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long? timestamp)
 		{
-			this.Entry = new FusionCacheDistributedEntry<TValue>(value, metadata);
+			this.Entry = new FusionCacheDistributedEntry<TValue>(value, metadata, timestamp);
 		}
 
 		public SerializableFusionCacheDistributedEntry(FusionCacheDistributedEntry<TValue>? entry)

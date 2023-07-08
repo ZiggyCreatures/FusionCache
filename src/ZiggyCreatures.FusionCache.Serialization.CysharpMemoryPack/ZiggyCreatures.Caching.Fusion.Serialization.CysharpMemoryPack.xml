@@ -33,6 +33,7 @@
             <code>
             <b>TValue</b> Value<br/>
             <b>ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata</b> Metadata<br/>
+            <b>long?</b> Timestamp<br/>
             </code>
             </remarks>
         </member>
