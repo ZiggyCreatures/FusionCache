@@ -760,6 +760,70 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
+		public async Task AdaptiveCachingCanWorkWithSkipMemoryCacheAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(1);
+			cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(3);
+
+			var foo1 = await cache.GetOrSetAsync<int>("foo", async _ => 1);
+
+			await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
+
+			var foo2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
+			{
+				ctx.Options.SkipMemoryCache = true;
+
+				return 2;
+			});
+
+			var foo3 = await cache.TryGetAsync<int>("foo");
+
+			await Task.Delay(cache.DefaultEntryOptions.FailSafeThrottleDuration.PlusALittleBit());
+
+			var foo4 = await cache.GetOrSetAsync<int>("foo", async _ => 4);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(2, foo2);
+			Assert.True(foo3.HasValue);
+			Assert.Equal(1, foo3.Value);
+			Assert.Equal(4, foo4);
+		}
+
+		[Fact]
+		public void AdaptiveCachingCanWorkWithSkipMemoryCache()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(1);
+			cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(3);
+
+			var foo1 = cache.GetOrSet<int>("foo", _ => 1);
+
+			Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
+
+			var foo2 = cache.GetOrSet<int>("foo", (ctx, _) =>
+			{
+				ctx.Options.SkipMemoryCache = true;
+
+				return 2;
+			});
+
+			var foo3 = cache.TryGet<int>("foo");
+
+			Thread.Sleep(cache.DefaultEntryOptions.FailSafeThrottleDuration.PlusALittleBit());
+
+			var foo4 = cache.GetOrSet<int>("foo", _ => 4);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(2, foo2);
+			Assert.True(foo3.HasValue);
+			Assert.Equal(1, foo3.Value);
+			Assert.Equal(4, foo4);
+		}
+
+		[Fact]
 		public async Task FailSafeMaxDurationNormalizationOccursAsync()
 		{
 			var duration = TimeSpan.FromSeconds(5);
