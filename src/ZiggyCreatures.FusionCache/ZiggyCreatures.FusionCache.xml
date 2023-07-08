@@ -3107,12 +3107,12 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.NullFusionCache">
             <summary>
-            The null implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/>, meaning that it does nothing. Consider this a kind of a pass-through implementation.
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions})">
             <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.NullFusionCache"/> instance.
             </summary>
             <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>.</param>
         </member>

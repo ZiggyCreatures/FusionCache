@@ -94,7 +94,7 @@ public static class FusionCacheServiceCollectionExtensions
 		}
 		else
 		{
-			services.AddSingleton<NamedCacheWrapper>(new NamedCacheWrapper(cache.CacheName, cache));
+			services.AddSingleton<LazyNamedCache>(new LazyNamedCache(cache.CacheName, cache));
 		}
 
 		return services;
@@ -138,9 +138,9 @@ public static class FusionCacheServiceCollectionExtensions
 		}
 		else
 		{
-			services.AddSingleton<NamedCacheWrapper>(serviceProvider =>
+			services.AddSingleton<LazyNamedCache>(serviceProvider =>
 			{
-				return new NamedCacheWrapper(builder.CacheName, () => builder.Build(serviceProvider));
+				return new LazyNamedCache(builder.CacheName, () => builder.Build(serviceProvider));
 			});
 		}
 
