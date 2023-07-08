@@ -21,7 +21,9 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
-/// <inheritdoc/>
+/// <summary>
+/// The standard implementation of <see cref="IFusionCache"/>.
+/// </summary>
 [DebuggerDisplay("NAME: {_options.CacheName} - ID: {InstanceId} - DC: {HasDistributedCache} - BP: {HasBackplane}")]
 public partial class FusionCache
 	: IFusionCache

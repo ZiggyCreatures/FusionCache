@@ -10,7 +10,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
-/// Represents an instance of a FusionCache.
+/// The shared interface that models what a FusionCache instance can do.
 /// </summary>
 public interface IFusionCache
 	: IDisposable

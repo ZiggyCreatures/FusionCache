@@ -459,7 +459,9 @@
             <returns><see langword="true"/> if the <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction"/> event has subscribers, otherwhise <see langword="false"/>.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCache">
-            <inheritdoc/>
+            <summary>
+            The standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/>.
+            </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor)">
             <summary>
@@ -2229,7 +2231,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
-            Represents an instance of a FusionCache.
+            The shared interface that models what a FusionCache instance can do.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName">
@@ -3101,6 +3103,101 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.GetHashCode">
+            <inheritdoc/>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.NullFusionCache">
+            <summary>
+            The null implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/>, meaning that it does nothing. Consider this a kind of a pass-through implementation.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions})">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.
+            </summary>
+            <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.NullFusionCache.CacheName">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.NullFusionCache.InstanceId">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.NullFusionCache.DefaultEntryOptions">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.NullFusionCache.HasDistributedCache">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.NullFusionCache.HasBackplane">
+            <inheritdoc/>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.NullFusionCache.Events">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.AddPlugin(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.Expire(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.ExpireAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.GetOrDefault``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.GetOrDefaultAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.GetOrSet``1(System.String,System.Func{ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext{``0},System.Threading.CancellationToken,``0},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.GetOrSet``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.GetOrSetAsync``1(System.String,System.Func{ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext{``0},System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},ZiggyCreatures.Caching.Fusion.MaybeValue{``0},ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.GetOrSetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.Remove(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.RemoveAsync(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.RemoveBackplane">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.RemoveDistributedCache">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.RemovePlugin(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.Set``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.SetAsync``1(System.String,``0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.TryGet``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullFusionCache.TryGetAsync``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin">
