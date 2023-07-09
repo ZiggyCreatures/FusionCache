@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -1577,6 +1578,57 @@ namespace FusionCacheTests
 			{
 				_ = cache.GetOrSet<int>("qux", _ => throw new UnreachableException("Sloths"));
 			});
+		}
+
+		[Fact]
+		public void DuplicatEntryOptionsWorksCorrectly()
+		{
+			var original = new FusionCacheEntryOptions()
+			{
+				IsSafeForAdaptiveCaching = true,
+
+				Duration = TimeSpan.FromSeconds(1),
+				LockTimeout = TimeSpan.FromSeconds(2),
+				Size = 123,
+				Priority = CacheItemPriority.High,
+				JitterMaxDuration = TimeSpan.FromSeconds(3),
+
+				// NOTE: PERF MICRO-OPT
+				EagerRefreshThreshold = 0.456f,
+
+				IsFailSafeEnabled = !FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled,
+				FailSafeMaxDuration = TimeSpan.FromSeconds(4),
+				FailSafeThrottleDuration = TimeSpan.FromSeconds(5),
+
+				FactorySoftTimeout = TimeSpan.FromSeconds(6),
+				FactoryHardTimeout = TimeSpan.FromSeconds(7),
+				AllowTimedOutFactoryBackgroundCompletion = !FusionCacheGlobalDefaults.EntryOptionsAllowTimedOutFactoryBackgroundCompletion,
+
+				DistributedCacheDuration = TimeSpan.FromSeconds(8),
+				DistributedCacheFailSafeMaxDuration = TimeSpan.FromSeconds(9),
+				DistributedCacheSoftTimeout = TimeSpan.FromSeconds(10),
+				DistributedCacheHardTimeout = TimeSpan.FromSeconds(11),
+
+				ReThrowDistributedCacheExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions,
+				ReThrowSerializationExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowSerializationExceptions,
+
+				AllowBackgroundDistributedCacheOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations,
+				AllowBackgroundBackplaneOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations,
+
+				SkipBackplaneNotifications = !FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications,
+
+				SkipDistributedCache = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache,
+				SkipDistributedCacheReadWhenStale = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale,
+
+				SkipMemoryCache = true,
+			};
+
+			var duplicated = original.Duplicate();
+
+			Assert.Equal(
+				JsonConvert.SerializeObject(original),
+				JsonConvert.SerializeObject(duplicated)
+			);
 		}
 	}
 }
