@@ -4,7 +4,7 @@
 
 </div>
 
-# :woman_teacher: Step By Step
+# 👩‍🏫 Step By Step
 
 What follows is an example scenario on which we can reason about: we've built a **service** that handle some **requests** by retrieving some data from a **database**, that's it.
 
