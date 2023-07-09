@@ -166,7 +166,7 @@ public interface IFusionCache
 	/// <br/>
 	/// In the memory cache:
 	/// <br/>
-	/// - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+	/// - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
 	/// <br/>
 	/// - if fail-safe is disabled: the entry will be effectively removed
 	/// <br/>
@@ -185,7 +185,7 @@ public interface IFusionCache
 	/// <br/>
 	/// In the memory cache:
 	/// <br/>
-	/// - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+	/// - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
 	/// <br/>
 	/// - if fail-safe is disabled: the entry will be effectively removed
 	/// <br/>

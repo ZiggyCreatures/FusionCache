@@ -1588,6 +1588,45 @@
             <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/>.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.ExpireAsync(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Expires the cache entry for the specified <paramref name="key"/>.
+            <br/>
+            <br/>
+            In the memory cache:
+            <br/>
+            - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
+            <br/>
+            - if fail-safe is disabled: the entry will be effectively removed
+            <br/>
+            <br/>
+            In the distributed cache (if any), the entry will be effectively removed.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>A <see cref="T:System.Threading.Tasks.ValueTask"/> to await the completion of the operation.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.Expire(ZiggyCreatures.Caching.Fusion.IFusionCache,System.String,System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Threading.CancellationToken)">
+            <summary>
+            Expires the cache entry for the specified <paramref name="key"/>.
+            <br/>
+            <br/>
+            In the memory cache:
+            <br/>
+            - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
+            <br/>
+            - if fail-safe is disabled: the entry will be effectively removed
+            <br/>
+            <br/>
+            In the distributed cache (if any), the entry will be effectively removed.
+            </summary>
+            <param name="cache">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.</param>
+            <param name="key">The cache key which identifies the entry in the cache.</param>
+            <param name="setupAction">The setup action used to further configure the newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/>.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheExtMethods.GetDefaultCache(ZiggyCreatures.Caching.Fusion.IFusionCacheProvider)">
             <summary>
             Returns the default FusionCache instance, the one with the CacheName equals to <see cref="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultCacheName"/>.
@@ -2386,7 +2425,7 @@
             <br/>
             In the memory cache:
             <br/>
-            - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+            - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
             <br/>
             - if fail-safe is disabled: the entry will be effectively removed
             <br/>
@@ -2405,7 +2444,7 @@
             <br/>
             In the memory cache:
             <br/>
-            - if fail-safe is enabled: the entry will marked as logically expired, but still be available as a fallback value in case of problems
+            - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
             <br/>
             - if fail-safe is disabled: the entry will be effectively removed
             <br/>
