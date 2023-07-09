@@ -6,13 +6,14 @@
 
 # :joystick: Core Methods
 
-At a high level there are 5 core methods:
+At a high level there are 6 core methods:
 
 - `Set[Async]`
 - `Remove[Async]`
 - `TryGet[Async]`
 - `GetOrDefault[Async]`
 - `GetOrSet[Async]`
+- `Expire[Async]`
 
 All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: you don't have to do anything extra for it to coordinate the 2 layers.
 
@@ -51,33 +52,6 @@ cache.Remove("foo");
 
 // THIS WILL DO NOTHING
 cache.Remove("foo");
-```
-
-## GetOrDefault[Async]
-
-It is used to **GET** the value in the cache for the specified key and, if nothing is there, returns a **DEFAULT VALUE**.
-
-With this method **NOTHING IS SET** in the cache.
-
-It is useful if you want to use what's in the cache or some default value just for this call, but **you don't want to change the state** of the cache itself.
-
-Examples:
-
-```csharp
-// THIS WILL GET BACK 42
-foo = cache.GetOrDefault("foo", 42);
-
-// IF WE IMMEDIATELY CALL THIS, WE WILL GET BACK 21
-foo = cache.GetOrDefault("foo", 21);
-
-// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
-foo = cache.GetOrDefault<int>("foo");
-
-// ALSO USEFUL FOR USER PREFERENCES: WE CAN USE A DEFAULT VALUE WITHOUT SETTING ONE
-var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns", false);
-
-// AND SINCE false IS THE DEFAULT VALUE FOR THE TYPE bool WE CAN SIMPLY DO THIS
-var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns");
 ```
 
 ## TryGet[Async]
@@ -121,6 +95,33 @@ int result = maybeFoo;
 ```
 
 💡 It's not possible to use the classic method signature of `bool TryGet<TValue>(string key, out TValue value)` to set a value with an `out` parameter because .NET does not allow it on async methods (for good reasons) and I wanted to keep the same signature for every method in both sync/async versions.
+
+## GetOrDefault[Async]
+
+It is used to **GET** the value in the cache for the specified key and, if nothing is there, returns a **DEFAULT VALUE**.
+
+With this method **NOTHING IS SET** in the cache.
+
+It is useful if you want to use what's in the cache or some default value just for this call, but **you don't want to change the state** of the cache itself.
+
+Examples:
+
+```csharp
+// THIS WILL GET BACK 42
+foo = cache.GetOrDefault("foo", 42);
+
+// IF WE IMMEDIATELY CALL THIS, WE WILL GET BACK 21
+foo = cache.GetOrDefault("foo", 21);
+
+// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
+foo = cache.GetOrDefault<int>("foo");
+
+// ALSO USEFUL FOR USER PREFERENCES: WE CAN USE A DEFAULT VALUE WITHOUT SETTING ONE
+var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns", false);
+
+// AND SINCE false IS THE DEFAULT VALUE FOR THE TYPE bool WE CAN SIMPLY DO THIS
+var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns");
+```
 
 ## GetOrSet[Async]
 
@@ -204,16 +205,40 @@ var foo = cache.GetOrSet<int>(
 var foo = cache.GetOrSet<int>("foo", _ => GetFooFromDb(), 42);
 ```
 
+## Expire[Async]
+
+It is used to explicitly **EXPIRE** the value in the cache for the specified key.
+
+But wait, what is the difference between `Expire()` and `Remove()`? With `Remove()` the value is actually removed, totally. With `Expire()` instead, it depends on how [fail-safe](FailSafe.md) is configured:
+- if fail-safe is enabled: the entry will marked as _logically_ expired, but will still be available as a fallback value in case of future problems
+- if fail-safe is disabled: the entry will be effectively removed
+
+This method may be is useful in case we want to threat something as remove, but with the ability to say _"better than nothing"_ in the future, in case of problems (thanks to fail-safe).
+
+Examples:
+
+```csharp
+cache.Set("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
+
+cache.Expire("foo", opt => opt.SetFailSafe(true));
+
+// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
+foo = cache.GetOrDefault<int>("foo");
+
+// THIS WILL GET BACK 42
+foo = cache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
+```
+
 ## :recycle: Common overloads
 
 Every core method that needs a set of options (`FusionCacheEntryOptions`) for how to behave has different overloads to let you specify these options, for better ease of use.
 
 You can choose between passing:
 
-- **Nothing**: you don't pass anything, so the global `DefaultEntryOptions` will be used (also saves some memory allocations)
+- **Nothing**: you don't pass anything, so the `cache.DefaultEntryOptions` will be used (also saves some memory allocations)
 - **Options**: you directly pass a `FusionCacheEntryOptions` object. This gives you total control over each option, but you have to instantiate it yourself and **does not copy** the global `DefaultEntryOptions`
 - **Setup action**: you pass a `lambda` that receives a duplicate of the `DefaultEntryOptions` so you start from there and modify it as you like (there's also a set of *fluent methods* to do that easily)
-- **Duration**: you simply pass a `TimeSpan` value for the duration. This is the same as the previous one (start from the global default + lambda) but for the common scenario of when you only want to change the duration
+- **Duration**: you simply pass a `TimeSpan` value for the duration. This is the same as the previous one (start from default + duplicate + lambda) but for the common scenario of when you only want to change the duration
 
 ## 🤷‍♂️ `MaybeValue<T>`
 The special type `MaybeValue<T>` is similar to the standard `Nullable<T>` type in .NET, but usable for both value types and reference types.
@@ -222,7 +247,7 @@ The type has a `bool HasValue` property to know if it contains a value or not (l
 
 The type also is implicitly convertible to and from values of type `T`, so that you don't have to manually do it yourself.
 
-Finally, if you want to get the value inside of it or a default one if case it's not there, you can use the `GetValueOrDefault()` method, with or without the default value to use (again, just like standard nullables.
+Finally, if you want to get the value inside of it or a default one in case it's not there, you can use the `GetValueOrDefault()` method, with or without the default value to use (again, just like standard nullables).
 
 Currently this type is used inside FusionCache in 2 places:
 
