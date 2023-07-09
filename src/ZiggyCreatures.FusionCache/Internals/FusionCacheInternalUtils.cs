@@ -23,38 +23,7 @@ internal static class FusionCacheInternalUtils
 		return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 	}
 
-	public static string GenerateOperationId_V1()
-	{
-		return Guid.NewGuid().ToString("N");
-	}
-
-	private static string GenerateOperationId_V2(long id)
-	{
-		var buffer = new char[13];
-
-		buffer[12] = _chars[id & 31];
-		buffer[11] = _chars[(id >> 5) & 31];
-		buffer[10] = _chars[(id >> 10) & 31];
-		buffer[9] = _chars[(id >> 15) & 31];
-		buffer[8] = _chars[(id >> 20) & 31];
-		buffer[7] = _chars[(id >> 25) & 31];
-		buffer[6] = _chars[(id >> 30) & 31];
-		buffer[5] = _chars[(id >> 35) & 31];
-		buffer[4] = _chars[(id >> 40) & 31];
-		buffer[3] = _chars[(id >> 45) & 31];
-		buffer[2] = _chars[(id >> 50) & 31];
-		buffer[1] = _chars[(id >> 55) & 31];
-		buffer[0] = _chars[(id >> 60) & 31];
-
-		return new string(buffer);
-	}
-
-	public static string GenerateOperationId_V2()
-	{
-		return GenerateOperationId_V2(Interlocked.Increment(ref _lastId));
-	}
-
-	private static string GenerateOperationId_V3(long id)
+	private static string GenerateOperationId(long id)
 	{
 		// SEE: https://nimaara.com/2018/10/10/generating-ids-in-csharp.html
 
@@ -77,9 +46,9 @@ internal static class FusionCacheInternalUtils
 		return new string(buffer, 0, buffer.Length);
 	}
 
-	public static string GenerateOperationId_V3()
+	public static string GenerateOperationId()
 	{
-		return GenerateOperationId_V3(Interlocked.Increment(ref _lastId));
+		return GenerateOperationId(Interlocked.Increment(ref _lastId));
 	}
 
 	public static string MaybeGenerateOperationId(ILogger? logger)
@@ -87,7 +56,7 @@ internal static class FusionCacheInternalUtils
 		if (logger is null)
 			return string.Empty;
 
-		return GenerateOperationId_V3();
+		return GenerateOperationId();
 	}
 
 	/// <summary>
