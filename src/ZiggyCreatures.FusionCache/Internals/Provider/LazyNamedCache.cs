@@ -4,14 +4,14 @@ using System.Diagnostics;
 namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 {
 	[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-	internal class NamedCacheWrapper : IDisposable
+	internal class LazyNamedCache : IDisposable
 	{
 		private string GetDebuggerDisplay()
 		{
 			return $"CACHE: {CacheName} - INSTANTIATED: {_cache is not null}";
 		}
 
-		public NamedCacheWrapper(string name, Func<IFusionCache> cacheFactory)
+		public LazyNamedCache(string name, Func<IFusionCache> cacheFactory)
 		{
 			if (name is null)
 				throw new ArgumentNullException(nameof(name));
@@ -23,7 +23,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 			_cacheFactory = cacheFactory;
 		}
 
-		public NamedCacheWrapper(string name, IFusionCache cache)
+		public LazyNamedCache(string name, IFusionCache cache)
 		{
 			if (name is null)
 				throw new ArgumentNullException(nameof(name));

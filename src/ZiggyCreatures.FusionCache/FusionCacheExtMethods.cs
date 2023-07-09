@@ -254,6 +254,55 @@ public static partial class FusionCacheExtMethods
 
 	#endregion
 
+	#region Expire overloads
+
+	/// <summary>
+	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// <br/>
+	/// <br/>
+	/// In the memory cache:
+	/// <br/>
+	/// - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
+	/// <br/>
+	/// - if fail-safe is disabled: the entry will be effectively removed
+	/// <br/>
+	/// <br/>
+	/// In the distributed cache (if any), the entry will be effectively removed.
+	/// </summary>
+	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
+	public static ValueTask ExpireAsync(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	{
+		return cache.ExpireAsync(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+	}
+
+	/// <summary>
+	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// <br/>
+	/// <br/>
+	/// In the memory cache:
+	/// <br/>
+	/// - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
+	/// <br/>
+	/// - if fail-safe is disabled: the entry will be effectively removed
+	/// <br/>
+	/// <br/>
+	/// In the distributed cache (if any), the entry will be effectively removed.
+	/// </summary>
+	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	public static void Expire(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	{
+		cache.Expire(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+	}
+
+	#endregion
+
 	#region Dependency Injection
 
 	/// <summary>

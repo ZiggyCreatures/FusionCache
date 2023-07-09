@@ -18,7 +18,7 @@ internal sealed partial class BackplaneAccessor
 	private readonly FusionCacheBackplaneEventsHub _events;
 	private readonly SimpleCircuitBreaker _breaker;
 	private readonly SemaphoreSlim _autoRecoveryLock = new SemaphoreSlim(1, 1);
-	private ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)> _autoRecoveryQueue = new ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)>();
+	private readonly ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)> _autoRecoveryQueue = new ConcurrentDictionary<string, (BackplaneMessage Message, FusionCacheEntryOptions Options)>();
 
 	public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
 	{
@@ -51,7 +51,7 @@ internal sealed partial class BackplaneAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): backplane temporarily de-activated for {BreakDuration}", _cache.CacheName, operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -65,7 +65,7 @@ internal sealed partial class BackplaneAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.LogWarning("FUSION (O={CacheOperationId} K={CacheKey}): backplane activated again", operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): backplane activated again", _cache.CacheName, operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);
@@ -79,7 +79,7 @@ internal sealed partial class BackplaneAccessor
 		if (exc is SyntheticTimeoutException)
 		{
 			if (_logger?.IsEnabled(_options.BackplaneSyntheticTimeoutsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneSyntheticTimeoutsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, operationId, key);
+				_logger.Log(_options.BackplaneSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, _cache.CacheName, operationId, key);
 
 			return;
 		}
@@ -87,13 +87,13 @@ internal sealed partial class BackplaneAccessor
 		UpdateLastError(key, operationId);
 
 		if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, operationId, key);
+			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _cache.CacheName, operationId, key);
 	}
 
-	private void AddAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options)
+	private bool TryAddAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options)
 	{
 		if (message.CacheKey is null)
-			return;
+			return false;
 
 		if (_options.BackplaneAutoRecoveryMaxItems.HasValue && _autoRecoveryQueue.Count >= _options.BackplaneAutoRecoveryMaxItems.Value && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
 		{
@@ -115,35 +115,39 @@ internal sealed partial class BackplaneAccessor
 					else
 					{
 						// IGNORE THE NEW ITEM
-						return;
+						return false;
 					}
 				}
-
 			}
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, exc, "FUSION: an error occurred while deciding which item in the backplane auto-recovery queue to remove to make space for a new one");
+					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName}]: an error occurred while deciding which item in the backplane auto-recovery queue to remove to make space for a new one", _cache.CacheName);
 			}
 		}
 
 		_autoRecoveryQueue[message.CacheKey] = (message, options);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", message.CacheKey);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", _cache.CacheName, message.CacheKey);
+
+		return true;
 	}
 
-	private void ProcessAutoRecoveryQueue()
+	private bool TryProcessAutoRecoveryQueue()
 	{
+		if (_options.EnableBackplaneAutoRecovery == false)
+			return false;
+
 		var _count = _autoRecoveryQueue.Count;
 		if (_count == 0)
-			return;
+			return false;
 
 		// ACQUIRE THE LOCK
 		if (_autoRecoveryLock.Wait(0) == false)
 		{
 			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY, SOMEONE ELSE IS ALREADY PROCESSING THE QUEUE, SO WE JUST RETURN
-			return;
+			return false;
 		}
 
 		_ = Task.Run(async () =>
@@ -153,7 +157,7 @@ internal sealed partial class BackplaneAccessor
 				// NOTE: THE COUNT USAGE HERE IN THE LOG IS JUST AN INDICATION: PER THE MULTI-THREADED NATURE OF THIS THING
 				// IT'S OK IF THE NUMBER IS SINCE CHANGED AND IN THE FOREACH LOOP WE WILL ITERATE OVER MORE (OR LESS) ITEMS
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION: starting backplane auto-recovery of about {Count} pending notifications", _count);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}]: starting backplane auto-recovery of about {Count} pending notifications", _cache.CacheName, _count);
 
 				_count = 0;
 				foreach (var item in _autoRecoveryQueue)
@@ -170,14 +174,14 @@ internal sealed partial class BackplaneAccessor
 					{
 						// IF A PUBLISH DOESN'T GO THROUGH -> STOP PROCESSING THE QUEUE
 						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _operationId, item.Value.Message.CacheKey, _count);
+							_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _operationId, item.Value.Message.CacheKey, _count);
 
 						return;
 					}
 				}
 
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION: completed backplane auto-recovery of {Count} items", _count);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}]: completed backplane auto-recovery of {Count} items", _cache.CacheName, _count);
 			}
 			finally
 			{
@@ -185,6 +189,8 @@ internal sealed partial class BackplaneAccessor
 				_autoRecoveryLock.Release();
 			}
 		});
+
+		return true;
 	}
 
 	private bool CheckIncomingMessageForAutoRecoveryConflicts(BackplaneMessage message)
@@ -217,7 +223,7 @@ internal sealed partial class BackplaneAccessor
 			new BackplaneSubscriptionOptions
 			{
 				ChannelName = _options.GetBackplaneChannelName(),
-				Handler = ProcessMessage
+				Handler = HandleIncomingMessage
 			}
 		);
 	}
@@ -227,54 +233,73 @@ internal sealed partial class BackplaneAccessor
 		_backplane.Unsubscribe();
 	}
 
-	private void ProcessMessage(BackplaneMessage message)
+	private void HandleIncomingMessage(BackplaneMessage message)
 	{
+		// IGNORE NULL
+		if (message is null)
+		{
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId);
+
+			return;
+		}
+
+		// IGNORE INVALID MESSAGES
+		if (message.IsValid() == false)
+		{
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstanceTicks})", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId, message.Action, message.InstantTicks);
+
+			TryProcessAutoRecoveryQueue();
+			return;
+		}
+
+		// IGNORE MESSAGES FROM THIS SOURCE
+		if (message.SourceId == _cache.InstanceId)
+		{
+			TryProcessAutoRecoveryQueue();
+			return;
+		}
+
 		// AUTO-RECOVERY
 		if (_options.EnableBackplaneAutoRecovery)
 		{
 			if (CheckIncomingMessageForAutoRecoveryConflicts(message) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey}, but has been discarded since there is a newer pending one in the auto-recovery queue", message.CacheKey);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been discarded since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
 
-				ProcessAutoRecoveryQueue();
-
+				TryProcessAutoRecoveryQueue();
 				return;
 			}
 
-			ProcessAutoRecoveryQueue();
+			TryProcessAutoRecoveryQueue();
 		}
 
-		// IGNORE INVALID MESSAGES
-		if (message is null || message.IsValid() == false)
-		{
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "An invalid message has been received on the backplane from cache {CacheInstanceId} for key {CacheKey} and action {Action}", message?.SourceId, message?.CacheKey, message?.Action);
-
-			return;
-		}
-
-		// IGNORE MESSAGES FROM THIS SOURCE
-		if (message.SourceId == _cache.InstanceId)
-			return;
-
+		// PROCESS MESSAGE
 		switch (message.Action)
 		{
 			case BackplaneMessageAction.EntrySet:
-				_cache.EvictInternal(message.CacheKey!, true);
-
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (SET)", message.CacheKey);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
+
+				_cache.ExpireMemoryEntryInternal(message.CacheKey!, true);
 				break;
 			case BackplaneMessageAction.EntryRemove:
-				_cache.EvictInternal(message.CacheKey!, false);
-
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "A backplane notification has been received for {CacheKey} (REMOVE)", message.CacheKey);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
+
+				_cache.ExpireMemoryEntryInternal(message.CacheKey!, false);
+				break;
+			case BackplaneMessageAction.EntryExpire:
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (EXPIRE)", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId);
+
+				_cache.ExpireMemoryEntryInternal(message.CacheKey!, true);
 				break;
 			default:
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, "An unknown backplane notification has been received for {CacheKey}: {Type}", message.CacheKey, message.Action);
+					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an backplane notification has been received from remote cache {RemoteCacheInstanceId} for an unknown action {Action}", _cache.CacheName, _cache.InstanceId, message.CacheKey, message.SourceId, message.Action);
 				break;
 		}
 

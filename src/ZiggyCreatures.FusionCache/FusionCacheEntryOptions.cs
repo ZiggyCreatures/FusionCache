@@ -46,6 +46,8 @@ public class FusionCacheEntryOptions
 
 		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
 		SkipDistributedCacheReadWhenStale = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale;
+
+		SkipMemoryCache = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache;
 	}
 
 	/// <summary>
@@ -235,7 +237,7 @@ public class FusionCacheEntryOptions
 	/// <br/>
 	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
-	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
+	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public bool EnableBackplaneNotifications
 	{
 		get { return !SkipBackplaneNotifications; }
@@ -279,6 +281,15 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public bool SkipDistributedCacheReadWhenStale { get; set; }
+
+	/// <summary>
+	/// Skip the usage of the memory cache.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipMemoryCache { get; set; }
 
 	internal bool IsSafeForAdaptiveCaching { get; set; }
 
@@ -331,6 +342,16 @@ public class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the <see cref="Duration"/> to be zero: this will effectively remove the entry from the cache if fail-safe is disabled, or it will set the entry as logically expired if fail-safe is enabled (so it can be used later as a fallback).
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDurationZero()
+	{
+		Duration = TimeSpan.Zero;
+		return this;
+	}
+
+	/// <summary>
 	/// Set the <see cref="Duration"/> to be infinite, so it will never expire.
 	/// <strong>NOTE:</strong> the expiration will not be literally "infinite", but it will be set to <see cref="DateTimeOffset.MaxValue"/> which in turn is Dec 31st 9999 which, I mean, c'mon. If that time will come and you'll have some problems feel free to try and contact me :-)
 	/// </summary>
@@ -349,6 +370,16 @@ public class FusionCacheEntryOptions
 	public FusionCacheEntryOptions SetDistributedCacheDuration(TimeSpan? duration)
 	{
 		DistributedCacheDuration = duration;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="DistributedCacheDuration"/> to be zero: this will effectively remove the entry from the cache if fail-safe is disabled, or it will set the entry as logically expired if fail-safe is enabled (so it can be used later as a fallback).
+	/// </summary>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDistributedCacheDurationZero()
+	{
+		DistributedCacheDuration = TimeSpan.Zero;
 		return this;
 	}
 
@@ -501,7 +532,7 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
-	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
+	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
 	{
 		return SetSkipBackplaneNotifications(!enableBackplaneNotifications);
@@ -546,6 +577,21 @@ public class FusionCacheEntryOptions
 	public FusionCacheEntryOptions SetSkipDistributedCacheReadWhenStale(bool skip)
 	{
 		SkipDistributedCacheReadWhenStale = skip;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipMemoryCache"/> option.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipMemoryCache"/> property.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipMemoryCache(bool skip = true)
+	{
+		SkipMemoryCache = skip;
 		return this;
 	}
 
@@ -598,7 +644,7 @@ public class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
@@ -644,7 +690,7 @@ public class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
@@ -750,7 +796,9 @@ public class FusionCacheEntryOptions
 			SkipBackplaneNotifications = SkipBackplaneNotifications,
 
 			SkipDistributedCache = SkipDistributedCache,
-			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale
+			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
+
+			SkipMemoryCache = SkipMemoryCache,
 		};
 	}
 

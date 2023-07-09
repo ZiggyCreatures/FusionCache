@@ -132,7 +132,7 @@ public class RedisBackplane
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "An error occurred while disconnecting from Redis");
+				_logger.Log(LogLevel.Error, exc, "FUSION: An error occurred while disconnecting from Redis {Config}", _options.ConfigurationOptions?.ToString() ?? _options.Configuration);
 		}
 
 		_connection = null;
@@ -152,7 +152,7 @@ public class RedisBackplane
 
 		_subscriptionOptions = subscriptionOptions;
 
-		_channel = _subscriptionOptions.ChannelName;
+		_channel = new RedisChannel(_subscriptionOptions.ChannelName, RedisChannel.PatternMode.Literal);
 		_handler = _subscriptionOptions.Handler;
 
 		_ = Task.Run(async () =>
@@ -187,25 +187,14 @@ public class RedisBackplane
 		if (v.IsNull)
 			return;
 
-		//try
-		//{
 		var receivedCount = await _subscriber!.PublishAsync(_channel, v).ConfigureAwait(false);
 		if (receivedCount == 0)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
+				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): an error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
 
 			return;
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
-		//}
-		//catch (Exception exc)
-		//{
-		//	if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-		//		_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
-		//}
 	}
 
 	/// <inheritdoc/>
@@ -218,25 +207,17 @@ public class RedisBackplane
 		if (v.IsNull)
 			return;
 
-		//try
-		//{
 		var receivedCount = _subscriber!.Publish(_channel, v);
 		if (receivedCount == 0)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "An error occurred while trying to send a notification to the Redis backplane");
+				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): an error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
 
 			return;
 		}
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "An eviction notification has been sent for {CacheKey}", message.CacheKey);
-		//}
-		//catch (Exception exc)
-		//{
-		//	if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-		//		_logger.Log(LogLevel.Error, exc, "An error occurred while trying to send a notification to the Redis backplane");
-		//}
+			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): a notification has been sent ({Action})", message.CacheKey, message.Action);
 	}
 
 	private static BackplaneMessage? FromRedisValue(RedisValue value, ILogger? logger)
@@ -256,7 +237,7 @@ public class RedisBackplane
 			if (version != 0)
 			{
 				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.Log(LogLevel.Warning, "The version header does not have the expected value of 0 (zero): instead the value is " + version);
+					logger.Log(LogLevel.Warning, "FUSION: the version header does not have the expected value of 0 (zero): instead the value is " + version);
 				return null;
 			}
 			pos++;
@@ -286,7 +267,7 @@ public class RedisBackplane
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "An error occurred while converting a RedisValue into a BackplaneMessage");
+				logger.Log(LogLevel.Warning, exc, "FUSION: an error occurred while converting a RedisValue into a BackplaneMessage");
 		}
 
 		return null;
@@ -339,7 +320,7 @@ public class RedisBackplane
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "An error occurred while converting a BackplaneMessage into a RedisValue");
+				logger.Log(LogLevel.Warning, exc, "FUSION: an error occurred while converting a BackplaneMessage into a RedisValue");
 		}
 
 		return RedisValue.Null;

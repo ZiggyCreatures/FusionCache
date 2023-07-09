@@ -32,10 +32,17 @@ internal sealed class MemoryCacheAccessor
 
 	public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 	{
+		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
+		if (options.IsFailSafeEnabled == false && options.Duration <= TimeSpan.Zero)
+		{
+			RemoveEntry(operationId, key, options);
+			return;
+		}
+
 		var memoryOptions = options.ToMemoryCacheEntryOptions(_events, _options, _logger, operationId, key);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): saving entry in memory {Options} {Entry}", _options.CacheName, operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
 
 		_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
 
@@ -49,24 +56,24 @@ internal sealed class MemoryCacheAccessor
 		bool isValid = false;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.LogTrace("FUSION (O={CacheOperationId} K={CacheKey}): trying to get from memory", operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to get from memory", _options.CacheName, operationId, key);
 
 		if (_cache.TryGetValue<FusionCacheMemoryEntry>(key, out entry) == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): memory entry not found", operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry not found", _options.CacheName, operationId, key);
 		}
 		else
 		{
 			if (entry.IsLogicallyExpired())
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): memory entry found (expired) {Entry}", operationId, key, entry.ToLogString());
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry found (expired) {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
 			}
 			else
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): memory entry found {Entry}", operationId, key, entry.ToLogString());
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry found {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
 
 				isValid = true;
 			}
@@ -88,7 +95,7 @@ internal sealed class MemoryCacheAccessor
 	public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): removing data (from memory)", operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): removing data (from memory)", _options.CacheName, operationId, key);
 
 		_cache.Remove(key);
 
@@ -96,10 +103,10 @@ internal sealed class MemoryCacheAccessor
 		_events.OnRemove(operationId, key);
 	}
 
-	public void EvictEntry(string operationId, string key, bool allowFailSafe)
+	public void ExpireEntry(string operationId, string key, bool allowFailSafe)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.LogDebug("FUSION (O={CacheOperationId} K={CacheKey}): evicting data (from memory)", operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): expiring data (from memory)", _options.CacheName, operationId, key);
 
 		if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry) == false)
 			return;
@@ -111,6 +118,9 @@ internal sealed class MemoryCacheAccessor
 		{
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
+
+			// EVENT
+			_events.OnExpire(operationId, key);
 		}
 		else
 		{

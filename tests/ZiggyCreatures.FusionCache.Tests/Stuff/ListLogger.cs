@@ -7,7 +7,6 @@ namespace FusionCacheTests.Stuff
 	internal class ListLogger<T>
 		: ILogger<T>
 	{
-
 		internal class Scope : IDisposable
 		{
 			public void Dispose()
@@ -17,7 +16,7 @@ namespace FusionCacheTests.Stuff
 		}
 
 		private readonly LogLevel _minLogLevel;
-		public readonly List<(LogLevel LogLevel, string message)> Items = new List<(LogLevel LogLevel, string message)>();
+		public readonly List<(LogLevel LogLevel, string Message)> Items = new List<(LogLevel LogLevel, string Message)>();
 
 		public ListLogger(LogLevel minLogLevel)
 		{

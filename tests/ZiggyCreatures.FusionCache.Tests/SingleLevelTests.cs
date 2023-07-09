@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Newtonsoft.Json;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -33,6 +34,30 @@ namespace FusionCacheTests
 			{
 				var foo = new FusionCacheOptions() { DefaultEntryOptions = null! };
 			});
+		}
+
+		[Fact]
+		public async Task CanRemoveAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			await cache.SetAsync<int>("foo", 42);
+			var foo1 = await cache.GetOrDefaultAsync<int>("foo");
+			await cache.RemoveAsync("foo");
+			var foo2 = await cache.GetOrDefaultAsync<int>("foo");
+			Assert.Equal(42, foo1);
+			Assert.Equal(0, foo2);
+		}
+
+		[Fact]
+		public void CanRemove()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.Set<int>("foo", 42);
+			var foo1 = cache.GetOrDefault<int>("foo");
+			cache.Remove("foo");
+			var foo2 = cache.GetOrDefault<int>("foo");
+			Assert.Equal(42, foo1);
+			Assert.Equal(0, foo2);
 		}
 
 		[Fact]
@@ -736,6 +761,70 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
+		public async Task AdaptiveCachingCanWorkWithSkipMemoryCacheAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(1);
+			cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(3);
+
+			var foo1 = await cache.GetOrSetAsync<int>("foo", async _ => 1);
+
+			await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
+
+			var foo2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
+			{
+				ctx.Options.SkipMemoryCache = true;
+
+				return 2;
+			});
+
+			var foo3 = await cache.TryGetAsync<int>("foo");
+
+			await Task.Delay(cache.DefaultEntryOptions.FailSafeThrottleDuration.PlusALittleBit());
+
+			var foo4 = await cache.GetOrSetAsync<int>("foo", async _ => 4);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(2, foo2);
+			Assert.True(foo3.HasValue);
+			Assert.Equal(1, foo3.Value);
+			Assert.Equal(4, foo4);
+		}
+
+		[Fact]
+		public void AdaptiveCachingCanWorkWithSkipMemoryCache()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(1);
+			cache.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(3);
+
+			var foo1 = cache.GetOrSet<int>("foo", _ => 1);
+
+			Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
+
+			var foo2 = cache.GetOrSet<int>("foo", (ctx, _) =>
+			{
+				ctx.Options.SkipMemoryCache = true;
+
+				return 2;
+			});
+
+			var foo3 = cache.TryGet<int>("foo");
+
+			Thread.Sleep(cache.DefaultEntryOptions.FailSafeThrottleDuration.PlusALittleBit());
+
+			var foo4 = cache.GetOrSet<int>("foo", _ => 4);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(2, foo2);
+			Assert.True(foo3.HasValue);
+			Assert.Equal(1, foo3.Value);
+			Assert.Equal(4, foo4);
+		}
+
+		[Fact]
 		public async Task FailSafeMaxDurationNormalizationOccursAsync()
 		{
 			var duration = TimeSpan.FromSeconds(5);
@@ -813,6 +902,82 @@ namespace FusionCacheTests
 			cache.Set<int>("foo", 42, opt => opt.SetDuration(TimeSpan.MaxValue - TimeSpan.FromMilliseconds(1)).SetJittering(TimeSpan.FromMinutes(10)));
 			var foo = cache.GetOrDefault<int>("foo", 0);
 			Assert.Equal(42, foo);
+		}
+
+		[Fact]
+		public async Task CanHandleZeroDurationsAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			await cache.SetAsync<int>("foo", 10, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo1 = await cache.GetOrDefaultAsync<int>("foo", 1);
+
+			await cache.SetAsync<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = await cache.GetOrDefaultAsync<int>("foo", 2);
+
+			await cache.SetAsync<int>("foo", 30, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo3 = await cache.GetOrDefaultAsync<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
+		public void CanHandleZeroDurations()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.Set<int>("foo", 10, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo1 = cache.GetOrDefault<int>("foo", 1);
+
+			cache.Set<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = cache.GetOrDefault<int>("foo", 2);
+
+			cache.Set<int>("foo", 30, opt => opt.SetDuration(TimeSpan.Zero));
+			var foo3 = cache.GetOrDefault<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
+		public async Task CanHandleNegativeDurationsAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			await cache.SetAsync<int>("foo", 10, opt => opt.SetDuration(TimeSpan.FromSeconds(-100)));
+			var foo1 = await cache.GetOrDefaultAsync<int>("foo", 1);
+
+			await cache.SetAsync<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = await cache.GetOrDefaultAsync<int>("foo", 2);
+
+			await cache.SetAsync<int>("foo", 30, opt => opt.SetDuration(TimeSpan.FromDays(-100)));
+			var foo3 = await cache.GetOrDefaultAsync<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
+		}
+
+		[Fact]
+		public void CanHandleNegativeDurations()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.Set<int>("foo", 10, opt => opt.SetDuration(TimeSpan.FromSeconds(-100)));
+			var foo1 = cache.GetOrDefault<int>("foo", 1);
+
+			cache.Set<int>("foo", 20, opt => opt.SetDuration(TimeSpan.FromMinutes(10)));
+			var foo2 = cache.GetOrDefault<int>("foo", 2);
+
+			cache.Set<int>("foo", 30, opt => opt.SetDuration(TimeSpan.FromDays(-100)));
+			var foo3 = cache.GetOrDefault<int>("foo", 3);
+
+			Assert.Equal(1, foo1);
+			Assert.Equal(20, foo2);
+			Assert.Equal(3, foo3);
 		}
 
 		[Fact]
@@ -1219,6 +1384,251 @@ namespace FusionCacheTests
 			Assert.Equal(2, v4);
 			Assert.Equal(2, v5);
 			Assert.Equal(2, value);
+		}
+
+		[Fact]
+		public async Task CanExpireAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			await cache.SetAsync<int>("foo", 42);
+			var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+			await cache.ExpireAsync("foo");
+			var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+			var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+			Assert.True(maybeFoo1.HasValue);
+			Assert.Equal(42, maybeFoo1.Value);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.Equal(42, maybeFoo3.Value);
+		}
+
+		[Fact]
+		public void CanExpire()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+			cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+			cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			cache.Set<int>("foo", 42);
+			var maybeFoo1 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+			cache.Expire("foo");
+			var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+			var maybeFoo3 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+			Assert.True(maybeFoo1.HasValue);
+			Assert.Equal(42, maybeFoo1.Value);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.Equal(42, maybeFoo3.Value);
+		}
+
+		[Fact]
+		public async Task CanSkipMemoryCacheAsync()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			await cache.SetAsync<int>("foo", 42, opt => opt.SetSkipMemoryCache());
+			var maybeFoo1 = await cache.TryGetAsync<int>("foo");
+			await cache.SetAsync<int>("foo", 42);
+			var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo3 = await cache.TryGetAsync<int>("foo");
+			await cache.RemoveAsync("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo4 = await cache.TryGetAsync<int>("foo");
+			await cache.RemoveAsync("foo");
+			var maybeFoo5 = await cache.TryGetAsync<int>("foo");
+
+			await cache.GetOrSetAsync<int>("bar", 42, opt => opt.SetSkipMemoryCache());
+			var maybeBar = await cache.TryGetAsync<int>("bar");
+
+			Assert.False(maybeFoo1.HasValue);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.True(maybeFoo4.HasValue);
+			Assert.False(maybeFoo5.HasValue);
+
+			Assert.False(maybeBar.HasValue);
+		}
+
+		[Fact]
+		public void CanSkipMemoryCache()
+		{
+			using var cache = new FusionCache(new FusionCacheOptions());
+
+			cache.Set<int>("foo", 42, opt => opt.SetSkipMemoryCache());
+			var maybeFoo1 = cache.TryGet<int>("foo");
+			cache.Set<int>("foo", 42);
+			var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo3 = cache.TryGet<int>("foo");
+			cache.Remove("foo", opt => opt.SetSkipMemoryCache());
+			var maybeFoo4 = cache.TryGet<int>("foo");
+			cache.Remove("foo");
+			var maybeFoo5 = cache.TryGet<int>("foo");
+
+			cache.GetOrSet<int>("bar", 42, opt => opt.SetSkipMemoryCache());
+			var maybeBar = cache.TryGet<int>("bar");
+
+			Assert.False(maybeFoo1.HasValue);
+			Assert.False(maybeFoo2.HasValue);
+			Assert.True(maybeFoo3.HasValue);
+			Assert.True(maybeFoo4.HasValue);
+			Assert.False(maybeFoo5.HasValue);
+
+			Assert.False(maybeBar.HasValue);
+		}
+
+		[Fact]
+		public async Task CanUseNullFusionCacheAsync()
+		{
+			using var cache = new NullFusionCache(new FusionCacheOptions()
+			{
+				CacheName = "SlothsAreCool42",
+				DefaultEntryOptions = new FusionCacheEntryOptions()
+				{
+					IsFailSafeEnabled = true,
+					Duration = TimeSpan.FromMinutes(123)
+				}
+			});
+
+			await cache.SetAsync<int>("foo", 42);
+
+			var maybeFoo1 = await cache.TryGetAsync<int>("foo");
+
+			await cache.RemoveAsync("foo");
+
+			var maybeBar1 = await cache.TryGetAsync<int>("bar");
+
+			await cache.ExpireAsync("qux");
+
+			var qux1 = await cache.GetOrSetAsync("qux", async _ => 1);
+			var qux2 = await cache.GetOrSetAsync("qux", async _ => 2);
+			var qux3 = await cache.GetOrSetAsync("qux", async _ => 3);
+			var qux4 = await cache.GetOrDefaultAsync("qux", 4);
+
+			Assert.Equal("SlothsAreCool42", cache.CacheName);
+			Assert.False(string.IsNullOrWhiteSpace(cache.InstanceId));
+
+			Assert.False(cache.HasDistributedCache);
+			Assert.False(cache.HasBackplane);
+
+			Assert.True(cache.DefaultEntryOptions.IsFailSafeEnabled);
+			Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
+
+			Assert.False(maybeFoo1.HasValue);
+			Assert.False(maybeBar1.HasValue);
+
+			Assert.Equal(1, qux1);
+			Assert.Equal(2, qux2);
+			Assert.Equal(3, qux3);
+			Assert.Equal(4, qux4);
+
+			await Assert.ThrowsAsync<UnreachableException>(async () =>
+			{
+				_ = await cache.GetOrSetAsync<int>("qux", async _ => throw new UnreachableException("Sloths"));
+			});
+		}
+
+		[Fact]
+		public void CanUseNullFusionCache()
+		{
+			using var cache = new NullFusionCache(new FusionCacheOptions()
+			{
+				CacheName = "SlothsAreCool42",
+				DefaultEntryOptions = new FusionCacheEntryOptions()
+				{
+					IsFailSafeEnabled = true,
+					Duration = TimeSpan.FromMinutes(123)
+				}
+			});
+
+			cache.Set<int>("foo", 42);
+
+			var maybeFoo1 = cache.TryGet<int>("foo");
+
+			cache.Remove("foo");
+
+			var maybeBar1 = cache.TryGet<int>("bar");
+
+			cache.Expire("qux");
+
+			var qux1 = cache.GetOrSet("qux", _ => 1);
+			var qux2 = cache.GetOrSet("qux", _ => 2);
+			var qux3 = cache.GetOrSet("qux", _ => 3);
+			var qux4 = cache.GetOrDefault("qux", 4);
+
+			Assert.Equal("SlothsAreCool42", cache.CacheName);
+			Assert.False(string.IsNullOrWhiteSpace(cache.InstanceId));
+
+			Assert.False(cache.HasDistributedCache);
+			Assert.False(cache.HasBackplane);
+
+			Assert.True(cache.DefaultEntryOptions.IsFailSafeEnabled);
+			Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
+
+			Assert.False(maybeFoo1.HasValue);
+			Assert.False(maybeBar1.HasValue);
+
+			Assert.Equal(1, qux1);
+			Assert.Equal(2, qux2);
+			Assert.Equal(3, qux3);
+			Assert.Equal(4, qux4);
+
+			Assert.Throws<UnreachableException>(() =>
+			{
+				_ = cache.GetOrSet<int>("qux", _ => throw new UnreachableException("Sloths"));
+			});
+		}
+
+		[Fact]
+		public void DuplicatEntryOptionsWorksCorrectly()
+		{
+			var original = new FusionCacheEntryOptions()
+			{
+				IsSafeForAdaptiveCaching = true,
+
+				Duration = TimeSpan.FromSeconds(1),
+				LockTimeout = TimeSpan.FromSeconds(2),
+				Size = 123,
+				Priority = CacheItemPriority.High,
+				JitterMaxDuration = TimeSpan.FromSeconds(3),
+
+				// NOTE: PERF MICRO-OPT
+				EagerRefreshThreshold = 0.456f,
+
+				IsFailSafeEnabled = !FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled,
+				FailSafeMaxDuration = TimeSpan.FromSeconds(4),
+				FailSafeThrottleDuration = TimeSpan.FromSeconds(5),
+
+				FactorySoftTimeout = TimeSpan.FromSeconds(6),
+				FactoryHardTimeout = TimeSpan.FromSeconds(7),
+				AllowTimedOutFactoryBackgroundCompletion = !FusionCacheGlobalDefaults.EntryOptionsAllowTimedOutFactoryBackgroundCompletion,
+
+				DistributedCacheDuration = TimeSpan.FromSeconds(8),
+				DistributedCacheFailSafeMaxDuration = TimeSpan.FromSeconds(9),
+				DistributedCacheSoftTimeout = TimeSpan.FromSeconds(10),
+				DistributedCacheHardTimeout = TimeSpan.FromSeconds(11),
+
+				ReThrowDistributedCacheExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions,
+				ReThrowSerializationExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowSerializationExceptions,
+
+				AllowBackgroundDistributedCacheOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations,
+				AllowBackgroundBackplaneOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations,
+
+				SkipBackplaneNotifications = !FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications,
+
+				SkipDistributedCache = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache,
+				SkipDistributedCacheReadWhenStale = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale,
+
+				SkipMemoryCache = true,
+			};
+
+			var duplicated = original.Duplicate();
+
+			Assert.Equal(
+				JsonConvert.SerializeObject(original),
+				JsonConvert.SerializeObject(duplicated)
+			);
 		}
 	}
 }

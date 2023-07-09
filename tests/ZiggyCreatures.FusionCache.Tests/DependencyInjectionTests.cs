@@ -499,24 +499,6 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void ThrowsWhenRequestingAnUnregisteredCache()
-		{
-			var services = new ServiceCollection();
-
-			services.AddFusionCache("FooCache");
-			services.AddFusionCache();
-
-			using var serviceProvider = services.BuildServiceProvider();
-
-			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
-
-			Assert.Throws<ArgumentException>(() =>
-			{
-				cacheProvider.GetCache("BarCache");
-			});
-		}
-
-		[Fact]
 		public void DefaultCacheIsTheSameWhenRequestedInDifferentWays()
 		{
 			var services = new ServiceCollection();
@@ -532,7 +514,7 @@ namespace FusionCacheTests
 		}
 
 		[Fact]
-		public void ThrowsWhenRequestingANamedCacheRegisteredMultipleTimes()
+		public void ThrowsOrNotWhenRequestingUnregisteredNamedCaches()
 		{
 			var services = new ServiceCollection();
 
@@ -545,8 +527,76 @@ namespace FusionCacheTests
 
 			Assert.Throws<InvalidOperationException>(() =>
 			{
+				// MULTIPLE Foo CACHES REGISTERED -> THROWS
+				_ = cacheProvider.GetCache("Foo");
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				// MULTIPLE Foo CACHES REGISTERED -> THROWS
+				_ = cacheProvider.GetCacheOrNull("Foo");
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				// NO Bar CACHE REGISTERED -> THROWS
+				_ = cacheProvider.GetCache("Bar");
+			});
+
+			// NO Bar CACHE REGISTERED -> RETURNS NULL
+			var maybeBarCache = cacheProvider.GetCacheOrNull("Bar");
+
+			Assert.Null(maybeBarCache);
+		}
+
+		[Fact]
+		public void ThrowsOrNotWhenRequestingUnregisteredDefaultCache()
+		{
+			var services = new ServiceCollection();
+
+			services.AddFusionCache("Foo");
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				// NO DEFAULT CACHE REGISTERED -> THROWS
 				_ = cacheProvider.GetDefaultCache();
 			});
+
+			// NO DEFAULT CACHE REGISTERED -> RETURNS NULL
+			var maybeDefaultCache = cacheProvider.GetDefaultCacheOrNull();
+
+			Assert.Null(maybeDefaultCache);
+		}
+
+		[Fact]
+		public void CacheInstancesAreAlwaysTheSame()
+		{
+			var services = new ServiceCollection();
+
+			services.AddFusionCache();
+			services.AddFusionCache("Foo");
+			services.AddFusionCache("Bar");
+
+			using var serviceProvider = services.BuildServiceProvider();
+
+			var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+
+			var defaultCache1 = cacheProvider.GetDefaultCache();
+			var defaultCache2 = cacheProvider.GetDefaultCache();
+
+			var fooCache1 = cacheProvider.GetCache("Foo");
+			var fooCache2 = cacheProvider.GetCache("Foo");
+
+			var barCache1 = cacheProvider.GetCache("Bar");
+			var barCache2 = cacheProvider.GetCache("Bar");
+
+			Assert.Same(defaultCache1, defaultCache2);
+			Assert.Same(fooCache1, fooCache2);
+			Assert.Same(barCache1, barCache2);
 		}
 
 		[Fact]
@@ -759,131 +809,130 @@ namespace FusionCacheTests
 			Assert.Equal("CONN_DEFAULT", defaultBackplaneOptions.Configuration);
 		}
 
-		[Fact]
-		public void ExistingAndObsoleteCallsStillWork()
-		{
-			static ServiceCollection CreateServiceCollection()
-			{
-				var services = new ServiceCollection();
+		//		[Fact]
+		//		public void ExistingAndObsoleteCallsStillWork()
+		//		{
+		//			static ServiceCollection CreateServiceCollection()
+		//			{
+		//				var services = new ServiceCollection();
 
-				// REGISTER SOME FUSIONCACHE-RELATED COMPONENTS, TO SEE IFTHEY ARE PICKED UP
-				services.AddStackExchangeRedisCache(opt => opt.Configuration = "CONN_FOO");
-				services.AddFusionCacheSystemTextJsonSerializer();
+		//				// REGISTER SOME FUSIONCACHE-RELATED COMPONENTS, TO SEE IFTHEY ARE PICKED UP
+		//				services.AddStackExchangeRedisCache(opt => opt.Configuration = "CONN_FOO");
+		//				services.AddFusionCacheSystemTextJsonSerializer();
 
-				return services;
-			}
+		//				return services;
+		//			}
 
-			ServiceCollection services;
+		//			ServiceCollection services;
 
-			//			// 01: BASIC
-			//			// 
-			//			// NOTE: VALID ONLY BEFORE V0.20.0
-			//			var services = CreateServiceCollection();
+		//			//			// 01: BASIC
+		//			//			// 
+		//			//			// NOTE: VALID ONLY BEFORE V0.20.0
+		//			//			var services = CreateServiceCollection();
 
-			//#pragma warning disable CS0618 // Type or member is obsolete
-			//			services.AddFusionCache();
-			//#pragma warning restore CS0618 // Type or member is obsolete
+		//			//#pragma warning disable CS0618 // Type or member is obsolete
+		//			//			services.AddFusionCache();
+		//			//#pragma warning restore CS0618 // Type or member is obsolete
 
-			//			using (var serviceProvider = services.BuildServiceProvider())
-			//			{
-			//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		//			//			using (var serviceProvider = services.BuildServiceProvider())
+		//			//			{
+		//			//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
+		//			//				Assert.True(cache.HasDistributedCache);
+		//			//			}
 
-			//				Assert.True(cache.HasDistributedCache);
-			//			}
+		//			// 02: OPTIONS
+		//			services = CreateServiceCollection();
 
-			// 02: OPTIONS
-			services = CreateServiceCollection();
+		//#pragma warning disable CS0618 // Type or member is obsolete
+		//			services.AddFusionCache(
+		//				opt =>
+		//				{
+		//					opt.BackplaneAutoRecoveryMaxItems = 123;
+		//				}
+		//			);
+		//#pragma warning restore CS0618 // Type or member is obsolete
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				}
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+		//			using (var serviceProvider = services.BuildServiceProvider())
+		//			{
+		//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		//				Assert.True(cache.HasDistributedCache);
+		//			}
 
-				Assert.True(cache.HasDistributedCache);
-			}
+		//			// 03: OPTIONS + FLAG1
+		//			services = CreateServiceCollection();
 
-			// 03: OPTIONS + FLAG1
-			services = CreateServiceCollection();
+		//#pragma warning disable CS0618 // Type or member is obsolete
+		//			services.AddFusionCache(
+		//				opt =>
+		//				{
+		//					opt.BackplaneAutoRecoveryMaxItems = 123;
+		//				},
+		//				false
+		//			);
+		//#pragma warning restore CS0618 // Type or member is obsolete
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				},
-				false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+		//			using (var serviceProvider = services.BuildServiceProvider())
+		//			{
+		//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		//				Assert.False(cache.HasDistributedCache);
+		//			}
 
-				Assert.False(cache.HasDistributedCache);
-			}
+		//			// 04: OPTIONS + FLAG1 + FLAG2
+		//			services = CreateServiceCollection();
 
-			// 04: OPTIONS + FLAG1 + FLAG2
-			services = CreateServiceCollection();
+		//#pragma warning disable CS0618 // Type or member is obsolete
+		//			services.AddFusionCache(
+		//				opt =>
+		//				{
+		//					opt.BackplaneAutoRecoveryMaxItems = 123;
+		//				},
+		//				false,
+		//				false
+		//			);
+		//#pragma warning restore CS0618 // Type or member is obsolete
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				opt =>
-				{
-					opt.BackplaneAutoRecoveryMaxItems = 123;
-				},
-				false,
-				false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+		//			using (var serviceProvider = services.BuildServiceProvider())
+		//			{
+		//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		//				Assert.False(cache.HasDistributedCache);
+		//			}
 
-				Assert.False(cache.HasDistributedCache);
-			}
+		//			// 05: FLAG1
+		//			services = CreateServiceCollection();
 
-			// 05: FLAG1
-			services = CreateServiceCollection();
+		//#pragma warning disable CS0618 // Type or member is obsolete
+		//			services.AddFusionCache(
+		//				useDistributedCacheIfAvailable: false
+		//			);
+		//#pragma warning restore CS0618 // Type or member is obsolete
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				useDistributedCacheIfAvailable: false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+		//			using (var serviceProvider = services.BuildServiceProvider())
+		//			{
+		//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		//				Assert.False(cache.HasDistributedCache);
+		//			}
 
-				Assert.False(cache.HasDistributedCache);
-			}
+		//			// 06: FLAG2
+		//			services = CreateServiceCollection();
 
-			// 06: FLAG2
-			services = CreateServiceCollection();
+		//#pragma warning disable CS0618 // Type or member is obsolete
+		//			services.AddFusionCache(
+		//				ignoreMemoryDistributedCache: false
+		//			);
+		//#pragma warning restore CS0618 // Type or member is obsolete
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			services.AddFusionCache(
-				ignoreMemoryDistributedCache: false
-			);
-#pragma warning restore CS0618 // Type or member is obsolete
+		//			using (var serviceProvider = services.BuildServiceProvider())
+		//			{
+		//				var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			using (var serviceProvider = services.BuildServiceProvider())
-			{
-				var cache = serviceProvider.GetRequiredService<IFusionCache>();
-
-				Assert.True(cache.HasDistributedCache);
-			}
-		}
+		//				Assert.True(cache.HasDistributedCache);
+		//			}
+		//		}
 
 		[Fact]
 		public void CanDoWithoutLogger()

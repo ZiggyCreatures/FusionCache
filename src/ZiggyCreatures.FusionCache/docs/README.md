@@ -27,7 +27,7 @@ With [🦄 A Gentle Introduction](https://github.com/ZiggyCreatures/FusionCache/
 
 Want to start using it immediately? There's a [⭐ Quick Start](https://github.com/ZiggyCreatures/FusionCache/blob/main/README.md#-quick-start) for you.
 
-Curious about what you can achieve from start to finish? There's a [:woman_teacher: Step By Step ](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md) guide.
+Curious about what you can achieve from start to finish? There's a [👩‍🏫 Step By Step ](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md) guide.
 
 More into videos? The great Anna Hoffman has been so nice to listen to me mumble random stuff on [Data Exposed](https://learn.microsoft.com/en-us/shows/data-exposed/caching-made-easy-in-azure-sql-db-with-fusioncache-data-exposed).
 

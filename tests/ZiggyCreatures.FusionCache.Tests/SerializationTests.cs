@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -9,6 +11,8 @@ namespace FusionCacheTests
 {
 	public class SerializationTests
 	{
+		private static readonly Regex __re_VersionExtractor = new Regex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled);
+
 		private const string SampleString = "Supercalifragilisticexpialidocious";
 
 		private static T? LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
@@ -118,6 +122,7 @@ namespace FusionCacheTests
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
@@ -140,6 +145,7 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
@@ -162,6 +168,7 @@ namespace FusionCacheTests
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Null(looped!.Metadata);
 		}
 
@@ -180,6 +187,7 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Null(looped!.Metadata);
 		}
 
@@ -198,6 +206,7 @@ namespace FusionCacheTests
 			var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<ComplexType>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
@@ -220,11 +229,52 @@ namespace FusionCacheTests
 			var looped = serializer.Deserialize<FusionCacheDistributedEntry<ComplexType>>(data);
 			Assert.NotNull(looped);
 			Assert.Equal(obj.Value, looped.Value);
+			Assert.Equal(obj.Timestamp, looped.Timestamp);
 			Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
 			Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 			Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 			Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 			Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanDeserializeOldVersionsAsync(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+
+			var filePrefix = $"{serializer.GetType().Name}__";
+
+			var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
+
+			foreach (var file in files)
+			{
+				var payloadVersion = __re_VersionExtractor.Match(file).Groups[1]?.Value?.Replace('_', '.');
+
+				var payload = File.ReadAllBytes(file);
+				var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
+				Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+			}
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanDeserializeOldVersions(SerializerType serializerType)
+		{
+			var serializer = TestsUtils.GetSerializer(serializerType);
+
+			var filePrefix = $"{serializer.GetType().Name}__";
+
+			var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
+
+			foreach (var file in files)
+			{
+				var payloadVersion = __re_VersionExtractor.Match(file).Groups[1]?.Value?.Replace('_', '.');
+
+				var payload = File.ReadAllBytes(file);
+				var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
+				Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+			}
 		}
 	}
 }

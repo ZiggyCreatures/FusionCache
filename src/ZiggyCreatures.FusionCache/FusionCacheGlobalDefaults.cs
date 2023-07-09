@@ -118,4 +118,9 @@ public static class FusionCacheGlobalDefaults
 	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCacheReadWhenStale"/>.
 	/// </summary>
 	public static bool EntryOptionsSkipDistributedCacheReadWhenStale { get; set; } = false;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.SkipMemoryCache"/>.
+	/// </summary>
+	public static bool EntryOptionsSkipMemoryCache { get; set; } = false;
 }

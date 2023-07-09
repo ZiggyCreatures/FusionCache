@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.21.0</Version>
+		<Version>0.22.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache backplane for Redis based on the StackExchange.Redis library</Description>
@@ -12,7 +12,10 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- Better log messages
+			- Dependencies update
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -25,7 +28,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="StackExchange.Redis" Version="2.6.96" />
+		<PackageReference Include="StackExchange.Redis" Version="2.6.122" />
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 

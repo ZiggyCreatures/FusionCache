@@ -110,9 +110,6 @@ public class MemoryBackplane
 		if (_backplanes is null)
 			throw new NullReferenceException("Something went wrong :-|");
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "A backplane notification has been sent for {CacheKey}", message.CacheKey);
-
 		foreach (var backplane in _backplanes)
 		{
 			if (backplane == this)

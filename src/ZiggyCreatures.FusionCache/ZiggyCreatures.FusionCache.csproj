@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.21.0</Version>
+		<Version>0.22.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>
@@ -15,10 +15,21 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added: Eager Refresh
-			- Added: Conditional Refresh
-			- Added: WithoutLogger() method for builder
-			- Added: EagerRefresh event
+			- Added: Expire()/ExpireAsync() method
+			- Added: SkipMemoryCache option
+			- Added: NullFusionCache (null object pattern)
+			- Added: better timestamping
+			- Added: special handling of zero duration
+			- Change: better log messages with CacheName and InstanceId
+			- Change: Adaptive Caching now supports more use cases
+			- Change: Eager Refresh now also checks distributed cache
+			- Tests: added automated tests for serializers' backward compatibility towards old versions' binary payloads
+			- Perf: better (lazy) handling of named caches instantiation
+			- Perf: better handling of backplane messages
+			- Perf: more robus edge-case handling for locks release
+			- Perf: better handling of distributed cache and backplane while disposing FusionCache
+			- Perf: various performance optimizations
+			- Obsolete: some old obsolete members have been marked with the error flag (next step: remove them)
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<!--<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>-->
