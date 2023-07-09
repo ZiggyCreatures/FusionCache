@@ -154,7 +154,6 @@ internal sealed class FusionCacheReactorStandard
 		{
 			if (disposing)
 			{
-				// TODO: MAYBE FIND A WAY TO CLEAR ALL THE ENTRIES IN THE CACHE (INCLUDING THE ONES WITH A NeverRemove PRIORITY) AND DISPOSE ALL RELATED SEMAPHORES
 				_lockCache.Compact(1.0);
 				_lockCache.Dispose();
 			}
