@@ -164,7 +164,8 @@ public partial class FusionCache
 
 		// TRY TO PICK A FALLBACK ENTRY
 		IFusionCacheEntry? entry;
-		if (distributedEntry is not null && (memoryEntry is null || distributedEntry.Timestamp > memoryEntry.Timestamp))
+		//if (distributedEntry is not null && (memoryEntry is null || distributedEntry.Timestamp > memoryEntry.Timestamp))
+		if (distributedEntry is not null)
 			entry = distributedEntry;
 		else
 			entry = memoryEntry;
