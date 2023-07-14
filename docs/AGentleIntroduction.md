@@ -124,19 +124,20 @@ Read more [**here**](Options.md), or enjoy the complete [**step by step**](StepB
 
 ## 🕹️ Core Methods ([more](CoreMethods.md))
 
-At a high level there are 5 core methods:
+At a high level there are 6 core methods:
 
 - `Set[Async]`
 - `Remove[Async]`
 - `TryGet[Async]`
 - `GetOrDefault[Async]`
 - `GetOrSet[Async]`
+- `Expire[Async]`
 
 All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: we don't have to do anything extra for it to coordinate the 2 layers.
 
 All of them are available in both a **sync** and an **async** version.
 
-Finally, most of them have a set of ♻ overloads for a better ease of use.
+Finally, most of them have a set of **overloads** for a better ease of use.
 
 Read more [**here**](CoreMethods.md).
 
