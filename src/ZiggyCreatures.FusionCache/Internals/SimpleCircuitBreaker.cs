@@ -32,7 +32,7 @@ public class SimpleCircuitBreaker
 	public TimeSpan BreakDuration { get; private set; }
 
 	/// <summary>
-	/// Tries to pen the circuit.
+	/// Tries to open the circuit.
 	/// </summary>
 	/// <param name="isStateChanged">Indicates if the circuit has been opened with this operation.</param>
 	/// <returns><see langword="true"/> if the circuit is open, either because it was already or because it has been opened with this operation. <see langword="false"/> otherwise.</returns>
@@ -55,10 +55,24 @@ public class SimpleCircuitBreaker
 	}
 
 	/// <summary>
+	/// Close the circuit.
+	/// </summary>
+	/// <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
+	public void Close(out bool isStateChanged)
+	{
+		Interlocked.Exchange(ref _gatewayTicks, DateTimeOffset.MinValue.Ticks);
+
+		// DETECT CIRCUIT STATE CHANGE
+		var oldCircuitState = Interlocked.Exchange(ref _circuitState, CircuitStateClosed);
+
+		isStateChanged = oldCircuitState == CircuitStateOpen;
+	}
+
+	/// <summary>
 	/// Check if the circuit is closed, or has been closed with this operation.
 	/// </summary>
 	/// <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
-	/// <returns><see langword="true"/> if the circuit is close, either because it was already or because it has been closed with this operation. <see langword="false"/> otherwise.</returns>
+	/// <returns><see langword="true"/> if the circuit is closed, either because it was already closed or because it has been closed with this operation. <see langword="false"/> otherwise.</returns>
 	public bool IsClosed(out bool isStateChanged)
 	{
 		isStateChanged = false;
