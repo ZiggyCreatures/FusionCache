@@ -38,7 +38,18 @@ namespace FusionCacheTests.Stuff
 		public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
 		{
 			if (IsEnabled(logLevel))
-				_helper.WriteLine($"{DateTime.UtcNow}: " + formatter(state, exception));
+			{
+				_helper.WriteLine(
+					(logLevel >= LogLevel.Warning ? Environment.NewLine : "")
+					+ $"{logLevel.ToString().ToUpper()} {DateTime.UtcNow}: "
+					+ formatter(state, exception)
+					+ (exception is null
+						? ""
+						: (Environment.NewLine + exception.ToString() + Environment.NewLine)
+					)
+					+ (logLevel >= LogLevel.Warning ? Environment.NewLine : "")
+				);
+			}
 		}
 	}
 }
