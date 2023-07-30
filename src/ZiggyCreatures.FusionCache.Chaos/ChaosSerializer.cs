@@ -19,7 +19,10 @@ public class ChaosSerializer
 	public ChaosSerializer(IFusionCacheSerializer innerSerializer)
 	{
 		_innerSerializer = innerSerializer ?? throw new ArgumentNullException(nameof(innerSerializer));
-		SetNeverChaos();
+
+		ChaosThrowProbability = 0f;
+		ChaosMinDelay = TimeSpan.Zero;
+		ChaosMaxDelay = TimeSpan.Zero;
 	}
 
 	/// <summary>

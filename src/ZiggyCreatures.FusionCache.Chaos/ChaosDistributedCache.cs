@@ -20,7 +20,10 @@ public class ChaosDistributedCache
 	public ChaosDistributedCache(IDistributedCache innerCache)
 	{
 		_innerCache = innerCache ?? throw new ArgumentNullException(nameof(innerCache));
-		SetNeverChaos();
+
+		ChaosThrowProbability = 0f;
+		ChaosMinDelay = TimeSpan.Zero;
+		ChaosMaxDelay = TimeSpan.Zero;
 	}
 
 	/// <summary>

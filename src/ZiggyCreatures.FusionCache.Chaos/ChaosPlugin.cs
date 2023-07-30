@@ -9,6 +9,21 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 	public class ChaosPlugin
 		: IFusionCachePlugin
 	{
+		IFusionCachePlugin _innerPlugin;
+
+		/// <summary>
+		/// Initializes a new instance of the ChaosPlugin class.
+		/// </summary>
+		/// <param name="innerPlugin">The actual <see cref="IFusionCachePlugin"/> used if and when chaos does not happen.</param>
+		public ChaosPlugin(IFusionCachePlugin innerPlugin)
+		{
+			_innerPlugin = innerPlugin ?? throw new ArgumentNullException(nameof(innerPlugin));
+
+			ChaosThrowProbability = 0f;
+			ChaosMinDelay = TimeSpan.Zero;
+			ChaosMaxDelay = TimeSpan.Zero;
+		}
+
 
 		/// <summary>
 		/// A <see cref="float"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
@@ -83,12 +98,14 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		public void Start(IFusionCache cache)
 		{
 			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			_innerPlugin.Start(cache);
 		}
 
 		/// <inheritdoc/>
 		public void Stop(IFusionCache cache)
 		{
 			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			_innerPlugin.Stop(cache);
 		}
 	}
 }
