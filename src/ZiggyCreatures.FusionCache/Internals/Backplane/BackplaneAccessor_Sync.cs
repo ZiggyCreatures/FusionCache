@@ -71,11 +71,20 @@ internal partial class BackplaneAccessor
 			{
 				try
 				{
-					// IF THE MESSAGE IS FROM AUTO-RECOVERY AND THERE IS A DISTRIBUTED CACHE,
-					// WE NEED TO EXPIRE (REMOVE) THE ENTRY, BUT ONLY IN THE DISTRIBUTED CACHE
+					// IF:
+					// - THE MESSAGE IS FROM AUTO-RECOVERY
+					// - AND EnableDistributedExpireOnBackplaneAutoRecovery IS ENABLED
+					// - AND THERE IS A DISTRIBUTED CACHE
+					// THEN:
+					// - REMOVE THE ENTRY (BUT ONLY FROM THE DISTRIBUTED CACHE)
 					if (isFromAutoRecovery && _options.EnableDistributedExpireOnBackplaneAutoRecovery && _cache.HasDistributedCache)
 					{
-						_cache.Expire(message.CacheKey!, _autoRecoveryEntryOptions, ct);
+						//_cache.Expire(message.CacheKey!, _autoRecoveryEntryOptions, ct);
+						var dca = _cache.GetCurrentDistributedAccessor(_autoRecoveryEntryOptions);
+						if (dca.CanBeUsed(operationId, message.CacheKey))
+						{
+							dca!.RemoveEntry(operationId, message.CacheKey!, _autoRecoveryEntryOptions, ct);
+						}
 					}
 
 					_backplane.Publish(message, options, ct);
