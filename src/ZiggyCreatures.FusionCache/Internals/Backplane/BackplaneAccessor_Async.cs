@@ -74,7 +74,7 @@ internal partial class BackplaneAccessor
 				{
 					// IF THE MESSAGE IS FROM AUTO-RECOVERY AND THERE IS A DISTRIBUTED CACHE,
 					// WE NEED TO EXPIRE (REMOVE) THE ENTRY, BUT ONLY IN THE DISTRIBUTED CACHE
-					if (isFromAutoRecovery && _cache.HasDistributedCache)
+					if (isFromAutoRecovery && _options.EnableDistributedExpireOnBackplaneAutoRecovery && _cache.HasDistributedCache)
 					{
 						await _cache.ExpireAsync(message.CacheKey!, _autoRecoveryEntryOptions, ct).ConfigureAwait(false);
 					}
