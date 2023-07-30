@@ -9,7 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// It contains a <see cref="bool"/> indicating if the value is there and, if so, the value itself.
 /// </summary>
 /// <typeparam name="TValue">The type of the value.</typeparam>
-public struct MaybeValue<TValue>
+public readonly struct MaybeValue<TValue>
 	: IEquatable<MaybeValue<TValue>>
 {
 	private readonly TValue _value;
@@ -29,12 +29,12 @@ public struct MaybeValue<TValue>
 	/// <summary>
 	/// Indicates if the value is there.
 	/// </summary>
-	public bool HasValue { get; }
+	public readonly bool HasValue { get; }
 
 	/// <summary>
 	/// If the value is there (you can check <see cref="HasValue"/> to know that) the actual value is returned, otherwise an <see cref="InvalidOperationException"/> will be thrown.
 	/// </summary>
-	public TValue Value
+	public readonly TValue Value
 	{
 		get
 		{
@@ -127,8 +127,8 @@ public struct MaybeValue<TValue>
 	public override int GetHashCode()
 	{
 		var hashCode = 1814622215;
-		hashCode = hashCode * -1521134295 + EqualityComparer<TValue>.Default.GetHashCode(_value);
-		hashCode = hashCode * -1521134295 + HasValue.GetHashCode();
+		hashCode = (hashCode * -1521134295) + EqualityComparer<TValue>.Default.GetHashCode(_value);
+		hashCode = (hashCode * -1521134295) + HasValue.GetHashCode();
 		return hashCode;
 	}
 }
