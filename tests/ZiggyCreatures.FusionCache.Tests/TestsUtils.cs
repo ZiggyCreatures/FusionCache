@@ -47,6 +47,14 @@ namespace FusionCacheTests
 					throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
 			}
 		}
+
+		public static string MaybePreProcessCacheKey(string key, string? prefix)
+		{
+			if (prefix is null)
+				return key;
+
+			return prefix + key;
+		}
 	}
 
 	public class SerializerTypesClassData : IEnumerable<object[]>

@@ -20,6 +20,7 @@ namespace FusionCacheTests
 	public class BackplaneTests
 	{
 		private readonly ITestOutputHelper _output;
+		private static readonly string? _cacheKeyPrefix = "Foo:";
 
 		public BackplaneTests(ITestOutputHelper output)
 		{
@@ -29,6 +30,15 @@ namespace FusionCacheTests
 		private XUnitLogger<T> CreateLogger<T>(LogLevel minLevel = LogLevel.Trace)
 		{
 			return new XUnitLogger<T>(minLevel, _output);
+		}
+
+		private static FusionCacheOptions CreateFusionCacheOptions()
+		{
+			var res = new FusionCacheOptions();
+
+			res.CacheKeyPrefix = _cacheKeyPrefix;
+
+			return res;
 		}
 
 		private static readonly string? RedisConnection = null;
@@ -57,11 +67,11 @@ namespace FusionCacheTests
 
 		private IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null)
 		{
-			var options = new FusionCacheOptions()
-			{
-				CacheName = cacheName!,
-				EnableSyncEventHandlersExecution = true
-			};
+			var options = CreateFusionCacheOptions();
+
+			options.CacheName = cacheName!;
+			options.EnableSyncEventHandlersExecution = true;
+
 			setupAction?.Invoke(options);
 			var fusionCache = new FusionCache(options, logger: CreateLogger<FusionCache>());
 			fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -639,21 +649,21 @@ namespace FusionCacheTests
 
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-			using var cacheA = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 			cacheA.DefaultEntryOptions.Duration = duration;
 			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-			using var cacheB = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
 			cacheB.DefaultEntryOptions.Duration = duration;
 			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-			using var cacheC = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheC = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheC.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheC.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheC.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -732,21 +742,21 @@ namespace FusionCacheTests
 
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-			using var cacheA = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 			cacheA.DefaultEntryOptions.Duration = duration;
 			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-			using var cacheB = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
 			cacheB.DefaultEntryOptions.Duration = duration;
 			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-			using var cacheC = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheC = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheC.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheC.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheC.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -824,13 +834,13 @@ namespace FusionCacheTests
 
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-			using var cacheA = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 			cacheA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
-			using var cacheB = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -902,13 +912,13 @@ namespace FusionCacheTests
 
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-			using var cacheA = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 			cacheA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
-			using var cacheB = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
 			cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 			cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
