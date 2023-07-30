@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
