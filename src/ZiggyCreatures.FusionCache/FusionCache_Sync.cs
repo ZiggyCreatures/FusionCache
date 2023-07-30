@@ -26,13 +26,13 @@ public partial class FusionCache
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
+		{
 			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+		}
 
 		IFusionCacheEntry? entry;
 		bool isStale;
 		bool hasNewValue = false;
-
-		var dca = GetCurrentDistributedAccessor(options);
 
 		if (memoryEntryIsValid)
 		{
@@ -89,7 +89,10 @@ public partial class FusionCache
 
 			// TRY AGAIN WITH MEMORY CACHE (AFTER THE LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
 			if (mca is not null)
+			{
 				(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+			}
+
 			if (memoryEntryIsValid)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -105,6 +108,7 @@ public partial class FusionCache
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
+			var dca = GetCurrentDistributedAccessor(options);
 			if (dca.CanBeUsed(operationId, key))
 			{
 				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
@@ -160,15 +164,16 @@ public partial class FusionCache
 						// UPDATE ADAPTIVE OPTIONS
 						var maybeNewOptions = ctx.GetOptions();
 						if (maybeNewOptions is not null && options != maybeNewOptions)
+						{
 							options = maybeNewOptions;
+
+							dca = GetCurrentDistributedAccessor(options);
+							mca = GetCurrentMemoryAccessor(options);
+						}
 
 						// UPDATE LASTMODIFIED/ETAG
 						lastModified = ctx.LastModified;
 						etag = ctx.ETag;
-
-						// ADAPTIVE CACHING UPDATE
-						dca = GetCurrentDistributedAccessor(options);
-						mca = GetCurrentMemoryAccessor(options);
 
 						// EVENTS
 						_events.OnFactorySuccess(operationId, key);
@@ -208,7 +213,9 @@ public partial class FusionCache
 			if (entry is not null)
 			{
 				if (mca is not null)
+				{
 					mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
+				}
 			}
 		}
 		finally
@@ -265,7 +272,9 @@ public partial class FusionCache
 							// SAVING THE DATA IN THE MEMORY CACHE
 							var mca = GetCurrentMemoryAccessor(options);
 							if (mca is not null)
+							{
 								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options), options);
+							}
 						}
 						finally
 						{
@@ -314,7 +323,7 @@ public partial class FusionCache
 		if (factory is null)
 			throw new ArgumentNullException(nameof(factory), "Factory cannot be null");
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", CacheName, operationId, key, options.ToLogString());
@@ -343,7 +352,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", CacheName, operationId, key, options.ToLogString());
@@ -376,7 +385,9 @@ public partial class FusionCache
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
+		{
 			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+		}
 
 		if (memoryEntryIsValid)
 		{
@@ -425,7 +436,9 @@ public partial class FusionCache
 
 			// SAVING THE DATA IN THE MEMORY CACHE
 			if (mca is not null)
+			{
 				mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+			}
 
 			// EVENT
 			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false);
@@ -447,7 +460,9 @@ public partial class FusionCache
 
 				// SAVING THE DATA IN THE MEMORY CACHE
 				if (mca is not null)
+				{
 					mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+				}
 
 				// EVENT
 				_events.OnHit(operationId, key, true);
@@ -483,7 +498,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling TryGet<T> {Options}", CacheName, operationId, key, options.ToLogString());
@@ -513,7 +528,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling GetOrDefault<T> {Options}", CacheName, operationId, key, options.ToLogString());
@@ -545,7 +560,7 @@ public partial class FusionCache
 		if (options is null)
 			options = _options.DefaultEntryOptions;
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling Set<T> {Options}", CacheName, operationId, key, options.ToLogString());
@@ -555,7 +570,9 @@ public partial class FusionCache
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
+		{
 			mca.SetEntry<TValue>(operationId, key, entry, options);
+		}
 
 		var dca = GetCurrentDistributedAccessor(options);
 		if (dca.CanBeUsed(operationId, key))
@@ -583,14 +600,16 @@ public partial class FusionCache
 		if (options is null)
 			options = _options.DefaultEntryOptions;
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling Remove {Options}", CacheName, operationId, key, options.ToLogString());
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
+		{
 			mca.RemoveEntry(operationId, key, options);
+		}
 
 		var dca = GetCurrentDistributedAccessor(options);
 		if (dca.CanBeUsed(operationId, key))
@@ -618,14 +637,16 @@ public partial class FusionCache
 		if (options is null)
 			options = _options.DefaultEntryOptions;
 
-		var operationId = GenerateOperationId();
+		var operationId = MaybeGenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling Expire {Options}", CacheName, operationId, key, options.ToLogString());
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
+		{
 			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
+		}
 
 		var dca = GetCurrentDistributedAccessor(options);
 		if (dca.CanBeUsed(operationId, key))

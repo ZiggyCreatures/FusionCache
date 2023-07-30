@@ -129,7 +129,7 @@ public partial class FusionCache
 			key = _cacheKeyPrefix + key;
 	}
 
-	private string GenerateOperationId()
+	private string MaybeGenerateOperationId()
 	{
 		return FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 	}
@@ -139,7 +139,7 @@ public partial class FusionCache
 		return options.SkipMemoryCache ? null : _mca;
 	}
 
-	private DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions options)
+	internal DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions options)
 	{
 		return options.SkipDistributedCache ? null : _dca;
 	}
@@ -270,16 +270,19 @@ public partial class FusionCache
 						options = maybeNewOptions;
 
 					// ADAPTIVE CACHING UPDATE
-					var dca = GetCurrentDistributedAccessor(options);
-					var mca = GetCurrentMemoryAccessor(options);
-
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
 
+					var dca = GetCurrentDistributedAccessor(options);
 					if (dca.CanBeUsed(operationId, key))
+					{
 						_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
+					}
 
+					var mca = GetCurrentMemoryAccessor(options);
 					if (mca is not null)
+					{
 						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
+					}
 
 					// BACKPLANE
 					if (options.SkipBackplaneNotifications == false)
