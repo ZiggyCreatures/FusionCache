@@ -3199,6 +3199,23 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.MaybeValue`1.GetHashCode">
             <inheritdoc/>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullBackplane">
+            <summary>
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullBackplane.Subscribe(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullBackplane.Unsubscribe">
+            <inheritdoc/>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullDistributedCache">
             <summary>
             An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.
@@ -3323,32 +3340,32 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.TryGetAsync``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCacheBackplane">
-            <summary>
-            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCacheBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCacheBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCacheBackplane.Subscribe(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCacheBackplane.Unsubscribe">
-            <inheritdoc/>
-        </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCachePlugin">
+        <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullPlugin">
             <summary>
             An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> that implements the null object pattern, meaning that it does nothing.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCachePlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullPlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCachePlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullPlugin.Stop(ZiggyCreatures.Caching.Fusion.IFusionCache)">
+            <inheritdoc/>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullSerializer">
+            <summary>
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> that implements the null object pattern, meaning that it does nothing.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullSerializer.Deserialize``1(System.Byte[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullSerializer.DeserializeAsync``1(System.Byte[])">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullSerializer.Serialize``1(``0)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullSerializer.SerializeAsync``1(``0)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin">

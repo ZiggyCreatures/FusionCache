@@ -7,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 	/// <summary>
 	/// An implementation of <see cref="IFusionCacheBackplane"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.
 	/// </summary>
-	public class NullFusionCacheBackplane
+	public class NullBackplane
 		: IFusionCacheBackplane
 	{
 		/// <inheritdoc/>
