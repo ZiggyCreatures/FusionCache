@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 
 namespace ZiggyCreatures.Caching.Fusion.Chaos;
@@ -12,15 +13,22 @@ public class ChaosBackplane
 	: IFusionCacheBackplane
 {
 	private readonly IFusionCacheBackplane _innerBackplane;
+	private readonly ILogger<ChaosBackplane>? _logger;
+	private Action<BackplaneConnectionInfo>? _connectHandler;
 
 	/// <summary>
 	/// Initializes a new instance of the ChaosBackplane class.
 	/// </summary>
 	/// <param name="innerBackplane">The actual <see cref="IFusionCacheBackplane"/> used if and when chaos does not happen.</param>
-	public ChaosBackplane(IFusionCacheBackplane innerBackplane)
+	/// <param name="logger">The logger to use, or <see langword="null"/>.</param>
+	public ChaosBackplane(IFusionCacheBackplane innerBackplane, ILogger<ChaosBackplane>? logger = null)
 	{
 		_innerBackplane = innerBackplane ?? throw new ArgumentNullException(nameof(innerBackplane));
-		SetNeverChaos();
+		_logger = logger;
+
+		ChaosThrowProbability = 0f;
+		ChaosMinDelay = TimeSpan.Zero;
+		ChaosMaxDelay = TimeSpan.Zero;
 	}
 
 	/// <summary>
@@ -43,7 +51,14 @@ public class ChaosBackplane
 	/// </summary>
 	public void SetNeverThrow()
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: SetNeverThrow");
+
+		var _old = ChaosThrowProbability;
 		ChaosThrowProbability = 0f;
+
+		if (_old != ChaosThrowProbability)
+			_connectHandler?.Invoke(new BackplaneConnectionInfo(true));
 	}
 
 	/// <summary>
@@ -51,6 +66,9 @@ public class ChaosBackplane
 	/// </summary>
 	public void SetAlwaysThrow()
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: SetAlwaysThrow");
+
 		ChaosThrowProbability = 1f;
 	}
 
@@ -59,6 +77,9 @@ public class ChaosBackplane
 	/// </summary>
 	public void SetNeverDelay()
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: SetNeverDelay");
+
 		ChaosMinDelay = TimeSpan.Zero;
 		ChaosMaxDelay = TimeSpan.Zero;
 	}
@@ -69,6 +90,9 @@ public class ChaosBackplane
 	/// <param name="delay"></param>
 	public void SetAlwaysDelayExactly(TimeSpan delay)
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: SetAlwaysDelayExactly");
+
 		ChaosMinDelay = delay;
 		ChaosMaxDelay = delay;
 	}
@@ -78,6 +102,9 @@ public class ChaosBackplane
 	/// </summary>
 	public void SetNeverChaos()
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: SetNeverChaos");
+
 		SetNeverThrow();
 		SetNeverDelay();
 	}
@@ -88,19 +115,22 @@ public class ChaosBackplane
 	/// <param name="delay"></param>
 	public void SetAlwaysChaos(TimeSpan delay)
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: SetAlwaysChaos");
+
 		SetAlwaysThrow();
 		SetAlwaysDelayExactly(delay);
 	}
 
 	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options)
+	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
-		_innerBackplane.Publish(message, options);
+		_innerBackplane.Publish(message, options, token);
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
 		await _innerBackplane.PublishAsync(message, options, token).ConfigureAwait(false);
@@ -109,12 +139,20 @@ public class ChaosBackplane
 	/// <inheritdoc/>
 	public void Subscribe(BackplaneSubscriptionOptions options)
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: Subscribe");
+
 		_innerBackplane.Subscribe(options);
+		_connectHandler = options.ConnectHandler;
 	}
 
 	/// <inheritdoc/>
 	public void Unsubscribe()
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: Unsubscribe");
+
+		_connectHandler = null;
 		_innerBackplane.Unsubscribe();
 	}
 }

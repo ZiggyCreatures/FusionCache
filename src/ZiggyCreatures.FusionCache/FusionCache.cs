@@ -35,9 +35,9 @@ public partial class FusionCache
 	private MemoryCacheAccessor _mca;
 	private DistributedCacheAccessor? _dca;
 	private BackplaneAccessor? _bpa;
+	private readonly object _backplaneLock = new object();
 	private FusionCacheEventsHub _events;
 	private readonly List<IFusionCachePlugin> _plugins;
-	private readonly object _lockBackplane = new object();
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -341,14 +341,12 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
-	internal void ExpireMemoryEntryInternal(string key, bool allowFailSafe)
+	internal void ExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe)
 	{
 		ValidateCacheKey(key);
 
 		if (_mca is null)
 			return;
-
-		var operationId = GenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryInternal (allowFailSafe={AllowFailSafe})", CacheName, operationId, key, allowFailSafe);
@@ -401,7 +399,7 @@ public partial class FusionCache
 			RemoveBackplane();
 		}
 
-		lock (_lockBackplane)
+		lock (_backplaneLock)
 		{
 			_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
 			_bpa.Subscribe();
@@ -427,7 +425,7 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveBackplane()
 	{
-		lock (_lockBackplane)
+		lock (_backplaneLock)
 		{
 			if (_bpa is not null)
 			{

@@ -27,8 +27,10 @@ public class FusionCacheOptions
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
 
+		// BACKPLANE AUTO-RECOVERY
 		EnableBackplaneAutoRecovery = true;
-		BackplaneAutoRecoveryMaxItems = 100;
+		BackplaneAutoRecoveryMaxItems = null;
+		BackplaneAutoRecoveryReconnectDelay = TimeSpan.FromMilliseconds(2_000);
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
@@ -142,6 +144,13 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public int? BackplaneAutoRecoveryMaxItems { get; set; }
+
+	/// <summary>
+	/// The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public TimeSpan BackplaneAutoRecoveryReconnectDelay { get; set; }
 
 	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.

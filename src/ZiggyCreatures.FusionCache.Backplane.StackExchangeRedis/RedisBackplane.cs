@@ -13,18 +13,23 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 /// <summary>
 /// A Redis based implementation of a FusionCache backplane.
 /// </summary>
-public class RedisBackplane
+public partial class RedisBackplane
 	: IFusionCacheBackplane
 {
 	private static readonly Encoding _encoding = Encoding.UTF8;
 	private readonly RedisBackplaneOptions _options;
 	private BackplaneSubscriptionOptions? _subscriptionOptions;
-	private readonly SemaphoreSlim _connectionLock;
 	private readonly ILogger? _logger;
+
+	private readonly SemaphoreSlim _connectionLock;
 	private IConnectionMultiplexer? _connection;
-	private ISubscriber? _subscriber;
+
+	private string _channelName = "FusionCache.Notifications";
 	private RedisChannel _channel;
-	private Action<BackplaneMessage>? _handler;
+	private ISubscriber? _subscriber;
+
+	private Action<BackplaneConnectionInfo>? _connectHandler;
+	private Action<BackplaneMessage>? _incomingMessageHandler;
 
 	/// <summary>
 	/// Initializes a new instance of the RedisBackplane class.
@@ -64,69 +69,32 @@ public class RedisBackplane
 		throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
 	}
 
-	private void EnsureConnection()
+	private void EnsureSubscriber()
 	{
-		if (_connection is not null)
-			return;
-
-		_connectionLock.Wait();
-		try
-		{
-			if (_connection is not null)
-				return;
-
-			_connection = ConnectionMultiplexer.Connect(GetConfigurationOptions());
-		}
-		finally
-		{
-			_connectionLock.Release();
-		}
-
-		if (_connection is null)
-			throw new NullReferenceException("A connection to Redis is not available");
-
-		OnAfterConnect();
+		if (_subscriber is null && _connection is not null)
+			_subscriber = _connection.GetSubscriber();
 	}
 
-	private async ValueTask EnsureConnectionAsync(CancellationToken token = default)
+	private void OnReconnect(object sender, ConnectionFailedEventArgs e)
 	{
-		token.ThrowIfCancellationRequested();
-
-		if (_connection is not null)
-			return;
-
-		await _connectionLock.WaitAsync(token).ConfigureAwait(false);
-		try
+		if (e.ConnectionType == ConnectionType.Subscription)
 		{
-			if (_connection is not null)
-				return;
+			EnsureSubscriber();
 
-			_connection = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions()).ConfigureAwait(false);
+			_connectHandler?.Invoke(new BackplaneConnectionInfo(true));
 		}
-		finally
-		{
-			_connectionLock.Release();
-		}
-
-		if (_connection is null)
-			throw new NullReferenceException("A connection to Redis is not available");
-
-		OnAfterConnect();
-	}
-
-	private void OnAfterConnect()
-	{
-		if (_subscriber is null)
-			_subscriber = _connection!.GetSubscriber();
 	}
 
 	private void Disconnect()
 	{
+		_connectHandler = null;
+
 		if (_connection is null)
 			return;
 
 		try
 		{
+			_connection.ConnectionRestored -= OnReconnect;
 			_connection.Dispose();
 		}
 		catch (Exception exc)
@@ -147,80 +115,55 @@ public class RedisBackplane
 		if (subscriptionOptions.ChannelName is null)
 			throw new NullReferenceException("The BackplaneSubscriptionOptions.ChannelName cannot be null");
 
-		if (subscriptionOptions.Handler is null)
-			throw new NullReferenceException("The BackplaneSubscriptionOptions.Handler cannot be null");
+		if (subscriptionOptions.IncomingMessageHandler is null)
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.MessageHandler cannot be null");
+
+		if (subscriptionOptions.ConnectHandler is null)
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.ConnectHandler cannot be null");
 
 		_subscriptionOptions = subscriptionOptions;
 
-		_channel = new RedisChannel(_subscriptionOptions.ChannelName, RedisChannel.PatternMode.Literal);
-		_handler = _subscriptionOptions.Handler;
+		_channelName = _subscriptionOptions.ChannelName;
+		_channel = new RedisChannel(_channelName, RedisChannel.PatternMode.Literal);
 
-		_ = Task.Run(async () =>
+		_incomingMessageHandler = _subscriptionOptions.IncomingMessageHandler;
+		_connectHandler = _subscriptionOptions.ConnectHandler;
+
+		// CONNECTION
+		EnsureConnection();
+
+		if (_subscriber is null)
+			throw new NullReferenceException("The subscriber is null");
+
+		_subscriber.Subscribe(_channel, (_, v) =>
 		{
-			// CONNECTION
-			await EnsureConnectionAsync().ConfigureAwait(false);
-
-			await _subscriber!.SubscribeAsync(_channel, (_, v) =>
+			var message = GetMessageFromRedisValue(v, _logger);
+			if (message is not null)
 			{
-				var message = FromRedisValue(v, _logger);
-				if (message is not null)
-				{
-					_handler(message);
-				}
-			}).ConfigureAwait(false);
+				OnMessage(message);
+			}
 		});
 	}
 
 	/// <inheritdoc/>
 	public void Unsubscribe()
 	{
-		_ = Task.Run(() => Disconnect());
-	}
-
-	/// <inheritdoc/>
-	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
-	{
-		await EnsureConnectionAsync().ConfigureAwait(false);
-
-		var v = ToRedisValue(message, _logger);
-
-		if (v.IsNull)
-			return;
-
-		var receivedCount = await _subscriber!.PublishAsync(_channel, v).ConfigureAwait(false);
-		if (receivedCount == 0)
+		_ = Task.Run(() =>
 		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): an error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
+			_incomingMessageHandler = null;
+			_subscriber?.Unsubscribe(_channel);
+			_subscriptionOptions = null;
 
-			return;
-		}
+			Disconnect();
+		});
 	}
 
-	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options)
+	internal void OnMessage(BackplaneMessage message)
 	{
-		EnsureConnection();
-
-		var v = ToRedisValue(message, _logger);
-
-		if (v.IsNull)
-			return;
-
-		var receivedCount = _subscriber!.Publish(_channel, v);
-		if (receivedCount == 0)
-		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION (K={CacheKey}): an error occurred while trying to send a notification to the Redis backplane ({Action})", message.CacheKey, message.Action);
-
-			return;
-		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION (K={CacheKey}): a notification has been sent ({Action})", message.CacheKey, message.Action);
+		_incomingMessageHandler?.Invoke(message);
 	}
 
-	private static BackplaneMessage? FromRedisValue(RedisValue value, ILogger? logger)
+	private static BackplaneMessage? GetMessageFromRedisValue(RedisValue value, ILogger? logger)
 	{
 		try
 		{
@@ -273,7 +216,7 @@ public class RedisBackplane
 		return null;
 	}
 
-	private static RedisValue ToRedisValue(BackplaneMessage message, ILogger? logger)
+	private static RedisValue GetRedisValueFromMessage(BackplaneMessage message, ILogger? logger)
 	{
 		try
 		{

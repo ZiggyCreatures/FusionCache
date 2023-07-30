@@ -115,6 +115,7 @@ public partial class FusionCache
 
 			DateTimeOffset? lastModified = null;
 			string? etag = null;
+			long? timestamp = null;
 
 			if (distributedEntryIsValid)
 			{
@@ -126,7 +127,6 @@ public partial class FusionCache
 				// FACTORY
 				TValue? value;
 				bool failSafeActivated = false;
-				long? timestamp = null;
 
 				if (isRealFactory == false)
 				{
@@ -194,7 +194,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag, null);
+				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag, timestamp);
 				isStale = failSafeActivated;
 
 				if (dca.CanBeUsed(operationId, key) && failSafeActivated == false)
@@ -250,7 +250,7 @@ public partial class FusionCache
 				FusionCacheDistributedEntry<TValue>? distributedEntry;
 				bool distributedEntryIsValid;
 
-				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, false, token);
+				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, token);
 				if (distributedEntryIsValid)
 				{
 					if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))

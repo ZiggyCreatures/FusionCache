@@ -4,6 +4,22 @@
         <name>ZiggyCreatures.FusionCache</name>
     </assembly>
     <members>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo">
+            <summary>
+            A struct containing information about a backplane connection or re-connection.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo.#ctor(System.Boolean)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo"/> instance.
+            </summary>
+            <param name="isReconnection"></param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo.IsReconnection">
+            <summary>
+            If set to <see langword="true"/>, the connection is a re-connection.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage">
             <summary>
             Represents a message on a backplane.
@@ -101,6 +117,16 @@
             The backplane message handler that will be used to process incoming messages.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.IncomingMessageHandler">
+            <summary>
+            The backplane message handler that will be used to process incoming messages.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ConnectHandler">
+            <summary>
+            The backplane connection handler that will be used when there's a connection (or reconnection).
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">
             <summary>
             The core interface to create a FusionCache backplane.
@@ -125,12 +151,13 @@
             <param name="options">The options to use.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <summary>
             Send a notification to the other connected nodes, if any.
             </summary>
             <param name="message">The message to send.</param>
             <param name="options">The options to use.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.CacheKeyModifierMode">
             <summary>
@@ -962,7 +989,7 @@
             <summary>
             Tells the builder to try to find and use all the compatible services registered in the DI container, like a distributed cache, a backplane, plugins, etc.
             <br/><br/>
-            <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+            <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distributed one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
             </summary>
@@ -2172,6 +2199,13 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryReconnectDelay">
+            <summary>
+            The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IncoherentOptionsNormalizationLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
@@ -3076,17 +3110,23 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.TryOpen(System.Boolean@)">
             <summary>
-            Tries to pen the circuit.
+            Tries to open the circuit.
             </summary>
             <param name="isStateChanged">Indicates if the circuit has been opened with this operation.</param>
             <returns><see langword="true"/> if the circuit is open, either because it was already or because it has been opened with this operation. <see langword="false"/> otherwise.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.Close(System.Boolean@)">
+            <summary>
+            Close the circuit.
+            </summary>
+            <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker.IsClosed(System.Boolean@)">
             <summary>
             Check if the circuit is closed, or has been closed with this operation.
             </summary>
             <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
-            <returns><see langword="true"/> if the circuit is close, either because it was already or because it has been closed with this operation. <see langword="false"/> otherwise.</returns>
+            <returns><see langword="true"/> if the circuit is closed, either because it was already closed or because it has been closed with this operation. <see langword="false"/> otherwise.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1">
             <summary>

@@ -102,7 +102,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						//AllowBackgroundOperations = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
 					});
 				default:
-					return new MemoryBackplane(new MemoryBackplaneOptions());
+					return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = $"connection-{groupIdx}" });
 			}
 		}
 

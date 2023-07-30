@@ -554,12 +554,10 @@ public partial class FusionCache
 		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null);
 
 		var mca = GetCurrentMemoryAccessor(options);
-
 		if (mca is not null)
 			mca.SetEntry<TValue>(operationId, key, entry, options);
 
 		var dca = GetCurrentDistributedAccessor(options);
-
 		if (dca.CanBeUsed(operationId, key))
 		{
 			await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);

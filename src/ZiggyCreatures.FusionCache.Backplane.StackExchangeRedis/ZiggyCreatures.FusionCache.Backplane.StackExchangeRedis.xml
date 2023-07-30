@@ -25,7 +25,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions">
@@ -42,6 +42,11 @@
             <summary>
             The configuration used to connect to Redis.
             This is preferred over Configuration.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions.VerifyReceivedClientsCountAfterPublish">
+            <summary>
+            The configuration used to connect to Redis.
             </summary>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.StackExchangeRedisBackplaneExtensions">

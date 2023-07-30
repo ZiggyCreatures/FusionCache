@@ -833,9 +833,11 @@ namespace FusionCacheTests
 			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
 			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
 
-			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
-			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
-			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
 
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
@@ -884,9 +886,11 @@ namespace FusionCacheTests
 			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
 			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
 
-			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
-			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
-			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+			cache1.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+			cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+			cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
 
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
 			EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);

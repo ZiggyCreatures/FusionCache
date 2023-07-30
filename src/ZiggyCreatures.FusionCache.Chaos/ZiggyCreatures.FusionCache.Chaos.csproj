@@ -12,7 +12,11 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Chaos</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Chaos.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageReleaseNotes>Dependencies update</PackageReleaseNotes>
+		<PackageReleaseNotes>
+			- Added re-connection support
+			- Added logging support
+			- Dependencies update
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

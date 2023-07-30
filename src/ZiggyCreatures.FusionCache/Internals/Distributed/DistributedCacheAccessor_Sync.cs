@@ -16,14 +16,6 @@ internal partial class DistributedCacheAccessor
 
 		var actionDescriptionInner = actionDescription + (options.AllowBackgroundDistributedCacheOperations ? " (background)" : null);
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-		{
-			if (distributedOptions is null)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, _options.CacheName, operationId, key);
-			else
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner + " {DistributedOptions}", _options.CacheName, operationId, key, distributedOptions.ToLogString());
-		}
-
 		FusionCacheExecutionUtils
 			.RunSyncActionAdvanced(
 				action,

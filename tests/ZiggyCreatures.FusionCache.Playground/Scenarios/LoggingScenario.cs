@@ -4,12 +4,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Events;
+using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
+using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
@@ -38,6 +41,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		private static readonly bool UseDistributedCache = false;
 		private static readonly bool UseBackplane = false;
 		private static readonly bool UseLogger = true;
+		private static readonly string? RedisConnection = null;
+		//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
 
 		private static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
 		{
@@ -99,21 +104,43 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			{
 				fusionCache = new FusionCache(options, logger: logger);
 
+				// DISTRIBUTED CACHE
 				if (UseDistributedCache)
 				{
-					// DISTRIBUTED CACHE
 					var serializer = new FusionCacheNewtonsoftJsonSerializer();
-					var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+					IDistributedCache distributedCache;
+					if (string.IsNullOrWhiteSpace(RedisConnection) == false)
+					{
+						distributedCache = new RedisCache(Options.Create(new RedisCacheOptions()
+						{
+							Configuration = RedisConnection
+						}));
+					}
+					else
+					{
+						distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+					}
 
 					Console.WriteLine();
 					fusionCache.SetupDistributedCache(distributedCache, serializer);
 					Console.WriteLine();
 				}
 
+				// BACKPLANE
 				if (UseBackplane)
 				{
-					// BACKPLANE
-					var backplane = new MemoryBackplane(new MemoryBackplaneOptions());
+					IFusionCacheBackplane backplane;
+					if (string.IsNullOrWhiteSpace(RedisConnection) == false)
+					{
+						backplane = new RedisBackplane(new RedisBackplaneOptions()
+						{
+							Configuration = RedisConnection,
+						});
+					}
+					else
+					{
+						backplane = new MemoryBackplane(new MemoryBackplaneOptions());
+					}
 
 					Console.WriteLine();
 					fusionCache.SetupBackplane(backplane);
@@ -178,6 +205,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			await fusionCache.GetOrSetAsync<int>("foo", async _ => { await Task.Delay(2_000); throw new Exception("Foo"); }, options => options.SetDurationSec(1).SetFailSafe(UseFailSafe).SetFactoryTimeouts(1_000));
 			Console.WriteLine();
 			await Task.Delay(2_500);
+
+			Console.WriteLine();
+			Console.WriteLine("Press any key to exit...");
+
+			_ = Console.ReadKey();
 
 			Console.WriteLine("\n\nTHE END");
 		}

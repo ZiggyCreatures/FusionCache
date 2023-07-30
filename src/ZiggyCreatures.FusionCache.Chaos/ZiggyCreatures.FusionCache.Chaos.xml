@@ -9,11 +9,12 @@
             An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> that acts on behalf of another one, but with a (controllable) amount of chaos in-between.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane})">
             <summary>
             Initializes a new instance of the ChaosBackplane class.
             </summary>
             <param name="innerBackplane">The actual <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> used if and when chaos does not happen.</param>
+            <param name="logger">The logger to use, or <see langword="null"/>.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.ChaosThrowProbability">
             <summary>
@@ -62,7 +63,7 @@
             </summary>
             <param name="delay"></param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
