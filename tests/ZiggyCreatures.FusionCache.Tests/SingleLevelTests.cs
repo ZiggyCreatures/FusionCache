@@ -1594,7 +1594,6 @@ namespace FusionCacheTests
 				Priority = CacheItemPriority.High,
 				JitterMaxDuration = TimeSpan.FromSeconds(3),
 
-				// NOTE: PERF MICRO-OPT
 				EagerRefreshThreshold = 0.456f,
 
 				IsFailSafeEnabled = !FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled,
@@ -1621,7 +1620,7 @@ namespace FusionCacheTests
 				SkipDistributedCache = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache,
 				SkipDistributedCacheReadWhenStale = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale,
 
-				SkipMemoryCache = true,
+				SkipMemoryCache = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache
 			};
 
 			var duplicated = original.Duplicate();
