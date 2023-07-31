@@ -13,6 +13,7 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
+			- Add support for re-connection events
 			- Better log messages
 			- Dependencies update
 		</PackageReleaseNotes>

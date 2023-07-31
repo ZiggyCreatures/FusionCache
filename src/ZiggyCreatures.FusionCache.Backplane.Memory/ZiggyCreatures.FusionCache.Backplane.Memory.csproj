@@ -13,7 +13,7 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.Memory.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added support for ConnectionId (better for highly concurrent scenarios, mainly for tests)
+			- Added support for ConnectionId (better for concurrent tests scenarios)
 			- Better log messages
 			- Dependencies update
 		</PackageReleaseNotes>

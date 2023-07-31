@@ -13,8 +13,9 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Chaos.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added re-connection support
-			- Added logging support
+			- Added re-connection support in ChaosBackplane
+			- Added logging support in ChaosBackplane
+			- Added ChaosPlugin
 			- Dependencies update
 		</PackageReleaseNotes>
 	</PropertyGroup>
