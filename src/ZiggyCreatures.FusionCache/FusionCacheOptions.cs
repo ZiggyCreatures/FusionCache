@@ -148,6 +148,8 @@ public class FusionCacheOptions
 
 	/// <summary>
 	/// The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
+	/// <br/>
+	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
