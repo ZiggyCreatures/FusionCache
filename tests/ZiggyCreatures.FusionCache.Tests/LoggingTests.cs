@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
+using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace FusionCacheTests

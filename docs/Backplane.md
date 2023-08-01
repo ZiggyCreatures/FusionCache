@@ -63,23 +63,26 @@ One final thing to notice is that FusionCache automatically differentiates betwe
 
 ## ↩️ Auto-Recovery
 
-Since the backplane is implemented on top of a distributed component (in general some sort of message bus, like the Redis Pub/Sub feature) sometimes things can go bad: the message bus can restart or become temporarily unavailable, transient network errors may occur or anything else. In those situations each local nodes' memory caches will become out of sync, since they missed some notifications.
+Since the backplane is implemented on top of a distributed component (in general some sort of message bus, like the Redis Pub/Sub feature) sometimes things can go bad: the message bus can restart or become temporarily unavailable, transient network errors may occur or anything else.
+
+In those situations each nodes' local memory caches will become out of sync, since they would've missed some notifications.
 
 Wouldn't it be nice if FusionCache would help us is some way?
 
 Enter **auto-recovery**.
 
-With auto-recovery enabled FusionCache will detect notifications that failed to be sent, put them in a local temporary queue and later on, as soon as the backplane will become available again, will try to send them to all the other nodes to re-sync them correctly.
+With auto-recovery FusionCache will detect notifications that failed to be sent, put them in a local temporary queue and when later on the backplane will become available again, it will try to send them to all the other nodes, to re-sync them correctly.
 
 Special care has been put into correctly handling some common situations, like:
 - if more than one notification is about to be queued for the same cache key, only the last one will be kept since the result of sending 2 notifications for the same cache key back-to-back would be the same
 - if a notification is received for a cache key for which there is a queued notification, only the most recent one is kept: if the incoming one is newer, the local one is discarded and the incoming one is processed, otherwise the incoming one is ignored and the local one is sent to the other nodes. This avoids, for example, evicting an entry from a local cache if it has been updated after a change in a remote node, which would be useless
-- it is possible to set a limit in how many notifications to keep in the queue via the `BackplaneAutoRecoveryMaxItems` option (default value: `100`, can be `null` to remove any limit) to avoid consuming too much memory or to bombard the backplane as soon as it will become available again. If a notification is about to be queued but the limit has already been reached, an heuristic is used that will remove the notification for the cache entry that will expire sooner (calculated as: instant when the notification has been created + cache entry's `Duration`), to limit as much as possible the impact on the global shared state synchronization.
+- it is possible to set a limit in how many notifications to keep in the queue via the `BackplaneAutoRecoveryMaxItems` option to avoid consuming too much memory as it will become available again (default value: `null` which means no limits). If a notification is about to be queued but the limit has already been reached, an heuristic is used to remove the notification for the cache entry that will expire sooner (calculated as: instant when the notification has been created + cache entry's `Duration`), to limit as much as possible the impact on the global shared state synchronization
+- when a backplane becomes available again, a little amount of time is awaited to avoid small sync issues, to better handle backpressure in an automatic way (configurable via the `BackplaneAutoRecoveryReconnectDelay` option)
+- when sending a pending backplane notification from the auto-recovery queue, it is possible to also expire the value on the distributed cache in case the underlying server/service is actually the same (eg: Redis), since when the backplane notification failed it probably also failed the saving of the data in the distributed cache. This can be enabled/disabled via the `EnableDistributedExpireOnBackplaneAutoRecovery` option
 
-This feature is not implemented **inside** a backplane implementation, of which there are multiple, but inside FusionCache itself: this means that it works with any backplane implementation, which is nice.
+This feature is not implemented **inside** a specific backplane implementation, of which there are multiple, but inside FusionCache itself: this means that it works with any backplane implementation, which is nice.
 
 **ℹ NOTE:** auto-recovery is available since version `0.14.0`, but it's enabled by default only since version `0.17.0`.
-
 
 ## 📦 Packages
 

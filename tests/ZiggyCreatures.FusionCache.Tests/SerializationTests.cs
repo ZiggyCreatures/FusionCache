@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -11,6 +12,13 @@ namespace FusionCacheTests
 {
 	public class SerializationTests
 	{
+		private readonly ITestOutputHelper _output;
+
+		public SerializationTests(ITestOutputHelper output)
+		{
+			_output = output;
+		}
+
 		private static readonly Regex __re_VersionExtractor = new Regex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled);
 
 		private const string SampleString = "Supercalifragilisticexpialidocious";
@@ -243,6 +251,10 @@ namespace FusionCacheTests
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
 
+			var assembly = serializer.GetType().Assembly;
+			var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+			string? currentVersion = fvi.FileVersion!.Substring(0, fvi.FileVersion.LastIndexOf('.'));
+
 			var filePrefix = $"{serializer.GetType().Name}__";
 
 			var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
@@ -254,6 +266,8 @@ namespace FusionCacheTests
 				var payload = File.ReadAllBytes(file);
 				var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
 				Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+
+				_output.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
 			}
 		}
 
@@ -262,6 +276,10 @@ namespace FusionCacheTests
 		public void CanDeserializeOldVersions(SerializerType serializerType)
 		{
 			var serializer = TestsUtils.GetSerializer(serializerType);
+
+			var assembly = serializer.GetType().Assembly;
+			var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+			string? currentVersion = fvi.FileVersion!.Substring(0, fvi.FileVersion.LastIndexOf('.'));
 
 			var filePrefix = $"{serializer.GetType().Name}__";
 
@@ -274,6 +292,8 @@ namespace FusionCacheTests
 				var payload = File.ReadAllBytes(file);
 				var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
 				Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+
+				_output.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
 			}
 		}
 	}

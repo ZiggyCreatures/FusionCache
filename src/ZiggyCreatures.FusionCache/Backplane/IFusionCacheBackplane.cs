@@ -25,12 +25,13 @@ public interface IFusionCacheBackplane
 	/// <param name="message">The message to send.</param>
 	/// <param name="options">The options to use.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token);
+	ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default);
 
 	/// <summary>
 	/// Send a notification to the other connected nodes, if any.
 	/// </summary>
 	/// <param name="message">The message to send.</param>
 	/// <param name="options">The options to use.</param>
-	void Publish(BackplaneMessage message, FusionCacheEntryOptions options);
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default);
 }

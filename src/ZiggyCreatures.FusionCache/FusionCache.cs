@@ -35,9 +35,9 @@ public partial class FusionCache
 	private MemoryCacheAccessor _mca;
 	private DistributedCacheAccessor? _dca;
 	private BackplaneAccessor? _bpa;
+	private readonly object _backplaneLock = new object();
 	private FusionCacheEventsHub _events;
 	private readonly List<IFusionCachePlugin> _plugins;
-	private readonly object _lockBackplane = new object();
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -129,7 +129,7 @@ public partial class FusionCache
 			key = _cacheKeyPrefix + key;
 	}
 
-	private string GenerateOperationId()
+	private string MaybeGenerateOperationId()
 	{
 		return FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 	}
@@ -139,7 +139,7 @@ public partial class FusionCache
 		return options.SkipMemoryCache ? null : _mca;
 	}
 
-	private DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions options)
+	internal DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions options)
 	{
 		return options.SkipDistributedCache ? null : _dca;
 	}
@@ -270,16 +270,19 @@ public partial class FusionCache
 						options = maybeNewOptions;
 
 					// ADAPTIVE CACHING UPDATE
-					var dca = GetCurrentDistributedAccessor(options);
-					var mca = GetCurrentMemoryAccessor(options);
-
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
 
+					var dca = GetCurrentDistributedAccessor(options);
 					if (dca.CanBeUsed(operationId, key))
+					{
 						_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
+					}
 
+					var mca = GetCurrentMemoryAccessor(options);
 					if (mca is not null)
+					{
 						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
+					}
 
 					// BACKPLANE
 					if (options.SkipBackplaneNotifications == false)
@@ -341,14 +344,12 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
-	internal void ExpireMemoryEntryInternal(string key, bool allowFailSafe)
+	internal void ExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe)
 	{
 		ValidateCacheKey(key);
 
 		if (_mca is null)
 			return;
-
-		var operationId = GenerateOperationId();
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryInternal (allowFailSafe={AllowFailSafe})", CacheName, operationId, key, allowFailSafe);
@@ -401,7 +402,7 @@ public partial class FusionCache
 			RemoveBackplane();
 		}
 
-		lock (_lockBackplane)
+		lock (_backplaneLock)
 		{
 			_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
 			_bpa.Subscribe();
@@ -427,7 +428,7 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveBackplane()
 	{
-		lock (_lockBackplane)
+		lock (_backplaneLock)
 		{
 			if (_bpa is not null)
 			{

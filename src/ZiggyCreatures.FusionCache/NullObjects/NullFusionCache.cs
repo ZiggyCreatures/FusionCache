@@ -9,7 +9,7 @@ using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
-namespace ZiggyCreatures.Caching.Fusion
+namespace ZiggyCreatures.Caching.Fusion.NullObjects
 {
 	/// <summary>
 	/// An implementation of <see cref="IFusionCache"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.

@@ -6,7 +6,7 @@
     <members>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane">
             <summary>
-            An-in memory implementation of a FusionCache backplane
+            An in-memory implementation of a FusionCache backplane
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions},Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane})">
@@ -25,12 +25,21 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.PublishAsync(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions">
             <summary>
             Represents the options available for the memory backplane.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.Memory.MemoryBackplaneOptions.ConnectionId">
+            <summary>
+            The logical id used to simulate a connection to a server.
+            <br/>
+            It is used to group together multiple instances of a MemoryBackplane and separate them from others, without interfering with other backplanes running concurrently at the same time (mostly useful for testing).
+            <br/>
+            Basically it's like a connection string.
             </summary>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.MemoryBackplaneExtensions">

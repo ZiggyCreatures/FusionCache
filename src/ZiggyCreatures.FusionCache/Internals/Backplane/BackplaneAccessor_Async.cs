@@ -17,9 +17,6 @@ internal partial class BackplaneAccessor
 
 		var actionDescriptionInner = actionDescription + (options.AllowBackgroundBackplaneOperations ? " (background)" : null);
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): " + actionDescriptionInner, _cache.CacheName, _cache.InstanceId, operationId, key);
-
 		await FusionCacheExecutionUtils
 			.RunAsyncActionAdvancedAsync(
 				action,
@@ -63,6 +60,11 @@ internal partial class BackplaneAccessor
 
 		token.ThrowIfCancellationRequested();
 
+		if (isFromAutoRecovery == false)
+		{
+			TryRemoveAutoRecoveryItemByCacheKey(operationId, message.CacheKey);
+		}
+
 		await ExecuteOperationAsync(
 			operationId,
 			message.CacheKey!,
@@ -70,24 +72,40 @@ internal partial class BackplaneAccessor
 			{
 				try
 				{
+					// IF:
+					// - THE MESSAGE IS FROM AUTO-RECOVERY
+					// - AND EnableDistributedExpireOnBackplaneAutoRecovery IS ENABLED
+					// - AND THERE IS A DISTRIBUTED CACHE
+					// THEN:
+					// - REMOVE THE ENTRY (BUT ONLY FROM THE DISTRIBUTED CACHE)
+					if (isFromAutoRecovery && _options.EnableDistributedExpireOnBackplaneAutoRecovery && _cache.HasDistributedCache)
+					{
+						//await _cache.ExpireAsync(message.CacheKey!, _autoRecoveryEntryOptions, ct).ConfigureAwait(false);
+						var dca = _cache.GetCurrentDistributedAccessor(_autoRecoveryEntryOptions);
+						if (dca.CanBeUsed(operationId, message.CacheKey))
+						{
+							await dca!.RemoveEntryAsync(operationId, message.CacheKey!, _autoRecoveryEntryOptions, ct).ConfigureAwait(false);
+						}
+					}
+
 					await _backplane.PublishAsync(message, options, ct).ConfigureAwait(false);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a notification has been sent" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.Action);
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a notification has been sent" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.Action);
 
 					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
 					{
-						TryProcessAutoRecoveryQueue();
+						TryProcessAutoRecoveryQueue(operationId);
 					}
 				}
 				catch (Exception exc)
 				{
 					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-						_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a notification has been sent" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.Action);
+						_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while sending a notification" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.Action);
 
 					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
 					{
-						TryAddAutoRecoveryItem(message, options);
+						TryAddAutoRecoveryItem(operationId, message, options);
 					}
 
 					throw;
@@ -96,7 +114,7 @@ internal partial class BackplaneAccessor
 				// EVENT
 				_events.OnMessagePublished(operationId, message);
 			},
-			"sending a backplane notification" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty),
+			"sending a backplane notification" + (isFromAutoRecovery ? " (auto-recovery)" : ""),
 			options,
 			token
 		).ConfigureAwait(false);

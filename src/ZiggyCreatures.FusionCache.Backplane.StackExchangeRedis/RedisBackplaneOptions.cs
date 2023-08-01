@@ -20,6 +20,11 @@ public class RedisBackplaneOptions
 	/// </summary>
 	public ConfigurationOptions? ConfigurationOptions { get; set; }
 
+	/// <summary>
+	/// The configuration used to connect to Redis.
+	/// </summary>
+	public bool VerifyReceivedClientsCountAfterPublish { get; set; } = false;
+
 	RedisBackplaneOptions IOptions<RedisBackplaneOptions>.Value
 	{
 		get { return this; }
