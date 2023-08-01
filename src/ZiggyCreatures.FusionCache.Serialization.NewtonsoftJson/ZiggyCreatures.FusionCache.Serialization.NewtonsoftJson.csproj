@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.22.0</Version>
+		<Version>0.23.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
@@ -13,7 +13,6 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added: Timestamping support
 			- Dependencies update
 		</PackageReleaseNotes>
 	</PropertyGroup>
