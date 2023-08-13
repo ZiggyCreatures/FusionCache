@@ -42,7 +42,7 @@ public static class FusionCacheChaosUtils
 	/// <param name="minDelay">The minimun amount of delay.</param>
 	/// <param name="maxDelay">The maximum amount of delay.</param>
 	/// <returns>The randomized delay.</returns>
-	public static TimeSpan RandomizeDelay(TimeSpan minDelay, TimeSpan maxDelay)
+	public static TimeSpan GetRandomDelay(TimeSpan minDelay, TimeSpan maxDelay)
 	{
 		if (minDelay <= TimeSpan.Zero && maxDelay <= TimeSpan.Zero)
 			return TimeSpan.Zero;
@@ -60,7 +60,7 @@ public static class FusionCacheChaosUtils
 	/// <param name="maxDelay">The maximum amount of delay.</param>
 	public static void MaybeDelay(TimeSpan minDelay, TimeSpan maxDelay)
 	{
-		var delay = RandomizeDelay(minDelay, maxDelay);
+		var delay = GetRandomDelay(minDelay, maxDelay);
 
 		if (delay > TimeSpan.Zero)
 			Thread.Sleep(delay);
@@ -74,7 +74,7 @@ public static class FusionCacheChaosUtils
 	/// <returns>A <see cref="Task"/> instance to await.</returns>
 	public static async Task MaybeDelayAsync(TimeSpan minDelay, TimeSpan maxDelay)
 	{
-		var delay = RandomizeDelay(minDelay, maxDelay);
+		var delay = GetRandomDelay(minDelay, maxDelay);
 
 		if (delay > TimeSpan.Zero)
 			await Task.Delay(delay).ConfigureAwait(false);
