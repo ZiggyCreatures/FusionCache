@@ -69,16 +69,21 @@ public class MemoryBackplane
 		if (_options.ConnectionId is null)
 			throw new NullReferenceException("The ConnectionId is null");
 
-		_connection = _connections.GetOrAdd(_options.ConnectionId, _ => new ConcurrentDictionary<string, List<MemoryBackplane>>());
-
-		_connectHandler?.Invoke(new BackplaneConnectionInfo(false));
+		if (_connection is null)
+		{
+			_connection = _connections.GetOrAdd(_options.ConnectionId, _ => new ConcurrentDictionary<string, List<MemoryBackplane>>());
+			_connectHandler?.Invoke(new BackplaneConnectionInfo(false));
+		}
 
 		EnsureSubscriber();
 	}
 
 	private void EnsureSubscriber()
 	{
-		if (_subscriber is null && _connection is not null)
+		if (_connection is null)
+			throw new InvalidOperationException("No connection available");
+
+		if (_subscriber is null)
 			_subscriber = _connection.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
 	}
 
@@ -118,7 +123,7 @@ public class MemoryBackplane
 		EnsureConnection();
 
 		if (_subscriber is null)
-			throw new NullReferenceException("The subscriber is null");
+			throw new InvalidOperationException("The subscriber is null");
 
 		lock (_subscriber)
 		{
@@ -137,6 +142,7 @@ public class MemoryBackplane
 				_subscriber.Remove(this);
 				_subscriptionOptions = null;
 			}
+			_subscriber = null;
 		}
 
 		Disconnect();
