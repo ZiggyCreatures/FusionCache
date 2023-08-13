@@ -151,7 +151,7 @@
             </summary>
             <param name="throwProbability">The probabilty that an exception will be thrown.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.RandomizeDelay(System.TimeSpan,System.TimeSpan)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.GetRandomDelay(System.TimeSpan,System.TimeSpan)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>.
             </summary>
