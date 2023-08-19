@@ -7,32 +7,39 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 internal partial class DistributedCacheAccessor
 {
-	private void ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
+	private bool ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
-			return;
+			return false;
 
 		token.ThrowIfCancellationRequested();
 
 		var actionDescriptionInner = actionDescription + (options.AllowBackgroundDistributedCacheOperations ? " (background)" : null);
 
+		var res = true;
 		FusionCacheExecutionUtils
 			.RunSyncActionAdvanced(
 				action,
 				options.DistributedCacheHardTimeout,
 				false,
 				options.AllowBackgroundDistributedCacheOperations == false,
-				exc => ProcessError(operationId, key, exc, actionDescriptionInner),
+				exc =>
+				{
+					res = false;
+					ProcessError(operationId, key, exc, actionDescriptionInner);
+				},
 				options.ReThrowDistributedCacheExceptions && options.AllowBackgroundDistributedCacheOperations == false && options.DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan,
 				token
 			)
 		;
+
+		return res;
 	}
 
-	public void SetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token = default)
+	public bool SetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
-			return;
+			return false;
 
 		token.ThrowIfCancellationRequested();
 
@@ -40,7 +47,7 @@ internal partial class DistributedCacheAccessor
 		if (options.IsFailSafeEnabled == false && options.DistributedCacheDuration.GetValueOrDefault(options.Duration) <= TimeSpan.Zero)
 		{
 			RemoveEntry(operationId, key, options, token);
-			return;
+			return true;
 		}
 
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
@@ -69,11 +76,11 @@ internal partial class DistributedCacheAccessor
 		}
 
 		if (data is null)
-			return;
+			return true;
 
 		// SAVE TO DISTRIBUTED CACHE
 		var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
-		ExecuteOperation(
+		return ExecuteOperation(
 			operationId,
 			key,
 			_ =>
@@ -178,11 +185,25 @@ internal partial class DistributedCacheAccessor
 		return (null, false);
 	}
 
-	public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	public bool RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		ExecuteOperation(operationId, key, _ => _cache.Remove(MaybeProcessCacheKey(key)), "removing entry from distributed", options, null, token);
+		return ExecuteOperation(
+			operationId,
+			key,
+			_ =>
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): removing entry from distributed", _options.CacheName, operationId, key);
 
-		// EVENT
-		_events.OnRemove(operationId, key);
+				_cache.Remove(MaybeProcessCacheKey(key));
+
+				// EVENT
+				_events.OnRemove(operationId, key);
+			},
+			"removing entry from distributed",
+			options,
+			null,
+			token
+		);
 	}
 }

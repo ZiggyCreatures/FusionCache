@@ -30,7 +30,9 @@ public class FusionCacheOptions
 		// BACKPLANE AUTO-RECOVERY
 		EnableBackplaneAutoRecovery = true;
 		BackplaneAutoRecoveryMaxItems = null;
+		BackplaneAutoRecoveryMaxRetryCount = 10;
 		BackplaneAutoRecoveryReconnectDelay = TimeSpan.FromMilliseconds(2_000);
+		BackplaneAutoRecoveryRetryDelay = TimeSpan.FromMilliseconds(2_000);
 		EnableDistributedExpireOnBackplaneAutoRecovery = true;
 
 		// LOG LEVELS
@@ -147,6 +149,13 @@ public class FusionCacheOptions
 	public int? BackplaneAutoRecoveryMaxItems { get; set; }
 
 	/// <summary>
+	/// The maximum number of retries for a backplane auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public int? BackplaneAutoRecoveryMaxRetryCount { get; set; }
+
+	/// <summary>
 	/// The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
@@ -154,6 +163,15 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay { get; set; }
+
+	/// <summary>
+	/// The amount of time to wait, after a backplane auto-recovery stopped because of errors, before trying again.
+	/// <br/>
+	/// Use <see cref="TimeSpan.Zero"/> to disable delayed retries (normal processing will still happen at the first compatible operation).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public TimeSpan BackplaneAutoRecoveryRetryDelay { get; set; }
 
 	/// <summary>
 	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.

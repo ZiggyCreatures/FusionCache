@@ -31,7 +31,18 @@ internal partial class BackplaneAccessor
 
 	public bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isFromAutoRecovery, CancellationToken token = default)
 	{
-		if (IsCurrentlyUsable(operationId, message.CacheKey) == false)
+		// IGNORE NULL
+		if (message is null)
+		{
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
+
+			return false;
+		}
+
+		var cacheKey = message.CacheKey!;
+
+		if (IsCurrentlyUsable(operationId, cacheKey) == false)
 			return false;
 
 		if (string.IsNullOrEmpty(message.SourceId))
@@ -43,7 +54,7 @@ internal partial class BackplaneAccessor
 		{
 			// IGNORE MESSAGES -NOT- FROM THIS SOURCE
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " with a SourceId different than the local one (IFusionCache.InstanceId)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty) + " with a SourceId different than the local one (IFusionCache.InstanceId)", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 
 			return false;
 		}
@@ -52,7 +63,7 @@ internal partial class BackplaneAccessor
 		{
 			// IGNORE INVALID MESSAGES
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty), _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + (isFromAutoRecovery ? " (auto-recovery)" : String.Empty), _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 
 			return false;
 		}
@@ -61,36 +72,20 @@ internal partial class BackplaneAccessor
 
 		if (isFromAutoRecovery == false)
 		{
-			TryRemoveAutoRecoveryItemByCacheKey(operationId, message.CacheKey);
+			TryRemoveAutoRecoveryItemByCacheKey(operationId, cacheKey);
 		}
 
 		ExecuteOperation(
 			operationId,
-			message.CacheKey!,
+			cacheKey,
 			ct =>
 			{
 				try
 				{
-					// IF:
-					// - THE MESSAGE IS FROM AUTO-RECOVERY
-					// - AND EnableDistributedExpireOnBackplaneAutoRecovery IS ENABLED
-					// - AND THERE IS A DISTRIBUTED CACHE
-					// THEN:
-					// - REMOVE THE ENTRY (BUT ONLY FROM THE DISTRIBUTED CACHE)
-					if (isFromAutoRecovery && _options.EnableDistributedExpireOnBackplaneAutoRecovery && _cache.HasDistributedCache)
-					{
-						//_cache.Expire(message.CacheKey!, _autoRecoveryEntryOptions, ct);
-						var dca = _cache.GetCurrentDistributedAccessor(_autoRecoveryEntryOptions);
-						if (dca.CanBeUsed(operationId, message.CacheKey))
-						{
-							dca!.RemoveEntry(operationId, message.CacheKey!, _autoRecoveryEntryOptions, ct);
-						}
-					}
-
 					_backplane.Publish(message, options, ct);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a notification has been sent" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.Action);
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a notification has been sent" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, message.Action);
 
 					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
 					{
@@ -100,9 +95,9 @@ internal partial class BackplaneAccessor
 				catch (Exception exc)
 				{
 					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-						_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while sending a notification" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.Action);
+						_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while sending a notification" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, message.Action);
 
-					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
+					if (isFromAutoRecovery == false)
 					{
 						TryAddAutoRecoveryItem(operationId, message, options);
 					}

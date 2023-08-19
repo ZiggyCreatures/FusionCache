@@ -272,21 +272,22 @@ public partial class FusionCache
 					// ADAPTIVE CACHING UPDATE
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
 
-					var dca = GetCurrentDistributedAccessor(options);
-					if (dca.CanBeUsed(operationId, key))
-					{
-						_ = dca?.SetEntryAsync<TValue>(operationId, key, lateEntry, options, token);
-					}
-
 					var mca = GetCurrentMemoryAccessor(options);
 					if (mca is not null)
 					{
 						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 					}
 
+					var dca = GetCurrentDistributedAccessor(options);
+					var dcaHasSaved = false;
+					if (dca.CanBeUsed(operationId, key))
+					{
+						dcaHasSaved = dca!.SetEntry<TValue>(operationId, key, lateEntry, options, token);
+					}
+
 					// BACKPLANE
 					if (options.SkipBackplaneNotifications == false)
-						_ = PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token);
+						_ = MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token);
 
 					// EVENT
 					_events.OnBackgroundFactorySuccess(operationId, key);

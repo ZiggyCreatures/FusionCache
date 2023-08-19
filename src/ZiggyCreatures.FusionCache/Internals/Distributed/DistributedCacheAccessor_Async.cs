@@ -8,33 +8,40 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 internal partial class DistributedCacheAccessor
 {
-	private async ValueTask ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
+	private async ValueTask<bool> ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
-			return;
+			return false;
 
 		token.ThrowIfCancellationRequested();
 
 		var actionDescriptionInner = actionDescription + (options.AllowBackgroundDistributedCacheOperations ? " (background)" : null);
 
+		var res = true;
 		await FusionCacheExecutionUtils
 			.RunAsyncActionAdvancedAsync(
 				action,
 				options.DistributedCacheHardTimeout,
 				false,
 				options.AllowBackgroundDistributedCacheOperations == false,
-				exc => ProcessError(operationId, key, exc, actionDescriptionInner),
+				exc =>
+				{
+					res = false;
+					ProcessError(operationId, key, exc, actionDescriptionInner);
+				},
 				options.ReThrowDistributedCacheExceptions && options.AllowBackgroundDistributedCacheOperations == false && options.DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan,
 				token
 			)
 			.ConfigureAwait(false)
 		;
+
+		return res;
 	}
 
-	public async ValueTask SetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
+	public async ValueTask<bool> SetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
-			return;
+			return false;
 
 		token.ThrowIfCancellationRequested();
 
@@ -42,7 +49,7 @@ internal partial class DistributedCacheAccessor
 		if (options.IsFailSafeEnabled == false && options.DistributedCacheDuration.GetValueOrDefault(options.Duration) <= TimeSpan.Zero)
 		{
 			await RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
-			return;
+			return true;
 		}
 
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
@@ -71,11 +78,11 @@ internal partial class DistributedCacheAccessor
 		}
 
 		if (data is null)
-			return;
+			return true;
 
 		// SAVE TO DISTRIBUTED CACHE
 		var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
-		await ExecuteOperationAsync(
+		return await ExecuteOperationAsync(
 			operationId,
 			key,
 			async ct =>
@@ -180,11 +187,25 @@ internal partial class DistributedCacheAccessor
 		return (null, false);
 	}
 
-	public async ValueTask RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	public async ValueTask<bool> RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		await ExecuteOperationAsync(operationId, key, ct => _cache.RemoveAsync(MaybeProcessCacheKey(key), ct), "removing entry from distributed", options, null, token);
+		return await ExecuteOperationAsync(
+			operationId,
+			key,
+			async ct =>
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): removing entry from distributed", _options.CacheName, operationId, key);
 
-		// EVENT
-		_events.OnRemove(operationId, key);
+				await _cache.RemoveAsync(MaybeProcessCacheKey(key), ct);
+
+				// EVENT
+				_events.OnRemove(operationId, key);
+			},
+			"removing entry from distributed",
+			options,
+			null,
+			token
+		);
 	}
 }

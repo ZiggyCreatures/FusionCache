@@ -32,7 +32,8 @@ public partial class FusionCache
 
 		IFusionCacheEntry? entry;
 		bool isStale;
-		bool hasNewValue = false;
+		var hasNewValue = false;
+		var dcaHasSaved = false;
 
 		if (memoryEntryIsValid)
 		{
@@ -205,7 +206,7 @@ public partial class FusionCache
 				if (dca.CanBeUsed(operationId, key) && failSafeActivated == false)
 				{
 					// SAVE IN THE DISTRIBUTED CACHE (BUT ONLY IF NO FAIL-SAFE HAS BEEN EXECUTED)
-					dca!.SetEntry<TValue>(operationId, key, entry, options, token);
+					dcaHasSaved = dca!.SetEntry<TValue>(operationId, key, entry, options, token);
 				}
 			}
 
@@ -232,7 +233,7 @@ public partial class FusionCache
 
 			// BACKPLANE
 			if (options.SkipBackplaneNotifications == false)
-				PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options, token);
+				MaybePublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token);
 		}
 		else if (entry is not null)
 		{
@@ -575,9 +576,10 @@ public partial class FusionCache
 		}
 
 		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
 		if (dca.CanBeUsed(operationId, key))
 		{
-			dca!.SetEntry<TValue>(operationId, key, entry, options, token);
+			dcaHasSaved = dca!.SetEntry<TValue>(operationId, key, entry, options, token);
 		}
 
 		// EVENT
@@ -585,7 +587,7 @@ public partial class FusionCache
 
 		// BACKPLANE
 		if (options.SkipBackplaneNotifications == false)
-			PublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options, token);
+			MaybePublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token);
 	}
 
 	/// <inheritdoc/>
@@ -612,9 +614,10 @@ public partial class FusionCache
 		}
 
 		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
 		if (dca.CanBeUsed(operationId, key))
 		{
-			dca!.RemoveEntry(operationId, key, options, token);
+			dcaHasSaved = dca!.RemoveEntry(operationId, key, options, token);
 		}
 
 		// EVENT
@@ -622,7 +625,7 @@ public partial class FusionCache
 
 		// BACKPLANE
 		if (options.SkipBackplaneNotifications == false)
-			PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token);
+			MaybePublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options, dcaHasSaved, token);
 	}
 
 	/// <inheritdoc/>
@@ -649,9 +652,10 @@ public partial class FusionCache
 		}
 
 		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
 		if (dca.CanBeUsed(operationId, key))
 		{
-			dca!.RemoveEntry(operationId, key, options, token);
+			dcaHasSaved = dca!.RemoveEntry(operationId, key, options, token);
 		}
 
 		// EVENT
@@ -661,17 +665,26 @@ public partial class FusionCache
 		if (options.SkipBackplaneNotifications == false)
 		{
 			if (options.IsFailSafeEnabled)
-				PublishInternal(operationId, BackplaneMessage.CreateForEntryExpire(key), options, token);
+				MaybePublishInternal(operationId, BackplaneMessage.CreateForEntryExpire(key), options, dcaHasSaved, token);
 			else
-				PublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token);
+				MaybePublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key), options, dcaHasSaved, token);
 		}
 	}
 
 	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private bool PublishInternal(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+	private bool MaybePublishInternal(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool distributedCacheHasSaved, CancellationToken token)
 	{
 		if (_bpa is null)
 			return false;
+
+		if (options.SkipBackplaneNotifications)
+			return false;
+
+		if (HasDistributedCache && distributedCacheHasSaved == false)
+		{
+			_bpa.TryAddAutoRecoveryItem(operationId, message, options);
+			return false;
+		}
 
 		return _bpa.Publish(operationId, message, options, false, token);
 	}

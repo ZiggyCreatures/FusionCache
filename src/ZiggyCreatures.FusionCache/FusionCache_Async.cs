@@ -32,7 +32,8 @@ public partial class FusionCache
 
 		IFusionCacheEntry? entry;
 		bool isStale;
-		bool hasNewValue = false;
+		var hasNewValue = false;
+		var dcaHasSaved = false;
 
 		if (memoryEntryIsValid)
 		{
@@ -205,7 +206,7 @@ public partial class FusionCache
 				if (dca.CanBeUsed(operationId, key) && failSafeActivated == false)
 				{
 					// SAVE IN THE DISTRIBUTED CACHE (BUT ONLY IF NO FAIL-SAFE HAS BEEN EXECUTED)
-					await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+					dcaHasSaved = await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 				}
 			}
 
@@ -232,7 +233,7 @@ public partial class FusionCache
 
 			// BACKPLANE
 			if (options.SkipBackplaneNotifications == false)
-				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token).ConfigureAwait(false);
+				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token).ConfigureAwait(false);
 		}
 		else if (entry is not null)
 		{
@@ -575,9 +576,10 @@ public partial class FusionCache
 		}
 
 		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
 		if (dca.CanBeUsed(operationId, key))
 		{
-			await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+			dcaHasSaved = await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 		}
 
 		// EVENT
@@ -585,7 +587,7 @@ public partial class FusionCache
 
 		// BACKPLANE
 		if (options.SkipBackplaneNotifications == false)
-			await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, token).ConfigureAwait(false);
+			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -612,9 +614,10 @@ public partial class FusionCache
 		}
 
 		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
 		if (dca.CanBeUsed(operationId, key))
 		{
-			await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 		}
 
 		// EVENT
@@ -622,7 +625,7 @@ public partial class FusionCache
 
 		// BACKPLANE
 		if (options.SkipBackplaneNotifications == false)
-			await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token).ConfigureAwait(false);
+			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, dcaHasSaved, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -649,9 +652,10 @@ public partial class FusionCache
 		}
 
 		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
 		if (dca.CanBeUsed(operationId, key))
 		{
-			await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 		}
 
 		// EVENT
@@ -661,18 +665,27 @@ public partial class FusionCache
 		if (options.SkipBackplaneNotifications == false)
 		{
 			if (options.IsFailSafeEnabled)
-				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryExpire(key), options, token).ConfigureAwait(false);
+				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryExpire(key), options, dcaHasSaved, token).ConfigureAwait(false);
 			else
-				await PublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, token).ConfigureAwait(false);
+				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, dcaHasSaved, token).ConfigureAwait(false);
 		}
 	}
 
 	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private async ValueTask<bool> PublishInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token)
+	private async ValueTask<bool> MaybePublishInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool distributedCacheHasSaved, CancellationToken token)
 	{
 		if (_bpa is null)
 			return false;
 
-		return await _bpa.PublishAsync(operationId, message, options, false, token);
+		if (options.SkipBackplaneNotifications)
+			return false;
+
+		if (HasDistributedCache && distributedCacheHasSaved == false)
+		{
+			_bpa.TryAddAutoRecoveryItem(operationId, message, options);
+			return false;
+		}
+
+		return await _bpa.PublishAsync(operationId, message, options, false, token).ConfigureAwait(false);
 	}
 }

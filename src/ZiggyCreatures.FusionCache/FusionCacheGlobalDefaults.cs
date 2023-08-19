@@ -6,6 +6,8 @@ namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// Contains the default values used globally.
+/// <br/><br/>
+/// <strong>NOTE:</strong> since these values are used *globally*, they should be changed only as a last resort, and if you *really* know what you are doing.
 /// </summary>
 public static class FusionCacheGlobalDefaults
 {
