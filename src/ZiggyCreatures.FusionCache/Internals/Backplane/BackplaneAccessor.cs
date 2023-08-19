@@ -284,7 +284,8 @@ internal sealed partial class BackplaneAccessor
 		_ = Task.Run(async () =>
 		{
 			var processedCount = 0;
-			var retryLater = false;
+			var hasErrors = false;
+			string? cacheKey = null;
 
 			try
 			{
@@ -294,7 +295,7 @@ internal sealed partial class BackplaneAccessor
 				foreach (var item in itemsToProcess)
 				{
 					processedCount++;
-					var cacheKey = item.Message.CacheKey!;
+					cacheKey = item.Message.CacheKey!;
 
 					try
 					{
@@ -313,11 +314,7 @@ internal sealed partial class BackplaneAccessor
 									_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): during backplane auto-recovery of an item, the distributed cache was necessary (because of the EnableDistributedExpireOnBackplaneAutoRecovery option) but was not available", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 
 								// STOP PROCESSING THE QUEUE
-								if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-									_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, processedCount);
-
-								retryLater = true;
-
+								hasErrors = true;
 								return;
 							}
 
@@ -343,11 +340,7 @@ internal sealed partial class BackplaneAccessor
 						}
 
 						// STOP PROCESSING THE QUEUE
-						if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-							_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, processedCount);
-
-						retryLater = true;
-
+						hasErrors = true;
 						return;
 					}
 				}
@@ -358,19 +351,24 @@ internal sealed partial class BackplaneAccessor
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): an error occurred during backplane auto-recovery", _cache.CacheName, _cache.InstanceId, operationId);
-
-				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, processedCount);
+					_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during backplane auto-recovery", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 			}
 			finally
 			{
+				if (hasErrors)
+				{
+					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+					{
+						_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, processedCount);
+					}
+				}
+
 				// RELEASE THE LOCK
 				_autoRecoveryProcessingLock.Release();
 
-				var _delay = _options.BackplaneAutoRecoveryBackpressureDelay;
+				var _delay = _options.BackplaneAutoRecoveryDelay;
 
-				if (retryLater && _delay > TimeSpan.Zero)
+				if (hasErrors && _delay > TimeSpan.Zero)
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): backplane auto-recovery will be retried in {Delay}", _cache.CacheName, _cache.InstanceId, operationId, _delay);
@@ -441,12 +439,12 @@ internal sealed partial class BackplaneAccessor
 		{
 			Task.Run(async () =>
 			{
-				if (_options.BackplaneAutoRecoveryBackpressureDelay > TimeSpan.Zero)
+				if (_options.BackplaneAutoRecoveryDelay > TimeSpan.Zero)
 				{
 					if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-						_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting {AutoRecoveryDelay} to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _options.BackplaneAutoRecoveryBackpressureDelay);
+						_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting {AutoRecoveryDelay} to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _options.BackplaneAutoRecoveryDelay);
 
-					await Task.Delay(_options.BackplaneAutoRecoveryBackpressureDelay).ConfigureAwait(false);
+					await Task.Delay(_options.BackplaneAutoRecoveryDelay).ConfigureAwait(false);
 				}
 
 				_breaker.Close(out var hasChanged);

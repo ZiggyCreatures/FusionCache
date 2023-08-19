@@ -2217,9 +2217,9 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryBackpressureDelay">
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryDelay">
             <summary>
-            The amount of time to wait, after a backplane auto-recovery stopped because of errors, before trying again.
+            The amount of time to wait before actually processing the backplane auto-recovery queue, to better handle backpressure.
             <br/>
             Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky).
             <br/><br/>

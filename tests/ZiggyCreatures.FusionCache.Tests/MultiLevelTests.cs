@@ -1206,7 +1206,7 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
@@ -1289,7 +1289,7 @@ namespace FusionCacheTests
 			Assert.Equal(30, vB2);
 
 			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// RE-ENABLE DISTRIBUTED CACHE AND BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS)
 			chaosDistributedCache.SetNeverThrow();
@@ -1297,7 +1297,7 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA3 = cacheA.GetOrSet<int>("foo", _ => 60);
@@ -1384,7 +1384,7 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA3 = await cacheA.GetOrDefaultAsync<int>("foo");
@@ -1399,7 +1399,7 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 
 			// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA4 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
@@ -1486,7 +1486,7 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA3 = cacheA.GetOrDefault<int>("foo");
@@ -1501,7 +1501,7 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 
 			// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA4 = cacheA.GetOrSet<int>("foo", _ => 60);
@@ -1587,7 +1587,7 @@ namespace FusionCacheTests
 			await cacheB.SetAsync<int>("bar", 123);
 
 			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// GET FROM CACHE A (MEMORY CACHE)
 			var vA2 = await cacheA.GetOrSetAsync<int>("foo", async _ => 50);
@@ -1664,7 +1664,7 @@ namespace FusionCacheTests
 			cacheB.Set<int>("bar", 123);
 
 			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// GET FROM CACHE A (MEMORY CACHE)
 			var vA2 = cacheA.GetOrSet<int>("foo", _ => 50);

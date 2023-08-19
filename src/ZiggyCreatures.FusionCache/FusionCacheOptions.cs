@@ -31,7 +31,7 @@ public class FusionCacheOptions
 		EnableBackplaneAutoRecovery = true;
 		BackplaneAutoRecoveryMaxItems = null;
 		BackplaneAutoRecoveryMaxRetryCount = 10;
-		BackplaneAutoRecoveryBackpressureDelay = TimeSpan.FromMilliseconds(2_000);
+		BackplaneAutoRecoveryDelay = TimeSpan.FromMilliseconds(2_000);
 		EnableDistributedExpireOnBackplaneAutoRecovery = true;
 
 		// LOG LEVELS
@@ -161,21 +161,21 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	[Obsolete("Please use BackplaneAutoRecoveryBackpressureDelay instead.")]
+	[Obsolete("Please use BackplaneAutoRecoveryDelay instead.")]
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay
 	{
-		get { return BackplaneAutoRecoveryBackpressureDelay; }
-		set { BackplaneAutoRecoveryBackpressureDelay = value; }
+		get { return BackplaneAutoRecoveryDelay; }
+		set { BackplaneAutoRecoveryDelay = value; }
 	}
 
 	/// <summary>
-	/// The amount of time to wait, after a backplane auto-recovery stopped because of errors, before trying again.
+	/// The amount of time to wait before actually processing the backplane auto-recovery queue, to better handle backpressure.
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public TimeSpan BackplaneAutoRecoveryBackpressureDelay { get; set; }
+	public TimeSpan BackplaneAutoRecoveryDelay { get; set; }
 
 	/// <summary>
 	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
