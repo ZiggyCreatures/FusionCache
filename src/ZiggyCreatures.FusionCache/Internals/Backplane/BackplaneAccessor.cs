@@ -252,10 +252,10 @@ internal sealed partial class BackplaneAccessor
 
 	private bool TryProcessAutoRecoveryQueue(string operationId)
 	{
-		if (IsCurrentlyUsable(null, null) == false)
+		if (_options.EnableBackplaneAutoRecovery == false)
 			return false;
 
-		if (_options.EnableBackplaneAutoRecovery == false)
+		if (IsCurrentlyUsable(null, null) == false)
 			return false;
 
 		if (_autoRecoveryQueue.Count == 0)
@@ -264,7 +264,7 @@ internal sealed partial class BackplaneAccessor
 		// ACQUIRE THE LOCK
 		if (_autoRecoveryProcessingLock.Wait(0) == false)
 		{
-			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY, SOMEONE ELSE IS ALREADY PROCESSING THE QUEUE, SO WE JUST RETURN
+			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY PROCESSING IS ALREADY ONGOING, SO WE JUST RETURN
 			return false;
 		}
 
@@ -358,9 +358,7 @@ internal sealed partial class BackplaneAccessor
 				if (hasErrors)
 				{
 					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					{
 						_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, processedCount);
-					}
 				}
 
 				// RELEASE THE LOCK
