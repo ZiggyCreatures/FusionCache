@@ -368,7 +368,7 @@ internal sealed partial class BackplaneAccessor
 				// RELEASE THE LOCK
 				_autoRecoveryProcessingLock.Release();
 
-				var _delay = _options.BackplaneAutoRecoveryRetryDelay;
+				var _delay = _options.BackplaneAutoRecoveryBackpressureDelay;
 
 				if (retryLater && _delay > TimeSpan.Zero)
 				{
@@ -441,12 +441,12 @@ internal sealed partial class BackplaneAccessor
 		{
 			Task.Run(async () =>
 			{
-				if (_options.BackplaneAutoRecoveryReconnectDelay > TimeSpan.Zero)
+				if (_options.BackplaneAutoRecoveryBackpressureDelay > TimeSpan.Zero)
 				{
 					if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-						_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting {AutoRecoveryDelay} to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _options.BackplaneAutoRecoveryReconnectDelay);
+						_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting {AutoRecoveryDelay} to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _options.BackplaneAutoRecoveryBackpressureDelay);
 
-					await Task.Delay(_options.BackplaneAutoRecoveryReconnectDelay).ConfigureAwait(false);
+					await Task.Delay(_options.BackplaneAutoRecoveryBackpressureDelay).ConfigureAwait(false);
 				}
 
 				_breaker.Close(out var hasChanged);

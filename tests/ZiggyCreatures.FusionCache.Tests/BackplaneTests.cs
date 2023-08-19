@@ -391,7 +391,7 @@ namespace FusionCacheTests
 			backplane2.SetNeverThrow();
 			backplane3.SetNeverThrow();
 
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryReconnectDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
 
 			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
 			await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
@@ -461,7 +461,7 @@ namespace FusionCacheTests
 			backplane2.SetNeverThrow();
 			backplane3.SetNeverThrow();
 
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryReconnectDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
 
 			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
 			cache1.Set(otherKey, 42, TimeSpan.FromMinutes(10));
@@ -543,7 +543,7 @@ namespace FusionCacheTests
 			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
 			//await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
 
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryReconnectDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
 
 			_value = 42;
 
@@ -626,7 +626,7 @@ namespace FusionCacheTests
 			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
 			//await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
 
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryReconnectDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryBackpressureDelay.PlusALittleBit());
 
 			_value = 42;
 
