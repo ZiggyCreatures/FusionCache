@@ -82,7 +82,9 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 		/// <inheritdoc/>
 		public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 		{
-			throw new NotImplementedException();
+			var res = _options.DefaultEntryOptions.Duplicate(duration);
+			setupAction?.Invoke(res);
+			return res;
 		}
 
 		/// <inheritdoc/>
