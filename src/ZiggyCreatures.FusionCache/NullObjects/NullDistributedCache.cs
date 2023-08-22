@@ -13,13 +13,13 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 		/// <inheritdoc/>
 		public byte[] Get(string key)
 		{
-			return null;
+			return null!;
 		}
 
 		/// <inheritdoc/>
 		public Task<byte[]> GetAsync(string key, CancellationToken token = default)
 		{
-			return Task.FromResult<byte[]>(null);
+			return Task.FromResult<byte[]>(null!);
 		}
 
 		/// <inheritdoc/>
