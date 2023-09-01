@@ -1630,5 +1630,68 @@ namespace FusionCacheTests
 				JsonConvert.SerializeObject(duplicated)
 			);
 		}
+
+		[Fact]
+		public void CanDisposeEvictedEntries()
+		{
+			var duration = TimeSpan.FromSeconds(1);
+			var memoryCache = new MemoryCache(new MemoryCacheOptions()
+			{
+				ExpirationScanFrequency = TimeSpan.FromMilliseconds(100)
+			});
+
+			using var cache = new FusionCache(
+				new FusionCacheOptions()
+				{
+					DefaultEntryOptions = new FusionCacheEntryOptions()
+					{
+						Duration = duration
+					}
+				},
+				memoryCache
+			);
+
+			cache.Set("foo", new SimpleDisposable());
+
+			var d1 = cache.GetOrDefault<SimpleDisposable>("foo");
+
+			Assert.NotNull(d1);
+			Assert.False(d1.IsDisposed);
+
+			Thread.Sleep(duration.PlusALittleBit());
+
+			var d2 = cache.GetOrDefault<SimpleDisposable>("foo");
+
+			memoryCache.Compact(1);
+
+			Thread.Sleep(duration.PlusALittleBit());
+
+			Assert.Null(d2);
+			Assert.False(d1.IsDisposed);
+
+			// ADD EVENT TO AUTO-DISPOSE EVICTED ENTRIES
+			cache.Events.Memory.Eviction += (sender, args) =>
+			{
+				((IDisposable?)args.Value)?.Dispose();
+			};
+
+			cache.Set("foo", new SimpleDisposable());
+
+			var d3 = cache.GetOrDefault<SimpleDisposable>("foo");
+
+			Assert.NotNull(d3);
+			Assert.False(d3.IsDisposed);
+
+			Thread.Sleep(duration.PlusALittleBit());
+
+			var d4 = cache.GetOrDefault<SimpleDisposable>("foo");
+
+			memoryCache.Compact(1);
+
+			Thread.Sleep(duration.PlusALittleBit());
+
+			Assert.Null(d4);
+			Assert.True(d3.IsDisposed);
+		}
 	}
 }

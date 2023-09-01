@@ -359,16 +359,22 @@
             The specific <see cref="T:System.EventArgs"/> object for events related to cache entries' evictions.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs.#ctor(System.String,Microsoft.Extensions.Caching.Memory.EvictionReason)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs.#ctor(System.String,Microsoft.Extensions.Caching.Memory.EvictionReason,System.Object)">
             <summary>
             Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs"/> class.
             </summary>
             <param name="key">The cache key related to the event.</param>
             <param name="reason">The reason for the eviction.</param>
+            <param name="value">The value being evicted from the cache.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs.Reason">
             <summary>
             The reason for the eviction.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryEvictionEventArgs.Value">
+            <summary>
+            The value being evicted from the cache.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEntryHitEventArgs">

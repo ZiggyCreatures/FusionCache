@@ -41,9 +41,9 @@ public class FusionCacheMemoryEventsHub
 		return Eviction is not null;
 	}
 
-	internal void OnEviction(string operationId, string key, EvictionReason reason)
+	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value)
 	{
-		Eviction?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEvictionEventArgs(key, reason), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
+		Eviction?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnExpire(string operationId, string key)

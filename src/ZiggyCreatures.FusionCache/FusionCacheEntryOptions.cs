@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
@@ -635,7 +636,10 @@ public class FusionCacheEntryOptions
 		if (events.HasEvictionSubscribers())
 		{
 			res.RegisterPostEvictionCallback(
-				(key, _, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
+				(key, entry, reason, state) =>
+				{
+					((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason, ((FusionCacheMemoryEntry?)entry)?.Value);
+				},
 				events
 			);
 		}
