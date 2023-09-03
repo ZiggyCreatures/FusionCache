@@ -131,6 +131,8 @@ namespace FusionCacheTests
 				cache.Remove("foo");
 			}
 
+			await Task.Delay(500);
+
 			var itemsCountWithoutCacheName = logger.Items.Count(x => x.Message.Contains(cacheName) == false);
 
 			Assert.True(logger.Items.Count > 0);
