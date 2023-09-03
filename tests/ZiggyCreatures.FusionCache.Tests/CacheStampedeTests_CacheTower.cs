@@ -20,7 +20,7 @@ namespace FusionCacheTests
 		[InlineData(1_000)]
 		public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
 		{
-			await using (var cache = new CacheStack(new[] { new MemoryCacheLayer() }, new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) }))
+			await using (var cache = new CacheStack(null, new CacheStackOptions(new[] { new MemoryCacheLayer() }) { Extensions = new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) } }))
 			{
 				var cacheSettings = new CacheSettings(TimeSpan.FromSeconds(10));
 
