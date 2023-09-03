@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Serilog;
+using Serilog.Events;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
+using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
@@ -32,11 +38,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 	public static class WorkloadScenarioOptions
 	{
 		// GENERAL
-		public static readonly int GroupsCount = 4;
-		public static readonly int NodesPerGroupCount = 10;
-		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
+		public static int GroupsCount = 4;
+		public static int NodesPerGroupCount = 10;
+		public static bool EnableFailSafe = false;
+		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
 		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
+		public static readonly bool EnableLogging = false;
+		public static readonly bool EnableLoggingExceptions = false;
 
 		// DISTRIBUTED CACHE
 		public static readonly bool AllowBackgroundDistributedCacheOperations = false;
@@ -46,14 +55,39 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		// BACKPLANE
 		public static readonly bool AllowBackgroundBackplaneOperations = false;
-		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(10);
+		//public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(10);
+		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.Zero;
 		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 
 		// OTHERS
+		public static readonly TimeSpan RefreshDelay = TimeSpan.FromSeconds(1);
 		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
 		public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
 		public static readonly bool UpdateCacheOnSaveToDb = true;
 		public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(150);
+	}
+
+	public class FakeDatabase
+	{
+		public int? Value { get; set; }
+		public long? LastUpdateTimestamp { get; set; }
+	}
+
+	public class CacheGroup
+	{
+		public List<CacheNode> Nodes { get; } = new List<CacheNode>();
+		public int? LastUpdatedNodeIndex { get; set; }
+	}
+
+	public class CacheNode
+	{
+		public CacheNode(IFusionCache cache)
+		{
+			Cache = cache;
+		}
+
+		public IFusionCache Cache { get; }
+		public long? ExpirationTimestamp { get; set; }
 	}
 
 	public static class WorkloadScenario
@@ -64,9 +98,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		private static readonly object LockObj = new object();
 		private static int LastValue = 0;
 		private static int? LastUpdatedGroupIdx = null;
-		private static readonly Dictionary<int, int?> LastUpdatedCaches = new Dictionary<int, int?>();
-		private static readonly List<List<IFusionCache>> CacheGroups = new List<List<IFusionCache>>();
-		private static readonly Dictionary<int, int?> Databases = new Dictionary<int, int?>();
+		private static readonly ConcurrentDictionary<int, CacheGroup> CacheGroups = new ConcurrentDictionary<int, CacheGroup>();
+		private static readonly ConcurrentDictionary<int, FakeDatabase> Databases = new ConcurrentDictionary<int, FakeDatabase>();
+
+		private static bool DatabaseEnabled = true;
+
+		private static readonly List<ChaosDistributedCache> DistributedCaches = new List<ChaosDistributedCache>();
+		private static bool DistributedCachesEnabled = true;
+
+		private static readonly List<ChaosBackplane> Backplanes = new List<ChaosBackplane>();
+		private static bool BackplanesEnabled = true;
 
 		// STATS
 		private static int DbWritesCount = 0;
@@ -108,42 +149,117 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		private static void SaveToDb(int groupIdx, int value)
 		{
-			Databases[groupIdx] = value;
+			if (DatabaseEnabled == false)
+			{
+				throw new Exception("Synthetic database exception");
+			}
 
+			var db = Databases.GetOrAdd(groupIdx, new FakeDatabase());
+			db.Value = value;
+			db.LastUpdateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 			Interlocked.Increment(ref DbWritesCount);
+
+			LastUpdatedGroupIdx = groupIdx;
 		}
 
 		private static int? LoadFromDb(int groupIdx)
 		{
-			Databases.TryGetValue(groupIdx, out int? res);
+			if (DatabaseEnabled == false)
+			{
+				throw new Exception("Synthetic database exception");
+			}
 
 			Interlocked.Increment(ref DbReadsCount);
 
-			return res;
+			var db = Databases.GetOrAdd(groupIdx, new FakeDatabase());
+			return db.Value;
 		}
 
-		private static void Setup()
+		private static void UpdateCacheGroup(int groupIdx)
+		{
+			lock (LockObj)
+			{
+				// CHANGE THE VALUE
+				LastValue++;
+
+				// SAVE TO DB
+				try
+				{
+					SaveToDb(groupIdx, LastValue);
+
+					// UPDATE CACHE
+					var group = CacheGroups[groupIdx];
+					var nodeIdx = RNG.Next(group.Nodes.Count);
+					var node = group.Nodes[nodeIdx];
+
+					if (WorkloadScenarioOptions.UpdateCacheOnSaveToDb)
+					{
+						node.Cache.Set(CacheKey, LastValue);
+
+						// SAVE LAST XYZ
+						node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+						group.LastUpdatedNodeIndex = nodeIdx;
+					}
+				}
+				catch
+				{
+					// EMPTY
+				}
+			}
+		}
+
+		private static void UpdateSomeRandomData()
+		{
+			// GET A RANDOM GROUP IDX
+			var groupIdx = RNG.Next(CacheGroups.Count);
+
+			UpdateCacheGroup(groupIdx);
+		}
+
+		private static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
+		{
+			Log.Logger = new LoggerConfiguration()
+				.MinimumLevel.Is(minLevel)
+				.Enrich.FromLogContext()
+				.WriteTo.Debug(
+					outputTemplate: WorkloadScenarioOptions.EnableLoggingExceptions
+					? "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
+					: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}"
+				)
+				.CreateLogger()
+			;
+
+			services.AddLogging(configure => configure.AddSerilog());
+		}
+
+		private static void SetupCacheGroups()
 		{
 			AnsiConsole.MarkupLine("[deepskyblue1]SETUP[/]");
 			AnsiConsole.Markup("- [deepskyblue1]SERIALIZER  : [/] CREATING...");
 			AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
-			for (int groupIdx = 1; groupIdx <= WorkloadScenarioOptions.GroupsCount; groupIdx++)
+			// DI
+			var services = new ServiceCollection();
+			SetupSerilogLogger(services, LogEventLevel.Debug);
+			var serviceProvider = services.BuildServiceProvider();
+
+			for (int groupIdx = 0; groupIdx < WorkloadScenarioOptions.GroupsCount; groupIdx++)
 			{
+				var group = new CacheGroup();
+
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE : [/] CREATING...");
 				var distributedCache = CreateDistributedCache(groupIdx);
 				AnsiConsole.MarkupLine("[green3_1]OK[/]");
-
-				var nodes = new List<IFusionCache>();
 
 				for (int nodeIdx = 1; nodeIdx <= WorkloadScenarioOptions.NodesPerGroupCount; nodeIdx++)
 				{
 					AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] CREATING...");
 					var options = new FusionCacheOptions()
 					{
-						CacheName = $"C{groupIdx}",
+						CacheName = $"C{groupIdx + 1}",
+						InstanceId = $"C{groupIdx + 1}-{nodeIdx}",
 						DefaultEntryOptions = new FusionCacheEntryOptions(WorkloadScenarioOptions.CacheDuration)
-							.SetFailSafe(false)
+							.SetFailSafe(WorkloadScenarioOptions.EnableFailSafe, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(2))
 							.SetDistributedCacheTimeouts(
 								WorkloadScenarioOptions.DistributedCacheSoftTimeout,
 								WorkloadScenarioOptions.DistributedCacheHardTimeout,
@@ -155,13 +271,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
 						options.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
-					var cache = new FusionCache(options);
+					var logger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+					var cache = new FusionCache(options, logger: logger);
 					AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
 					if (distributedCache is not null)
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING DIST. CACHE...");
-						cache.SetupDistributedCache(distributedCache, new FusionCacheNewtonsoftJsonSerializer());
+						var tmp = new ChaosDistributedCache(distributedCache);
+						cache.SetupDistributedCache(tmp, new FusionCacheNewtonsoftJsonSerializer());
+						DistributedCaches.Add(tmp);
 						AnsiConsole.MarkupLine("[green3_1]OK[/]");
 					}
 
@@ -171,49 +290,115 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					if (backplane is not null)
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING BACKPLANE...");
-						cache.SetupBackplane(backplane);
+						var tmp = new ChaosBackplane(backplane);
+						cache.SetupBackplane(tmp);
+						Backplanes.Add(tmp);
 						AnsiConsole.MarkupLine("[green3_1]OK[/]");
 					}
 
-					nodes.Add(cache);
+					var node = new CacheNode(cache);
+
+					cache.Events.Memory.Set += (sender, e) =>
+					{
+						node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+					};
+
+					group.Nodes.Add(node);
 				}
 
-				CacheGroups.Add(nodes);
+				CacheGroups[groupIdx] = group;
 			}
 		}
+
+		private static void Memory_Set(object? sender, Events.FusionCacheEntryEventArgs e)
+		{
+			throw new NotImplementedException();
+		}
+
+		private static string GetCountdownMarkup(long nowTimestamp, long? expirationTimestamp)
+		{
+			if (expirationTimestamp is null || expirationTimestamp.Value <= nowTimestamp)
+				return "";
+
+			var remainingSeconds = (expirationTimestamp.Value - nowTimestamp) / 1000;
+			var v = (float)(expirationTimestamp.Value - nowTimestamp) / (float)WorkloadScenarioOptions.CacheDuration.TotalMilliseconds;
+			if (v <= 0.0f)
+				return "";
+
+			var color = "green3_1";
+			switch (v)
+			{
+				case <= 0.1f:
+					color = "red3_1";
+					break;
+				case <= 0.2f:
+					color = "darkorange3_1";
+					break;
+				case <= 0.4f:
+					color = "darkgoldenrod";
+					break;
+				case <= 0.6f:
+					color = "greenyellow";
+					break;
+				default:
+					break;
+			}
+
+			//var charIdx = (int)(v * (ProgressChars.Length - 1));
+			//return $"[{color}]{ProgressChars[charIdx]}[/]";
+
+			//return $"[{color}]-{remainingSeconds}s[/]";
+			return $"[{color}]-{remainingSeconds}[/]";
+		}
+
+		//private static char GetProgressCharByTimestamp(long)
+		//{
+
+		//}
 
 		private static void DisplayDashboard()
 		{
 			var tables = new List<(string Label, Table Table)>();
+			var nowTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
 			lock (LockObj)
 			{
 				for (int groupIdx = 0; groupIdx < CacheGroups.Count; groupIdx++)
 				{
-					var nodes = CacheGroups[groupIdx];
+					var group = CacheGroups[groupIdx];
 
 					var table = new Table();
 					table.Border = TableBorder.Heavy;
 
-					for (int nodeIdx = 0; nodeIdx < nodes.Count; nodeIdx++)
+					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
 					{
 						table.AddColumn(new TableColumn($"[deepskyblue1]N {nodeIdx + 1}[/]").Centered());
 					}
 
-					LastUpdatedCaches.TryGetValue(groupIdx, out int? lastUpdatedNodeIdx);
+					var lastUpdatedNodeIdx = group.LastUpdatedNodeIndex;
 
 					// SNAPSHOT VALUES
 					var values = new Dictionary<int, int?>();
-					for (int nodeIdx = 0; nodeIdx < nodes.Count; nodeIdx++)
+					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
 					{
-						var cache = nodes[nodeIdx];
-						values[nodeIdx] = cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(groupIdx));
+						var node = group.Nodes[nodeIdx];
+						int? value;
+						try
+						{
+							value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(groupIdx));
+						}
+						catch
+						{
+							value = null;
+						}
+						values[nodeIdx] = value;
 					}
 
 					// BUILD CELLS
 					var cells = new List<IRenderable>();
-					for (int nodeIdx = 0; nodeIdx < nodes.Count; nodeIdx++)
+					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
 					{
+						var node = group.Nodes[nodeIdx];
 						var value = values[nodeIdx];
 
 						var color = "white";
@@ -242,18 +427,18 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 							}
 						}
 
-						var text = (value?.ToString() ?? string.Empty).PadRight(2).PadLeft(3);
+						var text = (value?.ToString() ?? "/").PadRight(3).PadLeft(5);
 						if (string.IsNullOrEmpty(text))
 							text = " ";
 
+
+						var borderColor = Color.Black;
 						if (string.IsNullOrWhiteSpace(text) == false && lastUpdatedNodeIdx.HasValue && lastUpdatedNodeIdx.Value == nodeIdx)
 						{
-							cells.Add(new Panel(new Markup($"[{color}]{text}[/]")).BorderColor(LastUpdatedGroupIdx != groupIdx ? Color.Green4 : Color.Green3_1));
+							borderColor = LastUpdatedGroupIdx != groupIdx ? Color.Green4 : Color.Green3_1;
 						}
-						else
-						{
-							cells.Add(new Panel(new Markup($"[{color}]{text}[/]")).BorderColor(Color.Black));
-						}
+
+						cells.Add(new Panel(new Markup($"[{color}]{text}[/]\n\n{GetCountdownMarkup(nowTimestamp, node.ExpirationTimestamp)}")).BorderColor(borderColor));
 					}
 
 					table.AddRow(cells);
@@ -262,7 +447,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var labelColor = "grey84";
 					if (LastUpdatedGroupIdx == groupIdx)
 					{
-						label += " (UPDATED)";
+						label += " (LAST UPDATED)";
 						labelColor = "springgreen3_1";
 					}
 
@@ -275,16 +460,42 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.MarkupLine("SUMMARY");
 				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] GROUPS = {WorkloadScenarioOptions.GroupsCount} / NODES = {WorkloadScenarioOptions.NodesPerGroupCount}");
 				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]UPDATE DELAY  :[/] {WorkloadScenarioOptions.DataChangesMinDelay} - {WorkloadScenarioOptions.DataChangesMaxDelay}");
-				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None)
-					AnsiConsole.MarkupLine("- [deepskyblue1]DIST. CACHE   :[/] [red1]X[/]");
-				else
-					AnsiConsole.MarkupLine($"- [deepskyblue1]DIST. CACHE   :[/] [green3_1]v[/] ({WorkloadScenarioOptions.DistributedCacheType})");
+				//AnsiConsole.MarkupLine($"- [deepskyblue1]UPDATE DELAY  :[/] {WorkloadScenarioOptions.DataChangesMinDelay} - {WorkloadScenarioOptions.DataChangesMaxDelay}");
 
-				if (WorkloadScenarioOptions.BackplaneType == BackplaneType.None)
-					AnsiConsole.MarkupLine("- [deepskyblue1]BACKPLANE     :[/] [red1]X[/]");
+				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
+				AnsiConsole.Markup($"memory ");
+				if (DatabaseEnabled)
+					AnsiConsole.MarkupLine("[green3_1]v[/]");
 				else
-					AnsiConsole.MarkupLine($"- [deepskyblue1]BACKPLANE     :[/] [green3_1]v[/] ({WorkloadScenarioOptions.BackplaneType})");
+					AnsiConsole.MarkupLine("[red1]X[/]");
+
+				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE   :[/] ");
+				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None)
+				{
+					AnsiConsole.MarkupLine("[red1]X[/]");
+				}
+				else
+				{
+					AnsiConsole.Markup($"{WorkloadScenarioOptions.DistributedCacheType} ");
+					if (DistributedCachesEnabled)
+						AnsiConsole.MarkupLine("[green3_1]v[/]");
+					else
+						AnsiConsole.MarkupLine("[red1]X[/]");
+				}
+
+				AnsiConsole.Markup("- [deepskyblue1]BACKPLANE     :[/] ");
+				if (WorkloadScenarioOptions.BackplaneType == BackplaneType.None)
+				{
+					AnsiConsole.MarkupLine("[red1]X[/]");
+				}
+				else
+				{
+					AnsiConsole.Markup($"{WorkloadScenarioOptions.BackplaneType} ");
+					if (BackplanesEnabled)
+						AnsiConsole.MarkupLine("[green3_1]v[/]");
+					else
+						AnsiConsole.MarkupLine("[red1]X[/]");
+				}
 				AnsiConsole.WriteLine();
 
 				// STATS
@@ -297,43 +508,28 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				// TABLES
 				foreach (var item in tables)
 				{
-					AnsiConsole.MarkupLine(item.Label);
+					// LABEL
+					AnsiConsole.Markup(item.Label);
+
+					//// DURATION COUNTDOWN
+					//if (item.LastUpdatedTimestamp is not null)
+					//{
+					//	AnsiConsole.Markup($" [deepskyblue1]DB WRITES     :[/]   {DbWritesCount}");
+					//}
+
+					AnsiConsole.WriteLine();
+
+					// TABLE
 					AnsiConsole.Write(item.Table);
 				}
 				AnsiConsole.WriteLine();
-			}
-		}
 
-		private static void UpdateSomeRandomData()
-		{
-			lock (LockObj)
-			{
-				// GET A RANDOM GROUP IDX
-				var groupIdx = RNG.Next(CacheGroups.Count);
-
-				// CHANGE THE VALUE
-				LastValue++;
-
-				// SAVE TO DB
-				SaveToDb(groupIdx, LastValue);
-
-				// UPDATE CACHE
-				var nodes = CacheGroups[groupIdx];
-				var nodeIdx = RNG.Next(nodes.Count);
-				var cache = nodes[nodeIdx];
-
-				if (WorkloadScenarioOptions.UpdateCacheOnSaveToDb)
-				{
-					cache.Set(CacheKey, LastValue);
-				}
-				//else
-				//{
-				//	cache.Remove(CacheKey, options => options.SetBackplane(false));
-				//}
-
-				// SAVE LAST XYZ
-				LastUpdatedGroupIdx = groupIdx;
-				LastUpdatedCaches[groupIdx] = nodeIdx;
+				AnsiConsole.WriteLine();
+				AnsiConsole.MarkupLine($"PRESS:");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheGroups.Count}[/]: set a value on a cache group");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]D/d[/]: enable/disable distributed cache (all groups)");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]B/b[/]: enable/disable backplane (all groups)");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]S/s[/]: enable/disable database (all groups)");
 			}
 		}
 
@@ -343,31 +539,115 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			AnsiConsole.Clear();
 
-			Setup();
+			// INPUTS
+			bool inputProvided;
 
-			var cts = new CancellationTokenSource();
+			inputProvided = false;
+			while (inputProvided == false)
+			{
+				AnsiConsole.Markup($"[deepskyblue1]CACHE GROUPS (amount):[/] ");
+				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.GroupsCount);
+			}
+
+			inputProvided = false;
+			while (inputProvided == false)
+			{
+				AnsiConsole.Markup($"[deepskyblue1]NODES PER GROUP (amount):[/] ");
+				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.NodesPerGroupCount);
+			}
+
+			inputProvided = false;
+			while (inputProvided == false)
+			{
+				AnsiConsole.Markup($"[deepskyblue1]FAIL-SAFE (y/n):[/] ");
+				var tmp = Console.ReadKey();
+				if (tmp.KeyChar is 'y' or 'n')
+				{
+					WorkloadScenarioOptions.EnableFailSafe = tmp.KeyChar == 'y';
+					inputProvided = true;
+				}
+				else
+				{
+					AnsiConsole.WriteLine();
+				}
+			}
+
+			SetupCacheGroups();
+
+			using var cts = new CancellationTokenSource();
 			var ct = cts.Token;
 
-			while (ct.IsCancellationRequested == false)
+			_ = Task.Run(async () =>
 			{
-				// DISPLAY DASHBOARD
-				DisplayDashboard();
+				while (ct.IsCancellationRequested == false)
+				{
+					try
+					{
+						// DISPLAY DASHBOARD
+						DisplayDashboard();
+					}
+					catch (Exception exc)
+					{
+						AnsiConsole.Clear();
+						AnsiConsole.WriteException(exc);
+						throw;
+					}
 
-				// WAIT SOME RANDOM TIME
-				var delay = TimeSpan.FromMilliseconds(
-					WorkloadScenarioOptions.DataChangesMinDelay.TotalMilliseconds
-					+ (RNG.NextDouble() * (WorkloadScenarioOptions.DataChangesMaxDelay.TotalMilliseconds - WorkloadScenarioOptions.DataChangesMinDelay.TotalMilliseconds))
-				);
+					await Task.Delay(WorkloadScenarioOptions.RefreshDelay).ConfigureAwait(false);
+				}
+			});
 
-				await Task.Delay(delay).ConfigureAwait(false);
+			var shouldExit = false;
+			do
+			{
+				var tmp = Console.ReadKey();
+				switch (tmp.KeyChar)
+				{
+					case '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9':
+						// SET VALUE
+						var groupIdx = int.Parse(tmp.KeyChar.ToString());
+						if (groupIdx > 0 && groupIdx <= CacheGroups.Count)
+						{
+							UpdateCacheGroup(groupIdx - 1);
+						}
+						break;
+					case 'D' or 'd':
+						// TOGGLE DISTRIBUTED CACHES
+						DistributedCachesEnabled = !DistributedCachesEnabled;
+						foreach (var distributedCache in DistributedCaches)
+						{
+							if (DistributedCachesEnabled)
+								distributedCache.SetNeverThrow();
+							else
+								distributedCache.SetAlwaysThrow();
+						}
+						break;
+					case 'B' or 'b':
+						// TOGGLE DISTRIBUTED CACHES
+						BackplanesEnabled = !BackplanesEnabled;
+						foreach (var backplane in Backplanes)
+						{
+							if (BackplanesEnabled)
+								backplane.SetNeverThrow();
+							else
+								backplane.SetAlwaysThrow();
+						}
+						break;
+					case 'S' or 's':
+						// TOGGLE DATABASE
+						DatabaseEnabled = !DatabaseEnabled;
+						break;
+					case 'Q' or 'q':
+						// QUIT
+						shouldExit = true;
+						break;
+					default:
+						break;
+				}
+			} while (shouldExit == false);
 
-				// UPDATE SOME DATA
-				UpdateSomeRandomData();
-
-				// WAIT A LITTLE TO LET THE BACKBONE TO ITS JOB
-				if (WorkloadScenarioOptions.PostUpdateCooldownDelay.HasValue)
-					await Task.Delay(WorkloadScenarioOptions.PostUpdateCooldownDelay.Value).ConfigureAwait(false);
-			}
+			cts.Cancel();
+			await Task.Delay(1_000).ConfigureAwait(false);
 		}
 	}
 }
