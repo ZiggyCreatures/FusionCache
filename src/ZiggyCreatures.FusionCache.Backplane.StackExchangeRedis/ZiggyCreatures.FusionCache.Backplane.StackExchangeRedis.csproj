@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.23.0</Version>
+		<Version>0.24.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache backplane for Redis based on the StackExchange.Redis library</Description>
@@ -13,8 +13,6 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Add support for re-connection events
-			- Better log messages
 			- Dependencies update
 		</PackageReleaseNotes>
 	</PropertyGroup>

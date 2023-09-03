@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.23.0</Version>
+		<Version>0.24.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>
@@ -15,17 +15,15 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added: backplane active re-connection support
-			- Added: delayed processing on backplane re-connect
-			- Change: better backplane backpressure handling
-			- Change: better backplane auto-recovery background processing
-			- Change: better handling of connection/subscription errors
-			- Added: NullFusionCache (null object pattern)
-			- Added: NullFusionCacheBackplane
-			- Added: NullDistributedCache
-			- Added: NullFusionCachePlugin
-			- Change: better log messages
-			- Tests: better snapshot testing of binary payloads (distributed cache)
+			- Added: continuous backplane auto-recovery background processing (more robust)
+			- Added: backplane auto-recovery queue automatic cleanup
+			- Added: distributed cache and backplane now work together even more (and better)
+			- Added: unified backplane auto-recovery delay via BackplaneAutoRecoveryDelay option (BackplaneAutoRecoveryReconnectDelay is now marked as obsolete)
+			- Added: ReThrowBackplaneExceptions entry option
+			- Added: support for passing entries on eviction events
+			- Fixed: NullFusionCache now handles the CreateEntryOptions
+			- Changed: marked EnableDistributedExpireOnBackplaneAutoRecovery as obsolete, since now everything is fully automatic
+			- Changed: better log messages
 			- Perf: various performance optimizations
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
