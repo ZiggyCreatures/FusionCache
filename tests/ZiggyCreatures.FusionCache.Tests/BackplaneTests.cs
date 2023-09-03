@@ -391,6 +391,7 @@ namespace FusionCacheTests
 			backplane2.SetNeverThrow();
 			backplane3.SetNeverThrow();
 
+			// WAIT FOR THE AUTO-RECOVERY DELAY
 			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
@@ -461,6 +462,7 @@ namespace FusionCacheTests
 			backplane2.SetNeverThrow();
 			backplane3.SetNeverThrow();
 
+			// WAIT FOR THE AUTO-RECOVERY DELAY
 			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
@@ -470,6 +472,148 @@ namespace FusionCacheTests
 
 			Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value));
+			Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task AutoRecoveryCanBeDisabledAsync(SerializerType serializerType)
+		{
+			var defaultOptions = new FusionCacheOptions();
+
+			var _value = 0;
+
+			var key = "foo";
+			var otherKey = "bar";
+
+			var distributedCache = CreateDistributedCache();
+
+			var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+			var backplane1 = CreateChaosBackplane(backplaneConnectionId);
+			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
+			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
+
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = false; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = false; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = false; });
+
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			// DISABLE THE BACKPLANE
+			backplane1.SetAlwaysThrow();
+			backplane2.SetAlwaysThrow();
+			backplane3.SetAlwaysThrow();
+
+			await Task.Delay(1_000);
+
+			// 1
+			_value = 1;
+			await cache1.SetAsync(key, _value, TimeSpan.FromMinutes(10));
+			await Task.Delay(200);
+
+			// 2
+			_value = 2;
+			await cache2.SetAsync(key, _value, TimeSpan.FromMinutes(10));
+			await Task.Delay(200);
+
+			// 3
+			_value = 3;
+			await cache3.SetAsync(key, _value, TimeSpan.FromMinutes(10));
+			await Task.Delay(200);
+
+			Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value));
+			Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value));
+			Assert.Equal(3, await cache3.GetOrSetAsync<int>(key, async _ => _value));
+
+			// RE-ENABLE THE BACKPLANE
+			backplane1.SetNeverThrow();
+			backplane2.SetNeverThrow();
+			backplane3.SetNeverThrow();
+
+			// WAIT FOR THE AUTO-RECOVERY DELAY
+			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+
+			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
+			await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
+
+			await Task.Delay(1_000);
+
+			Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value));
+			Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value));
+			Assert.Equal(3, await cache3.GetOrSetAsync<int>(key, async _ => _value));
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void AutoRecoveryCanBeDisabled(SerializerType serializerType)
+		{
+			var defaultOptions = new FusionCacheOptions();
+
+			var _value = 0;
+
+			var key = "foo";
+			var otherKey = "bar";
+
+			var distributedCache = CreateDistributedCache();
+
+			var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+			var backplane1 = CreateChaosBackplane(backplaneConnectionId);
+			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
+			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
+
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = false; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = false; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = false; });
+
+			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+			// DISABLE THE BACKPLANE
+			backplane1.SetAlwaysThrow();
+			backplane2.SetAlwaysThrow();
+			backplane3.SetAlwaysThrow();
+
+			Thread.Sleep(1_000);
+
+			// 1
+			_value = 1;
+			cache1.Set(key, _value, TimeSpan.FromMinutes(10));
+			Thread.Sleep(200);
+
+			// 2
+			_value = 2;
+			cache2.Set(key, _value, TimeSpan.FromMinutes(10));
+			Thread.Sleep(200);
+
+			// 3
+			_value = 3;
+			cache3.Set(key, _value, TimeSpan.FromMinutes(10));
+			Thread.Sleep(200);
+
+			Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
+			Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
+			Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+
+			// RE-ENABLE THE BACKPLANE
+			backplane1.SetNeverThrow();
+			backplane2.SetNeverThrow();
+			backplane3.SetNeverThrow();
+
+			// WAIT FOR THE AUTO-RECOVERY DELAY
+			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+
+			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
+			cache1.Set(otherKey, 42, TimeSpan.FromMinutes(10));
+
+			Thread.Sleep(1_000);
+
+			Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
+			Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
 		}
 
@@ -540,16 +684,14 @@ namespace FusionCacheTests
 			backplane2.SetNeverThrow();
 			backplane3.SetNeverThrow();
 
-			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
-			//await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
-
+			// WAIT FOR THE AUTO-RECOVERY DELAY
 			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			_value = 42;
 
-			Assert.Equal(_value, await cache1.GetOrSetAsync<int>(key1, async _ => _value));
-			Assert.Equal(_value, await cache2.GetOrSetAsync<int>(key1, async _ => _value));
-			Assert.Equal(_value, await cache3.GetOrSetAsync<int>(key1, async _ => _value));
+			Assert.Equal(3, await cache1.GetOrSetAsync<int>(key1, async _ => _value));
+			Assert.Equal(3, await cache2.GetOrSetAsync<int>(key1, async _ => _value));
+			Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => _value));
 
 			Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => _value));
 			Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => _value));
@@ -623,16 +765,14 @@ namespace FusionCacheTests
 			backplane2.SetNeverThrow();
 			backplane3.SetNeverThrow();
 
-			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
-			//await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
-
+			// WAIT FOR THE AUTO-RECOVERY DELAY
 			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
 			_value = 42;
 
-			Assert.Equal(_value, cache1.GetOrSet<int>(key1, _ => _value));
-			Assert.Equal(_value, cache2.GetOrSet<int>(key1, _ => _value));
-			Assert.Equal(_value, cache3.GetOrSet<int>(key1, _ => _value));
+			Assert.Equal(3, cache1.GetOrSet<int>(key1, _ => _value));
+			Assert.Equal(3, cache2.GetOrSet<int>(key1, _ => _value));
+			Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => _value));
 
 			Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => _value));
 			Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => _value));
