@@ -25,7 +25,7 @@ And we should all be thankful for that.
 
 | :loudspeaker: A note to other library authors |
 | :--- |
-| Even though I tried my best to be fair and objective, I'm sure you may have different opinions on each topic or I may have just used your library in the wrong way in the benchmarks. <br/> <br/> If that is the case please [**open an issue**](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/issues/new) or send a pr and I will make the necessary changes. |
+| Even though I tried my best to be fair and objective, I'm sure you may have different opinions on each topic or I may have just used your library in the wrong way in the benchmarks. <br/> <br/> If that is the case please [**open an issue**](https://github.com/ZiggyCreatures/FusionCache/issues/new) or send a pr and I will make the necessary changes. |
 
 ## :ballot_box_with_check: Features
 
