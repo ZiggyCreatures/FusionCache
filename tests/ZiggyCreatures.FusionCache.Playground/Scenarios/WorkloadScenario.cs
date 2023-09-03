@@ -465,36 +465,36 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
 				AnsiConsole.Markup($"memory ");
 				if (DatabaseEnabled)
-					AnsiConsole.MarkupLine("[green3_1]v[/]");
+					AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
 				else
-					AnsiConsole.MarkupLine("[red1]X[/]");
+					AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
 
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE   :[/] ");
 				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None)
 				{
-					AnsiConsole.MarkupLine("[red1]X[/]");
+					AnsiConsole.MarkupLine("[red1]X NONE[/]");
 				}
 				else
 				{
 					AnsiConsole.Markup($"{WorkloadScenarioOptions.DistributedCacheType} ");
 					if (DistributedCachesEnabled)
-						AnsiConsole.MarkupLine("[green3_1]v[/]");
+						AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
 					else
-						AnsiConsole.MarkupLine("[red1]X[/]");
+						AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
 				}
 
 				AnsiConsole.Markup("- [deepskyblue1]BACKPLANE     :[/] ");
 				if (WorkloadScenarioOptions.BackplaneType == BackplaneType.None)
 				{
-					AnsiConsole.MarkupLine("[red1]X[/]");
+					AnsiConsole.MarkupLine("[red1]X NONE[/]");
 				}
 				else
 				{
 					AnsiConsole.Markup($"{WorkloadScenarioOptions.BackplaneType} ");
 					if (BackplanesEnabled)
-						AnsiConsole.MarkupLine("[green3_1]v[/]");
+						AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
 					else
-						AnsiConsole.MarkupLine("[red1]X[/]");
+						AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
 				}
 				AnsiConsole.WriteLine();
 
