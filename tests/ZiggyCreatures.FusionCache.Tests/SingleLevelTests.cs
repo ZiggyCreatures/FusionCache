@@ -1611,6 +1611,7 @@ namespace FusionCacheTests
 
 				ReThrowDistributedCacheExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions,
 				ReThrowSerializationExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowSerializationExceptions,
+				ReThrowBackplaneExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowBackplaneExceptions,
 
 				AllowBackgroundDistributedCacheOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations,
 				AllowBackgroundBackplaneOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations,
