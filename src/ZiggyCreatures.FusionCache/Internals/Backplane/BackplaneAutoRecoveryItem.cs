@@ -5,18 +5,18 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane
 {
 	internal sealed class BackplaneAutoRecoveryItem
 	{
-		private const int MaxRetryCount = 1_000_000;
-
-		public BackplaneAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options, long expirationTicks, int? retryCount)
+		public BackplaneAutoRecoveryItem(BackplaneMessage message, FusionCacheEntryOptions options, long expirationTicks, bool preSyncDistributedCache, int retryCount)
 		{
 			Message = message ?? throw new ArgumentNullException(nameof(message));
 			Options = options ?? throw new ArgumentNullException(nameof(options));
 			ExpirationTicks = expirationTicks;
-			RetryCount = retryCount ?? MaxRetryCount;
+			PreSyncDistributedCache = preSyncDistributedCache;
+			RetryCount = retryCount;
 		}
 
 		public BackplaneMessage Message { get; }
 		public FusionCacheEntryOptions Options { get; }
+		public bool PreSyncDistributedCache { get; }
 		public long ExpirationTicks { get; }
 		public int RetryCount { get; private set; }
 

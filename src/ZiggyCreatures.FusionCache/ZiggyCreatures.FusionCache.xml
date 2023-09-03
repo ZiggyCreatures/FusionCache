@@ -77,6 +77,13 @@
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySentinel(System.String)">
+            <summary>
+            Creates a message for a single cache entry sentinel operation.
+            </summary>
+            <param name="cacheKey">The cache key.</param>
+            <returns>The message.</returns>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction">
             <summary>
             The type of action for a backplane message.
@@ -98,6 +105,11 @@
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntryExpire">
+            <summary>
+            A cache entry has been manually expired (via an Expire() method call).
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction.EntrySentinel">
             <summary>
             A cache entry has been manually expired (via an Expire() method call).
             </summary>
@@ -1172,7 +1184,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowSerializationExceptions">
             <summary>
-            Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="false"/>).
+            Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="true"/>).
             Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
@@ -1203,6 +1215,14 @@
             Setting this flag to <see langword="false"/> will execute these operations in a blocking fashion, typically resulting in worse performance.
             <br/><br/>
             <strong>TL/DR:</strong> if you want to wait for backplane operations to complete, set this flag to <see langword="false"/>.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowBackplaneExceptions">
+            <summary>
+            Set this to <see langword="true"/> to allow the bubble up of backplane exceptions (default is <see langword="false"/>).
+            Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
@@ -2108,6 +2128,11 @@
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsReThrowBackplaneExceptions">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowBackplaneExceptions"/>.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache">
             <summary>
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache"/>.
@@ -2143,6 +2168,13 @@
             The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
             <br/><br/>
             <strong>NOTE:</strong> if you try to set this to a null/whitespace value, that value will be ignored.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.InstanceId">
+            <summary>
+            The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario.
+            <br/><br/>
+            <strong>WARNING:</strong> this should NOT be set, basically never ever, unless you really know what you are doing. But again, really: you should not set this.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions">

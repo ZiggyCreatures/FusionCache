@@ -23,13 +23,13 @@ internal partial class BackplaneAccessor
 				false,
 				options.AllowBackgroundBackplaneOperations == false,
 				exc => ProcessError(operationId, key, exc, actionDescriptionInner),
-				false,
+				options.ReThrowBackplaneExceptions && options.AllowBackgroundBackplaneOperations == false,
 				token
 			)
 		;
 	}
 
-	public bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isFromAutoRecovery, CancellationToken token = default)
+	public bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool distributedCacheHasSaved, bool isFromAutoRecovery, CancellationToken token = default)
 	{
 		// IGNORE NULL
 		if (message is null)
@@ -86,11 +86,6 @@ internal partial class BackplaneAccessor
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a notification has been sent" + (options.AllowBackgroundBackplaneOperations ? " in the background" : "") + (isFromAutoRecovery ? " (auto-recovery)" : "") + " ({Action})", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, message.Action);
-
-					if (isFromAutoRecovery == false && _options.EnableBackplaneAutoRecovery)
-					{
-						TryProcessAutoRecoveryQueue(operationId);
-					}
 				}
 				catch (Exception exc)
 				{
@@ -99,7 +94,7 @@ internal partial class BackplaneAccessor
 
 					if (isFromAutoRecovery == false)
 					{
-						TryAddAutoRecoveryItem(operationId, message, options);
+						TryAddAutoRecoveryItem(operationId, message, options, _cache.HasDistributedCache && distributedCacheHasSaved == false);
 					}
 
 					throw;

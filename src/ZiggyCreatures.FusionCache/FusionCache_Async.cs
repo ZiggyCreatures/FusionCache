@@ -682,10 +682,10 @@ public partial class FusionCache
 
 		if (HasDistributedCache && distributedCacheHasSaved == false)
 		{
-			_bpa.TryAddAutoRecoveryItem(operationId, message, options);
+			_bpa.TryAddAutoRecoveryItem(operationId, message, options, true);
 			return false;
 		}
 
-		return await _bpa.PublishAsync(operationId, message, options, false, token).ConfigureAwait(false);
+		return await _bpa.PublishAsync(operationId, message, options, distributedCacheHasSaved, false, token).ConfigureAwait(false);
 	}
 }

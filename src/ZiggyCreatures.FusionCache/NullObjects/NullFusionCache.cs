@@ -27,14 +27,14 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 		/// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
 		public NullFusionCache(IOptions<FusionCacheOptions> optionsAccessor)
 		{
-			// GLOBALLY UNIQUE INSTANCE ID
-			InstanceId = Guid.NewGuid().ToString("N");
-
 			if (optionsAccessor is null)
 				throw new ArgumentNullException(nameof(optionsAccessor));
 
 			// OPTIONS
 			_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
+
+			// GLOBALLY UNIQUE INSTANCE ID
+			InstanceId = _options.InstanceId ?? Guid.NewGuid().ToString("N");
 
 			// EVENTS
 			_events = new FusionCacheEventsHub(this, _options, null);

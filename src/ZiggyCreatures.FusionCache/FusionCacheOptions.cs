@@ -30,9 +30,8 @@ public class FusionCacheOptions
 		// BACKPLANE AUTO-RECOVERY
 		EnableBackplaneAutoRecovery = true;
 		BackplaneAutoRecoveryMaxItems = null;
-		BackplaneAutoRecoveryMaxRetryCount = 10;
+		BackplaneAutoRecoveryMaxRetryCount = null;
 		BackplaneAutoRecoveryDelay = TimeSpan.FromMilliseconds(2_000);
-		EnableDistributedExpireOnBackplaneAutoRecovery = true;
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
@@ -74,6 +73,13 @@ public class FusionCacheOptions
 			_cacheName = value;
 		}
 	}
+
+	/// <summary>
+	/// The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario.
+	/// <br/><br/>
+	/// <strong>WARNING:</strong> this should NOT be set, basically never ever, unless you really know what you are doing. But again, really: you should not set this.
+	/// </summary>
+	public string? InstanceId { get; set; }
 
 	/// <summary>
 	/// The default <see cref="FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
@@ -182,6 +188,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[Obsolete("This is not needed anymore, everything is automatically handled now.")]
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
 
 	/// <summary>

@@ -44,6 +44,7 @@ public class FusionCacheEntryOptions
 
 		SkipBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications;
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
+		ReThrowBackplaneExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowBackplaneExceptions;
 
 		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
 		SkipDistributedCacheReadWhenStale = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale;
@@ -224,7 +225,7 @@ public class FusionCacheEntryOptions
 	public bool ReThrowDistributedCacheExceptions { get; set; }
 
 	/// <summary>
-	///	Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="false"/>).
+	///	Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="true"/>).
 	///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundDistributedCacheOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
@@ -264,6 +265,14 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public bool AllowBackgroundBackplaneOperations { get; set; }
+
+	/// <summary>
+	///	Set this to <see langword="true"/> to allow the bubble up of backplane exceptions (default is <see langword="false"/>).
+	///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundBackplaneOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public bool ReThrowBackplaneExceptions { get; set; }
 
 	/// <summary>
 	/// Skip the usage of the distributed cache, if any.
@@ -793,6 +802,7 @@ public class FusionCacheEntryOptions
 
 			ReThrowDistributedCacheExceptions = ReThrowDistributedCacheExceptions,
 			ReThrowSerializationExceptions = ReThrowSerializationExceptions,
+			ReThrowBackplaneExceptions = ReThrowBackplaneExceptions,
 
 			AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations,

@@ -48,14 +48,21 @@ public partial class FusionCache
 	/// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
 	public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheReactor? reactor = null)
 	{
-		// GLOBALLY UNIQUE INSTANCE ID
-		InstanceId = Guid.NewGuid().ToString("N");
-
 		if (optionsAccessor is null)
 			throw new ArgumentNullException(nameof(optionsAccessor));
 
 		// OPTIONS
 		_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
+
+		// GLOBALLY UNIQUE INSTANCE ID
+		if (string.IsNullOrWhiteSpace(_options.InstanceId) == false)
+		{
+			InstanceId = _options.InstanceId!;
+		}
+		else
+		{
+			InstanceId = Guid.NewGuid().ToString("N");
+		}
 
 		// CACHE KEY PREFIX
 		if (string.IsNullOrEmpty(_options.CacheKeyPrefix) == false)
