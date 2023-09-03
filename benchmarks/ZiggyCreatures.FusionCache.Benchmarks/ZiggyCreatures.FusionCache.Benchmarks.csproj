@@ -9,9 +9,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.6" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.7" />
 		<PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.2.0" />
-		<PackageReference Include="CacheTower" Version="0.13.0" />
+		<PackageReference Include="CacheTower" Version="0.14.0" />
 		<PackageReference Include="EasyCaching.InMemory" Version="1.9.0" />
 		<PackageReference Include="LazyCache" Version="2.4.0" />
 	</ItemGroup>
