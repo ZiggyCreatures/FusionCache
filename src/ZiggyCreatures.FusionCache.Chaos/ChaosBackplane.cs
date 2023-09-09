@@ -31,14 +31,14 @@ public class ChaosBackplane
 	/// <inheritdoc/>
 	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		MaybeChaos();
+		MaybeChaos(token);
 		_innerBackplane.Publish(message, options, token);
 	}
 
 	/// <inheritdoc/>
 	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		await MaybeChaosAsync().ConfigureAwait(false);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
 		await _innerBackplane.PublishAsync(message, options, token).ConfigureAwait(false);
 	}
 

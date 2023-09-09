@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -122,18 +123,18 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 		/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
 		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
 		/// </summary>
-		protected void MaybeChaos()
+		protected void MaybeChaos(CancellationToken token = default)
 		{
-			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability);
+			FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability, token);
 		}
 
 		/// <summary>
 		/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
 		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
 		/// </summary>
-		protected async Task MaybeChaosAsync()
+		protected async Task MaybeChaosAsync(CancellationToken token = default)
 		{
-			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability).ConfigureAwait(false);
+			await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability, token).ConfigureAwait(false);
 		}
 	}
 }

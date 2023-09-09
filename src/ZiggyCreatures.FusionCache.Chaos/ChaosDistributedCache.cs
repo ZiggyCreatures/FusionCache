@@ -37,7 +37,7 @@ public class ChaosDistributedCache
 	/// <inheritdoc/>
 	public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
 	{
-		await MaybeChaosAsync().ConfigureAwait(false);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
 		return await _innerCache.GetAsync(key, token).ConfigureAwait(false);
 	}
 
@@ -51,7 +51,7 @@ public class ChaosDistributedCache
 	/// <inheritdoc/>
 	public async Task RefreshAsync(string key, CancellationToken token = default)
 	{
-		await MaybeChaosAsync().ConfigureAwait(false);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
 		await _innerCache.RefreshAsync(key, token).ConfigureAwait(false);
 	}
 
@@ -65,7 +65,7 @@ public class ChaosDistributedCache
 	/// <inheritdoc/>
 	public async Task RemoveAsync(string key, CancellationToken token = default)
 	{
-		await MaybeChaosAsync().ConfigureAwait(false);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
 		await _innerCache.RemoveAsync(key, token).ConfigureAwait(false);
 	}
 
@@ -79,7 +79,7 @@ public class ChaosDistributedCache
 	/// <inheritdoc/>
 	public async Task SetAsync(string key, byte[] value, DistributedCacheEntryOptions options, CancellationToken token = default)
 	{
-		await MaybeChaosAsync().ConfigureAwait(false);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
 		await _innerCache.SetAsync(key, value, options, token).ConfigureAwait(false);
 	}
 }
