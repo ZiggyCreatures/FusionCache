@@ -19,6 +19,16 @@ public class FusionCacheOptions
 	public const string DefaultCacheName = "FusionCache";
 
 	/// <summary>
+	/// The version identifier for the distributed cache wire format, used in the cache key processing.
+	/// </summary>
+	public const string DistributedCacheWireFormatVersion = "v0";
+
+	/// <summary>
+	/// The version identifier separator for the distributed cache wire format, used in the cache key processing.
+	/// </summary>
+	public const string DistributedCacheWireFormatSeparator = ":";
+
+	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheOptions"/> object.
 	/// </summary>
 	public FusionCacheOptions()
