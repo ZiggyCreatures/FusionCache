@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
@@ -41,7 +42,7 @@ namespace FusionCacheTests.Stuff
 			{
 				_helper.WriteLine(
 					(logLevel >= LogLevel.Warning ? Environment.NewLine : "")
-					+ $"{logLevel.ToString().ToUpper()} {DateTime.UtcNow}: "
+					+ $"{logLevel.ToString().Substring(0, 4).ToUpper()} {DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)}: "
 					+ formatter(state, exception)
 					+ (exception is null
 						? ""
