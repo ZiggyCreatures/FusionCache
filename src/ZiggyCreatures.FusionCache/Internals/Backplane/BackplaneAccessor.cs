@@ -27,6 +27,7 @@ internal sealed partial class BackplaneAccessor
 	private readonly int _autoRecoveryMaxItems;
 	private readonly int _autoRecoveryMaxRetryCount;
 	private readonly TimeSpan _autoRecoveryDelay;
+	private static readonly TimeSpan _autoRecoveryMinDelay = TimeSpan.FromMilliseconds(10);
 	private CancellationTokenSource? _autoRecoveryCts;
 	private long _autoRecoveryBarrierTicks = 0;
 	private readonly string _autoRecoverySentinelCacheKey = Guid.NewGuid().ToString("N");
@@ -251,7 +252,7 @@ internal sealed partial class BackplaneAccessor
 			return true;
 		}
 
-		if (pendingLocal.Message.InstantTicks <= message.InstantTicks)
+		if (pendingLocal.Message.Timestamp <= message.Timestamp)
 		{
 			// PENDING LOCAL MESSAGE IS -OLDER- THAN THE INCOMING ONE -> REMOVE THE LOCAL ONE
 			_autoRecoveryQueue.TryRemove(message.CacheKey, out _);
@@ -291,7 +292,7 @@ internal sealed partial class BackplaneAccessor
 		if (_options.EnableBackplaneAutoRecovery == false)
 			return false;
 
-		if (IsCurrentlyUsable(null, null) == false)
+		if (IsCurrentlyUsable(operationId, null) == false)
 			return false;
 
 		if (_autoRecoveryQueue.Count == 0)
@@ -447,12 +448,18 @@ internal sealed partial class BackplaneAccessor
 				var barrierTicks = Interlocked.Read(ref _autoRecoveryBarrierTicks);
 				if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
 				{
-					// IF THERE'S AN ACTIVE BARRIER AND THE DELTA IS LOWER THAN THE NORMAL DELAY -> UPDATE THE DELAY
-					var tmp = TimeSpan.FromTicks(barrierTicks - DateTimeOffset.UtcNow.Ticks + 1_000);
-					if (tmp < delay)
+					// SET THE NEW DELAY TO REACH THE BARRIER
+					var oldDelay = delay;
+					var newTicks = barrierTicks - DateTimeOffset.UtcNow.Ticks + 1_000;
+					delay = TimeSpan.FromTicks(newTicks);
+					if (delay < _autoRecoveryMinDelay)
 					{
-						delay = tmp;
+						delay = _autoRecoveryMinDelay;
+						newTicks = delay.Ticks;
 					}
+
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): instead of the standard auto-recovery delay of {NormalDelay} the new delay is {NewDelay} ({NewDelayMs} ms, {NewDelayTicks} ticks)", _cache.CacheName, _cache.InstanceId, operationId, oldDelay, delay, delay.TotalMilliseconds, newTicks);
 				}
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -467,7 +474,7 @@ internal sealed partial class BackplaneAccessor
 				if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): after having awaited to start processing the auto-recovery queue a barrier has been set, so we skip to the next loop cycle", _cache.CacheName, _cache.InstanceId, operationId);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a barrier has been set after having awaited to start processing the auto-recovery queue: skipping to the next loop cycle", _cache.CacheName, _cache.InstanceId, operationId);
 
 					continue;
 				}
@@ -565,10 +572,14 @@ internal sealed partial class BackplaneAccessor
 			if (_autoRecoveryQueue.Count == 0)
 				return;
 
-			_ = Interlocked.Exchange(ref _autoRecoveryBarrierTicks, DateTimeOffset.UtcNow.Ticks + _options.BackplaneAutoRecoveryDelay.Ticks);
+			var newBarrier = DateTimeOffset.UtcNow.Ticks + _autoRecoveryDelay.Ticks;
+			var oldBarrier = Interlocked.Exchange(ref _autoRecoveryBarrierTicks, newBarrier);
+
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery barrier set from {OldAutoRecoveryBarrier} to {NewAutoRecoveryBarrier}", _cache.CacheName, _cache.InstanceId, operationId, oldBarrier, newBarrier);
 
 			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting at least {AutoRecoveryDelay} to start backplane auto-recovery to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _options.BackplaneAutoRecoveryDelay);
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting at least {AutoRecoveryDelay} to start backplane auto-recovery to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _autoRecoveryDelay);
 		}
 	}
 
@@ -606,7 +617,7 @@ internal sealed partial class BackplaneAccessor
 		if (message.IsValid() == false)
 		{
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstanceTicks})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action, message.InstantTicks);
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstantTimestamp})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action, message.Timestamp);
 
 			return;
 		}
@@ -630,19 +641,19 @@ internal sealed partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				_cache.ExpireMemoryEntryInternal(operationId, message.CacheKey!, true);
+				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, true, message.Timestamp);
 				break;
 			case BackplaneMessageAction.EntryRemove:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				_cache.ExpireMemoryEntryInternal(operationId, message.CacheKey!, false);
+				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, false, message.Timestamp);
 				break;
 			case BackplaneMessageAction.EntryExpire:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (EXPIRE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				_cache.ExpireMemoryEntryInternal(operationId, message.CacheKey!, true);
+				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, true, message.Timestamp);
 				break;
 			case BackplaneMessageAction.EntrySentinel:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)

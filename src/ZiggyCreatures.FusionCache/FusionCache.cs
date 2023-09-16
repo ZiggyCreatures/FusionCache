@@ -254,7 +254,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to complete a background factory", CacheName, operationId, key);
 
-		_ = factoryTask.ContinueWith(antecedent =>
+		_ = factoryTask.ContinueWith(async antecedent =>
 		{
 			try
 			{
@@ -285,16 +285,7 @@ public partial class FusionCache
 						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 					}
 
-					var dca = GetCurrentDistributedAccessor(options);
-					var dcaHasSaved = false;
-					if (dca.CanBeUsed(operationId, key))
-					{
-						dcaHasSaved = dca!.SetEntry<TValue>(operationId, key, lateEntry, options, token);
-					}
-
-					// BACKPLANE
-					if (options.SkipBackplaneNotifications == false)
-						_ = MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token);
+					await ExecuteDistributedSetAsync<TValue>(operationId, key, lateEntry, options, token).ConfigureAwait(false);
 
 					// EVENT
 					_events.OnBackgroundFactorySuccess(operationId, key);
@@ -352,17 +343,29 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
-	internal void ExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe)
+	internal bool MaybeExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe, long timestampThreshold)
 	{
-		ValidateCacheKey(key);
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal (allowFailSafe={AllowFailSafe})", CacheName, operationId, key, allowFailSafe);
 
 		if (_mca is null)
-			return;
+			return false;
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryInternal (allowFailSafe={AllowFailSafe})", CacheName, operationId, key, allowFailSafe);
+		var (memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry(operationId, key);
 
-		_mca.ExpireEntry(operationId, key, allowFailSafe);
+		// IF NO ENTRY -> DO NOTHING
+		if (memoryEntry is null)
+			return false;
+
+		if (memoryEntry.Timestamp >= timestampThreshold)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): timestamp of cached entry {TimestampCached} was greater than the specified threshold {TimestampThreshold}", CacheName, operationId, key, memoryEntry.Timestamp, timestampThreshold);
+
+			return false;
+		}
+
+		return _mca.ExpireEntry(operationId, key, allowFailSafe);
 	}
 
 	/// <inheritdoc/>

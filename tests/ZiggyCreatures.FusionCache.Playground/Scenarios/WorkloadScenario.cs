@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -42,22 +43,30 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static int NodesPerGroupCount = 10;
 		public static bool EnableFailSafe = false;
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
-		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
-		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
-		public static readonly bool EnableLogging = false;
+		public static readonly bool EnableLogging = true;
 		public static readonly bool EnableLoggingExceptions = false;
 
 		// DISTRIBUTED CACHE
+		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly bool AllowBackgroundDistributedCacheOperations = false;
-		public static readonly TimeSpan? DistributedCacheSoftTimeout = TimeSpan.FromMilliseconds(100);
-		public static readonly TimeSpan? DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(100);
+
+		// TODO: !!! FIX THIS !!!
+		//!!! I NEED TO HANDLE SOFT/HARD TIMEOUTS FOR DISTRIBUTED CACHE OPERATIONS !!! (MAYBE... CHECK WHAT SHOULD HAPPENS RELATED TO THE DB READS + DIST CACHE TIMEOUTS)
+
+		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; // TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheHardTimeout = null; // TimeSpan.FromMilliseconds(100);
+
+		public static readonly TimeSpan DistributedCacheCircuitBreakerDuration = TimeSpan.Zero;
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
+		public static readonly TimeSpan? ChaosDistributedCacheSyntheticDelay = null; // TimeSpan.FromMilliseconds(1_500);
 
 		// BACKPLANE
+		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
 		public static readonly bool AllowBackgroundBackplaneOperations = false;
 		//public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(10);
 		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.Zero;
 		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
+		public static readonly TimeSpan? ChaosBackplaneSyntheticDelay = null; // TimeSpan.FromMilliseconds(1_500);
 
 		// OTHERS
 		public static readonly TimeSpan RefreshDelay = TimeSpan.FromSeconds(1);
@@ -154,11 +163,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				throw new Exception("Synthetic database exception");
 			}
 
+			Interlocked.Increment(ref DbWritesCount);
+
 			var db = Databases.GetOrAdd(groupIdx, new FakeDatabase());
 			db.Value = value;
 			db.LastUpdateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-			Interlocked.Increment(ref DbWritesCount);
-
 			LastUpdatedGroupIdx = groupIdx;
 		}
 
@@ -246,30 +255,44 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			for (int groupIdx = 0; groupIdx < WorkloadScenarioOptions.GroupsCount; groupIdx++)
 			{
 				var group = new CacheGroup();
+				var cacheName = $"C{groupIdx + 1}";
 
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE : [/] CREATING...");
 				var distributedCache = CreateDistributedCache(groupIdx);
 				AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
-				for (int nodeIdx = 1; nodeIdx <= WorkloadScenarioOptions.NodesPerGroupCount; nodeIdx++)
+				for (int nodeIdx = 0; nodeIdx < WorkloadScenarioOptions.NodesPerGroupCount; nodeIdx++)
 				{
 					AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] CREATING...");
 					var options = new FusionCacheOptions()
 					{
-						CacheName = $"C{groupIdx + 1}",
-						InstanceId = $"C{groupIdx + 1}-{nodeIdx}",
+						CacheName = cacheName,
+						InstanceId = $"{cacheName}-{nodeIdx + 1}",
 						DefaultEntryOptions = new FusionCacheEntryOptions(WorkloadScenarioOptions.CacheDuration)
-							.SetFailSafe(WorkloadScenarioOptions.EnableFailSafe, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(2))
-							.SetDistributedCacheTimeouts(
-								WorkloadScenarioOptions.DistributedCacheSoftTimeout,
-								WorkloadScenarioOptions.DistributedCacheHardTimeout,
-								WorkloadScenarioOptions.AllowBackgroundDistributedCacheOperations
-							)
 					};
-					options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = WorkloadScenarioOptions.AllowBackgroundBackplaneOperations;
+
+					var deo = options.DefaultEntryOptions;
+
+					// FAIL-SAFE
+					deo.IsFailSafeEnabled = WorkloadScenarioOptions.EnableFailSafe;
+					deo.FailSafeMaxDuration = TimeSpan.FromSeconds(60);
+					deo.FailSafeThrottleDuration = TimeSpan.FromSeconds(2);
+
+					// DISTRIBUTED CACHE
+					if (WorkloadScenarioOptions.DistributedCacheSoftTimeout is not null)
+						deo.DistributedCacheSoftTimeout = WorkloadScenarioOptions.DistributedCacheSoftTimeout.Value;
+					if (WorkloadScenarioOptions.DistributedCacheHardTimeout is not null)
+						deo.DistributedCacheHardTimeout = WorkloadScenarioOptions.DistributedCacheHardTimeout.Value;
+					deo.AllowBackgroundDistributedCacheOperations = WorkloadScenarioOptions.AllowBackgroundDistributedCacheOperations;
+					options.DistributedCacheCircuitBreakerDuration = WorkloadScenarioOptions.DistributedCacheCircuitBreakerDuration;
+
+					// BACKPLANE
+					deo.AllowBackgroundBackplaneOperations = WorkloadScenarioOptions.AllowBackgroundBackplaneOperations;
 					options.BackplaneCircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration;
+
+					// SPECIAL CACSE HANDLING: BACKPLANE + NO DISTRIBUTED CACHE
 					if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
-						options.DefaultEntryOptions.SkipBackplaneNotifications = true;
+						deo.SkipBackplaneNotifications = true;
 
 					var logger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
 					var cache = new FusionCache(options, logger: logger);
@@ -279,6 +302,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING DIST. CACHE...");
 						var tmp = new ChaosDistributedCache(distributedCache);
+						if (WorkloadScenarioOptions.ChaosDistributedCacheSyntheticDelay is not null)
+						{
+							tmp.SetAlwaysDelayExactly(WorkloadScenarioOptions.ChaosDistributedCacheSyntheticDelay.Value);
+						}
 						cache.SetupDistributedCache(tmp, new FusionCacheNewtonsoftJsonSerializer());
 						DistributedCaches.Add(tmp);
 						AnsiConsole.MarkupLine("[green3_1]OK[/]");
@@ -291,6 +318,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING BACKPLANE...");
 						var tmp = new ChaosBackplane(backplane);
+						if (WorkloadScenarioOptions.ChaosBackplaneSyntheticDelay is not null)
+						{
+							tmp.SetAlwaysDelayExactly(WorkloadScenarioOptions.ChaosBackplaneSyntheticDelay.Value);
+						}
 						cache.SetupBackplane(tmp);
 						Backplanes.Add(tmp);
 						AnsiConsole.MarkupLine("[green3_1]OK[/]");
@@ -299,20 +330,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var node = new CacheNode(cache);
 
 					cache.Events.Memory.Set += (sender, e) =>
-					{
-						node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
-					};
+									{
+										node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+									};
 
 					group.Nodes.Add(node);
 				}
 
 				CacheGroups[groupIdx] = group;
 			}
-		}
-
-		private static void Memory_Set(object? sender, Events.FusionCacheEntryEventArgs e)
-		{
-			throw new NotImplementedException();
 		}
 
 		private static string GetCountdownMarkup(long nowTimestamp, long? expirationTimestamp)
@@ -363,6 +389,43 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			lock (LockObj)
 			{
+				Debug.WriteLine("SNAPSHOT VALUES: START");
+
+				var _values = new ConcurrentDictionary<int, ConcurrentDictionary<int, int?>>();
+
+				var swGroups = Stopwatch.StartNew();
+				// SNAPSHOT VALUES
+				for (int groupIdx = 0; groupIdx < CacheGroups.Count; groupIdx++)
+				{
+					var _valueGroup = _values[groupIdx] = new ConcurrentDictionary<int, int?>();
+
+					var group = CacheGroups[groupIdx];
+
+					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
+					{
+						var node = group.Nodes[nodeIdx];
+						int? value;
+						try
+						{
+							var swNode = Stopwatch.StartNew();
+							value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(groupIdx));
+							swNode.Stop();
+							Debug.WriteLine($"READ ON GROUP {groupIdx} NODE {nodeIdx} TOOK: {swNode.Elapsed}");
+						}
+						catch
+						{
+							value = null;
+						}
+						_valueGroup[nodeIdx] = value;
+					}
+				}
+				swGroups.Stop();
+				Debug.WriteLine($"TAKEN {swGroups.Elapsed}");
+
+				Debug.WriteLine("SNAPSHOT VALUES: END");
+
+				Debug.WriteLine("DASHBOARD: START");
+
 				for (int groupIdx = 0; groupIdx < CacheGroups.Count; groupIdx++)
 				{
 					var group = CacheGroups[groupIdx];
@@ -377,29 +440,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					var lastUpdatedNodeIdx = group.LastUpdatedNodeIndex;
 
-					// SNAPSHOT VALUES
-					var values = new Dictionary<int, int?>();
-					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
-					{
-						var node = group.Nodes[nodeIdx];
-						int? value;
-						try
-						{
-							value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(groupIdx));
-						}
-						catch
-						{
-							value = null;
-						}
-						values[nodeIdx] = value;
-					}
+					var _valueGroup = _values[groupIdx];
 
 					// BUILD CELLS
 					var cells = new List<IRenderable>();
 					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
 					{
 						var node = group.Nodes[nodeIdx];
-						var value = values[nodeIdx];
+						var value = _valueGroup[nodeIdx];
 
 						var color = "white";
 						if (lastUpdatedNodeIdx.HasValue)
@@ -411,7 +459,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 								else
 									color = "green4";
 							}
-							else if (values[lastUpdatedNodeIdx.Value] == value)
+							else if (_valueGroup[lastUpdatedNodeIdx.Value] == value)
 							{
 								if (LastUpdatedGroupIdx == groupIdx)
 									color = "green3_1";
@@ -453,6 +501,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					tables.Add(($"[{labelColor}]{label}[/]", table));
 				}
+
+				Debug.WriteLine("DASHBOARD: END");
 
 				// SUMMARY
 				AnsiConsole.Clear();

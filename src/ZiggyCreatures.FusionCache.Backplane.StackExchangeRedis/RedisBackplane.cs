@@ -191,8 +191,8 @@ public partial class RedisBackplane
 			res.SourceId = _encoding.GetString(data, pos, tmp);
 			pos += tmp;
 
-			// INSTANT TICKS
-			res.InstantTicks = BinaryPrimitives.ReadInt64LittleEndian(new ReadOnlySpan<byte>(data, pos, 8));
+			// TIMESTAMP
+			res.Timestamp = BinaryPrimitives.ReadInt64LittleEndian(new ReadOnlySpan<byte>(data, pos, 8));
 			pos += 8;
 
 			// ACTION
@@ -244,8 +244,8 @@ public partial class RedisBackplane
 			_encoding.GetBytes(message.SourceId!, 0, message.SourceId!.Length, res, pos);
 			pos += sourceIdByteCount;
 
-			// INSTANT TICKS
-			BinaryPrimitives.WriteInt64LittleEndian(new Span<byte>(res, pos, 8), message.InstantTicks);
+			// TIMESTAMP
+			BinaryPrimitives.WriteInt64LittleEndian(new Span<byte>(res, pos, 8), message.Timestamp);
 			pos += 8;
 
 			// ACTION

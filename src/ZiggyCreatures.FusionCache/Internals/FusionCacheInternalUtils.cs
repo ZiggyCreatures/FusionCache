@@ -18,9 +18,11 @@ internal static class FusionCacheInternalUtils
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static long GetCurrentTimestamp()
 	{
-		return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		//return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		return DateTimeOffset.UtcNow.UtcTicks;
 	}
 
 	private static string GenerateOperationId(long id)

@@ -9,9 +9,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 internal sealed partial class DistributedCacheAccessor
 {
-	private const string WireFormatVersion = "v1";
-	private const char WireFormatSeparator = ':';
-
 	public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 	{
 		if (distributedCache is null)
@@ -33,10 +30,18 @@ internal sealed partial class DistributedCacheAccessor
 
 		// WIRE FORMAT SETUP
 		_wireFormatToken = _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Prefix
-			? (WireFormatVersion + WireFormatSeparator)
+			? (FusionCacheOptions.DistributedCacheWireFormatVersion + FusionCacheOptions.DistributedCacheWireFormatSeparator)
 			: _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Suffix
-				? WireFormatSeparator + WireFormatVersion
+				? FusionCacheOptions.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion
 				: string.Empty;
+
+		_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
+		{
+			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + FusionCacheOptions.DistributedCacheWireFormatSeparator,
+			CacheKeyModifierMode.Suffix => FusionCacheOptions.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
+			CacheKeyModifierMode.None => string.Empty,
+			_ => throw new NotImplementedException(),
+		};
 	}
 
 	private readonly IDistributedCache _cache;

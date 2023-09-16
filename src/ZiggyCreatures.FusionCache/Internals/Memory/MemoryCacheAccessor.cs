@@ -50,7 +50,7 @@ internal sealed class MemoryCacheAccessor
 		_events.OnSet(operationId, key);
 	}
 
-	public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key)
+	public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry(string operationId, string key)
 	{
 		FusionCacheMemoryEntry? entry;
 		bool isValid = false;
@@ -103,19 +103,22 @@ internal sealed class MemoryCacheAccessor
 		_events.OnRemove(operationId, key);
 	}
 
-	public void ExpireEntry(string operationId, string key, bool allowFailSafe)
+	public bool ExpireEntry(string operationId, string key, bool allowFailSafe)
 	{
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): expiring data (from memory)", _options.CacheName, operationId, key);
-
 		if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry) == false)
-			return;
+			return false;
 
 		if (entry is null)
-			return;
+			return false;
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): Metadata {Metadata}", _options.CacheName, operationId, key, entry.Metadata);
 
 		if (allowFailSafe && entry.Metadata is not null && entry.Metadata.IsLogicallyExpired() == false)
 		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): expiring data (from memory)", _options.CacheName, operationId, key);
+
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
 
@@ -124,12 +127,17 @@ internal sealed class MemoryCacheAccessor
 		}
 		else
 		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): removing data (from memory)", _options.CacheName, operationId, key);
+
 			// REMOVE THE ENTRY
 			_cache.Remove(key);
 
 			// EVENT
 			_events.OnRemove(operationId, key);
 		}
+
+		return true;
 	}
 
 	// IDISPOSABLE

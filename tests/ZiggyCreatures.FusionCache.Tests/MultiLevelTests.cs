@@ -381,10 +381,10 @@ namespace FusionCacheTests
 			switch (modifierMode)
 			{
 				case CacheKeyModifierMode.Prefix:
-					distributedCacheKey = $"v1:{preProcessedCacheKey}";
+					distributedCacheKey = $"{FusionCacheOptions.DistributedCacheWireFormatVersion}{FusionCacheOptions.DistributedCacheWireFormatSeparator}{preProcessedCacheKey}";
 					break;
 				case CacheKeyModifierMode.Suffix:
-					distributedCacheKey = $"{preProcessedCacheKey}:v1";
+					distributedCacheKey = $"{preProcessedCacheKey}{FusionCacheOptions.DistributedCacheWireFormatSeparator}{FusionCacheOptions.DistributedCacheWireFormatVersion}";
 					break;
 				default:
 					distributedCacheKey = preProcessedCacheKey;
@@ -1583,9 +1583,6 @@ namespace FusionCacheTests
 			// RE-ENABLE DISTRIBUTED CACHE
 			chaosDistributedCache.SetNeverThrow();
 
-			// SET ANOTHER ENTRY (KEY: bar) ON CACHE B, TO TRIGGER AUTO-RECOVERY
-			await cacheB.SetAsync<int>("bar", 123);
-
 			// GIVE IT SOME TIME
 			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
@@ -1659,9 +1656,6 @@ namespace FusionCacheTests
 
 			// RE-ENABLE DISTRIBUTED CACHE
 			chaosDistributedCache.SetNeverThrow();
-
-			// SET ANOTHER ENTRY (KEY: bar) ON CACHE B, TO TRIGGER AUTO-RECOVERY
-			cacheB.Set<int>("bar", 123);
 
 			// GIVE IT SOME TIME
 			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());

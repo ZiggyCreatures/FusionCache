@@ -30,14 +30,20 @@
             Creates a new instance of a backplane message.
             </summary>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.#ctor(System.Nullable{System.Int64})">
+            <summary>
+            Creates a new instance of a backplane message.
+            </summary>
+            <param name="timestamp">The timestamp, or <see langword="null"/> to set it automatically to the current timestamp.</param>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.SourceId">
             <summary>
             The InstanceId of the source cache.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.InstantTicks">
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Timestamp">
             <summary>
-            The instant a message was related to, expressed as ticks amount.
+            The timestamp (in ticks) at a message has been created.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.Action">
@@ -56,25 +62,28 @@
             </summary>
             <returns><see langword="true"/> if it seems valid, <see langword="false"/> otherwise.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.Nullable{System.Int64})">
             <summary>
             Creates a message for a single cache entry set operation (via either a Set() or a GetOrSet() method call).
             </summary>
             <param name="cacheKey">The cache key.</param>
+            <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.Nullable{System.Int64})">
             <summary>
             Creates a message for a single cache entry remove (via a Remove() method call).
             </summary>
             <param name="cacheKey">The cache key.</param>
+            <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryExpire(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryExpire(System.String,System.Nullable{System.Int64})">
             <summary>
             Creates a message for a single cache entry expire operation (via an Expire() method call).
             </summary>
             <param name="cacheKey">The cache key.</param>
+            <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySentinel(System.String)">
@@ -2158,6 +2167,16 @@
             The default value for <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/>.
             </summary>
         </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatVersion">
+            <summary>
+            The version identifier for the distributed cache wire format, used in the cache key processing.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatSeparator">
+            <summary>
+            The version identifier separator for the distributed cache wire format, used in the cache key processing.
+            </summary>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.#ctor">
             <summary>
             Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.
@@ -3103,7 +3122,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry.Timestamp">
             <summary>
-            The timestamp at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
+            The timestamp (in ticks) at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry">

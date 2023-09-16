@@ -1,4 +1,5 @@
 ﻿using System;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane;
 
@@ -10,11 +11,18 @@ public class BackplaneMessage
 	/// <summary>
 	/// Creates a new instance of a backplane message.
 	/// </summary>
-	///// <param name="sourceId">The InstanceId of the source cache.</param>
-	///// <param name="instantTicks">The instant this message is related to, expressed as ticks amount. If null, DateTimeOffset.UtcNow.Ticks will be used.</param>
 	public BackplaneMessage()
 	{
-		InstantTicks = DateTimeOffset.UtcNow.Ticks;
+		Timestamp = FusionCacheInternalUtils.GetCurrentTimestamp();
+	}
+
+	/// <summary>
+	/// Creates a new instance of a backplane message.
+	/// </summary>
+	/// <param name="timestamp">The timestamp, or <see langword="null"/> to set it automatically to the current timestamp.</param>
+	public BackplaneMessage(long? timestamp)
+	{
+		Timestamp = timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp();
 	}
 
 	/// <summary>
@@ -23,9 +31,9 @@ public class BackplaneMessage
 	public string? SourceId { get; set; }
 
 	/// <summary>
-	/// The instant a message was related to, expressed as ticks amount.
+	/// The timestamp (in ticks) at a message has been created.
 	/// </summary>
-	public long InstantTicks { get; set; }
+	public long Timestamp { get; set; }
 
 	/// <summary>
 	/// The action to broadcast to the backplane.
@@ -46,7 +54,7 @@ public class BackplaneMessage
 		if (string.IsNullOrEmpty(SourceId))
 			return false;
 
-		if (InstantTicks <= 0)
+		if (Timestamp <= 0)
 			return false;
 
 		switch (Action)
@@ -67,13 +75,14 @@ public class BackplaneMessage
 	/// Creates a message for a single cache entry set operation (via either a Set() or a GetOrSet() method call).
 	/// </summary>
 	/// <param name="cacheKey">The cache key.</param>
+	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntrySet(string cacheKey)
+	public static BackplaneMessage CreateForEntrySet(string cacheKey, long? timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
-		return new BackplaneMessage()
+		return new BackplaneMessage(timestamp)
 		{
 			Action = BackplaneMessageAction.EntrySet,
 			CacheKey = cacheKey
@@ -84,13 +93,14 @@ public class BackplaneMessage
 	/// Creates a message for a single cache entry remove (via a Remove() method call).
 	/// </summary>
 	/// <param name="cacheKey">The cache key.</param>
+	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntryRemove(string cacheKey)
+	public static BackplaneMessage CreateForEntryRemove(string cacheKey, long? timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
-		return new BackplaneMessage()
+		return new BackplaneMessage(timestamp)
 		{
 			Action = BackplaneMessageAction.EntryRemove,
 			CacheKey = cacheKey
@@ -101,13 +111,14 @@ public class BackplaneMessage
 	/// Creates a message for a single cache entry expire operation (via an Expire() method call).
 	/// </summary>
 	/// <param name="cacheKey">The cache key.</param>
+	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntryExpire(string cacheKey)
+	public static BackplaneMessage CreateForEntryExpire(string cacheKey, long? timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
-		return new BackplaneMessage()
+		return new BackplaneMessage(timestamp)
 		{
 			Action = BackplaneMessageAction.EntryExpire,
 			CacheKey = cacheKey

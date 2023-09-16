@@ -12,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 public partial class FusionCache
 	: IFusionCache
 {
-	private async ValueTask<IFusionCacheEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private async ValueTask<FusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		if (options is null)
 			options = _options.DefaultEntryOptions;
@@ -27,13 +27,12 @@ public partial class FusionCache
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
 		{
-			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
 		}
 
-		IFusionCacheEntry? entry;
-		bool isStale;
+		FusionCacheMemoryEntry? entry;
+		bool isStale = false;
 		var hasNewValue = false;
-		var dcaHasSaved = false;
 
 		if (memoryEntryIsValid)
 		{
@@ -91,7 +90,7 @@ public partial class FusionCache
 			// TRY AGAIN WITH MEMORY CACHE (AFTER THE LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
 			if (mca is not null)
 			{
-				(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+				(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
 			}
 
 			if (memoryEntryIsValid)
@@ -131,7 +130,6 @@ public partial class FusionCache
 			{
 				// FACTORY
 				TValue? value;
-				bool failSafeActivated = false;
 
 				if (isRealFactory == false)
 				{
@@ -189,7 +187,7 @@ public partial class FusionCache
 
 						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, token);
 
-						if (TryPickFailSafeFallbackValue(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options, out var maybeFallbackValue, out timestamp, out failSafeActivated))
+						if (TryPickFailSafeFallbackValue(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options, out var maybeFallbackValue, out timestamp, out isStale))
 						{
 							value = maybeFallbackValue.Value;
 						}
@@ -200,14 +198,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, failSafeActivated, lastModified, etag, timestamp);
-				isStale = failSafeActivated;
-
-				if (dca.CanBeUsed(operationId, key) && failSafeActivated == false)
-				{
-					// SAVE IN THE DISTRIBUTED CACHE (BUT ONLY IF NO FAIL-SAFE HAS BEEN EXECUTED)
-					dcaHasSaved = await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
-				}
+				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp);
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
@@ -228,12 +219,11 @@ public partial class FusionCache
 		// EVENT
 		if (hasNewValue)
 		{
+			if (isStale == false)
+				await ExecuteDistributedSetAsync<TValue>(operationId, key, entry!, options, token).ConfigureAwait(false);
+
 			_events.OnMiss(operationId, key);
 			_events.OnSet(operationId, key);
-
-			// BACKPLANE
-			if (options.SkipBackplaneNotifications == false)
-				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token).ConfigureAwait(false);
 		}
 		else if (entry is not null)
 		{
@@ -266,14 +256,12 @@ public partial class FusionCache
 						try
 						{
 							// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
-
-							if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-								_logger.LogTrace("FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
-
-							// SAVING THE DATA IN THE MEMORY CACHE
 							var mca = GetCurrentMemoryAccessor(options);
 							if (mca is not null)
 							{
+								if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+									_logger.LogTrace("FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+
 								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options), options);
 							}
 						}
@@ -387,7 +375,7 @@ public partial class FusionCache
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
 		{
-			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry<TValue>(operationId, key);
+			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
 		}
 
 		if (memoryEntryIsValid)
@@ -575,19 +563,10 @@ public partial class FusionCache
 			mca.SetEntry<TValue>(operationId, key, entry, options);
 		}
 
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
-		}
+		await ExecuteDistributedSetAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnSet(operationId, key);
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key), options, dcaHasSaved, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -613,19 +592,10 @@ public partial class FusionCache
 			mca.RemoveEntry(operationId, key, options);
 		}
 
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
-		}
+		await ExecuteDistributedRemoveAsync(operationId, key, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnRemove(operationId, key);
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, dcaHasSaved, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -651,27 +621,12 @@ public partial class FusionCache
 			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
 		}
 
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
-		}
+		await ExecuteDistributedExpireAsync(operationId, key, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnExpire(operationId, key);
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-		{
-			if (options.IsFailSafeEnabled)
-				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryExpire(key), options, dcaHasSaved, token).ConfigureAwait(false);
-			else
-				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key), options, dcaHasSaved, token).ConfigureAwait(false);
-		}
 	}
 
-	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private async ValueTask<bool> MaybePublishInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool distributedCacheHasSaved, CancellationToken token)
 	{
 		if (_bpa is null)
@@ -687,5 +642,55 @@ public partial class FusionCache
 		}
 
 		return await _bpa.PublishAsync(operationId, message, options, distributedCacheHasSaved, false, token).ConfigureAwait(false);
+	}
+
+	private async ValueTask ExecuteDistributedSetAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
+	{
+		// DISTRIBUTED CACHE
+		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
+		if (dca.CanBeUsed(operationId, key))
+		{
+			dcaHasSaved = await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+		}
+
+		// BACKPLANE
+		if (options.SkipBackplaneNotifications == false)
+			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key, entry.Timestamp), options, dcaHasSaved, token).ConfigureAwait(false);
+	}
+
+	private async ValueTask ExecuteDistributedRemoveAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	{
+		// DISTRIBUTED CACHE
+		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
+		if (dca.CanBeUsed(operationId, key))
+		{
+			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
+
+		// BACKPLANE
+		if (options.SkipBackplaneNotifications == false)
+			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key, null), options, dcaHasSaved, token).ConfigureAwait(false);
+	}
+
+	private async ValueTask ExecuteDistributedExpireAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	{
+		// DISTRIBUTED CACHE
+		var dca = GetCurrentDistributedAccessor(options);
+		var dcaHasSaved = false;
+		if (dca.CanBeUsed(operationId, key))
+		{
+			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
+
+		// BACKPLANE
+		if (options.SkipBackplaneNotifications == false)
+		{
+			if (options.IsFailSafeEnabled)
+				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryExpire(key, null), options, dcaHasSaved, token).ConfigureAwait(false);
+			else
+				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key, null), options, dcaHasSaved, token).ConfigureAwait(false);
+		}
 	}
 }
