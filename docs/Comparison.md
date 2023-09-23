@@ -44,6 +44,7 @@ The general features I've identified are:
 - [**Multi-provider**](CacheLevels.md): the abilty to use the same caching api towards different implementations (memory, Redis, MongoDb, etc)
 - [**Multi-level**](CacheLevels.md): the ability to handle more than one caching level, transparently. This can give you - at the same time - the benefits of a local in-memory cache (high performance + data locality) and the benefits of a distributed cache (sharing of cached data + better cold start) without having to handle them separately
 - [**Backplane**](Backplane.md): available with different names, it allows a change in a distributed cache to be reflected in the local memory cache
+- [**Auto-Recovery**](Backplane.md): the ability to automatically recover from an out-of-sync scenario due to some transient problems to a globally synchronized state
 - [**Events**](Events.md): the ability to be notified when certain events happen in the cache, useful to collect custom metrics, etc
 - [**Logging**](Logging.md): when things go bad you would like to have some help investigating what went wrong, and logging is key
 - **Portable**: the ability to run on both the older **.NET Framework** (full fx) and the new **.NET Core**. As time goes by .NET Core (from v5 now simply **.NET**) is the platform to be on, but it's a nice plus to be able to run on the older one as well
@@ -66,6 +67,7 @@ This is how they compare:
 | **Multi-provider**       | ✔          | ✔            | ✔          | ✔              | ❌           |
 | **Multi-level**          | ✔          | ✔            | ✔          | ⚠              | ❌           |
 | **Backplane**            | ✔          | ✔            | ✔          | ✔              | ❌           |
+| **Auto-Recovery**        | ✔          | ❌           | ❌         | ❌             | ❌           |
 | **Events**               | ✔          | ✔            | ❌         | ❌             | ❌           |
 | **Logging**              | ✔          | ✔            | ❌         | ✔              | ❌           |
 | **Portable**             | ✔          | ✔            | ✔          | ✔              | ✔            |
