@@ -48,7 +48,7 @@ namespace FusionCacheTests
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			var initialValue = await fusionCache.GetOrSetAsync<int>("foo", _ => Task.FromResult(42), new FusionCacheEntryOptions().SetDurationSec(10));
-			memoryCache.Remove("foo");
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
 			var newValue = await fusionCache.GetOrSetAsync<int>("foo", _ => Task.FromResult(21), new FusionCacheEntryOptions().SetDurationSec(10));
 			Assert.Equal(initialValue, newValue);
 		}
@@ -63,7 +63,7 @@ namespace FusionCacheTests
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 
 			var initialValue = fusionCache.GetOrSet<int>("foo", _ => 42, options => options.SetDurationSec(10));
-			memoryCache.Remove("foo");
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
 			var newValue = fusionCache.GetOrSet<int>("foo", _ => 21, options => options.SetDurationSec(10));
 			Assert.Equal(initialValue, newValue);
 		}
@@ -1668,6 +1668,78 @@ namespace FusionCacheTests
 
 			Assert.Equal(50, vA2);
 			Assert.Equal(50, vB2);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanExecuteBackgroundDistributedCacheOperationsAsync(SerializerType serializerType)
+		{
+			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+			var eo = new FusionCacheEntryOptions().SetDurationSec(10);
+			eo.AllowBackgroundDistributedCacheOperations = true;
+
+			var logger = CreateLogger<FusionCache>();
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateLogger<ChaosDistributedCache>());
+			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
+			fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+			await fusionCache.SetAsync<int>("foo", 21, eo);
+			await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
+			chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
+			var sw = Stopwatch.StartNew();
+			// SHOULD RETURN IMMEDIATELY
+			await fusionCache.SetAsync<int>("foo", 42, eo);
+			sw.Stop();
+			logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
+			await Task.Delay(TimeSpan.FromMilliseconds(200));
+			chaosDistributedCache.SetNeverDelay();
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			var foo1 = await fusionCache.GetOrDefaultAsync<int>("foo", -1, eo);
+			await Task.Delay(simulatedDelayMs.PlusALittleBit());
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			var foo2 = await fusionCache.GetOrDefaultAsync<int>("foo", -1, eo);
+
+			Assert.True(sw.Elapsed < simulatedDelayMs);
+			Assert.Equal(21, foo1);
+			Assert.Equal(42, foo2);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanExecuteBackgroundDistributedCacheOperations(SerializerType serializerType)
+		{
+			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+			var eo = new FusionCacheEntryOptions().SetDurationSec(10);
+			eo.AllowBackgroundDistributedCacheOperations = true;
+
+			var logger = CreateLogger<FusionCache>();
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateLogger<ChaosDistributedCache>());
+			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
+			fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+			fusionCache.Set<int>("foo", 21, eo);
+			Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
+			chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
+			var sw = Stopwatch.StartNew();
+			// SHOULD RETURN IMMEDIATELY
+			fusionCache.Set<int>("foo", 42, eo);
+			sw.Stop();
+			logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
+			Thread.Sleep(TimeSpan.FromMilliseconds(200));
+			chaosDistributedCache.SetNeverDelay();
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			var foo1 = fusionCache.GetOrDefault<int>("foo", -1, eo);
+			Thread.Sleep(simulatedDelayMs.PlusALittleBit());
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			var foo2 = fusionCache.GetOrDefault<int>("foo", -1, eo);
+
+			Assert.True(sw.Elapsed < simulatedDelayMs);
+			Assert.Equal(21, foo1);
+			Assert.Equal(42, foo2);
 		}
 	}
 }
