@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
@@ -52,6 +53,17 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 
 		[Benchmark]
 		public void WithoutTimeout()
+		{
+			FusionCacheExecutionUtils.RunSyncActionAdvanced(
+				_ => Executor(),
+				Timeout.InfiniteTimeSpan,
+				true,
+				true
+			);
+		}
+
+		[Benchmark]
+		public void Raw()
 		{
 			Executor();
 		}
