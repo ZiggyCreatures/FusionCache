@@ -228,22 +228,36 @@
             A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysChaos(System.TimeSpan)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysDelay(System.TimeSpan,System.TimeSpan)">
             <summary>
-            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
+            Force chaos delays to always be between certain amounts.
             </summary>
-            <param name="delay"></param>
+            <param name="minDelay">The minimum amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysDelayExactly(System.TimeSpan)">
             <summary>
             Force chaos delays to always be of exactly this amount.
             </summary>
-            <param name="delay"></param>
+            <param name="delay">The amount of delay.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysThrow">
             <summary>
             Force chaos exceptions to always be thrown.
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysChaos(System.TimeSpan)">
+            <summary>
+            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
+            </summary>
+            <param name="delay">The amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysChaos(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Force chaos exceptions to always throw, and chaos delays to always be between certain amounts.
+            </summary>
+            <param name="minDelay">The minimum amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetNeverChaos">
             <summary>

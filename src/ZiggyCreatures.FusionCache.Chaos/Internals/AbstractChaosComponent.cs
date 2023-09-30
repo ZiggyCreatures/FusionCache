@@ -48,22 +48,23 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 		public float ChaosThrowProbability { get; set; }
 
 		/// <summary>
-		/// Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
+		/// Force chaos delays to always be between certain amounts.
 		/// </summary>
-		/// <param name="delay"></param>
-		public virtual void SetAlwaysChaos(TimeSpan delay)
+		/// <param name="minDelay">The minimum amount of delay.</param>
+		/// <param name="maxDelay">The maximum amount of delay.</param>
+		public virtual void SetAlwaysDelay(TimeSpan minDelay, TimeSpan maxDelay)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysChaos");
+				_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetDelay");
 
-			SetAlwaysThrow();
-			SetAlwaysDelayExactly(delay);
+			ChaosMinDelay = minDelay;
+			ChaosMaxDelay = maxDelay;
 		}
 
 		/// <summary>
 		/// Force chaos delays to always be of exactly this amount.
 		/// </summary>
-		/// <param name="delay"></param>
+		/// <param name="delay">The amount of delay.</param>
 		public virtual void SetAlwaysDelayExactly(TimeSpan delay)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -82,6 +83,33 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 				_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysThrow");
 
 			ChaosThrowProbability = 1f;
+		}
+
+		/// <summary>
+		/// Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
+		/// </summary>
+		/// <param name="delay">The amount of delay.</param>
+		public virtual void SetAlwaysChaos(TimeSpan delay)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysChaos");
+
+			SetAlwaysThrow();
+			SetAlwaysDelayExactly(delay);
+		}
+
+		/// <summary>
+		/// Force chaos exceptions to always throw, and chaos delays to always be between certain amounts.
+		/// </summary>
+		/// <param name="minDelay">The minimum amount of delay.</param>
+		/// <param name="maxDelay">The maximum amount of delay.</param>
+		public virtual void SetAlwaysChaos(TimeSpan minDelay, TimeSpan maxDelay)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysChaos");
+
+			SetAlwaysThrow();
+			SetAlwaysDelay(minDelay, maxDelay);
 		}
 
 		/// <summary>
