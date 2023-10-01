@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
+using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
 
@@ -28,6 +30,18 @@ namespace FusionCacheTests
 
 	public class SingleLevelTests
 	{
+		private readonly ITestOutputHelper _output;
+
+		public SingleLevelTests(ITestOutputHelper output)
+		{
+			_output = output;
+		}
+
+		private XUnitLogger<T> CreateLogger<T>(LogLevel minLevel = LogLevel.Trace)
+		{
+			return new XUnitLogger<T>(minLevel, _output);
+		}
+
 		[Fact]
 		public void CannotAssignNullToDefaultEntryOptions()
 		{
@@ -1133,7 +1147,7 @@ namespace FusionCacheTests
 			var duration = TimeSpan.FromSeconds(2);
 			var eagerRefreshThreshold = 0.2f;
 
-			using var cache = new FusionCache(new FusionCacheOptions());
+			using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
 
 			cache.DefaultEntryOptions.Duration = duration;
 			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -1152,7 +1166,7 @@ namespace FusionCacheTests
 			var v3 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
 
 			// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-			await Task.Delay(TimeSpan.FromMilliseconds(50));
+			await Task.Delay(TimeSpan.FromMilliseconds(100));
 
 			// GET THE REFRESHED VALUE
 			var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
@@ -1198,7 +1212,7 @@ namespace FusionCacheTests
 			var v3 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
 
 			// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-			Thread.Sleep(TimeSpan.FromMilliseconds(50));
+			Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
 			// GET THE REFRESHED VALUE
 			var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);

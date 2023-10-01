@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -18,6 +19,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
+using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
@@ -53,12 +55,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		// TODO: !!! FIX THIS !!!
 		//!!! I NEED TO HANDLE SOFT/HARD TIMEOUTS FOR DISTRIBUTED CACHE OPERATIONS !!! (MAYBE... CHECK WHAT SHOULD HAPPENS RELATED TO THE DB READS + DIST CACHE TIMEOUTS)
 
-		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; // TimeSpan.FromMilliseconds(100);
-		public static readonly TimeSpan? DistributedCacheHardTimeout = null; // TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(200);
+		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(200);
 
 		public static readonly TimeSpan DistributedCacheCircuitBreakerDuration = TimeSpan.Zero;
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
-		public static readonly TimeSpan? ChaosDistributedCacheSyntheticDelay = null; // TimeSpan.FromMilliseconds(1_500);
+		public static readonly TimeSpan? ChaosDistributedCacheSyntheticMinDelay = null; //TimeSpan.FromMilliseconds(500);
+		public static readonly TimeSpan? ChaosDistributedCacheSyntheticMaxDelay = null; //TimeSpan.FromMilliseconds(500);
 
 		// BACKPLANE
 		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
@@ -69,7 +72,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static readonly TimeSpan? ChaosBackplaneSyntheticDelay = null; // TimeSpan.FromMilliseconds(1_500);
 
 		// OTHERS
-		public static readonly TimeSpan RefreshDelay = TimeSpan.FromSeconds(1);
+		public static readonly TimeSpan RefreshDelay = TimeSpan.FromMilliseconds(500);
 		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
 		public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
 		public static readonly bool UpdateCacheOnSaveToDb = true;
@@ -241,6 +244,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			services.AddLogging(configure => configure.AddSerilog());
 		}
 
+		private static DateTimeOffset? DangerouslyGetLogicalExpiration(IFusionCache cache, string cacheKey)
+		{
+			var dca = cache.GetType().GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(cache);
+			var memoryCache = (IMemoryCache?)dca?.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dca);
+			var entry = memoryCache?.Get(cacheKey);
+			var meta = (FusionCacheEntryMetadata?)entry?.GetType().GetProperty("Metadata")?.GetValue(entry);
+			return meta?.LogicalExpiration;
+		}
+
 		private static void SetupCacheGroups()
 		{
 			AnsiConsole.MarkupLine("[deepskyblue1]SETUP[/]");
@@ -302,9 +314,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					{
 						AnsiConsole.Markup("- [deepskyblue1]FUSION CACHE: [/] ADDING DIST. CACHE...");
 						var tmp = new ChaosDistributedCache(distributedCache);
-						if (WorkloadScenarioOptions.ChaosDistributedCacheSyntheticDelay is not null)
+						if (WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMinDelay is not null && WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay is not null)
 						{
-							tmp.SetAlwaysDelayExactly(WorkloadScenarioOptions.ChaosDistributedCacheSyntheticDelay.Value);
+							tmp.SetAlwaysDelay(WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMinDelay.Value, WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay.Value);
 						}
 						cache.SetupDistributedCache(tmp, new FusionCacheNewtonsoftJsonSerializer());
 						DistributedCaches.Add(tmp);
@@ -330,9 +342,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var node = new CacheNode(cache);
 
 					cache.Events.Memory.Set += (sender, e) =>
-									{
-										node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
-									};
+					{
+						var maybeExpiration = DangerouslyGetLogicalExpiration((IFusionCache)sender!, CacheKey);
+
+						if (maybeExpiration is not null)
+							node.ExpirationTimestamp = maybeExpiration.Value.ToUnixTimeMilliseconds();
+						else
+							node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+					};
 
 					group.Nodes.Add(node);
 				}
@@ -370,17 +387,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					break;
 			}
 
-			//var charIdx = (int)(v * (ProgressChars.Length - 1));
-			//return $"[{color}]{ProgressChars[charIdx]}[/]";
-
-			//return $"[{color}]-{remainingSeconds}s[/]";
 			return $"[{color}]-{remainingSeconds}[/]";
 		}
-
-		//private static char GetProgressCharByTimestamp(long)
-		//{
-
-		//}
 
 		private static void DisplayDashboard()
 		{
@@ -394,21 +402,20 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				var _values = new ConcurrentDictionary<int, ConcurrentDictionary<int, int?>>();
 
 				var swGroups = Stopwatch.StartNew();
+
 				// SNAPSHOT VALUES
-				for (int groupIdx = 0; groupIdx < CacheGroups.Count; groupIdx++)
+				Parallel.ForEach(CacheGroups.Values, (group, _, groupIdx) =>
 				{
-					var _valueGroup = _values[groupIdx] = new ConcurrentDictionary<int, int?>();
+					var _valueGroup = _values[(int)groupIdx] = new ConcurrentDictionary<int, int?>();
 
-					var group = CacheGroups[groupIdx];
-
-					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
+					var swGroup = Stopwatch.StartNew();
+					Parallel.ForEach(group.Nodes, (node, _, nodeIdx) =>
 					{
-						var node = group.Nodes[nodeIdx];
 						int? value;
 						try
 						{
 							var swNode = Stopwatch.StartNew();
-							value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(groupIdx));
+							value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb((int)groupIdx));
 							swNode.Stop();
 							Debug.WriteLine($"READ ON GROUP {groupIdx} NODE {nodeIdx} TOOK: {swNode.Elapsed}");
 						}
@@ -416,11 +423,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						{
 							value = null;
 						}
-						_valueGroup[nodeIdx] = value;
-					}
-				}
+						_valueGroup[(int)nodeIdx] = value;
+					});
+					swGroup.Stop();
+					Debug.WriteLine($"READ ON GROUP {groupIdx} TOOK: {swGroup.Elapsed}");
+				});
+
 				swGroups.Stop();
-				Debug.WriteLine($"TAKEN {swGroups.Elapsed}");
+				Debug.WriteLine($"READ ON ALL GROUPS TAKEN {swGroups.Elapsed}");
 
 				Debug.WriteLine("SNAPSHOT VALUES: END");
 

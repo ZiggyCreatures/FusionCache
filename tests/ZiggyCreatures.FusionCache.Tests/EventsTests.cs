@@ -857,6 +857,8 @@ namespace FusionCacheTests
 			// CACHE 2
 			await cache2.RemoveAsync("foo");
 
+			await Task.Delay(TimeSpan.FromMilliseconds(100));
+
 			// REMOVE HANDLERS
 			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
 			cache2.Events.Backplane.MessageReceived -= onMessageReceived2;
@@ -909,6 +911,8 @@ namespace FusionCacheTests
 
 			// CACHE 2
 			cache2.Remove("foo");
+
+			Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
 			// REMOVE HANDLERS
 			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;

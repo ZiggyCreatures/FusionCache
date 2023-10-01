@@ -342,7 +342,6 @@ namespace FusionCacheTests
 			var _value = 0;
 
 			var key = "foo";
-			var otherKey = "bar";
 
 			var distributedCache = CreateDistributedCache();
 
@@ -393,11 +392,6 @@ namespace FusionCacheTests
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
 			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
-
-			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
-			await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
-
-			await Task.Delay(1_000);
 
 			Assert.Equal(3, await cache1.GetOrSetAsync<int>(key, async _ => _value));
 			Assert.Equal(3, await cache2.GetOrSetAsync<int>(key, async _ => _value));
@@ -413,7 +407,6 @@ namespace FusionCacheTests
 			var _value = 0;
 
 			var key = "foo";
-			var otherKey = "bar";
 
 			var distributedCache = CreateDistributedCache();
 
@@ -465,11 +458,6 @@ namespace FusionCacheTests
 			// WAIT FOR THE AUTO-RECOVERY DELAY
 			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
-			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
-			cache1.Set(otherKey, 42, TimeSpan.FromMinutes(10));
-
-			Thread.Sleep(1_000);
-
 			Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
@@ -484,7 +472,6 @@ namespace FusionCacheTests
 			var _value = 0;
 
 			var key = "foo";
-			var otherKey = "bar";
 
 			var distributedCache = CreateDistributedCache();
 
@@ -536,11 +523,6 @@ namespace FusionCacheTests
 			// WAIT FOR THE AUTO-RECOVERY DELAY
 			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
 
-			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
-			await cache1.SetAsync(otherKey, 42, TimeSpan.FromMinutes(10));
-
-			await Task.Delay(1_000);
-
 			Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value));
 			Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value));
 			Assert.Equal(3, await cache3.GetOrSetAsync<int>(key, async _ => _value));
@@ -555,7 +537,6 @@ namespace FusionCacheTests
 			var _value = 0;
 
 			var key = "foo";
-			var otherKey = "bar";
 
 			var distributedCache = CreateDistributedCache();
 
@@ -606,11 +587,6 @@ namespace FusionCacheTests
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
 			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
-
-			// CHANGE ANOTHER KEY (TO RUN AUTO-RECOVERY OPERATIONS)
-			cache1.Set(otherKey, 42, TimeSpan.FromMinutes(10));
-
-			Thread.Sleep(1_000);
 
 			Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
