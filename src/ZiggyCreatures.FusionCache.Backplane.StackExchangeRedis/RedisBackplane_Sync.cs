@@ -20,7 +20,10 @@ public partial class RedisBackplane
 			if (_connection is not null)
 				return;
 
-			_connection = ConnectionMultiplexer.Connect(GetConfigurationOptions());
+			_connection = _options.ConnectionMultiplexerFactory is null 
+				? ConnectionMultiplexer.Connect(GetConfigurationOptions())
+				: _options.ConnectionMultiplexerFactory().GetAwaiter().GetResult();
+			
 			if (_connection is not null)
 			{
 				_connection.ConnectionRestored += OnReconnect;

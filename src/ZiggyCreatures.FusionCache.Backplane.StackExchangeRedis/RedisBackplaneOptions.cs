@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
@@ -19,6 +21,11 @@ public class RedisBackplaneOptions
 	/// This is preferred over Configuration.
 	/// </summary>
 	public ConfigurationOptions? ConfigurationOptions { get; set; }
+
+	/// <summary>
+	/// Gets or sets a delegate to create the ConnectionMultiplexer instance.
+	/// </summary>
+    public Func<Task<IConnectionMultiplexer>>? ConnectionMultiplexerFactory { get; set; }
 
 	/// <summary>
 	/// The configuration used to connect to Redis.
