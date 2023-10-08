@@ -63,7 +63,7 @@ public static class FusionCacheChaosUtils
 	{
 		var delay = GetRandomDelay(minDelay, maxDelay);
 
-		// TODO: FINE A WAY TO CANCEL THE DELAY
+		// TODO: FIND A WAY TO CANCEL THE DELAY
 		if (delay > TimeSpan.Zero)
 			Thread.Sleep(delay);
 	}
