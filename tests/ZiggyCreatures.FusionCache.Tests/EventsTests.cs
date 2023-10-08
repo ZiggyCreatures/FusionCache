@@ -841,7 +841,8 @@ namespace FusionCacheTests
 			{
 				Duration = TimeSpan.FromMinutes(10),
 				AllowBackgroundDistributedCacheOperations = false,
-				AllowBackgroundBackplaneOperations = false
+				AllowBackgroundBackplaneOperations = false,
+				SkipBackplaneNotifications = true
 			};
 
 			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
@@ -866,11 +867,11 @@ namespace FusionCacheTests
 			cache3.Events.Backplane.MessageReceived += onMessageReceived3;
 
 			// CACHE 1
-			await cache1.SetAsync("foo", 21);
-			await cache1.SetAsync("foo", 42);
+			await cache1.SetAsync("foo", 21, opt => opt.SetSkipBackplaneNotifications(false));
+			await cache1.SetAsync("foo", 42, opt => opt.SetSkipBackplaneNotifications(false));
 
 			// CACHE 2
-			await cache2.RemoveAsync("foo");
+			await cache2.RemoveAsync("foo", opt => opt.SetSkipBackplaneNotifications(false));
 
 			await Task.Delay(TimeSpan.FromMilliseconds(500));
 
@@ -896,7 +897,8 @@ namespace FusionCacheTests
 			{
 				Duration = TimeSpan.FromMinutes(10),
 				AllowBackgroundDistributedCacheOperations = false,
-				AllowBackgroundBackplaneOperations = false
+				AllowBackgroundBackplaneOperations = false,
+				SkipBackplaneNotifications = true
 			};
 
 			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
@@ -921,11 +923,11 @@ namespace FusionCacheTests
 			cache3.Events.Backplane.MessageReceived += onMessageReceived3;
 
 			// CACHE 1
-			cache1.Set("foo", 21);
-			cache1.Set("foo", 42);
+			cache1.Set("foo", 21, opt => opt.SetSkipBackplaneNotifications(false));
+			cache1.Set("foo", 42, opt => opt.SetSkipBackplaneNotifications(false));
 
 			// CACHE 2
-			cache2.Remove("foo");
+			cache2.Remove("foo", opt => opt.SetSkipBackplaneNotifications(false));
 
 			Thread.Sleep(TimeSpan.FromMilliseconds(500));
 

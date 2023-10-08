@@ -633,6 +633,7 @@ public partial class FusionCache
 		var mustAwaitCompletion = MustAwaitDistributedOperations(options);
 		var isBackground = !mustAwaitCompletion;
 
+		// TODO: MAYBE USE A SLIMMER UTIL
 		FusionCacheExecutionUtils.RunSyncActionAdvanced(
 			ct =>
 			{
@@ -708,7 +709,6 @@ public partial class FusionCache
 			},
 			(bpa, isBackground, ct) =>
 			{
-				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
 				return bpa.PublishSet(operationId, key, entry.Timestamp, options, false, isBackground, ct);
 			},
 			options,
@@ -728,7 +728,6 @@ public partial class FusionCache
 			},
 			(bpa, isBackground, ct) =>
 			{
-				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
 				return bpa.PublishRemove(operationId, key, null, options, false, isBackground, ct);
 			},
 			options,
@@ -748,7 +747,6 @@ public partial class FusionCache
 			},
 			(bpa, isBackground, ct) =>
 			{
-				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
 				return bpa.PublishExpire(operationId, key, null, options, false, isBackground, ct);
 			},
 			options,

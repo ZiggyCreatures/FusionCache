@@ -709,7 +709,6 @@ public partial class FusionCache
 			},
 			async (bpa, isBackground, ct) =>
 			{
-				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
 				return await bpa.PublishSetAsync(operationId, key, entry.Timestamp, options, false, isBackground, ct).ConfigureAwait(false);
 			},
 			options,
@@ -729,7 +728,6 @@ public partial class FusionCache
 			},
 			async (bpa, isBackground, ct) =>
 			{
-				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
 				return await bpa.PublishRemoveAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
 			},
 			options,
@@ -749,7 +747,6 @@ public partial class FusionCache
 			},
 			async (bpa, isBackground, ct) =>
 			{
-				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
 				return await bpa.PublishExpireAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
 			},
 			options,

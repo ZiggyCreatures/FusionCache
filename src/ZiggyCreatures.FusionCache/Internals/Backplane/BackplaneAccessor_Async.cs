@@ -40,19 +40,6 @@ internal partial class BackplaneAccessor
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, operationId, cacheKey);
 
-			//await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(
-			//	async ct =>
-			//	{
-			//		await _backplane.PublishAsync(message, options, ct).ConfigureAwait(false);
-
-			//		// EVENT
-			//		_events.OnMessagePublished(operationId, message);
-			//	},
-			//	timeout,
-			//	true,
-			//	token: token
-			//).ConfigureAwait(false);
-
 			await _backplane.PublishAsync(message, options, token).ConfigureAwait(false);
 
 			// EVENT
@@ -83,11 +70,6 @@ internal partial class BackplaneAccessor
 
 	public async ValueTask<bool> PublishSetAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
-		// TODO: MAYBE REMOVE ASYNC/AWAIT HERE
-
-		//if (options.SkipBackplaneNotifications)
-		//	return false;
-
 		var message = BackplaneMessage.CreateForEntrySet(_cache.InstanceId, key, timestamp);
 
 		return await PublishAsync(operationId, FusionCacheAction.EntrySet, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
@@ -95,11 +77,6 @@ internal partial class BackplaneAccessor
 
 	public async ValueTask<bool> PublishRemoveAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
-		// TODO: MAYBE REMOVE ASYNC/AWAIT HERE
-
-		//if (options.SkipBackplaneNotifications)
-		//	return false;
-
 		var message = BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
 		return await PublishAsync(operationId, FusionCacheAction.EntryRemove, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
@@ -107,11 +84,6 @@ internal partial class BackplaneAccessor
 
 	public async ValueTask<bool> PublishExpireAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
-		// TODO: MAYBE REMOVE ASYNC/AWAIT HERE
-
-		//if (options.SkipBackplaneNotifications)
-		//	return false;
-
 		var message = options.IsFailSafeEnabled
 			? BackplaneMessage.CreateForEntryExpire(_cache.InstanceId, key, timestamp)
 			: BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);

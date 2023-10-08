@@ -191,7 +191,6 @@ internal partial class DistributedCacheAccessor
 		if (IsCurrentlyUsable(operationId, key) == false)
 			return false;
 
-		// TODO: MAYBE REMOVE ASYNC/AWAIT HERE...
 		return ExecuteOperation(
 			operationId,
 			key,

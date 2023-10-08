@@ -472,26 +472,22 @@ public partial class FusionCache
 		lock (_backplaneLock)
 		{
 			_bpa = new BackplaneAccessor(this, backplane, _options, _logger, _events.Backplane);
-		}
-
-		Task.Run(() =>
-		{
 			_bpa.Subscribe();
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}]: setup backplane (BACKPLANE={BackplaneType})", CacheName, backplane.GetType().FullName);
+		}
 
-			// CHECK: WARN THE USER IN CASE OF
-			// - HAS A MEMORY CACHE (ALWAYS)
-			// - HAS A BACKPLANE
-			// - DOES *NOT* HAVE A DISTRIBUTED CACHE
-			// - THE OPTION DefaultEntryOptions.SkipBackplaneNotifications IS FALSE
-			if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.SkipBackplaneNotifications == false)
-			{
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}]: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", CacheName, backplane.GetType().FullName);
-			}
-		});
+		// CHECK: WARN THE USER IN CASE OF
+		// - HAS A MEMORY CACHE (ALWAYS)
+		// - HAS A BACKPLANE
+		// - DOES *NOT* HAVE A DISTRIBUTED CACHE
+		// - THE OPTION DefaultEntryOptions.SkipBackplaneNotifications IS FALSE
+		if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.SkipBackplaneNotifications == false)
+		{
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}]: it has been detected a situation where there *IS* a backplane, there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache but there is not a shared state (a distributed cache) that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", CacheName, backplane.GetType().FullName);
+		}
 
 		return this;
 	}
@@ -779,6 +775,7 @@ public partial class FusionCache
 
 
 
+	// AUTO-RECOVERY
 
 	internal bool TryAddAutoRecoveryItem(string? operationId, string? cacheKey, FusionCacheAction action, FusionCacheEntryOptions options, BackplaneMessage? message)
 	{
@@ -802,8 +799,8 @@ public partial class FusionCache
 			options.AllowBackgroundDistributedCacheOperations = false;
 			options.DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan;
 			options.DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan;
-			// TODO: MAYBE USE false HERE?
 			options.ReThrowDistributedCacheExceptions = true;
+			options.ReThrowSerializationExceptions = true;
 			options.SkipDistributedCacheReadWhenStale = false;
 		}
 
@@ -811,7 +808,6 @@ public partial class FusionCache
 		if (options.SkipBackplaneNotifications == false)
 		{
 			options.AllowBackgroundBackplaneOperations = false;
-			// TODO: MAYBE USE false HERE?
 			options.ReThrowBackplaneExceptions = true;
 		}
 
@@ -834,7 +830,6 @@ public partial class FusionCache
 
 			try
 			{
-				// TODO: DOUBLE CHECK THE ITERATION WITH CONCURRENCY HERE...
 				var earliestToExpire = _autoRecoveryQueue.Values.ToArray().Where(x => x.ExpirationTicks is not null).OrderBy(x => x.ExpirationTicks).FirstOrDefault();
 				if (earliestToExpire is not null /*&& earliestToExpire.Message is not null*/)
 				{
@@ -863,9 +858,6 @@ public partial class FusionCache
 			}
 		}
 
-		//if (message is null)
-		//	return false;
-
 		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, options, expirationTicks, _autoRecoveryMaxRetryCount, message);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -874,7 +866,6 @@ public partial class FusionCache
 		return true;
 	}
 
-	// TODO: MAYBE REMOVE THIS?
 	internal bool TryRemoveAutoRecoveryItemByCacheKey(string? operationId, string cacheKey)
 	{
 		if (cacheKey is null)
@@ -917,7 +908,6 @@ public partial class FusionCache
 
 	internal bool TryCleanUpAutoRecoveryQueue(string operationId, IList<AutoRecoveryItem> items)
 	{
-		// TODO: MAYBE LOCK HERE... BUT PROBABLY MAYBE NOT... (BECAUSE DEADLOCKS & CO)
 		if (items.Count == 0)
 			return false;
 
@@ -1209,7 +1199,6 @@ public partial class FusionCache
 			{
 				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
-					// TODO: MAYBE DIRECTLY CALL PublishAsync HERE?
 					bpaSuccess = await bpa.PublishSetAsync(operationId, item.CacheKey, item.Message?.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
 			}
@@ -1261,7 +1250,6 @@ public partial class FusionCache
 			{
 				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
-					// TODO: MAYBE DIRECTLY CALL PublishAsync HERE?
 					bpaSuccess = await bpa.PublishRemoveAsync(operationId, item.CacheKey, item.Message?.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
 			}
@@ -1313,7 +1301,6 @@ public partial class FusionCache
 			{
 				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
-					// TODO: MAYBE DIRECTLY CALL PublishAsync HERE?
 					bpaSuccess = await bpa.PublishExpireAsync(operationId, item.CacheKey, item.Message?.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
 			}

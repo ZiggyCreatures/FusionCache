@@ -7,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 
 internal partial class BackplaneAccessor
 {
-	public bool Publish(string operationId, FusionCacheAction action, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	private bool Publish(string operationId, FusionCacheAction action, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		if (CheckMessage(operationId, message, isAutoRecovery) == false)
 			return false;
@@ -38,19 +38,6 @@ internal partial class BackplaneAccessor
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, operationId, cacheKey);
-
-			//FusionCacheExecutionUtils.RunSyncActionWithTimeout(
-			//	ct =>
-			//	{
-			//		_backplane.Publish(message, options, ct);
-
-			//		// EVENT
-			//		_events.OnMessagePublished(operationId, message);
-			//	},
-			//	timeout,
-			//	true,
-			//	token: token
-			//);
 
 			_backplane.Publish(message, options, token);
 
