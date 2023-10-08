@@ -866,7 +866,7 @@ public partial class FusionCache
 		//if (message is null)
 		//	return false;
 
-		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, options, message, expirationTicks, _autoRecoveryMaxRetryCount);
+		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, options, expirationTicks, _autoRecoveryMaxRetryCount, message);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): added (or overwrote) an item to the auto-recovery queue", CacheName, InstanceId, operationId, cacheKey);
