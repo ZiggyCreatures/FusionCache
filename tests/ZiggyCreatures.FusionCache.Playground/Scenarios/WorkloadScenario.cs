@@ -51,10 +51,6 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		// DISTRIBUTED CACHE
 		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly bool AllowBackgroundDistributedCacheOperations = false;
-
-		// TODO: !!! FIX THIS !!!
-		//!!! I NEED TO HANDLE SOFT/HARD TIMEOUTS FOR DISTRIBUTED CACHE OPERATIONS !!! (MAYBE... CHECK WHAT SHOULD HAPPENS RELATED TO THE DB READS + DIST CACHE TIMEOUTS)
-
 		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(200);
 		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(200);
 
@@ -261,7 +257,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			// DI
 			var services = new ServiceCollection();
-			SetupSerilogLogger(services, LogEventLevel.Debug);
+			SetupSerilogLogger(services, LogEventLevel.Verbose);
 			var serviceProvider = services.BuildServiceProvider();
 
 			for (int groupIdx = 0; groupIdx < WorkloadScenarioOptions.GroupsCount; groupIdx++)
