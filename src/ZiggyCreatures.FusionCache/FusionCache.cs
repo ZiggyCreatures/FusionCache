@@ -777,7 +777,7 @@ public partial class FusionCache
 
 	// AUTO-RECOVERY
 
-	internal bool TryAddAutoRecoveryItem(string? operationId, string? cacheKey, FusionCacheAction action, FusionCacheEntryOptions options, BackplaneMessage? message)
+	internal bool TryAddAutoRecoveryItem(string? operationId, string? cacheKey, FusionCacheAction action, long timestamp, FusionCacheEntryOptions options, BackplaneMessage? message)
 	{
 		if (_options.EnableAutoRecovery == false)
 			return false;
@@ -858,7 +858,7 @@ public partial class FusionCache
 			}
 		}
 
-		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, options, expirationTicks, _autoRecoveryMaxRetryCount, message);
+		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, timestamp, options, expirationTicks, _autoRecoveryMaxRetryCount, message);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): added (or overwrote) an item to the auto-recovery queue", CacheName, InstanceId, operationId, cacheKey);
@@ -946,7 +946,7 @@ public partial class FusionCache
 		}
 
 		// TODO: MAYBE USE THE ITEM'S Timestamp PROP DIRECTLY, IF WE'VE ADDED IT
-		if (pendingLocal.Message?.Timestamp <= message.Timestamp)
+		if (pendingLocal.Timestamp <= message.Timestamp)
 		{
 			// PENDING LOCAL MESSAGE IS -OLDER- THAN THE INCOMING ONE -> REMOVE THE LOCAL ONE
 			TryRemoveAutoRecoveryItem(operationId, pendingLocal);
@@ -1199,7 +1199,7 @@ public partial class FusionCache
 			{
 				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
-					bpaSuccess = await bpa.PublishSetAsync(operationId, item.CacheKey, item.Message?.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
+					bpaSuccess = await bpa.PublishSetAsync(operationId, item.CacheKey, item.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
 			}
 			catch
@@ -1250,7 +1250,7 @@ public partial class FusionCache
 			{
 				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
-					bpaSuccess = await bpa.PublishRemoveAsync(operationId, item.CacheKey, item.Message?.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
+					bpaSuccess = await bpa.PublishRemoveAsync(operationId, item.CacheKey, item.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
 			}
 			catch
@@ -1301,7 +1301,7 @@ public partial class FusionCache
 			{
 				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
-					bpaSuccess = await bpa.PublishExpireAsync(operationId, item.CacheKey, item.Message?.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
+					bpaSuccess = await bpa.PublishExpireAsync(operationId, item.CacheKey, item.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
 			}
 			catch

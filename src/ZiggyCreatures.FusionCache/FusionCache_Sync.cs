@@ -625,7 +625,7 @@ public partial class FusionCache
 		_events.OnExpire(operationId, key);
 	}
 
-	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, Func<DistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
+	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
 			return;
@@ -651,14 +651,13 @@ public partial class FusionCache
 					}
 					catch
 					{
-						//dcaSuccess = false;
-						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						//TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
 						throw;
 					}
 
 					if (dcaSuccess == false)
 					{
-						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
 						return;
 					}
 				}
@@ -684,7 +683,7 @@ public partial class FusionCache
 
 					if (bpaSuccess == false)
 					{
-						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
 					}
 				}
 			},
@@ -703,6 +702,7 @@ public partial class FusionCache
 			operationId,
 			key,
 			FusionCacheAction.EntrySet,
+			entry.Timestamp,
 			(dca, isBackground, ct) =>
 			{
 				return dca!.SetEntry<TValue>(operationId, key, entry, options, isBackground, ct);
@@ -721,7 +721,8 @@ public partial class FusionCache
 		ExecuteDistributedAction(
 			operationId,
 			key,
-			FusionCacheAction.EntrySet,
+			FusionCacheAction.EntryRemove,
+			FusionCacheInternalUtils.GetCurrentTimestamp(),
 			(dca, isBackground, ct) =>
 			{
 				return dca.RemoveEntry(operationId, key, options, isBackground, ct);
@@ -740,7 +741,8 @@ public partial class FusionCache
 		ExecuteDistributedAction(
 			operationId,
 			key,
-			FusionCacheAction.EntrySet,
+			FusionCacheAction.EntryExpire,
+			FusionCacheInternalUtils.GetCurrentTimestamp(),
 			(dca, isBackground, ct) =>
 			{
 				return dca.RemoveEntry(operationId, key, options, isBackground, ct);

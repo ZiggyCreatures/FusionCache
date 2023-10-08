@@ -19,7 +19,7 @@ internal partial class BackplaneAccessor
 		{
 			if (isAutoRecovery == false)
 			{
-				_ = _cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, options, message);
+				_ = _cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
 			}
 
 			return false;
@@ -53,7 +53,7 @@ internal partial class BackplaneAccessor
 
 			if (isAutoRecovery == false)
 			{
-				_ = _cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, options, message);
+				_ = _cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
 			}
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)
