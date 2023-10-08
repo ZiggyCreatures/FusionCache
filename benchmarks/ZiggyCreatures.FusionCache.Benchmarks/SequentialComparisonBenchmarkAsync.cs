@@ -35,9 +35,9 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Params(1, 50)]
 		public int Rounds;
 
-		private List<string> Keys;
+		private List<string> Keys = null!;
 		private TimeSpan CacheDuration = TimeSpan.FromDays(10);
-		private IServiceProvider ServiceProvider;
+		private IServiceProvider ServiceProvider = null!;
 
 		[GlobalSetup]
 		public void Setup()
