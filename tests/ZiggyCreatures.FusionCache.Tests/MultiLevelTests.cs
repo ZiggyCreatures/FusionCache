@@ -252,6 +252,7 @@ namespace FusionCacheTests
 
 			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 			var options = CreateFusionCacheOptions();
+			options.EnableAutoRecovery = false;
 			options.DistributedCacheCircuitBreakerDuration = circuitBreakerDuration;
 			using var fusionCache = new FusionCache(options, memoryCache);
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
@@ -279,6 +280,7 @@ namespace FusionCacheTests
 
 			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 			var options = CreateFusionCacheOptions();
+			options.EnableAutoRecovery = false;
 			options.DistributedCacheCircuitBreakerDuration = circuitBreakerDuration;
 			using var fusionCache = new FusionCache(options, memoryCache);
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
@@ -1206,27 +1208,16 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
+			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 			var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
 
-			await Task.Delay(TimeSpan.FromMilliseconds(100));
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
+			// GET FROM CACHE B
 			var vB3 = await cacheB.GetOrSetAsync<int>("foo", async _ => 70);
 
-			Assert.Equal(60, vA3);
-			Assert.Equal(60, vB3);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA4 = await cacheA.GetOrSetAsync<int>("foo", async _ => 120);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vB4 = await cacheB.GetOrSetAsync<int>("foo", async _ => 130);
-
-			Assert.Equal(60, vA4);
-			Assert.Equal(60, vB4);
+			Assert.Equal(30, vA3);
+			Assert.Equal(30, vB3);
 		}
 
 		[Theory]
@@ -1290,36 +1281,22 @@ namespace FusionCacheTests
 			Assert.Equal(10, vA2);
 			Assert.Equal(30, vB2);
 
-			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
-
 			// RE-ENABLE DISTRIBUTED CACHE AND BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS)
 			chaosDistributedCache.SetNeverThrow();
 			chaosBackplaneA.SetNeverThrow();
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
+			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 			var vA3 = cacheA.GetOrSet<int>("foo", _ => 60);
 
-			Thread.Sleep(TimeSpan.FromMilliseconds(100));
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
+			// GET FROM CACHE B
 			var vB3 = cacheB.GetOrSet<int>("foo", _ => 70);
 
-			Assert.Equal(60, vA3);
-			Assert.Equal(60, vB3);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA4 = cacheA.GetOrSet<int>("foo", _ => 120);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vB4 = cacheB.GetOrSet<int>("foo", _ => 130);
-
-			Assert.Equal(60, vA4);
-			Assert.Equal(60, vB4);
+			Assert.Equal(30, vA3);
+			Assert.Equal(30, vB3);
 		}
 
 		[Theory]
@@ -1388,7 +1365,7 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA3 = await cacheA.GetOrDefaultAsync<int>("foo");
@@ -1403,27 +1380,18 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 
 			// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
+			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 			var vA4 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
 
-			await Task.Delay(TimeSpan.FromMilliseconds(100));
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
+			// GET FROM CACHE B
 			var vB4 = await cacheB.GetOrSetAsync<int>("foo", async _ => 70);
 
-			Assert.Equal(60, vA4);
-			Assert.Equal(60, vB4);
+			await Task.Delay(TimeSpan.FromMilliseconds(500));
 
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA5 = await cacheA.GetOrSetAsync<int>("foo", async _ => 120);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vB5 = await cacheB.GetOrSetAsync<int>("foo", async _ => 130);
-
-			Assert.Equal(60, vA5);
-			Assert.Equal(60, vB5);
+			Assert.Equal(30, vA4);
+			Assert.Equal(30, vB4);
 		}
 
 		[Theory]
@@ -1492,7 +1460,7 @@ namespace FusionCacheTests
 			chaosBackplaneB.SetNeverThrow();
 
 			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA3 = cacheA.GetOrDefault<int>("foo");
@@ -1507,27 +1475,18 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 
 			// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
+			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 			var vA4 = cacheA.GetOrSet<int>("foo", _ => 60);
 
-			Thread.Sleep(TimeSpan.FromMilliseconds(100));
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
+			// GET FROM CACHE B
 			var vB4 = cacheB.GetOrSet<int>("foo", _ => 70);
 
-			Assert.Equal(60, vA4);
-			Assert.Equal(60, vB4);
+			Thread.Sleep(TimeSpan.FromMilliseconds(500));
 
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA5 = cacheA.GetOrSet<int>("foo", _ => 120);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vB5 = cacheB.GetOrSet<int>("foo", _ => 130);
-
-			Assert.Equal(60, vA5);
-			Assert.Equal(60, vB5);
+			Assert.Equal(30, vA4);
+			Assert.Equal(30, vB4);
 		}
 
 		[Theory]
@@ -1592,18 +1551,18 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 
 			// WAIT FOR AUTO-RECOVERY TO KICK IN
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA2 = await cacheA.GetOrSetAsync<int>("foo", async _ => 50);
 
-			await Task.Delay(TimeSpan.FromMilliseconds(100));
+			await Task.Delay(TimeSpan.FromMilliseconds(500));
 
 			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
 			var vB2 = await cacheB.GetOrSetAsync<int>("foo", async _ => 60);
 
-			Assert.Equal(50, vA2);
-			Assert.Equal(50, vB2);
+			Assert.Equal(30, vA2);
+			Assert.Equal(30, vB2);
 		}
 
 		[Theory]
@@ -1668,18 +1627,18 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 
 			// WAIT FOR AUTO-RECOVERY TO KICK IN
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 			var vA2 = cacheA.GetOrSet<int>("foo", _ => 50);
 
-			Thread.Sleep(TimeSpan.FromMilliseconds(100));
+			Thread.Sleep(TimeSpan.FromMilliseconds(500));
 
 			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
 			var vB2 = cacheB.GetOrSet<int>("foo", _ => 60);
 
-			Assert.Equal(50, vA2);
-			Assert.Equal(50, vB2);
+			Assert.Equal(30, vA2);
+			Assert.Equal(30, vB2);
 		}
 
 		[Theory]

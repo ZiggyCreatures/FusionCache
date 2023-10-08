@@ -109,7 +109,7 @@ namespace FusionCacheTests
 
 			var options = new FusionCacheOptions
 			{
-				BackplaneAutoRecoveryMaxItems = 123,
+				AutoRecoveryMaxItems = 123,
 			};
 
 			services.AddFusionCache()
@@ -130,7 +130,7 @@ namespace FusionCacheTests
 
 			Assert.NotNull(cache);
 			Assert.Equal(FusionCacheOptions.DefaultCacheName, cache.CacheName);
-			Assert.Equal(123, options.BackplaneAutoRecoveryMaxItems);
+			Assert.Equal(123, options.AutoRecoveryMaxItems);
 			Assert.Equal(TimeSpan.FromSeconds(123), cache.DefaultEntryOptions.DistributedCacheDuration!.Value);
 			Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
 		}

@@ -3,7 +3,10 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Events;
@@ -42,6 +45,18 @@ namespace FusionCacheTests
 			{
 				Data.AddOrUpdate(kind, 1, (_, x) => x + 1);
 			}
+		}
+
+		private readonly ITestOutputHelper _output;
+
+		public EventsTests(ITestOutputHelper output)
+		{
+			_output = output;
+		}
+
+		private XUnitLogger<T> CreateLogger<T>(LogLevel minLevel = LogLevel.Trace)
+		{
+			return new XUnitLogger<T>(minLevel, _output);
 		}
 
 		[Fact]
@@ -829,9 +844,9 @@ namespace FusionCacheTests
 				AllowBackgroundBackplaneOperations = false
 			};
 
-			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
-			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
-			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
 
 			var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
@@ -857,7 +872,7 @@ namespace FusionCacheTests
 			// CACHE 2
 			await cache2.RemoveAsync("foo");
 
-			await Task.Delay(TimeSpan.FromMilliseconds(100));
+			await Task.Delay(TimeSpan.FromMilliseconds(500));
 
 			// REMOVE HANDLERS
 			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
@@ -884,9 +899,9 @@ namespace FusionCacheTests
 				AllowBackgroundBackplaneOperations = false
 			};
 
-			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
-			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
-			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions });
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
 
 			var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
@@ -912,7 +927,7 @@ namespace FusionCacheTests
 			// CACHE 2
 			cache2.Remove("foo");
 
-			Thread.Sleep(TimeSpan.FromMilliseconds(100));
+			Thread.Sleep(TimeSpan.FromMilliseconds(500));
 
 			// REMOVE HANDLERS
 			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;

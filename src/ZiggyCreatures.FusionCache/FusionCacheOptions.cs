@@ -37,11 +37,11 @@ public class FusionCacheOptions
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
 
-		// BACKPLANE AUTO-RECOVERY
-		EnableBackplaneAutoRecovery = true;
-		BackplaneAutoRecoveryMaxItems = null;
-		BackplaneAutoRecoveryMaxRetryCount = null;
-		BackplaneAutoRecoveryDelay = TimeSpan.FromMilliseconds(2_000);
+		// AUTO-RECOVERY
+		EnableAutoRecovery = true;
+		AutoRecoveryMaxItems = null;
+		AutoRecoveryMaxRetryCount = null;
+		AutoRecoveryDelay = TimeSpan.FromMilliseconds(2_000);
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
@@ -150,55 +150,116 @@ public class FusionCacheOptions
 	public string? BackplaneChannelPrefix { get; set; }
 
 	/// <summary>
+	/// DEPRECATED: please use EnableAutoRecovery.
+	/// <br/><br/>
 	/// Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public bool EnableBackplaneAutoRecovery { get; set; }
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the EnableAutoRecovery property.")]
+	public bool EnableBackplaneAutoRecovery
+	{
+		get { return EnableAutoRecovery; }
+		set { EnableAutoRecovery = value; }
+	}
+
+	/// <summary>
+	/// Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public bool EnableAutoRecovery { get; set; }
+
+	/// <summary>
+	/// DEPRECATED: please use AutoRecoveryMaxItems.
+	/// <br/><br/>
+	/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxItems property.")]
+	public int? BackplaneAutoRecoveryMaxItems
+	{
+		get { return AutoRecoveryMaxItems; }
+		set { AutoRecoveryMaxItems = value; }
+	}
+
+	// TODO: CHANGE THE DOCS LINKS TO THE NEW ONE SPECIFIC FOR AUTO-RECOVERY
 
 	/// <summary>
 	/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public int? BackplaneAutoRecoveryMaxItems { get; set; }
+	public int? AutoRecoveryMaxItems { get; set; }
 
 	/// <summary>
-	/// The maximum number of retries for a backplane auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+	/// DEPRECATED: please use AutoRecoveryMaxRetryCount.
+	/// <br/><br/>
+	/// The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public int? BackplaneAutoRecoveryMaxRetryCount { get; set; }
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxRetryCount property.")]
+	public int? BackplaneAutoRecoveryMaxRetryCount
+	{
+		get { return AutoRecoveryMaxRetryCount; }
+		set { AutoRecoveryMaxRetryCount = value; }
+	}
 
 	/// <summary>
+	/// The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public int? AutoRecoveryMaxRetryCount { get; set; }
+
+	/// <summary>
+	/// DEPRECATED: please use AutoRecoveryDelay.
+	/// <br/><br/>
 	/// The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	[Obsolete("Please use BackplaneAutoRecoveryDelay instead.")]
+	[Obsolete("Please use AutoRecoveryDelay instead.")]
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay
 	{
-		get { return BackplaneAutoRecoveryDelay; }
-		set { BackplaneAutoRecoveryDelay = value; }
+		get { return AutoRecoveryDelay; }
+		set { AutoRecoveryDelay = value; }
 	}
 
 	/// <summary>
-	/// The amount of time to wait before actually processing the backplane auto-recovery queue, to better handle backpressure.
+	/// DEPRECATED: please use AutoRecoveryDelay.
+	/// <br/><br/>
+	/// The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public TimeSpan BackplaneAutoRecoveryDelay { get; set; }
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
+	public TimeSpan BackplaneAutoRecoveryDelay
+	{
+		get; set;
+	}
+
+	/// <summary>
+	/// The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
+	/// <br/>
+	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public TimeSpan AutoRecoveryDelay { get; set; }
 
 	/// <summary>
 	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	[Obsolete("This is not needed anymore, everything is automatically handled now.")]
+	[Obsolete("This is not needed anymore, everything is handled automatically now.")]
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
 
 	/// <summary>

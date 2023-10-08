@@ -15,7 +15,8 @@ internal sealed class FusionCacheMemoryEntry
 	/// <param name="value">The actual value.</param>
 	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
-	public FusionCacheMemoryEntry(object? value, FusionCacheEntryMetadata? metadata, long? timestamp, Type valueType)
+	/// <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
+	public FusionCacheMemoryEntry(object? value, FusionCacheEntryMetadata? metadata, long timestamp, Type valueType)
 	{
 		Value = value;
 		Metadata = metadata;
@@ -32,7 +33,7 @@ internal sealed class FusionCacheMemoryEntry
 	public FusionCacheEntryMetadata? Metadata { get; private set; }
 
 	/// <inheritdoc/>
-	public long? Timestamp { get; private set; }
+	public long Timestamp { get; private set; }
 
 	/// <inheritdoc/>
 	public TValue GetValue<TValue>()
@@ -75,6 +76,7 @@ internal sealed class FusionCacheMemoryEntry
 	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="timestamp">The value for the <see cref="Timestamp"/> property.</param>
+	/// <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
 	/// <returns>The newly created entry.</returns>
 	public static FusionCacheMemoryEntry CreateFromOptions(object? value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long? timestamp, Type valueType)
 	{

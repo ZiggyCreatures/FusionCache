@@ -150,8 +150,8 @@ internal sealed partial class BackplaneAccessor
 
 			ProcessError(operationId, "", exc, $"subscribing to a backplane of type {_backplane.GetType().FullName}");
 
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while subscribing to a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, "", _backplane.GetType().FullName);
+			//if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+			//	_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while subscribing to a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, "", _backplane.GetType().FullName);
 		}
 	}
 
@@ -167,8 +167,8 @@ internal sealed partial class BackplaneAccessor
 
 			ProcessError(operationId, "", exc, $"unsubscribing from a backplane of type {_backplane.GetType().FullName}");
 
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while unsubscribing from a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, "", _backplane.GetType().FullName);
+			//if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+			//	_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while unsubscribing from a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, "", _backplane.GetType().FullName);
 		}
 	}
 
@@ -179,7 +179,7 @@ internal sealed partial class BackplaneAccessor
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): backplane " + (info.IsReconnection ? "re-connected" : "connected"), _cache.CacheName, _cache.InstanceId, operationId);
 
-		if (info.IsReconnection && _options.EnableBackplaneAutoRecovery)
+		if (info.IsReconnection && _options.EnableAutoRecovery)
 		{
 			_cache.TryUpdateAutoRecoveryBarrier(operationId);
 		}
@@ -208,6 +208,9 @@ internal sealed partial class BackplaneAccessor
 			_events.OnCircuitBreakerChange(operationId, null, true);
 		}
 
+		// EVENT
+		_events.OnMessageReceived(operationId, message);
+
 		// IGNORE NULL
 		if (message is null)
 		{
@@ -233,7 +236,7 @@ internal sealed partial class BackplaneAccessor
 		}
 
 		// AUTO-RECOVERY
-		if (_options.EnableBackplaneAutoRecovery)
+		if (_options.EnableAutoRecovery)
 		{
 			if (_cache.CheckIncomingMessageForAutoRecoveryConflicts(operationId, message) == false)
 			{
@@ -243,9 +246,6 @@ internal sealed partial class BackplaneAccessor
 				return;
 			}
 		}
-
-		// EVENT
-		_events.OnMessageReceived(operationId, message);
 
 		// PROCESS MESSAGE
 		switch (message.Action)
@@ -290,7 +290,7 @@ internal sealed partial class BackplaneAccessor
 		if (mca is null)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 0", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): no memory cache, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 			return;
 		}
 
@@ -300,7 +300,7 @@ internal sealed partial class BackplaneAccessor
 		if (memoryEntry is null)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 1", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): no memory entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 			return;
 		}
 
@@ -315,62 +315,44 @@ internal sealed partial class BackplaneAccessor
 		if (memoryEntry.Timestamp >= message.Timestamp)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 2", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than the incoming backplane message, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 			return;
 		}
 
-		if (_cache.HasDistributedCache == false)
+		if (_cache.HasDistributedCache)
 		{
-			_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 3", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-			return;
-		}
+			var dca = _cache.GetCurrentDistributedAccessor(null);
+			if (dca.CanBeUsed(operationId, cacheKey) == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed cache not currently usable, expiring local memory entry", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 
-		var dca = _cache.GetCurrentDistributedAccessor(null);
-		if (dca.CanBeUsed(operationId, cacheKey) == false)
-		{
-			_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 4", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-			return;
-		}
+				_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
 
-		//if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//	_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): during backplane auto-recovery of an item, the distributed cache was necessary (because of the EnableDistributedExpireOnBackplaneAutoRecovery option) but was not available", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+				return;
+			}
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 5", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			(var error, var isSame, var hasUpdated) = await _cache.TryUpdateMemoryEntryFromDistributedEntryUntypedAsync(operationId, cacheKey, memoryEntry).ConfigureAwait(false);
 
-		(var isSame, var hasUpdated) = await _cache.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, cacheKey, memoryEntry).ConfigureAwait(false);
+			if (error == false)
+			{
+				if (isSame)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry is the same as the distributed entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+					return;
+				}
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 6", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-
-		if (isSame)
-		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 7", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-			return;
-		}
-
-		if (hasUpdated)
-		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 8", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-			return;
+				if (hasUpdated)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from the distributed entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+					return;
+				}
+			}
 		}
 
 		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
-
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 9", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-
-		//// TODO: CACHE THE METHOD INFO
-		//var methodInfo = typeof(BackplaneAccessor).GetMethod(nameof(Foo), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).MakeGenericMethod(memoryEntry.ValueType);
-		//var task = (Task)methodInfo.Invoke(this, new object[] { operationId, cacheKey, dca!, options, memoryEntry });
-
-		//await task.ConfigureAwait(false);
 	}
 
 	public async ValueTask<bool> PublishSentinelAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)

@@ -2250,12 +2250,30 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EnableBackplaneAutoRecovery">
             <summary>
+            DEPRECATED: please use EnableAutoRecovery.
+            <br/><br/>
+            Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EnableAutoRecovery">
+            <summary>
             Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryMaxItems">
+            <summary>
+            DEPRECATED: please use AutoRecoveryMaxItems.
+            <br/><br/>
+            The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.AutoRecoveryMaxItems">
             <summary>
             The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
             <br/><br/>
@@ -2264,13 +2282,24 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryMaxRetryCount">
             <summary>
-            The maximum number of retries for a backplane auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+            DEPRECATED: please use AutoRecoveryMaxRetryCount.
+            <br/><br/>
+            The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.AutoRecoveryMaxRetryCount">
+            <summary>
+            The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryReconnectDelay">
             <summary>
+            DEPRECATED: please use AutoRecoveryDelay.
+            <br/><br/>
             The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
             <br/>
             Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky).
@@ -2280,7 +2309,18 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneAutoRecoveryDelay">
             <summary>
-            The amount of time to wait before actually processing the backplane auto-recovery queue, to better handle backpressure.
+            DEPRECATED: please use AutoRecoveryDelay.
+            <br/><br/>
+            The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
+            <br/>
+            Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky).
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.AutoRecoveryDelay">
+            <summary>
+            The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
             <br/>
             Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky).
             <br/><br/>
@@ -2889,7 +2929,7 @@
             </summary>
             <typeparam name="TValue">The type of the entry's value</typeparam>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.#ctor(`0,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.#ctor(`0,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Int64)">
             <summary>
             Creates a new instance.
             </summary>
@@ -2920,7 +2960,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOptions(`0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOptions(`0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Int64)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/> instance from a value and some options.
             </summary>
@@ -3134,13 +3174,14 @@
             An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory layer.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Nullable{System.Int64},System.Type)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Int64,System.Type)">
             <summary>
             Creates a new instance.
             </summary>
             <param name="value">The actual value.</param>
             <param name="metadata">The metadata for the entry.</param>
             <param name="timestamp">The original timestamp of the entry, see <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp"/>.</param>
+            <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Value">
             <inheritdoc/>
@@ -3170,6 +3211,7 @@
             <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
             <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
             <param name="timestamp">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp"/> property.</param>
+            <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
             <returns>The newly created entry.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOtherEntry``1(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">

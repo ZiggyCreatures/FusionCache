@@ -18,11 +18,11 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <param name="value">The actual value.</param>
 	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
-	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long? timestamp = null)
+	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp)
 	{
 		Value = value;
 		Metadata = metadata;
-		Timestamp = timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp();
+		Timestamp = timestamp;
 	}
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -47,7 +47,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 	/// <inheritdoc/>
 	[DataMember(Name = "t", EmitDefaultValue = false)]
-	public long? Timestamp { get; set; }
+	public long Timestamp { get; set; }
 
 	/// <inheritdoc/>
 	public TValue1 GetValue<TValue1>()
@@ -88,7 +88,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="timestamp">The value for the <see cref="Timestamp"/> property.</param>
 	/// <returns>The newly created entry.</returns>
-	public static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long? timestamp)
+	public static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
 	{
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
 
@@ -97,7 +97,8 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified),
-			timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp()
+			//timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp()
+			timestamp
 		);
 	}
 

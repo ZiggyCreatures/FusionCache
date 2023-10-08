@@ -351,9 +351,9 @@ namespace FusionCacheTests
 			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; });
-			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; });
-			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; });
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; });
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -391,7 +391,7 @@ namespace FusionCacheTests
 			backplane3.SetNeverThrow();
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			Assert.Equal(3, await cache1.GetOrSetAsync<int>(key, async _ => _value));
 			Assert.Equal(3, await cache2.GetOrSetAsync<int>(key, async _ => _value));
@@ -416,9 +416,9 @@ namespace FusionCacheTests
 			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; });
-			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; });
-			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; });
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; });
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -456,7 +456,7 @@ namespace FusionCacheTests
 			backplane3.SetNeverThrow();
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value));
@@ -481,9 +481,9 @@ namespace FusionCacheTests
 			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = false; });
-			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = false; });
-			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = false; });
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = false; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = false; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = false; });
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -521,7 +521,7 @@ namespace FusionCacheTests
 			backplane3.SetNeverThrow();
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value));
 			Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value));
@@ -546,9 +546,9 @@ namespace FusionCacheTests
 			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = false; });
-			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = false; });
-			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = false; });
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = false; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = false; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = false; });
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -586,7 +586,7 @@ namespace FusionCacheTests
 			backplane3.SetNeverThrow();
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
 			Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
@@ -612,9 +612,9 @@ namespace FusionCacheTests
 			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
-			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
-			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -661,7 +661,7 @@ namespace FusionCacheTests
 			backplane3.SetNeverThrow();
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
-			await Task.Delay(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			_value = 42;
 
@@ -693,9 +693,9 @@ namespace FusionCacheTests
 			var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 			var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
-			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
-			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableBackplaneAutoRecovery = true; opt.BackplaneAutoRecoveryMaxItems = 1; });
+			using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
+			using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
+			using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
 
 			cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -742,7 +742,7 @@ namespace FusionCacheTests
 			backplane3.SetNeverThrow();
 
 			// WAIT FOR THE AUTO-RECOVERY DELAY
-			Thread.Sleep(defaultOptions.BackplaneAutoRecoveryDelay.PlusALittleBit());
+			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
 
 			_value = 42;
 
