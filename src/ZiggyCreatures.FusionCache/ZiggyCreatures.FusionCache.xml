@@ -62,34 +62,38 @@
             </summary>
             <returns><see langword="true"/> if it seems valid, <see langword="false"/> otherwise.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySet(System.String,System.String,System.Nullable{System.Int64})">
             <summary>
             Creates a message for a single cache entry set operation (via either a Set() or a GetOrSet() method call).
             </summary>
+            <param name="sourceId">The cache InstanceId of the source.</param>
             <param name="cacheKey">The cache key.</param>
             <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryRemove(System.String,System.String,System.Nullable{System.Int64})">
             <summary>
             Creates a message for a single cache entry remove (via a Remove() method call).
             </summary>
+            <param name="sourceId">The cache InstanceId of the source.</param>
             <param name="cacheKey">The cache key.</param>
             <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryExpire(System.String,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntryExpire(System.String,System.String,System.Nullable{System.Int64})">
             <summary>
             Creates a message for a single cache entry expire operation (via an Expire() method call).
             </summary>
+            <param name="sourceId">The cache InstanceId of the source.</param>
             <param name="cacheKey">The cache key.</param>
             <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySentinel(System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.CreateForEntrySentinel(System.String,System.String)">
             <summary>
             Creates a message for a single cache entry sentinel operation.
             </summary>
+            <param name="sourceId">The cache InstanceId of the source.</param>
             <param name="cacheKey">The cache key.</param>
             <returns>The message.</returns>
         </member>
@@ -3130,7 +3134,7 @@
             An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory layer.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Nullable{System.Int64},System.Type)">
             <summary>
             Creates a new instance.
             </summary>
@@ -3156,7 +3160,7 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOptions(System.Object,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.Int64})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOptions(System.Object,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.Int64},System.Type)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from a value and some options.
             </summary>

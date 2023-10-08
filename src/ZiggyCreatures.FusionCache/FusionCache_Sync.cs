@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -113,7 +113,7 @@ public partial class FusionCache
 			{
 				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
 				{
-					(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, token);
+					(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
 				}
 			}
 
@@ -198,7 +198,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp);
+				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp, typeof(TValue));
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
@@ -220,7 +220,7 @@ public partial class FusionCache
 		if (hasNewValue)
 		{
 			if (isStale == false)
-				ExecuteDistributedSet<TValue>(operationId, key, entry!, options, token);
+				DistributedSetEntry<TValue>(operationId, key, entry!, options, token);
 
 			_events.OnMiss(operationId, key);
 			_events.OnSet(operationId, key);
@@ -248,7 +248,7 @@ public partial class FusionCache
 				FusionCacheDistributedEntry<TValue>? distributedEntry;
 				bool distributedEntryIsValid;
 
-				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, token);
+				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token);
 				if (distributedEntryIsValid)
 				{
 					if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
@@ -413,7 +413,7 @@ public partial class FusionCache
 		FusionCacheDistributedEntry<TValue>? distributedEntry;
 		bool distributedEntryIsValid;
 
-		(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, token);
+		(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
 		if (distributedEntryIsValid)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -553,7 +553,7 @@ public partial class FusionCache
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling Set<T> {Options}", CacheName, operationId, key, options.ToLogString());
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null);
+		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null, typeof(TValue));
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
@@ -561,7 +561,7 @@ public partial class FusionCache
 			mca.SetEntry<TValue>(operationId, key, entry, options);
 		}
 
-		ExecuteDistributedSet<TValue>(operationId, key, entry, options, token);
+		DistributedSetEntry<TValue>(operationId, key, entry, options, token);
 
 		// EVENT
 		_events.OnSet(operationId, key);
@@ -590,7 +590,7 @@ public partial class FusionCache
 			mca.RemoveEntry(operationId, key, options);
 		}
 
-		ExecuteDistributedRemove(operationId, key, options, token);
+		DistributedRemoveEntry(operationId, key, options, token);
 
 		// EVENT
 		_events.OnRemove(operationId, key);
@@ -616,79 +616,143 @@ public partial class FusionCache
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
 		{
-			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
+			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 		}
 
-		ExecuteDistributedExpire(operationId, key, options, token);
+		DistributedExpireEntry(operationId, key, options, token);
 
 		// EVENT
 		_events.OnExpire(operationId, key);
 	}
 
-	private bool MaybePublishInternal(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool distributedCacheHasSaved, CancellationToken token)
+	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, Func<DistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		if (_bpa is null)
-			return false;
+		if (RequiresDistributedOperations(options) == false)
+			return;
 
-		if (options.SkipBackplaneNotifications)
-			return false;
+		var mustAwaitCompletion = MustAwaitDistributedOperations(options);
+		var isBackground = !mustAwaitCompletion;
 
-		if (HasDistributedCache && distributedCacheHasSaved == false)
-		{
-			_bpa.TryAddAutoRecoveryItem(operationId, message, options, true);
-			return false;
-		}
+		FusionCacheExecutionUtils.RunSyncActionAdvanced(
+			ct =>
+			{
+				// DISTRIBUTED CACHE
+				var dca = GetCurrentDistributedAccessor(options);
+				if (dca is not null)
+				{
+					var dcaSuccess = false;
+					try
+					{
+						if (dca.IsCurrentlyUsable(operationId, key))
+						{
+							dcaSuccess = distributedCacheAction(dca, isBackground, ct);
+						}
+					}
+					catch
+					{
+						//dcaSuccess = false;
+						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						throw;
+					}
 
-		return _bpa.Publish(operationId, message, options, distributedCacheHasSaved, false, token);
+					if (dcaSuccess == false)
+					{
+						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						return;
+					}
+				}
+
+				// TODO: HANDLE BACKGROUND PROCESSING HERE... MAYBE...
+
+				// BACKPLANE
+				var bpa = GetCurrentBackplaneAccessor(options);
+				if (bpa is not null)
+				{
+					var bpaSuccess = false;
+					try
+					{
+						if (bpa.IsCurrentlyUsable(operationId, key))
+						{
+							bpaSuccess = backplaneAction(bpa, isBackground, ct);
+						}
+					}
+					catch
+					{
+						bpaSuccess = false;
+					}
+
+					if (bpaSuccess == false)
+					{
+						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+					}
+				}
+			},
+			Timeout.InfiniteTimeSpan,
+			false,
+			mustAwaitCompletion,
+			null,
+			true,
+			token
+		);
 	}
 
-	private void ExecuteDistributedSet<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
+	private void DistributedSetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// DISTRIBUTED CACHE
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = dca!.SetEntry<TValue>(operationId, key, entry, options, token);
-		}
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-			MaybePublishInternal(operationId, BackplaneMessage.CreateForEntrySet(key, entry.Timestamp), options, dcaHasSaved, token);
+		ExecuteDistributedAction(
+			operationId,
+			key,
+			FusionCacheAction.EntrySet,
+			(dca, isBackground, ct) =>
+			{
+				return dca!.SetEntry<TValue>(operationId, key, entry, options, isBackground, ct);
+			},
+			(bpa, isBackground, ct) =>
+			{
+				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
+				return bpa.PublishSet(operationId, key, entry.Timestamp, options, false, isBackground, ct);
+			},
+			options,
+			token
+		);
 	}
 
-	private void ExecuteDistributedRemove(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	private void DistributedRemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// DISTRIBUTED CACHE
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = dca!.RemoveEntry(operationId, key, options, token);
-		}
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-			MaybePublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key, null), options, dcaHasSaved, token);
+		ExecuteDistributedAction(
+			operationId,
+			key,
+			FusionCacheAction.EntrySet,
+			(dca, isBackground, ct) =>
+			{
+				return dca.RemoveEntry(operationId, key, options, isBackground, ct);
+			},
+			(bpa, isBackground, ct) =>
+			{
+				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
+				return bpa.PublishRemove(operationId, key, null, options, false, isBackground, ct);
+			},
+			options,
+			token
+		);
 	}
 
-	private void ExecuteDistributedExpire(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	private void DistributedExpireEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// DISTRIBUTED CACHE
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = dca!.RemoveEntry(operationId, key, options, token);
-		}
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-		{
-			if (options.IsFailSafeEnabled)
-				MaybePublishInternal(operationId, BackplaneMessage.CreateForEntryExpire(key, null), options, dcaHasSaved, token);
-			else
-				MaybePublishInternal(operationId, BackplaneMessage.CreateForEntryRemove(key, null), options, dcaHasSaved, token);
-		}
+		ExecuteDistributedAction(
+			operationId,
+			key,
+			FusionCacheAction.EntrySet,
+			(dca, isBackground, ct) =>
+			{
+				return dca.RemoveEntry(operationId, key, options, isBackground, ct);
+			},
+			(bpa, isBackground, ct) =>
+			{
+				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
+				return bpa.PublishExpire(operationId, key, null, options, false, isBackground, ct);
+			},
+			options,
+			token
+		);
 	}
 }

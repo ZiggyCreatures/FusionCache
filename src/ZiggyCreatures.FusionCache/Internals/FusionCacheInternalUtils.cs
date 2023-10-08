@@ -208,11 +208,18 @@ internal static class FusionCacheInternalUtils
 		return b ? "Y" : "N";
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string? ToString(this bool b, string? trueString, string? falseString = null)
+	{
+		return b ? trueString : falseString;
+	}
+
 	public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
 		if (entry is FusionCacheDistributedEntry<TValue>)
 			return (FusionCacheDistributedEntry<TValue>)entry;
 
+		// TODO: CHECK THIS AGAIN
 		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
@@ -320,4 +327,15 @@ internal static class FusionCacheInternalUtils
 
 		return false;
 	}
+
+	//public static bool CanBeUsed(this BackplaneAccessor? bpa, string? operationId, string? key)
+	//{
+	//	if (bpa is null)
+	//		return false;
+
+	//	if (bpa.IsCurrentlyUsable(operationId, key))
+	//		return true;
+
+	//	return false;
+	//}
 }

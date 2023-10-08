@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,19 +16,6 @@ internal sealed partial class BackplaneAccessor
 	private readonly FusionCacheBackplaneEventsHub _events;
 	private readonly SimpleCircuitBreaker _breaker;
 
-	// AUTO-RECOVERY
-	private readonly ConcurrentDictionary<string, BackplaneAutoRecoveryItem> _autoRecoveryQueue = new ConcurrentDictionary<string, BackplaneAutoRecoveryItem>();
-	private readonly SemaphoreSlim _autoRecoveryProcessingLock = new SemaphoreSlim(1, 1);
-	private readonly FusionCacheEntryOptions _autoRecoveryDistributedCacheEntryOptions;
-	private readonly FusionCacheEntryOptions _autoRecoverySentinelEntryOptions;
-	private readonly int _autoRecoveryMaxItems;
-	private readonly int _autoRecoveryMaxRetryCount;
-	private readonly TimeSpan _autoRecoveryDelay;
-	private static readonly TimeSpan _autoRecoveryMinDelay = TimeSpan.FromMilliseconds(10);
-	private CancellationTokenSource? _autoRecoveryCts;
-	private long _autoRecoveryBarrierTicks = 0;
-	private readonly string _autoRecoverySentinelCacheKey = Guid.NewGuid().ToString("N");
-
 	public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
 	{
 		if (cache is null)
@@ -44,51 +28,12 @@ internal sealed partial class BackplaneAccessor
 		_backplane = backplane;
 
 		_options = options;
-		_autoRecoveryDelay = _options.BackplaneAutoRecoveryDelay;
-		// NOTE: THIS IS PRAGMATIC, SO TO AVOID CHECKING AN int? EVERY TIME, AND int.MaxValue IS HIGH ENOUGH THAT IT WON'T MATTER
-		_autoRecoveryMaxItems = _options.BackplaneAutoRecoveryMaxItems ?? int.MaxValue;
-		_autoRecoveryMaxRetryCount = _options.BackplaneAutoRecoveryMaxRetryCount ?? int.MaxValue;
 
 		_logger = logger;
 		_events = events;
 
 		// CIRCUIT-BREAKER
 		_breaker = new SimpleCircuitBreaker(options.BackplaneCircuitBreakerDuration);
-
-		// AUTO-RECOVERY SPECIFIC ENTRY OPTIONS
-		_autoRecoveryDistributedCacheEntryOptions = new FusionCacheEntryOptions
-		{
-			// MEMORY CACHE
-			SkipMemoryCache = true,
-			// DISTRIBUTED CACHE
-			SkipDistributedCache = false,
-			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
-			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
-			AllowBackgroundDistributedCacheOperations = false,
-			ReThrowDistributedCacheExceptions = true,
-			SkipDistributedCacheReadWhenStale = false,
-			// BACKPLANE
-			SkipBackplaneNotifications = true,
-			AllowBackgroundBackplaneOperations = false,
-			ReThrowBackplaneExceptions = true
-		};
-
-		_autoRecoverySentinelEntryOptions = new FusionCacheEntryOptions
-		{
-			// MEMORY CACHE
-			SkipMemoryCache = true,
-			// DISTRIBUTED CACHE
-			SkipDistributedCache = false,
-			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
-			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
-			AllowBackgroundDistributedCacheOperations = false,
-			ReThrowDistributedCacheExceptions = true,
-			SkipDistributedCacheReadWhenStale = false,
-			// BACKPLANE
-			SkipBackplaneNotifications = false,
-			AllowBackgroundBackplaneOperations = false,
-			ReThrowBackplaneExceptions = true
-		};
 	}
 
 	private void UpdateLastError(string key, string operationId)
@@ -141,356 +86,50 @@ internal sealed partial class BackplaneAccessor
 			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _cache.CacheName, _cache.InstanceId, operationId, key);
 	}
 
-	public bool TryAddAutoRecoveryItem(string? operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool preSyncDistributedCache)
+	private bool CheckMessage(string operationId, BackplaneMessage message, bool isAutoRecovery)
 	{
-		if (message.CacheKey is null)
-			return false;
-
-		if (_options.EnableBackplaneAutoRecovery == false)
-			return false;
-
-		options = options.Duplicate();
-		// DISTRIBUTED CACHE
-		if (options.SkipDistributedCache == false)
-		{
-			options.AllowBackgroundDistributedCacheOperations = false;
-			options.DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan;
-			options.DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan;
-			options.ReThrowDistributedCacheExceptions = true;
-			options.SkipDistributedCacheReadWhenStale = false;
-		}
-		// BACKPLANE
-		options.SkipBackplaneNotifications = true;
-		options.AllowBackgroundBackplaneOperations = false;
-		options.ReThrowBackplaneExceptions = true;
-
-		var duration = (options.SkipDistributedCache || _cache.HasDistributedCache == false) ? options.Duration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration);
-		var expirationTicks = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(duration, options, false).Ticks;
-
-		if (_autoRecoveryQueue.Count >= _autoRecoveryMaxItems && _autoRecoveryQueue.ContainsKey(message.CacheKey) == false)
-		{
-			// IF:
-			// - A LIMIT HAS BEEN SET
-			// - THE LIMIT HAS BEEN REACHED OR SURPASSED
-			// - THE ITEM TO BE ADDED IS NOT ALREADY THERE (OTHERWISE IT WILL BE AN OVERWRITE AND SIZE WILL NOT GROW)
-			// THEN:
-			// - FIND THE ITEM THAT WILL EXPIRE SOONER AND REMOVE IT
-			// - OR, IF NEW ITEM WILL EXPIRE SOONER, DO NOT ADD IT
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): the auto-recovery queue has reached the max size of {MaxSize}", _cache.CacheName, _cache.InstanceId, operationId, message?.CacheKey, _autoRecoveryMaxItems);
-
-			try
-			{
-				var earliestToExpire = _autoRecoveryQueue.Values.OrderBy(x => x.ExpirationTicks).FirstOrDefault();
-				if (earliestToExpire.Message is not null)
-				{
-					if (earliestToExpire.ExpirationTicks < expirationTicks)
-					{
-						if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-							_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an item with cache key {CacheKeyToRemove} has been removed from the backplane auto-recovery queue to make space for the new one", _cache.CacheName, _cache.InstanceId, operationId, message?.CacheKey, earliestToExpire.Message.CacheKey);
-
-						// REMOVE THE QUEUED ITEM
-						_autoRecoveryQueue.TryRemove(earliestToExpire.Message.CacheKey!, out _);
-					}
-					else
-					{
-						if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-							_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): the item has not been added to the backplane auto-recovery queue because it would have expired earlier than the earliest item already present in the queue (with cache key {CacheKeyEarliest})", _cache.CacheName, _cache.InstanceId, operationId, message?.CacheKey, earliestToExpire.Message.CacheKey);
-
-						// IGNORE THE NEW ITEM
-						return false;
-					}
-				}
-			}
-			catch (Exception exc)
-			{
-				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while deciding which item in the backplane auto-recovery queue to remove to make space for a new one", _cache.CacheName, _cache.InstanceId, operationId, message?.CacheKey);
-			}
-		}
-
+		// CHECK: IGNORE NULL
 		if (message is null)
-			return false;
-
-		_autoRecoveryQueue[message.CacheKey] = new BackplaneAutoRecoveryItem(message, options, expirationTicks, preSyncDistributedCache, _autoRecoveryMaxRetryCount);
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): added (or overwrote) an item to the backplane auto-recovery queue", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
-
-		return true;
-	}
-
-	private bool TryRemoveAutoRecoveryItemByCacheKey(string? operationId, string? cacheKey)
-	{
-		if (cacheKey is null)
-			return false;
-
-		if (_autoRecoveryQueue.ContainsKey(cacheKey) == false)
-			return false;
-
-		if (_autoRecoveryQueue.TryRemove(cacheKey, out _))
 		{
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): removed an item from the backplane auto-recovery queue because a new one is about to be sent", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private bool CheckIncomingMessageForAutoRecoveryConflicts(BackplaneMessage message)
-	{
-		if (message.CacheKey is null)
-		{
-			return true;
-		}
-
-		if (_autoRecoveryQueue.TryGetValue(message.CacheKey, out var pendingLocal) == false)
-		{
-			// NO PENDING LOCAL MESSAGE WITH THE SAME KEY
-			return true;
-		}
-
-		if (pendingLocal.Message.Timestamp <= message.Timestamp)
-		{
-			// PENDING LOCAL MESSAGE IS -OLDER- THAN THE INCOMING ONE -> REMOVE THE LOCAL ONE
-			_autoRecoveryQueue.TryRemove(message.CacheKey, out _);
-			return true;
-		}
-
-		// PENDING LOCAL MESSAGE IS -NEWER- THAN THE INCOMING ONE -> DO NOT PROCESS THE INCOMING ONE
-		return false;
-	}
-
-	private bool TryCleanUpAutoRecoveryQueue(string operationId, IList<BackplaneAutoRecoveryItem> items)
-	{
-		if (items.Count == 0)
-			return false;
-
-		var atLeastOneRemoved = false;
-		for (int i = items.Count - 1; i >= 0; i--)
-		{
-			var item = items[i];
-			// IF THE ITEM IS SINCE EXPIRED -> REMOVE IT FROM THE QUEUE *AND* FROM THE LIST
-			if (item.IsExpired())
-			{
-				_autoRecoveryQueue.TryRemove(item.Message.CacheKey!, out _);
-				items.RemoveAt(i);
-				atLeastOneRemoved = true;
-
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): auto cleanup of backplane auto-recovery item", _cache.CacheName, _cache.InstanceId, operationId, item.Message.CacheKey);
-			}
-		}
-
-		return atLeastOneRemoved;
-	}
-
-	private async ValueTask<bool> TryProcessAutoRecoveryQueueAsync(string operationId, CancellationToken token = default)
-	{
-		if (_options.EnableBackplaneAutoRecovery == false)
-			return false;
-
-		if (IsCurrentlyUsable(operationId, null) == false)
-			return false;
-
-		if (_autoRecoveryQueue.Count == 0)
-			return false;
-
-		// ACQUIRE THE LOCK
-		if (_autoRecoveryProcessingLock.Wait(0) == false)
-		{
-			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY PROCESSING IS ALREADY ONGOING, SO WE JUST RETURN
-			return false;
-		}
-
-		// SNAPSHOT THE ITEMS TO PROCESS
-		var itemsToProcess = _autoRecoveryQueue.Values.ToList();
-
-		// INITIAL CLEANUP
-		TryCleanUpAutoRecoveryQueue(operationId, itemsToProcess);
-
-		// IF NO REMAINING ITEMS -> JUST RELEASE THE LOCK AND RETURN
-		if (itemsToProcess.Count == 0)
-		{
-			_autoRecoveryProcessingLock.Release();
-			return false;
-		}
-
-		var processedCount = 0;
-		var hasStopped = false;
-		string? cacheKey = null;
-
-		try
-		{
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): starting backplane auto-recovery of {Count} pending items", _cache.CacheName, _cache.InstanceId, operationId, itemsToProcess.Count);
-
-			// PUBLISH (SENTINEL)
-			await PublishAsync(operationId, BackplaneMessage.CreateForEntrySentinel(_autoRecoverySentinelCacheKey), _autoRecoverySentinelEntryOptions, true, true, token).ConfigureAwait(false);
-
-			foreach (var item in itemsToProcess)
-			{
-				processedCount++;
-				cacheKey = item.Message.CacheKey!;
-
-				token.ThrowIfCancellationRequested();
-
-				try
-				{
-					// IF:
-					// - THERE IS A DISTRIBUTED CACHE
-					// - AND THE ITEM REQUIRES A PRE-SYNC WITH THE DISTRIBUTED CACHE
-					// - AND SkipDistributedCache IS NOT ENABLED
-					// THEN:
-					// - REMOVE THE ENTRY (BUT ONLY FROM THE DISTRIBUTED CACHE)
-					if (_cache.HasDistributedCache && item.PreSyncDistributedCache && item.Options.SkipDistributedCache == false)
-					{
-						var dca = _cache.GetCurrentDistributedAccessor(_autoRecoveryDistributedCacheEntryOptions);
-						if (dca.CanBeUsed(operationId, cacheKey) == false)
-						{
-							if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-								_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): during backplane auto-recovery of an item, the distributed cache was necessary (because of the EnableDistributedExpireOnBackplaneAutoRecovery option) but was not available", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-
-							// STOP PROCESSING THE QUEUE
-							hasStopped = true;
-							return false;
-						}
-
-						var hasRemoved = await dca!.RemoveEntryAsync(operationId, cacheKey, _autoRecoveryDistributedCacheEntryOptions, token).ConfigureAwait(false);
-						if (hasRemoved == false)
-						{
-							// STOP PROCESSING THE QUEUE
-							hasStopped = true;
-							return false;
-						}
-					}
-
-					// PUBLISH
-					await PublishAsync(operationId, item.Message, item.Options, item.PreSyncDistributedCache == false, true, token).ConfigureAwait(false);
-
-					// IF ALL WENT WELL -> REMOVE ITEM FROM THE QUEUE
-					_autoRecoveryQueue.TryRemove(cacheKey, out _);
-				}
-				catch (OperationCanceledException)
-				{
-					// EMPTY
-					return false;
-				}
-				catch (Exception exc)
-				{
-					// UPDATE RETRY COUNT
-					item.RecordRetry();
-
-					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-						_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during backplane auto-recovery of an item ({RetryCount} retries left)", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, item.RetryCount);
-
-					if (item.CanRetry() == false)
-					{
-						_autoRecoveryQueue.TryRemove(cacheKey, out var removedMessage);
-
-						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-							_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane auto-recovery item retried too many times, so it has been removed from the queue", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
-					}
-
-					// STOP PROCESSING THE QUEUE
-					hasStopped = true;
-					return false;
-				}
-			}
-
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): completed backplane auto-recovery of {Count} items", _cache.CacheName, _cache.InstanceId, operationId, processedCount);
-		}
-		catch (OperationCanceledException)
-		{
-			hasStopped = true;
-
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): backplane auto-recovery canceled after having processed {Count} items", _cache.CacheName, _cache.InstanceId, operationId, processedCount);
-		}
-		catch (Exception exc)
-		{
-			hasStopped = true;
-
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during backplane auto-recovery", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
+
+			return false;
 		}
-		finally
+
+		// CHECK: IS VALID
+		if (message.IsValid() == false)
 		{
-			if (hasStopped)
-			{
-				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped backplane auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, cacheKey, processedCount);
-			}
+			// IGNORE INVALID MESSAGES
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send an invalid backplane message" + isAutoRecovery.ToString(" (auto-recovery)"), _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
 
-			// RELEASE THE LOCK
-			_autoRecoveryProcessingLock.Release();
+			return false;
 		}
 
+		//// CHECK: EMPTY SOURCE ID
+		//if (string.IsNullOrEmpty(message.SourceId))
+		//{
+		//	//// AUTO-ASSIGN LOCAL SOURCE ID
+		//	//message.SourceId = _cache.InstanceId;
+
+		//	if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+		//		_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + isAutoRecovery.ToString(" (auto-recovery)") + " with a null/empty SourceId", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
+
+		//	return false;
+		//}
+
+		// CHECK: WRONG SOURCE ID
+		if (message.SourceId != _cache.InstanceId)
+		{
+			// IGNORE MESSAGES -NOT- FROM THIS SOURCE
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + isAutoRecovery.ToString(" (auto-recovery)") + " with a SourceId different than the local one (IFusionCache.InstanceId)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
+
+			return false;
+		}
 
 		return true;
-	}
-
-	private async Task BackgroundAutoRecoveryAsync()
-	{
-		if (_autoRecoveryCts is null)
-			return;
-
-		try
-		{
-			var ct = _autoRecoveryCts.Token;
-			while (!ct.IsCancellationRequested)
-			{
-				var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
-				var delay = _autoRecoveryDelay;
-				var barrierTicks = Interlocked.Read(ref _autoRecoveryBarrierTicks);
-				if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
-				{
-					// SET THE NEW DELAY TO REACH THE BARRIER
-					var oldDelay = delay;
-					var newTicks = barrierTicks - DateTimeOffset.UtcNow.Ticks + 1_000;
-					delay = TimeSpan.FromTicks(newTicks);
-					if (delay < _autoRecoveryMinDelay)
-					{
-						delay = _autoRecoveryMinDelay;
-						newTicks = delay.Ticks;
-					}
-
-					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): instead of the standard auto-recovery delay of {NormalDelay} the new delay is {NewDelay} ({NewDelayMs} ms, {NewDelayTicks} ticks)", _cache.CacheName, _cache.InstanceId, operationId, oldDelay, delay, delay.TotalMilliseconds, newTicks);
-				}
-
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): awaiting {AutoRecoveryCurrentDelay} before proceeding with backplane auto-recovery", _cache.CacheName, _cache.InstanceId, operationId, delay);
-
-				await Task.Delay(delay, ct);
-
-				// AFTER THE DELAY, UPDATE THE BARRIER
-				barrierTicks = Interlocked.Read(ref _autoRecoveryBarrierTicks);
-
-				// CHECK AGAIN THE BARRIER (MAY HAVE BEEN UPDATED WHILE WAITING): IF UPDATED -> SKIP TO THE NEXT LOOP CYCLE
-				if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
-				{
-					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a barrier has been set after having awaited to start processing the auto-recovery queue: skipping to the next loop cycle", _cache.CacheName, _cache.InstanceId, operationId);
-
-					continue;
-				}
-
-				ct.ThrowIfCancellationRequested();
-
-				if (_autoRecoveryQueue.Count > 0)
-				{
-					_ = await TryProcessAutoRecoveryQueueAsync(operationId, ct);
-				}
-			}
-		}
-		catch (OperationCanceledException)
-		{
-			// EMPTY
-		}
 	}
 
 	public void Subscribe()
@@ -504,21 +143,6 @@ internal sealed partial class BackplaneAccessor
 					HandleIncomingMessage
 				)
 			);
-
-			// AUTO-RECOVERY
-			if (_options.EnableBackplaneAutoRecovery)
-			{
-				if (_autoRecoveryDelay <= TimeSpan.Zero)
-				{
-					if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-						_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): backplane auto-recovery is enabled but cannot be started because the BackplaneAutoRecoveryDelay has been set to zero", _cache.CacheName, _cache.InstanceId, FusionCacheInternalUtils.MaybeGenerateOperationId(_logger), "", _backplane.GetType().FullName);
-				}
-				else
-				{
-					_autoRecoveryCts = new CancellationTokenSource();
-					_ = BackgroundAutoRecoveryAsync();
-				}
-			}
 		}
 		catch (Exception exc)
 		{
@@ -533,18 +157,6 @@ internal sealed partial class BackplaneAccessor
 
 	public void Unsubscribe()
 	{
-		_autoRecoveryQueue.Clear();
-
-		try
-		{
-			_autoRecoveryCts?.Cancel();
-			_autoRecoveryCts = null;
-		}
-		catch (Exception)
-		{
-			throw;
-		}
-
 		try
 		{
 			_backplane.Unsubscribe();
@@ -569,21 +181,19 @@ internal sealed partial class BackplaneAccessor
 
 		if (info.IsReconnection && _options.EnableBackplaneAutoRecovery)
 		{
-			if (_autoRecoveryQueue.Count == 0)
-				return;
-
-			var newBarrier = DateTimeOffset.UtcNow.Ticks + _autoRecoveryDelay.Ticks;
-			var oldBarrier = Interlocked.Exchange(ref _autoRecoveryBarrierTicks, newBarrier);
-
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery barrier set from {OldAutoRecoveryBarrier} to {NewAutoRecoveryBarrier}", _cache.CacheName, _cache.InstanceId, operationId, oldBarrier, newBarrier);
-
-			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting at least {AutoRecoveryDelay} to start backplane auto-recovery to let the other nodes reconnect, to better handle backpressure", _cache.CacheName, _cache.InstanceId, operationId, _autoRecoveryDelay);
+			_cache.TryUpdateAutoRecoveryBarrier(operationId);
 		}
 	}
 
 	private void HandleIncomingMessage(BackplaneMessage message)
+	{
+		_ = Task.Run(async () =>
+		{
+			await HandleIncomingMessageAsync(message).ConfigureAwait(false);
+		});
+	}
+
+	private async ValueTask HandleIncomingMessageAsync(BackplaneMessage message)
 	{
 		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
@@ -625,7 +235,7 @@ internal sealed partial class BackplaneAccessor
 		// AUTO-RECOVERY
 		if (_options.EnableBackplaneAutoRecovery)
 		{
-			if (CheckIncomingMessageForAutoRecoveryConflicts(message) == false)
+			if (_cache.CheckIncomingMessageForAutoRecoveryConflicts(operationId, message) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been discarded since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
@@ -634,6 +244,9 @@ internal sealed partial class BackplaneAccessor
 			}
 		}
 
+		// EVENT
+		_events.OnMessageReceived(operationId, message);
+
 		// PROCESS MESSAGE
 		switch (message.Action)
 		{
@@ -641,13 +254,13 @@ internal sealed partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, true, message.Timestamp);
+				await HandleIncomingMessageSetAsync(operationId, message).ConfigureAwait(false);
 				break;
 			case BackplaneMessageAction.EntryRemove:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, false, message.Timestamp);
+				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, false, null);
 				break;
 			case BackplaneMessageAction.EntryExpire:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -666,8 +279,104 @@ internal sealed partial class BackplaneAccessor
 					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an backplane notification has been received from remote cache {RemoteCacheInstanceId} for an unknown action {Action}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action);
 				break;
 		}
+	}
 
-		// EVENT
-		_events.OnMessageReceived(operationId, message);
+	private async ValueTask HandleIncomingMessageSetAsync(string operationId, BackplaneMessage message)
+	{
+		var cacheKey = message.CacheKey!;
+
+		var mca = _cache.GetCurrentMemoryAccessor();
+
+		if (mca is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 0", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		var memoryEntry = mca.GetEntryOrNull(operationId, cacheKey);
+
+		// IF NO MEMORY ENTRY -> DO NOTHING
+		if (memoryEntry is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 1", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		//// IF NO VALUE -> EXPIRE LOCALLY
+		//if (memoryEntry.Value is null)
+		//{
+		//	_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
+		//	return;
+		//}
+
+		// IF MEMORY ENTRY FRESHER THAN REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
+		if (memoryEntry.Timestamp >= message.Timestamp)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 2", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		if (_cache.HasDistributedCache == false)
+		{
+			_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 3", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		var dca = _cache.GetCurrentDistributedAccessor(null);
+		if (dca.CanBeUsed(operationId, cacheKey) == false)
+		{
+			_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 4", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		//if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+		//	_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): during backplane auto-recovery of an item, the distributed cache was necessary (because of the EnableDistributedExpireOnBackplaneAutoRecovery option) but was not available", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 5", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+
+		(var isSame, var hasUpdated) = await _cache.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, cacheKey, memoryEntry).ConfigureAwait(false);
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 6", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+
+		if (isSame)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 7", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		if (hasUpdated)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 8", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): AAA 9", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+
+		//// TODO: CACHE THE METHOD INFO
+		//var methodInfo = typeof(BackplaneAccessor).GetMethod(nameof(Foo), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).MakeGenericMethod(memoryEntry.ValueType);
+		//var task = (Task)methodInfo.Invoke(this, new object[] { operationId, cacheKey, dca!, options, memoryEntry });
+
+		//await task.ConfigureAwait(false);
+	}
+
+	public async ValueTask<bool> PublishSentinelAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	{
+		var message = BackplaneMessage.CreateForEntrySentinel(_cache.InstanceId, key);
+
+		return await PublishAsync(operationId, FusionCacheAction.Unknown, message, options, true, true, token).ConfigureAwait(false);
 	}
 }

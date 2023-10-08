@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -812,7 +813,7 @@ public class FusionCacheEntryOptions
 			SkipDistributedCache = SkipDistributedCache,
 			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
 
-			SkipMemoryCache = SkipMemoryCache,
+			SkipMemoryCache = SkipMemoryCache
 		};
 	}
 
@@ -822,5 +823,36 @@ public class FusionCacheEntryOptions
 			return this;
 
 		return Duplicate().SetIsSafeForAdaptiveCaching();
+	}
+
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	//internal bool GetDistributedCacheMustAwaitCompletion()
+	//{
+	//	return AllowBackgroundDistributedCacheOperations == false;
+	//}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	internal bool GetActualReThrowDistributedCacheExceptions()
+	{
+		return
+			ReThrowDistributedCacheExceptions
+			&& AllowBackgroundDistributedCacheOperations == false
+		//&& DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan
+		;
+	}
+
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	//internal bool GetBackplaneMustAwaitCompletion()
+	//{
+	//	return AllowBackgroundDistributedCacheOperations == false && AllowBackgroundBackplaneOperations == false;
+	//}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	internal bool GetBackplaneMustReThrow()
+	{
+		return
+			ReThrowBackplaneExceptions
+			&& AllowBackgroundBackplaneOperations == false
+		;
 	}
 }

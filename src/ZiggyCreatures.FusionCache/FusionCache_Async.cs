@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -113,7 +113,7 @@ public partial class FusionCache
 			{
 				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
 				{
-					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 				}
 			}
 
@@ -198,7 +198,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp);
+				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp, typeof(TValue));
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
@@ -220,7 +220,7 @@ public partial class FusionCache
 		if (hasNewValue)
 		{
 			if (isStale == false)
-				await ExecuteDistributedSetAsync<TValue>(operationId, key, entry!, options, token).ConfigureAwait(false);
+				await DistributedSetEntryAsync<TValue>(operationId, key, entry!, options, token).ConfigureAwait(false);
 
 			_events.OnMiss(operationId, key);
 			_events.OnSet(operationId, key);
@@ -248,7 +248,7 @@ public partial class FusionCache
 				FusionCacheDistributedEntry<TValue>? distributedEntry;
 				bool distributedEntryIsValid;
 
-				(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+				(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token).ConfigureAwait(false);
 				if (distributedEntryIsValid)
 				{
 					if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
@@ -284,8 +284,6 @@ public partial class FusionCache
 		{
 			// EMPTY
 		}
-
-		//var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, operationId, key);
@@ -415,7 +413,7 @@ public partial class FusionCache
 		FusionCacheDistributedEntry<TValue>? distributedEntry;
 		bool distributedEntryIsValid;
 
-		(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, token).ConfigureAwait(false);
+		(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 		if (distributedEntryIsValid)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -555,7 +553,7 @@ public partial class FusionCache
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): calling SetAsync<T> {Options}", CacheName, operationId, key, options.ToLogString());
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null);
+		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null, typeof(TValue));
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
@@ -563,7 +561,7 @@ public partial class FusionCache
 			mca.SetEntry<TValue>(operationId, key, entry, options);
 		}
 
-		await ExecuteDistributedSetAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+		await DistributedSetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnSet(operationId, key);
@@ -592,7 +590,7 @@ public partial class FusionCache
 			mca.RemoveEntry(operationId, key, options);
 		}
 
-		await ExecuteDistributedRemoveAsync(operationId, key, options, token).ConfigureAwait(false);
+		await DistributedRemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnRemove(operationId, key);
@@ -618,79 +616,143 @@ public partial class FusionCache
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
 		{
-			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled);
+			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 		}
 
-		await ExecuteDistributedExpireAsync(operationId, key, options, token).ConfigureAwait(false);
+		await DistributedExpireEntryAsync(operationId, key, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnExpire(operationId, key);
 	}
 
-	private async ValueTask<bool> MaybePublishInternalAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool distributedCacheHasSaved, CancellationToken token)
+	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, Func<DistributedCacheAccessor, bool, CancellationToken, Task<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, Task<bool>> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		if (_bpa is null)
-			return false;
+		if (RequiresDistributedOperations(options) == false)
+			return;
 
-		if (options.SkipBackplaneNotifications)
-			return false;
+		var mustAwaitCompletion = MustAwaitDistributedOperations(options);
+		var isBackground = !mustAwaitCompletion;
 
-		if (HasDistributedCache && distributedCacheHasSaved == false)
-		{
-			_bpa.TryAddAutoRecoveryItem(operationId, message, options, true);
-			return false;
-		}
+		await FusionCacheExecutionUtils.RunAsyncActionAdvancedAsync(
+			async ct =>
+			{
+				// DISTRIBUTED CACHE
+				var dca = GetCurrentDistributedAccessor(options);
+				if (dca is not null)
+				{
+					var dcaSuccess = false;
+					try
+					{
+						if (dca.IsCurrentlyUsable(operationId, key))
+						{
+							dcaSuccess = await distributedCacheAction(dca, isBackground, ct).ConfigureAwait(false);
+						}
+					}
+					catch
+					{
+						//dcaSuccess = false;
+						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						throw;
+					}
 
-		return await _bpa.PublishAsync(operationId, message, options, distributedCacheHasSaved, false, token).ConfigureAwait(false);
+					if (dcaSuccess == false)
+					{
+						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+						return;
+					}
+				}
+
+				// TODO: HANDLE BACKGROUND PROCESSING HERE... MAYBE...
+
+				// BACKPLANE
+				var bpa = GetCurrentBackplaneAccessor(options);
+				if (bpa is not null)
+				{
+					var bpaSuccess = false;
+					try
+					{
+						if (bpa.IsCurrentlyUsable(operationId, key))
+						{
+							bpaSuccess = await backplaneAction(bpa, isBackground, ct).ConfigureAwait(false);
+						}
+					}
+					catch
+					{
+						bpaSuccess = false;
+					}
+
+					if (bpaSuccess == false)
+					{
+						TryAddAutoRecoveryItem(operationId, key, action, options, null);
+					}
+				}
+			},
+			Timeout.InfiniteTimeSpan,
+			false,
+			mustAwaitCompletion,
+			null,
+			true,
+			token
+		).ConfigureAwait(false);
 	}
 
-	private async ValueTask ExecuteDistributedSetAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
+	private ValueTask DistributedSetEntryAsync<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// DISTRIBUTED CACHE
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
-		}
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntrySet(key, entry.Timestamp), options, dcaHasSaved, token).ConfigureAwait(false);
+		return ExecuteDistributedActionAsync(
+			operationId,
+			key,
+			FusionCacheAction.EntrySet,
+			async (dca, isBackground, ct) =>
+			{
+				return await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, isBackground, ct).ConfigureAwait(false);
+			},
+			async (bpa, isBackground, ct) =>
+			{
+				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
+				return await bpa.PublishSetAsync(operationId, key, entry.Timestamp, options, false, isBackground, ct).ConfigureAwait(false);
+			},
+			options,
+			token
+		);
 	}
 
-	private async ValueTask ExecuteDistributedRemoveAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	private ValueTask DistributedRemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// DISTRIBUTED CACHE
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
-		}
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-			await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key, null), options, dcaHasSaved, token).ConfigureAwait(false);
+		return ExecuteDistributedActionAsync(
+			operationId,
+			key,
+			FusionCacheAction.EntrySet,
+			async (dca, isBackground, ct) =>
+			{
+				return await dca.RemoveEntryAsync(operationId, key, options, isBackground, ct).ConfigureAwait(false);
+			},
+			async (bpa, isBackground, ct) =>
+			{
+				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
+				return await bpa.PublishRemoveAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
+			},
+			options,
+			token
+		);
 	}
 
-	private async ValueTask ExecuteDistributedExpireAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	private ValueTask DistributedExpireEntryAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// DISTRIBUTED CACHE
-		var dca = GetCurrentDistributedAccessor(options);
-		var dcaHasSaved = false;
-		if (dca.CanBeUsed(operationId, key))
-		{
-			dcaHasSaved = await dca!.RemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
-		}
-
-		// BACKPLANE
-		if (options.SkipBackplaneNotifications == false)
-		{
-			if (options.IsFailSafeEnabled)
-				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryExpire(key, null), options, dcaHasSaved, token).ConfigureAwait(false);
-			else
-				await MaybePublishInternalAsync(operationId, BackplaneMessage.CreateForEntryRemove(key, null), options, dcaHasSaved, token).ConfigureAwait(false);
-		}
+		return ExecuteDistributedActionAsync(
+			operationId,
+			key,
+			FusionCacheAction.EntrySet,
+			async (dca, isBackground, ct) =>
+			{
+				return await dca.RemoveEntryAsync(operationId, key, options, isBackground, ct).ConfigureAwait(false);
+			},
+			async (bpa, isBackground, ct) =>
+			{
+				// TODO: MAYBE USE A BACKPLANE-SPECIFIC TIMEOUT
+				return await bpa.PublishExpireAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
+			},
+			options,
+			token
+		);
 	}
 }

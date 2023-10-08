@@ -50,6 +50,11 @@ internal sealed class MemoryCacheAccessor
 		_events.OnSet(operationId, key);
 	}
 
+	public FusionCacheMemoryEntry? GetEntryOrNull(string operationId, string key)
+	{
+		return _cache.Get<FusionCacheMemoryEntry?>(key);
+	}
+
 	public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry(string operationId, string key)
 	{
 		FusionCacheMemoryEntry? entry;
@@ -103,16 +108,28 @@ internal sealed class MemoryCacheAccessor
 		_events.OnRemove(operationId, key);
 	}
 
-	public bool ExpireEntry(string operationId, string key, bool allowFailSafe)
+	public bool ExpireEntry(string operationId, string key, bool allowFailSafe, long? timestampThreshold)
 	{
-		if (_cache.TryGetValue<IFusionCacheEntry>(key, out var entry) == false)
-			return false;
+		var entry = _cache.Get<FusionCacheMemoryEntry>(key);
 
 		if (entry is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): memory entry not found: not necessary to expire", _options.CacheName, operationId, key);
+
 			return false;
+		}
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): Metadata {Metadata}", _options.CacheName, operationId, key, entry.Metadata);
+
+		if (timestampThreshold is not null && entry.Timestamp >= timestampThreshold.Value)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): timestamp of cached entry {TimestampCached} was greater than the specified threshold {TimestampThreshold}", _options.CacheName, operationId, key, entry.Timestamp, timestampThreshold.Value);
+
+			return false;
+		}
 
 		if (allowFailSafe && entry.Metadata is not null && entry.Metadata.IsLogicallyExpired() == false)
 		{

@@ -74,16 +74,18 @@ public class BackplaneMessage
 	/// <summary>
 	/// Creates a message for a single cache entry set operation (via either a Set() or a GetOrSet() method call).
 	/// </summary>
+	/// <param name="sourceId">The cache InstanceId of the source.</param>
 	/// <param name="cacheKey">The cache key.</param>
 	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntrySet(string cacheKey, long? timestamp)
+	public static BackplaneMessage CreateForEntrySet(string sourceId, string cacheKey, long? timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
 		return new BackplaneMessage(timestamp)
 		{
+			SourceId = sourceId,
 			Action = BackplaneMessageAction.EntrySet,
 			CacheKey = cacheKey
 		};
@@ -92,16 +94,18 @@ public class BackplaneMessage
 	/// <summary>
 	/// Creates a message for a single cache entry remove (via a Remove() method call).
 	/// </summary>
+	/// <param name="sourceId">The cache InstanceId of the source.</param>
 	/// <param name="cacheKey">The cache key.</param>
 	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntryRemove(string cacheKey, long? timestamp)
+	public static BackplaneMessage CreateForEntryRemove(string sourceId, string cacheKey, long? timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
 		return new BackplaneMessage(timestamp)
 		{
+			SourceId = sourceId,
 			Action = BackplaneMessageAction.EntryRemove,
 			CacheKey = cacheKey
 		};
@@ -110,16 +114,18 @@ public class BackplaneMessage
 	/// <summary>
 	/// Creates a message for a single cache entry expire operation (via an Expire() method call).
 	/// </summary>
+	/// <param name="sourceId">The cache InstanceId of the source.</param>
 	/// <param name="cacheKey">The cache key.</param>
 	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntryExpire(string cacheKey, long? timestamp)
+	public static BackplaneMessage CreateForEntryExpire(string sourceId, string cacheKey, long? timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
 		return new BackplaneMessage(timestamp)
 		{
+			SourceId = sourceId,
 			Action = BackplaneMessageAction.EntryExpire,
 			CacheKey = cacheKey
 		};
@@ -128,15 +134,17 @@ public class BackplaneMessage
 	/// <summary>
 	/// Creates a message for a single cache entry sentinel operation.
 	/// </summary>
+	/// <param name="sourceId">The cache InstanceId of the source.</param>
 	/// <param name="cacheKey">The cache key.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntrySentinel(string cacheKey)
+	public static BackplaneMessage CreateForEntrySentinel(string sourceId, string cacheKey)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
 
 		return new BackplaneMessage()
 		{
+			SourceId = sourceId,
 			Action = BackplaneMessageAction.EntrySentinel,
 			CacheKey = cacheKey
 		};
