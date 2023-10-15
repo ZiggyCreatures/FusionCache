@@ -1,6 +1,6 @@
 ﻿using ZiggyCreatures.Caching.Fusion;
 
-namespace FusionCacheTests
+namespace FusionCacheTests.Overloads
 {
 	internal static partial class OverloadsCallsTryouts
 	{

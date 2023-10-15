@@ -33,7 +33,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark(Baseline = true)]
 		public async Task WithTimeout()
 		{
-			await FusionCacheExecutionUtils.RunAsyncActionAdvancedAsync(
+			await RunUtils.RunAsyncActionAdvancedAsync(
 				async _ => await ExecutorAsync(),
 				TimeSpan.FromSeconds(2),
 				false,
@@ -44,7 +44,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public async Task WithTimeout2()
 		{
-			await FusionCacheExecutionUtils.RunAsyncActionAdvancedAsync(
+			await RunUtils.RunAsyncActionAdvancedAsync(
 				async _ => await ExecutorAsync(),
 				TimeSpan.FromSeconds(2),
 				true,
@@ -55,7 +55,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public async Task WithoutTimeout()
 		{
-			await FusionCacheExecutionUtils.RunAsyncActionAdvancedAsync(
+			await RunUtils.RunAsyncActionAdvancedAsync(
 				async _ => await ExecutorAsync(),
 				Timeout.InfiniteTimeSpan,
 				true,

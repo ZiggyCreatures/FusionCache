@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using MemoryPack;
 
-namespace FusionCacheTests
+namespace FusionCacheTests.Stuff
 {
 	[DataContract]
 	[MemoryPackable]

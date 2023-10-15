@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -85,11 +86,20 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
-	/// The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario.
-	/// <br/><br/>
-	/// <strong>WARNING:</strong> this should NOT be set, basically never ever, unless you really know what you are doing. But again, really: you should not set this.
+	/// The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario: it is automatically set to a random value.
 	/// </summary>
-	public string? InstanceId { get; set; }
+	public string? InstanceId { get; private set; }
+
+	/// <summary>
+	/// Set the InstanceId of the cache, but please don't use this.
+	/// <br/><br/>
+	/// <strong>⚠ WARNING:</strong> again, this should NOT be set, basically never ever, unless you really know what you are doing. For example by using the same value for two different cache instances they will be considered as the same cache, and this will lead to critical errors. So again, really: you should not use this.
+	/// </summary>
+	/// <param name="instanceId"></param>
+	public void SetInstanceId(string instanceId)
+	{
+		InstanceId = instanceId;
+	}
 
 	/// <summary>
 	/// The default <see cref="FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
@@ -156,6 +166,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the EnableAutoRecovery property.")]
 	public bool EnableBackplaneAutoRecovery
 	{
@@ -177,6 +188,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxItems property.")]
 	public int? BackplaneAutoRecoveryMaxItems
 	{
@@ -200,6 +212,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxRetryCount property.")]
 	public int? BackplaneAutoRecoveryMaxRetryCount
 	{
@@ -223,6 +236,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use AutoRecoveryDelay instead.")]
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay
 	{
@@ -239,6 +253,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
 	public TimeSpan BackplaneAutoRecoveryDelay
 	{
@@ -259,6 +274,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("This is not needed anymore, everything is handled automatically now.")]
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
 
@@ -357,14 +373,65 @@ public class FusionCacheOptions
 		get { return this; }
 	}
 
-	/// <summary>
-	/// Set the <see cref="CacheKeyPrefix"/> to the <see cref="CacheName"/>, and a ":" separator.
-	/// </summary>
-	/// <returns>The <see cref="FusionCacheOptions"/> so that additional calls can be chained.</returns>
-	public FusionCacheOptions SetCacheNameAsCacheKeyPrefix()
-	{
-		CacheKeyPrefix = $"{CacheName}:";
+	///// <summary>
+	///// Set the <see cref="CacheKeyPrefix"/> to the <see cref="CacheName"/>, and a ":" separator.
+	///// </summary>
+	///// <returns>The <see cref="FusionCacheOptions"/> so that additional calls can be chained.</returns>
+	//public FusionCacheOptions SetCacheNameAsCacheKeyPrefix()
+	//{
+	//	CacheKeyPrefix = $"{CacheName}:";
 
-		return this;
+	//	return this;
+	//}
+
+	/// <summary>
+	/// Creates a new <see cref="FusionCacheOptions"/> object by duplicating all the options of the current one.
+	/// </summary>
+	/// <returns>The newly created <see cref="FusionCacheOptions"/> object.</returns>
+	public FusionCacheOptions Duplicate()
+	{
+		var res = new FusionCacheOptions
+		{
+			CacheName = CacheName,
+			InstanceId = InstanceId,
+
+			CacheKeyPrefix = CacheKeyPrefix,
+
+			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
+
+			EnableAutoRecovery = EnableAutoRecovery,
+			AutoRecoveryDelay = AutoRecoveryDelay,
+			AutoRecoveryMaxItems = AutoRecoveryMaxItems,
+			AutoRecoveryMaxRetryCount = AutoRecoveryMaxRetryCount,
+
+			BackplaneChannelPrefix = BackplaneChannelPrefix,
+			BackplaneCircuitBreakerDuration = BackplaneCircuitBreakerDuration,
+
+			DistributedCacheKeyModifierMode = DistributedCacheKeyModifierMode,
+			DistributedCacheCircuitBreakerDuration = DistributedCacheCircuitBreakerDuration,
+
+			EnableSyncEventHandlersExecution = EnableSyncEventHandlersExecution,
+
+			// LOG LEVELS
+			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,
+
+			FailSafeActivationLogLevel = FailSafeActivationLogLevel,
+			FactorySyntheticTimeoutsLogLevel = FactorySyntheticTimeoutsLogLevel,
+			FactoryErrorsLogLevel = FactoryErrorsLogLevel,
+
+			DistributedCacheSyntheticTimeoutsLogLevel = DistributedCacheSyntheticTimeoutsLogLevel,
+			DistributedCacheErrorsLogLevel = DistributedCacheErrorsLogLevel,
+			SerializationErrorsLogLevel = SerializationErrorsLogLevel,
+
+			BackplaneSyntheticTimeoutsLogLevel = BackplaneSyntheticTimeoutsLogLevel,
+			BackplaneErrorsLogLevel = BackplaneErrorsLogLevel,
+
+			EventHandlingErrorsLogLevel = EventHandlingErrorsLogLevel,
+
+			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
+			PluginsInfoLogLevel = PluginsInfoLogLevel,
+		};
+
+		return res;
 	}
 }

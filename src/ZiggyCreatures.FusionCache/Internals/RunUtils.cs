@@ -7,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// <summary>
 /// A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.
 /// </summary>
-public static class FusionCacheExecutionUtils
+internal static class RunUtils
 {
 	private static readonly TaskFactory _taskFactory = new TaskFactory(
 		CancellationToken.None,

@@ -15,7 +15,7 @@ public static class FusionCacheChaosUtils
 	/// </summary>
 	/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
 	/// <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
-	public static bool ShouldCreateChaos(float throwProbability)
+	public static bool ShouldThrow(float throwProbability)
 	{
 		if (throwProbability <= 0f)
 			return false;
@@ -32,7 +32,7 @@ public static class FusionCacheChaosUtils
 	/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
 	public static void MaybeThrow(float throwProbability)
 	{
-		if (ShouldCreateChaos(throwProbability))
+		if (ShouldThrow(throwProbability))
 			throw new ChaosException("Just a little bit of controlled chaos");
 	}
 

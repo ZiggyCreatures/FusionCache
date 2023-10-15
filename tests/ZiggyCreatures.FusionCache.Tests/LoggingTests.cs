@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
+using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
@@ -15,16 +16,17 @@ using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 namespace FusionCacheTests
 {
 	public class LoggingTests
+		: AbstractTests
 	{
-		private ListLogger<FusionCache> CreateListLogger(LogLevel minLogLevel)
+		public LoggingTests(ITestOutputHelper output)
+				: base(output, null)
 		{
-			return new ListLogger<FusionCache>(minLogLevel);
 		}
 
 		[Fact]
 		public async Task CommonLogLevelsWork()
 		{
-			var logger = CreateListLogger(LogLevel.Debug);
+			var logger = CreateListLogger<FusionCache>(LogLevel.Debug);
 			using (var cache = new FusionCache(new FusionCacheOptions(), logger: logger))
 			{
 				cache.AddPlugin(new NullPlugin());
@@ -44,7 +46,7 @@ namespace FusionCacheTests
 		[Fact]
 		public async Task PluginsInfoWork()
 		{
-			var logger = CreateListLogger(LogLevel.Information);
+			var logger = CreateListLogger<FusionCache>(LogLevel.Information);
 			var options = new FusionCacheOptions();
 			using (var cache = new FusionCache(options, logger: logger))
 			{
@@ -53,7 +55,7 @@ namespace FusionCacheTests
 
 			Assert.Equal(2, logger.Items.Count);
 
-			logger = CreateListLogger(LogLevel.Information);
+			logger = CreateListLogger<FusionCache>(LogLevel.Information);
 			options = new FusionCacheOptions()
 			{
 				PluginsInfoLogLevel = LogLevel.Debug
@@ -69,7 +71,7 @@ namespace FusionCacheTests
 		[Fact]
 		public async Task EventsErrorsLogLevelsWork()
 		{
-			var logger = CreateListLogger(LogLevel.Information);
+			var logger = CreateListLogger<FusionCache>(LogLevel.Information);
 			var options = new FusionCacheOptions
 			{
 				EnableSyncEventHandlersExecution = true
@@ -83,7 +85,7 @@ namespace FusionCacheTests
 			Assert.Single(logger.Items);
 			Assert.Single(logger.Items.Where(x => x.LogLevel == LogLevel.Warning));
 
-			logger = CreateListLogger(LogLevel.Information);
+			logger = CreateListLogger<FusionCache>(LogLevel.Information);
 			options = new FusionCacheOptions
 			{
 				EnableSyncEventHandlersExecution = true,
@@ -102,7 +104,7 @@ namespace FusionCacheTests
 		public async Task CacheNameIsAlwaysThere()
 		{
 			var cacheName = Guid.NewGuid().ToString("N");
-			var logger = CreateListLogger(LogLevel.Trace);
+			var logger = CreateListLogger<FusionCache>(LogLevel.Trace);
 			var options = new FusionCacheOptions
 			{
 				CacheName = cacheName,

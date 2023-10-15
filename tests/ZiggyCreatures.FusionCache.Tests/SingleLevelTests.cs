@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,17 +28,11 @@ namespace FusionCacheTests
 	}
 
 	public class SingleLevelTests
+		: AbstractTests
 	{
-		private readonly ITestOutputHelper _output;
-
 		public SingleLevelTests(ITestOutputHelper output)
+			: base(output, null)
 		{
-			_output = output;
-		}
-
-		private XUnitLogger<T> CreateLogger<T>(LogLevel minLevel = LogLevel.Trace)
-		{
-			return new XUnitLogger<T>(minLevel, _output);
 		}
 
 		[Fact]
@@ -1147,7 +1140,7 @@ namespace FusionCacheTests
 			var duration = TimeSpan.FromSeconds(2);
 			var eagerRefreshThreshold = 0.2f;
 
-			using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateLogger<FusionCache>());
+			using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
 
 			cache.DefaultEntryOptions.Duration = duration;
 			cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;

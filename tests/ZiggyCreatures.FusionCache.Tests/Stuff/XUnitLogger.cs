@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace FusionCacheTests.Stuff
 {
-	internal class XUnitLogger<T>
+	public class XUnitLogger<T>
 		: ILogger<T>
 	{
 		internal class Scope : IDisposable

@@ -16,7 +16,7 @@ internal sealed partial class BackplaneAccessor
 	private readonly FusionCacheBackplaneEventsHub _events;
 	private readonly SimpleCircuitBreaker _breaker;
 
-	public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger, FusionCacheBackplaneEventsHub events)
+	public BackplaneAccessor(FusionCache cache, IFusionCacheBackplane backplane, FusionCacheOptions options, ILogger? logger)
 	{
 		if (cache is null)
 			throw new ArgumentNullException(nameof(cache));
@@ -30,7 +30,7 @@ internal sealed partial class BackplaneAccessor
 		_options = options;
 
 		_logger = logger;
-		_events = events;
+		_events = _cache.Events.Backplane;
 
 		// CIRCUIT-BREAKER
 		_breaker = new SimpleCircuitBreaker(options.BackplaneCircuitBreakerDuration);
@@ -197,20 +197,6 @@ internal sealed partial class BackplaneAccessor
 	{
 		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
-		// CHECK CIRCUIT BREAKER
-		_breaker.Close(out var hasChanged);
-		if (hasChanged)
-		{
-			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): backplane activated again", _cache.CacheName, _cache.InstanceId, operationId);
-
-			// EVENT
-			_events.OnCircuitBreakerChange(operationId, null, true);
-		}
-
-		// EVENT
-		_events.OnMessageReceived(operationId, message);
-
 		// IGNORE NULL
 		if (message is null)
 		{
@@ -225,6 +211,20 @@ internal sealed partial class BackplaneAccessor
 		{
 			return;
 		}
+
+		// CHECK CIRCUIT BREAKER
+		_breaker.Close(out var hasChanged);
+		if (hasChanged)
+		{
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): backplane activated again", _cache.CacheName, _cache.InstanceId, operationId);
+
+			// EVENT
+			_events.OnCircuitBreakerChange(operationId, message.CacheKey, true);
+		}
+
+		// EVENT
+		_events.OnMessageReceived(operationId, message);
 
 		// IGNORE INVALID MESSAGES
 		if (message.IsValid() == false)
@@ -254,27 +254,31 @@ internal sealed partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
+				// HANDLE SET
 				await HandleIncomingMessageSetAsync(operationId, message).ConfigureAwait(false);
 				break;
 			case BackplaneMessageAction.EntryRemove:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
+				// // HANDLE REMOVE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO FALSE -> LOCAL REMOVE
 				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, false, null);
 				break;
 			case BackplaneMessageAction.EntryExpire:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (EXPIRE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
+				// HANDLE EXPIRE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO TRUE -> LOCAL EXPIRE
 				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, true, message.Timestamp);
 				break;
 			case BackplaneMessageAction.EntrySentinel:
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SENTINEL)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				// DO NOTHING
+				// HANDLE SENTINEL: DO NOTHING
 				break;
 			default:
+				// HANDLE UNKNOWN: DO NOTHING
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
 					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an backplane notification has been received from remote cache {RemoteCacheInstanceId} for an unknown action {Action}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action);
 				break;
@@ -283,6 +287,8 @@ internal sealed partial class BackplaneAccessor
 
 	private async ValueTask HandleIncomingMessageSetAsync(string operationId, BackplaneMessage message)
 	{
+		// TODO: MAYBE LOCK ?
+
 		var cacheKey = message.CacheKey!;
 
 		var mca = _cache.GetCurrentMemoryAccessor();
@@ -352,7 +358,9 @@ internal sealed partial class BackplaneAccessor
 			}
 		}
 
-		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
+		// TODO: WHICH ONE?
+		//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
+		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
 	}
 
 	public async ValueTask<bool> PublishSentinelAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)

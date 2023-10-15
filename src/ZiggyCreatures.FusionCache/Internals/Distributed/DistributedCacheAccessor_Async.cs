@@ -15,12 +15,12 @@ internal partial class DistributedCacheAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 
-			await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(action, Timeout.InfiniteTimeSpan, true, token: token).ConfigureAwait(false);
+			await RunUtils.RunAsyncActionWithTimeoutAsync(action, Timeout.InfiniteTimeSpan, true, token: token).ConfigureAwait(false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): after " + actionDescription, _options.CacheName, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 		}
 		catch (Exception exc)
 		{
@@ -57,14 +57,14 @@ internal partial class DistributedCacheAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", _options.CacheName, operationId, key, distributedEntry.ToLogString());
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
 
 			data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", _options.CacheName, operationId, key, distributedEntry.ToLogString());
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
 
 			if (options.ReThrowSerializationExceptions)
 				throw;
@@ -103,14 +103,14 @@ internal partial class DistributedCacheAccessor
 			return (null, false);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to get entry from distributed", _options.CacheName, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to get entry from distributed", _options.CacheName, _options.InstanceId, operationId, key);
 
 		// GET FROM DISTRIBUTED CACHE
 		byte[]? data;
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-			data = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
+			data = await RunUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
 				async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
 				timeout.Value,
 				true,
@@ -139,19 +139,19 @@ internal partial class DistributedCacheAccessor
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry not found", _options.CacheName, operationId, key);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
 			}
 			else
 			{
 				if (entry.IsLogicallyExpired())
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString());
 				}
 				else
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString());
 
 					isValid = true;
 				}
@@ -172,7 +172,7 @@ internal partial class DistributedCacheAccessor
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", _options.CacheName, operationId, key);
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 			if (options.ReThrowSerializationExceptions)
 				throw;

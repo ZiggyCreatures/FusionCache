@@ -81,7 +81,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, _options.InstanceId, operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -95,7 +95,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed cache activated again", _options.CacheName, operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed cache activated again", _options.CacheName, _options.InstanceId, operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);
@@ -110,7 +110,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (exc is SyntheticTimeoutException)
 		{
 			if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
-				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, _options.CacheName, operationId, key);
+				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 
 			return;
 		}
@@ -118,7 +118,7 @@ internal sealed partial class DistributedCacheAccessor
 		UpdateLastError(key, operationId);
 
 		if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
-			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _options.CacheName, operationId, key);
+			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 	}
 
 	private static readonly MethodInfo __methodInfoSetEntryAsyncOpenGeneric = typeof(DistributedCacheAccessor).GetMethod(nameof(SetEntryAsync), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
@@ -138,7 +138,7 @@ internal sealed partial class DistributedCacheAccessor
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling SetEntryUntypedAsync() to try to set a distributed entry without knowing the TValue type", _options.CacheName, operationId, key);
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling SetEntryUntypedAsync() to try to set a distributed entry without knowing the TValue type", _options.CacheName, _options.InstanceId, operationId, key);
 
 			return false;
 		}

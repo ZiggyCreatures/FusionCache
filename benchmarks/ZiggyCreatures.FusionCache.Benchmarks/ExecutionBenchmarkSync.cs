@@ -32,7 +32,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark(Baseline = true)]
 		public void WithTimeout()
 		{
-			FusionCacheExecutionUtils.RunSyncActionAdvanced(
+			RunUtils.RunSyncActionAdvanced(
 				_ => Executor(),
 				TimeSpan.FromSeconds(2),
 				false,
@@ -43,7 +43,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public void WithTimeout2()
 		{
-			FusionCacheExecutionUtils.RunSyncActionAdvanced(
+			RunUtils.RunSyncActionAdvanced(
 				_ => Executor(),
 				TimeSpan.FromSeconds(2),
 				true,
@@ -54,7 +54,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public void WithoutTimeout()
 		{
-			FusionCacheExecutionUtils.RunSyncActionAdvanced(
+			RunUtils.RunSyncActionAdvanced(
 				_ => Executor(),
 				Timeout.InfiniteTimeSpan,
 				true,

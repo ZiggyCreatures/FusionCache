@@ -15,7 +15,8 @@ public class ChaosBackplane
 	, IFusionCacheBackplane
 {
 	private readonly IFusionCacheBackplane _innerBackplane;
-	private Action<BackplaneConnectionInfo>? _connectHandler;
+	private Action<BackplaneConnectionInfo>? _innerConnectHandler;
+	private Action<BackplaneMessage>? _innerIncomingMessageHandler;
 
 	/// <summary>
 	/// Initializes a new instance of the ChaosBackplane class.
@@ -50,8 +51,16 @@ public class ChaosBackplane
 
 		MaybeChaos();
 
-		_innerBackplane.Subscribe(options);
-		_connectHandler = options.ConnectHandler;
+		_innerConnectHandler = options.ConnectHandler;
+		_innerIncomingMessageHandler = options.IncomingMessageHandler;
+
+		var innerOptions = new BackplaneSubscriptionOptions(
+			options.ChannelName,
+			OnConnect,
+			OnIncomingMessage
+		);
+
+		_innerBackplane.Subscribe(innerOptions);
 	}
 
 	/// <inheritdoc/>
@@ -62,7 +71,9 @@ public class ChaosBackplane
 
 		MaybeChaos();
 
-		_connectHandler = null;
+		_innerConnectHandler = null;
+		_innerIncomingMessageHandler = null;
+
 		_innerBackplane.Unsubscribe();
 	}
 
@@ -74,6 +85,22 @@ public class ChaosBackplane
 		base.SetNeverThrow();
 
 		if (_old != ChaosThrowProbability)
-			_connectHandler?.Invoke(new BackplaneConnectionInfo(true));
+			OnConnect(new BackplaneConnectionInfo(true));
+	}
+
+	void OnConnect(BackplaneConnectionInfo info)
+	{
+		if (ShouldThrow())
+			return;
+
+		_innerConnectHandler?.Invoke(info);
+	}
+
+	void OnIncomingMessage(BackplaneMessage message)
+	{
+		if (ShouldThrow())
+			return;
+
+		_innerIncomingMessageHandler?.Invoke(message);
 	}
 }

@@ -227,11 +227,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 				else
 				{
 					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-						logger.Log(LogLevel.Warning, "FUSION [N={CacheName}]: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache subsystem has not been set up", CacheName, distributedCache.GetType().FullName);
+						logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache has not been set up", cache.CacheName, cache.InstanceId, distributedCache.GetType().FullName);
 
 					if (ThrowIfMissingSerializer)
 					{
-						throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache subsystem has not been set up");
+						throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache has not been set up");
 					}
 				}
 			}

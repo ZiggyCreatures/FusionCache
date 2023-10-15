@@ -132,6 +132,14 @@
             Represents the options available for subscribing to a backplane.
             </summary>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.#ctor(System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo},System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
+            <summary>
+            Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions"/>.
+            </summary>
+            <param name="channelName">The channel name to be used.</param>
+            <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
+            <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ChannelName">
             <summary>
             The channel name to be used.
@@ -142,14 +150,14 @@
             The backplane message handler that will be used to process incoming messages.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.IncomingMessageHandler">
-            <summary>
-            The backplane message handler that will be used to process incoming messages.
-            </summary>
-        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ConnectHandler">
             <summary>
             The backplane connection handler that will be used when there's a connection (or reconnection).
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.IncomingMessageHandler">
+            <summary>
+            The backplane message handler that will be used to process incoming messages.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane">
@@ -2195,10 +2203,16 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.InstanceId">
             <summary>
-            The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario.
-            <br/><br/>
-            <strong>WARNING:</strong> this should NOT be set, basically never ever, unless you really know what you are doing. But again, really: you should not set this.
+            The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario: it is automatically set to a random value.
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SetInstanceId(System.String)">
+            <summary>
+            Set the InstanceId of the cache, but please don't use this.
+            <br/><br/>
+            <strong>⚠ WARNING:</strong> again, this should NOT be set, basically never ever, unless you really know what you are doing. For example by using the same value for two different cache instances they will be considered as the same cache, and this will lead to critical errors. So again, really: you should not use this.
+            </summary>
+            <param name="instanceId"></param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions">
             <summary>
@@ -2424,11 +2438,11 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.SetCacheNameAsCacheKeyPrefix">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.Duplicate">
             <summary>
-            Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheKeyPrefix"/> to the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/>, and a ":" separator.
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object by duplicating all the options of the current one.
             </summary>
-            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> so that additional calls can be chained.</returns>
+            <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
@@ -3037,103 +3051,6 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.ToString">
             <inheritdoc/>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils">
-            <summary>
-            A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
-            <summary>
-            Run an async function asynchronously with a timeout and some additional options.
-            </summary>
-            <typeparam name="TResult"></typeparam>
-            <param name="asyncFunc">The async function to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
-            <summary>
-            Run an async action asynchronously with a timeout and some additional options.
-            </summary>
-            <param name="asyncAction">The async action to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
-            <summary>
-            Run an async function synchoronously with a timeout and some additional options.
-            </summary>
-            <typeparam name="TResult"></typeparam>
-            <param name="asyncFunc">The async function to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The value returned from the async function</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncActionWithTimeout(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
-            <summary>
-            Run an async action synchoronously with a timeout and some additional options.
-            </summary>
-            <param name="asyncAction">The async action to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunSyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,``0},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
-            <summary>
-            Run a sync function synchoronously with a timeout and some additional options.
-            </summary>
-            <typeparam name="TResult"></typeparam>
-            <param name="syncFunc">The sync function to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The value returned from the sync function</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunSyncActionWithTimeout(System.Action{System.Threading.CancellationToken},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
-            <summary>
-            Run a sync action synchoronously with a timeout and some additional ooptions.
-            </summary>
-            <param name="syncAction">The sync action to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunAsyncActionAdvancedAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Boolean,System.Action{System.Exception},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            Run an async function with the ability to optionally set a timeout, await its completion (or run in a fire-and-forget way), process the eventually thrown exception or re-throw it.
-            </summary>
-            <param name="asyncAction">The async action to execute.</param>
-            <param name="timeout">The timeout to apply.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="awaitCompletion">Indicates if the function's completion should be awaited or if the execution should be made in a fire-and-forget way.</param>
-            <param name="exceptionProcessor">An exception processor for the exception that may be thrown.</param>
-            <param name="reThrow">Indicates if, in case an exception is intercepted, it should be re-thrown.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheExecutionUtils.RunSyncActionAdvanced(System.Action{System.Threading.CancellationToken},System.TimeSpan,System.Boolean,System.Boolean,System.Action{System.Exception},System.Boolean,System.Threading.CancellationToken)">
-            <summary>
-            Run a sync action with the ability to optionally set a timeout, await its completion (or run in a fire-and-forget way), process the eventually thrown exception or re-throw it.
-            </summary>
-            <param name="syncAction">The sync action to execute.</param>
-            <param name="timeout">The timeout to apply. Defaults to <see cref="F:System.Threading.Timeout.Infinite"/>.</param>
-            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
-            <param name="awaitCompletion">Indicates if the action's completion should be awaited or if the execution should be made in a fire-and-forget way.</param>
-            <param name="exceptionProcessor">An exception processor for the exception that may be thrown.</param>
-            <param name="reThrow">Indicates if, in case an exception is intercepted, it should be re-thrown.</param>
-            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheInternalUtils.IsLogicallyExpired(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry)">
             <summary>
             Checks if the entry is logically expired.
@@ -3221,6 +3138,103 @@
             <param name="entry">The source entry.</param>
             <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
             <returns>The newly created entry.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.RunUtils">
+            <summary>
+            A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunAsyncFuncWithTimeoutAsync``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Run an async function asynchronously with a timeout and some additional options.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="asyncFunc">The async function to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunAsyncActionWithTimeoutAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run an async action asynchronously with a timeout and some additional options.
+            </summary>
+            <param name="asyncAction">The async action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunAsyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task{``0}},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Run an async function synchoronously with a timeout and some additional options.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="asyncFunc">The async function to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value returned from the async function</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunAsyncActionWithTimeout(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run an async action synchoronously with a timeout and some additional options.
+            </summary>
+            <param name="asyncAction">The async action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunSyncFuncWithTimeout``1(System.Func{System.Threading.CancellationToken,``0},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task{``0}},System.Threading.CancellationToken)">
+            <summary>
+            Run a sync function synchoronously with a timeout and some additional options.
+            </summary>
+            <typeparam name="TResult"></typeparam>
+            <param name="syncFunc">The sync function to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out function.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The value returned from the sync function</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunSyncActionWithTimeout(System.Action{System.Threading.CancellationToken},System.TimeSpan,System.Boolean,System.Action{System.Threading.Tasks.Task},System.Threading.CancellationToken)">
+            <summary>
+            Run a sync action synchoronously with a timeout and some additional ooptions.
+            </summary>
+            <param name="syncAction">The sync action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="timedOutTaskProcessor">A lambda to process the task representing the eventually timed out action.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunAsyncActionAdvancedAsync(System.Func{System.Threading.CancellationToken,System.Threading.Tasks.Task},System.TimeSpan,System.Boolean,System.Boolean,System.Action{System.Exception},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Run an async function with the ability to optionally set a timeout, await its completion (or run in a fire-and-forget way), process the eventually thrown exception or re-throw it.
+            </summary>
+            <param name="asyncAction">The async action to execute.</param>
+            <param name="timeout">The timeout to apply.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="awaitCompletion">Indicates if the function's completion should be awaited or if the execution should be made in a fire-and-forget way.</param>
+            <param name="exceptionProcessor">An exception processor for the exception that may be thrown.</param>
+            <param name="reThrow">Indicates if, in case an exception is intercepted, it should be re-thrown.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+            <returns>The resulting <see cref="T:System.Threading.Tasks.Task"/> to await</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.RunUtils.RunSyncActionAdvanced(System.Action{System.Threading.CancellationToken},System.TimeSpan,System.Boolean,System.Boolean,System.Action{System.Exception},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Run a sync action with the ability to optionally set a timeout, await its completion (or run in a fire-and-forget way), process the eventually thrown exception or re-throw it.
+            </summary>
+            <param name="syncAction">The sync action to execute.</param>
+            <param name="timeout">The timeout to apply. Defaults to <see cref="F:System.Threading.Timeout.Infinite"/>.</param>
+            <param name="cancelIfTimeout">Indicates if the action should be cancelled in case of a timeout.</param>
+            <param name="awaitCompletion">Indicates if the action's completion should be awaited or if the execution should be made in a fire-and-forget way.</param>
+            <param name="exceptionProcessor">An exception processor for the exception that may be thrown.</param>
+            <param name="reThrow">Indicates if, in case an exception is intercepted, it should be re-thrown.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.SimpleCircuitBreaker">
             <summary>
@@ -3520,11 +3534,12 @@
             Represents one of the core pieces of an instance of an <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLockAsync(System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLockAsync(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
             <summary>
             Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
             </summary>
-            <param name="cacheName">The name of the FusionCache instance.</param>
+            <param name="cacheName">The CacheName of the FusionCache instance.</param>
+            <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
@@ -3532,22 +3547,24 @@
             <returns>The acquired genericlock object, later released when the critical section is over.</returns>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLock(System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLock(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
             </summary>
             <param name="cacheName">The name of the FusionCache instance.</param>
+            <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
             <returns>The acquired genericlock object, later released when the critical section is over.</returns>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.ReleaseLock(System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
             <summary>
             Release the generic lock object.
             </summary>
             <param name="cacheName">The name of the FusionCache instance.</param>
+            <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="lockObj">The generic lock object to release.</param>
@@ -3555,7 +3572,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.Collisions">
             <summary>
-            Exposes the eventual amount ofcollisions happened inside the reactor, for diagnostics purposes.
+            Exposes the eventual amount of collisions happened inside the reactor, for diagnostics purposes.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer">

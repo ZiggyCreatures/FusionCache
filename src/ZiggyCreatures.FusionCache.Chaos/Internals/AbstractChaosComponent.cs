@@ -148,6 +148,15 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 		}
 
 		/// <summary>
+		/// Determines if an exception should be thrown.
+		/// </summary>
+		/// <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
+		public virtual bool ShouldThrow()
+		{
+			return FusionCacheChaosUtils.ShouldThrow(ChaosThrowProbability);
+		}
+
+		/// <summary>
 		/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
 		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
 		/// </summary>

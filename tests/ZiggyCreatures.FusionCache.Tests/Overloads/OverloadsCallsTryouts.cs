@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion;
 
-namespace FusionCacheTests
+namespace FusionCacheTests.Overloads
 {
 	// THIS THING IS JUST A WAY TO TEST THAT EVERY NEEDED PERMUTATION OF CALLS+ARGS IS AVAILABLE, BOTH SYNC AND ASYNC
 	internal static partial class OverloadsCallsTryouts

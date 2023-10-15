@@ -658,7 +658,7 @@ public class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
@@ -704,7 +704,7 @@ public class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;

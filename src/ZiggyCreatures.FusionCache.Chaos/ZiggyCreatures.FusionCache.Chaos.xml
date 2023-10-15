@@ -138,7 +138,7 @@
             Various utils to work with randomized controllable chaos.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.ShouldCreateChaos(System.Single)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.ShouldThrow(System.Single)">
             <summary>
             Determines if an exception should be thrown.
             </summary>
@@ -273,6 +273,12 @@
             <summary>
             Force chaos exceptions to never be thrown.
             </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.ShouldThrow">
+            <summary>
+            Determines if an exception should be thrown.
+            </summary>
+            <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.MaybeChaos(System.Threading.CancellationToken)">
             <summary>

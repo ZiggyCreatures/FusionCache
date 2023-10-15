@@ -19,7 +19,7 @@ internal partial class BackplaneAccessor
 		{
 			if (isAutoRecovery == false)
 			{
-				_ = _cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
+				_cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
 			}
 
 			return false;
@@ -37,7 +37,7 @@ internal partial class BackplaneAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 
 			_backplane.Publish(message, options, token);
 
@@ -45,7 +45,7 @@ internal partial class BackplaneAccessor
 			_events.OnMessagePublished(operationId, message);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): after " + actionDescription, _options.CacheName, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 		}
 		catch (Exception exc)
 		{
@@ -53,7 +53,7 @@ internal partial class BackplaneAccessor
 
 			if (isAutoRecovery == false)
 			{
-				_ = _cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
+				_cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
 			}
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)

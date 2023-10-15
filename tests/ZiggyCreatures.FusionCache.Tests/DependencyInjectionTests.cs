@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
+using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
@@ -22,7 +23,13 @@ using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 namespace FusionCacheTests
 {
 	public class DependencyInjectionTests
+		: AbstractTests
 	{
+		public DependencyInjectionTests(ITestOutputHelper output)
+			: base(output, null)
+		{
+		}
+
 		static ILogger? GetLogger(IFusionCache cache)
 		{
 			return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FusionCacheTests.Stuff
 {
-	internal class ListLogger<T>
+	public class ListLogger<T>
 		: ILogger<T>
 	{
 		internal class Scope : IDisposable

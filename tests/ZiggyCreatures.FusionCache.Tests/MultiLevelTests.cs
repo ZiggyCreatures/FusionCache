@@ -10,32 +10,24 @@ using Microsoft.Extensions.Options;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
-using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests
 {
 	public class MultiLevelTests
+		: AbstractTests
 	{
-		private readonly ITestOutputHelper _output;
-		private static readonly string? _cacheKeyPrefix = "Foo:";
-
 		public MultiLevelTests(ITestOutputHelper output)
+			: base(output, "MyCache:")
 		{
-			_output = output;
 		}
 
-		private XUnitLogger<T> CreateLogger<T>(LogLevel minLevel = LogLevel.Trace)
-		{
-			return new XUnitLogger<T>(minLevel, _output);
-		}
-
-		private static FusionCacheOptions CreateFusionCacheOptions()
+		private FusionCacheOptions CreateFusionCacheOptions()
 		{
 			var res = new FusionCacheOptions();
 
-			res.CacheKeyPrefix = _cacheKeyPrefix;
+			res.CacheKeyPrefix = TestingCacheKeyPrefix;
 
 			return res;
 		}
@@ -48,7 +40,7 @@ namespace FusionCacheTests
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 			var initialValue = await fusionCache.GetOrSetAsync<int>("foo", _ => Task.FromResult(42), new FusionCacheEntryOptions().SetDurationSec(10));
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var newValue = await fusionCache.GetOrSetAsync<int>("foo", _ => Task.FromResult(21), new FusionCacheEntryOptions().SetDurationSec(10));
 			Assert.Equal(initialValue, newValue);
 		}
@@ -63,7 +55,7 @@ namespace FusionCacheTests
 			fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 
 			var initialValue = fusionCache.GetOrSet<int>("foo", _ => 42, options => options.SetDurationSec(10));
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var newValue = fusionCache.GetOrSet<int>("foo", _ => 21, options => options.SetDurationSec(10));
 			Assert.Equal(initialValue, newValue);
 		}
@@ -158,7 +150,7 @@ namespace FusionCacheTests
 
 			await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 			await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 			await Assert.ThrowsAsync<Exception>(async () =>
 			{
@@ -182,7 +174,7 @@ namespace FusionCacheTests
 
 			fusionCache.Set<int>("foo", 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true));
 			Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 			Assert.Throws<Exception>(() =>
 			{
@@ -264,7 +256,7 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 			await fusionCache.SetAsync<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
 			await Task.Delay(circuitBreakerDuration.PlusALittleBit()).ConfigureAwait(false);
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var res = await fusionCache.GetOrDefaultAsync<int>("foo", -1);
 
 			Assert.Equal(1, res);
@@ -292,85 +284,13 @@ namespace FusionCacheTests
 			chaosDistributedCache.SetNeverThrow();
 			fusionCache.Set<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
 			Thread.Sleep(circuitBreakerDuration.PlusALittleBit());
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var res = fusionCache.GetOrDefault<int>("foo", -1);
 
 			Assert.Equal(1, res);
 		}
 
-		//[Theory]
-		//[ClassData(typeof(SerializerTypesClassData))]
-		//public async Task HandlesFlexibleSimpleTypeConversionsAsync(SerializerType serializerType)
-		//{
-		//	using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
-		//	{
-		//		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		//		using (var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
-		//		{
-		//			int? initialValue = 42;
-		//			await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
-		//			memoryCache.Remove("foo");
-		//			var newValue = await fusionCache.GetOrDefaultAsync<int>("foo");
-		//			Assert.Equal(initialValue, newValue);
-		//		}
-		//	}
-		//}
-
-		//[Theory]
-		//[ClassData(typeof(SerializerTypesClassData))]
-		//public void HandlesFlexibleSimpleTypeConversions(SerializerType serializerType)
-		//{
-		//	using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
-		//	{
-		//		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		//		using (var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
-		//		{
-		//			int? initialValue = 42;
-		//			fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
-		//			memoryCache.Remove("foo");
-		//			var newValue = fusionCache.GetOrDefault<int>("foo");
-		//			Assert.Equal(initialValue, newValue);
-		//		}
-		//	}
-		//}
-
-		//[Theory]
-		//[ClassData(typeof(SerializerTypesClassData))]
-		//public async Task HandlesFlexibleComplexTypeConversionsAsync(SerializerType serializerType)
-		//{
-		//	using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
-		//	{
-		//		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		//		using (var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
-		//		{
-		//			var initialValue = (object)ComplexType.CreateSample();
-		//			await fusionCache.SetAsync("foo", initialValue, TimeSpan.FromHours(24));
-		//			memoryCache.Remove("foo");
-		//			var newValue = await fusionCache.GetOrDefaultAsync<ComplexType>("foo");
-		//			Assert.Equal(initialValue, newValue);
-		//		}
-		//	}
-		//}
-
-		//[Theory]
-		//[ClassData(typeof(SerializerTypesClassData))]
-		//public void HandlesFlexibleComplexTypeConversions(SerializerType serializerType)
-		//{
-		//	using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
-		//	{
-		//		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		//		using (var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType)))
-		//		{
-		//			var initialValue = (object)ComplexType.CreateSample();
-		//			fusionCache.Set("foo", initialValue, TimeSpan.FromHours(24));
-		//			memoryCache.Remove("foo");
-		//			var newValue = fusionCache.GetOrDefault<ComplexType>("foo");
-		//			Assert.Equal(initialValue, newValue);
-		//		}
-		//	}
-		//}
-
-		private static void _DistributedCacheWireVersionModifierWorks(SerializerType serializerType, CacheKeyModifierMode modifierMode)
+		private void _DistributedCacheWireVersionModifierWorks(SerializerType serializerType, CacheKeyModifierMode modifierMode)
 		{
 			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -1143,516 +1063,16 @@ namespace FusionCacheTests
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
-		public async Task CanHandleIssuesWithBothDistributedCacheAndBackplaneAsync(SerializerType serializerType)
-		{
-			var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
-			var defaultOptions = new FusionCacheOptions();
-
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateLogger<ChaosDistributedCache>());
-
-			// SETUP CACHE A
-			var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateLogger<ChaosBackplane>());
-			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheA.SetupBackplane(chaosBackplaneA);
-
-			// SETUP CACHE B
-			var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateLogger<ChaosBackplane>());
-			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheB.SetupBackplane(chaosBackplaneB);
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA1 = await cacheA.GetOrSetAsync<int>("foo", async _ => 10);
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB1 = await cacheB.GetOrSetAsync<int>("foo", async _ => 20);
-
-			// IN-SYNC
-			Assert.Equal(10, vA1);
-			Assert.Equal(10, vB1);
-
-			// DISABLE DISTRIBUTED CACHE AND BACKPLANE
-			chaosDistributedCache.SetAlwaysThrow();
-			chaosBackplaneA.SetAlwaysThrow();
-			chaosBackplaneB.SetAlwaysThrow();
-
-			// SET ON CACHE B (NO DISTRIBUTED CACHE OR BACKPLANE, BECAUSE CHAOS)
-			await cacheB.SetAsync<int>("foo", 30);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA2 = await cacheA.GetOrDefaultAsync<int>("foo", 40);
-
-			// GET FROM CACHE B (MEMORY CACHE)
-			var vB2 = await cacheB.GetOrDefaultAsync<int>("foo", 50);
-
-			// NOT IN-SYNC
-			Assert.Equal(10, vA2);
-			Assert.Equal(30, vB2);
-
-			// RE-ENABLE DISTRIBUTED CACHE AND BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS)
-			chaosDistributedCache.SetNeverThrow();
-			chaosBackplaneA.SetNeverThrow();
-			chaosBackplaneB.SetNeverThrow();
-
-			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
-			var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
-
-			// GET FROM CACHE B
-			var vB3 = await cacheB.GetOrSetAsync<int>("foo", async _ => 70);
-
-			Assert.Equal(30, vA3);
-			Assert.Equal(30, vB3);
-		}
-
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public void CanHandleIssuesWithBothDistributedCacheAndBackplane(SerializerType serializerType)
-		{
-			var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
-			var defaultOptions = new FusionCacheOptions();
-
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateLogger<ChaosDistributedCache>());
-
-			// SETUP CACHE A
-			var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateLogger<ChaosBackplane>());
-			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheA.SetupBackplane(chaosBackplaneA);
-
-			// SETUP CACHE B
-			var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateLogger<ChaosBackplane>());
-			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheB.SetupBackplane(chaosBackplaneB);
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA1 = cacheA.GetOrSet<int>("foo", _ => 10);
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB1 = cacheB.GetOrSet<int>("foo", _ => 20);
-
-			// IN-SYNC
-			Assert.Equal(10, vA1);
-			Assert.Equal(10, vB1);
-
-			// DISABLE DISTRIBUTED CACHE AND BACKPLANE
-			chaosDistributedCache.SetAlwaysThrow();
-			chaosBackplaneA.SetAlwaysThrow();
-			chaosBackplaneB.SetAlwaysThrow();
-
-			// SET ON CACHE B (NO DISTRIBUTED CACHE OR BACKPLANE, BECAUSE CHAOS)
-			cacheB.Set<int>("foo", 30);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA2 = cacheA.GetOrDefault<int>("foo", 40);
-
-			// GET FROM CACHE B (MEMORY CACHE)
-			var vB2 = cacheB.GetOrDefault<int>("foo", 50);
-
-			// NOT IN-SYNC
-			Assert.Equal(10, vA2);
-			Assert.Equal(30, vB2);
-
-			// RE-ENABLE DISTRIBUTED CACHE AND BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS)
-			chaosDistributedCache.SetNeverThrow();
-			chaosBackplaneA.SetNeverThrow();
-			chaosBackplaneB.SetNeverThrow();
-
-			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
-			var vA3 = cacheA.GetOrSet<int>("foo", _ => 60);
-
-			// GET FROM CACHE B
-			var vB3 = cacheB.GetOrSet<int>("foo", _ => 70);
-
-			Assert.Equal(30, vA3);
-			Assert.Equal(30, vB3);
-		}
-
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public async Task CanHandleReconnectedBackplaneWithoutReconnectedDistributedCacheAsync(SerializerType serializerType)
-		{
-			var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
-			var defaultOptions = new FusionCacheOptions();
-
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateLogger<ChaosDistributedCache>());
-
-			// SETUP CACHE A
-			var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateLogger<ChaosBackplane>());
-			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheA.SetupBackplane(chaosBackplaneA);
-
-			// SETUP CACHE B
-			var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateLogger<ChaosBackplane>());
-			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheB.SetupBackplane(chaosBackplaneB);
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA1 = await cacheA.GetOrSetAsync<int>("foo", async _ => 10);
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB1 = await cacheB.GetOrSetAsync<int>("foo", async _ => 20);
-
-			// IN-SYNC
-			Assert.Equal(10, vA1);
-			Assert.Equal(10, vB1);
-
-			// DISABLE DISTRIBUTED CACHE AND BACKPLANE
-			chaosDistributedCache.SetAlwaysThrow();
-			chaosBackplaneA.SetAlwaysThrow();
-			chaosBackplaneB.SetAlwaysThrow();
-
-			// SET ON CACHE B (NO DISTRIBUTED CACHE OR BACKPLANE, BECAUSE CHAOS)
-			await cacheB.SetAsync<int>("foo", 30);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA2 = await cacheA.GetOrDefaultAsync<int>("foo", 40);
-
-			// GET FROM CACHE B (MEMORY CACHE)
-			var vB2 = await cacheB.GetOrDefaultAsync<int>("foo", 50);
-
-			// NOT IN-SYNC
-			Assert.Equal(10, vA2);
-			Assert.Equal(30, vB2);
-
-			// RE-ENABLE BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS, BUT SINCE DIST CACHE IS DOWN THEY WILL BE KEPT IN THE QUEUE)
-			chaosBackplaneA.SetNeverThrow();
-			chaosBackplaneB.SetNeverThrow();
-
-			// GIVE IT SOME TIME
-			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA3 = await cacheA.GetOrDefaultAsync<int>("foo");
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB3 = await cacheB.GetOrDefaultAsync<int>("foo");
-
-			Assert.Equal(10, vA3);
-			Assert.Equal(30, vB3);
-
-			// RE-ENABLE DISTRIBUTED CACHE
-			chaosDistributedCache.SetNeverThrow();
-
-			// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
-			var vA4 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
-
-			// GET FROM CACHE B
-			var vB4 = await cacheB.GetOrSetAsync<int>("foo", async _ => 70);
-
-			await Task.Delay(TimeSpan.FromMilliseconds(500));
-
-			Assert.Equal(30, vA4);
-			Assert.Equal(30, vB4);
-		}
-
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public void CanHandleReconnectedBackplaneWithoutReconnectedDistributedCache(SerializerType serializerType)
-		{
-			var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
-			var defaultOptions = new FusionCacheOptions();
-
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateLogger<ChaosDistributedCache>());
-
-			// SETUP CACHE A
-			var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateLogger<ChaosBackplane>());
-			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheA.SetupBackplane(chaosBackplaneA);
-
-			// SETUP CACHE B
-			var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateLogger<ChaosBackplane>());
-			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheB.SetupBackplane(chaosBackplaneB);
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA1 = cacheA.GetOrSet<int>("foo", _ => 10);
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB1 = cacheB.GetOrSet<int>("foo", _ => 20);
-
-			// IN-SYNC
-			Assert.Equal(10, vA1);
-			Assert.Equal(10, vB1);
-
-			// DISABLE DISTRIBUTED CACHE AND BACKPLANE
-			chaosDistributedCache.SetAlwaysThrow();
-			chaosBackplaneA.SetAlwaysThrow();
-			chaosBackplaneB.SetAlwaysThrow();
-
-			// SET ON CACHE B (NO DISTRIBUTED CACHE OR BACKPLANE, BECAUSE CHAOS)
-			cacheB.Set<int>("foo", 30);
-
-			// GET FROM CACHE A (MEMORY CACHE)
-			var vA2 = cacheA.GetOrDefault<int>("foo", 40);
-
-			// GET FROM CACHE B (MEMORY CACHE)
-			var vB2 = cacheB.GetOrDefault<int>("foo", 50);
-
-			// NOT IN-SYNC
-			Assert.Equal(10, vA2);
-			Assert.Equal(30, vB2);
-
-			// RE-ENABLE BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS, BUT SINCE DIST CACHE IS DOWN THEY WILL BE KEPT IN THE QUEUE)
-			chaosBackplaneA.SetNeverThrow();
-			chaosBackplaneB.SetNeverThrow();
-
-			// GIVE IT SOME TIME
-			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA3 = cacheA.GetOrDefault<int>("foo");
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB3 = cacheB.GetOrDefault<int>("foo");
-
-			Assert.Equal(10, vA3);
-			Assert.Equal(30, vB3);
-
-			// RE-ENABLE DISTRIBUTED CACHE
-			chaosDistributedCache.SetNeverThrow();
-
-			// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
-			var vA4 = cacheA.GetOrSet<int>("foo", _ => 60);
-
-			// GET FROM CACHE B
-			var vB4 = cacheB.GetOrSet<int>("foo", _ => 70);
-
-			Thread.Sleep(TimeSpan.FromMilliseconds(500));
-
-			Assert.Equal(30, vA4);
-			Assert.Equal(30, vB4);
-		}
-
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public async Task CanHandleDistributedCacheErrorsWithBackplaneRetryAsync(SerializerType serializerType)
-		{
-			var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
-			var defaultOptions = new FusionCacheOptions();
-
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateLogger<ChaosDistributedCache>());
-
-			// SETUP CACHE A
-			var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateLogger<ChaosBackplane>());
-			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheA.SetupBackplane(chaosBackplaneA);
-
-			// SETUP CACHE B
-			var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateLogger<ChaosBackplane>());
-			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheB.SetupBackplane(chaosBackplaneB);
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA0 = cacheA.GetOrSet<int>("foo", _ => 10);
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB0 = cacheB.GetOrSet<int>("foo", _ => 20);
-
-			// IN-SYNC
-			Assert.Equal(10, vA0);
-			Assert.Equal(10, vB0);
-
-			// DISABLE DISTRIBUTED CACHE
-			chaosDistributedCache.SetAlwaysThrow();
-
-			// SET ON CACHE B
-			await cacheB.SetAsync<int>("foo", 30);
-
-			// GET FROM CACHE A
-			var vA1 = await cacheA.GetOrSetAsync<int>("foo", async _ => 31);
-
-			// GET FROM CACHE B
-			var vB1 = await cacheB.GetOrSetAsync<int>("foo", async _ => 40);
-
-			Assert.Equal(10, vA1);
-			Assert.Equal(30, vB1);
-
-			// RE-ENABLE DISTRIBUTED CACHE
-			chaosDistributedCache.SetNeverThrow();
-
-			// WAIT FOR AUTO-RECOVERY TO KICK IN
-			await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA2 = await cacheA.GetOrSetAsync<int>("foo", async _ => 50);
-
-			await Task.Delay(TimeSpan.FromMilliseconds(500));
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB2 = await cacheB.GetOrSetAsync<int>("foo", async _ => 60);
-
-			Assert.Equal(30, vA2);
-			Assert.Equal(30, vB2);
-		}
-
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
-		public void CanHandleDistributedCacheErrorsWithBackplaneRetry(SerializerType serializerType)
-		{
-			var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
-			var defaultOptions = new FusionCacheOptions();
-
-			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateLogger<ChaosDistributedCache>());
-
-			// SETUP CACHE A
-			var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateLogger<ChaosBackplane>());
-			using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheA.SetupBackplane(chaosBackplaneA);
-
-			// SETUP CACHE B
-			var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
-			var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateLogger<ChaosBackplane>());
-			using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateLogger<FusionCache>());
-
-			cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
-			cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-
-			cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
-			cacheB.SetupBackplane(chaosBackplaneB);
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA0 = cacheA.GetOrSet<int>("foo", _ => 10);
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB0 = cacheB.GetOrSet<int>("foo", _ => 20);
-
-			// IN-SYNC
-			Assert.Equal(10, vA0);
-			Assert.Equal(10, vB0);
-
-			// DISABLE DISTRIBUTED CACHE
-			chaosDistributedCache.SetAlwaysThrow();
-
-			// SET ON CACHE B
-			cacheB.Set<int>("foo", 30);
-
-			// GET FROM CACHE A
-			var vA1 = cacheA.GetOrSet<int>("foo", _ => 31);
-
-			// GET FROM CACHE B
-			var vB1 = cacheB.GetOrSet<int>("foo", _ => 40);
-
-			Assert.Equal(10, vA1);
-			Assert.Equal(30, vB1);
-
-			// RE-ENABLE DISTRIBUTED CACHE
-			chaosDistributedCache.SetNeverThrow();
-
-			// WAIT FOR AUTO-RECOVERY TO KICK IN
-			Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
-
-			// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-			var vA2 = cacheA.GetOrSet<int>("foo", _ => 50);
-
-			Thread.Sleep(TimeSpan.FromMilliseconds(500));
-
-			// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-			var vB2 = cacheB.GetOrSet<int>("foo", _ => 60);
-
-			Assert.Equal(30, vA2);
-			Assert.Equal(30, vB2);
-		}
-
-		[Theory]
-		[ClassData(typeof(SerializerTypesClassData))]
 		public async Task CanExecuteBackgroundDistributedCacheOperationsAsync(SerializerType serializerType)
 		{
 			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
 			var eo = new FusionCacheEntryOptions().SetDurationSec(10);
 			eo.AllowBackgroundDistributedCacheOperations = true;
 
-			var logger = CreateLogger<FusionCache>();
+			var logger = CreateXUnitLogger<FusionCache>();
 			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateLogger<ChaosDistributedCache>());
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
 			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
 			fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 
@@ -1666,10 +1086,10 @@ namespace FusionCacheTests
 			logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
 			await Task.Delay(TimeSpan.FromMilliseconds(200));
 			chaosDistributedCache.SetNeverDelay();
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var foo1 = await fusionCache.GetOrDefaultAsync<int>("foo", -1, eo);
 			await Task.Delay(simulatedDelayMs.PlusALittleBit());
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var foo2 = await fusionCache.GetOrDefaultAsync<int>("foo", -1, eo);
 
 			Assert.True(sw.Elapsed < simulatedDelayMs);
@@ -1685,10 +1105,10 @@ namespace FusionCacheTests
 			var eo = new FusionCacheEntryOptions().SetDurationSec(10);
 			eo.AllowBackgroundDistributedCacheOperations = true;
 
-			var logger = CreateLogger<FusionCache>();
+			var logger = CreateXUnitLogger<FusionCache>();
 			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateLogger<ChaosDistributedCache>());
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
 			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
 			fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 
@@ -1702,10 +1122,10 @@ namespace FusionCacheTests
 			logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
 			Thread.Sleep(TimeSpan.FromMilliseconds(200));
 			chaosDistributedCache.SetNeverDelay();
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var foo1 = fusionCache.GetOrDefault<int>("foo", -1, eo);
 			Thread.Sleep(simulatedDelayMs.PlusALittleBit());
-			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", _cacheKeyPrefix));
+			memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 			var foo2 = fusionCache.GetOrDefault<int>("foo", -1, eo);
 
 			Assert.True(sw.Elapsed < simulatedDelayMs);

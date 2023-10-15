@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -11,12 +12,11 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 namespace FusionCacheTests
 {
 	public class SerializationTests
+		: AbstractTests
 	{
-		private readonly ITestOutputHelper _output;
-
 		public SerializationTests(ITestOutputHelper output)
+				: base(output, null)
 		{
-			_output = output;
 		}
 
 		private static readonly Regex __re_VersionExtractor = new Regex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled);
@@ -72,30 +72,6 @@ namespace FusionCacheTests
 			var looped = LoopDeLoop(serializer, data);
 			Assert.Equal(data, looped);
 		}
-
-		//[Theory]
-		//[ClassData(typeof(SerializerTypesClassData))]
-		//public async Task LoopFailsWithIncompatibleTypesAsync(SerializerType serializerType)
-		//{
-		//	var serializer = TestsUtils.GetSerializer(serializerType);
-		//	await Assert.ThrowsAnyAsync<Exception>(async () =>
-		//	{
-		//		var data = await serializer.SerializeAsync("sloths, sloths everywhere");
-		//		var res = await serializer.DeserializeAsync<int>(data);
-		//	});
-		//}
-
-		//[Theory]
-		//[ClassData(typeof(SerializerTypesClassData))]
-		//public void LoopFailsWithIncompatibleTypes(SerializerType serializerType)
-		//{
-		//	var serializer = TestsUtils.GetSerializer(serializerType);
-		//	Assert.ThrowsAny<Exception>(() =>
-		//	{
-		//		var data = serializer.Serialize("sloths, sloths everywhere");
-		//		var res = serializer.Deserialize<int>(data);
-		//	});
-		//}
 
 		[Theory]
 		[ClassData(typeof(SerializerTypesClassData))]
@@ -267,7 +243,7 @@ namespace FusionCacheTests
 				var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
 				Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
 
-				_output.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
+				TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
 			}
 		}
 
@@ -293,7 +269,7 @@ namespace FusionCacheTests
 				var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
 				Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
 
-				_output.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
+				TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
 			}
 		}
 	}

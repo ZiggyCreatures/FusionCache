@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,8 +42,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 	public static class WorkloadScenarioOptions
 	{
 		// GENERAL
-		public static int GroupsCount = 1;
-		public static int NodesPerGroupCount = 2;
+		public static int ClustersCount = 1;
+		public static int NodesPerClusterCount = 2;
 		public static bool EnableFailSafe = false;
 
 		// DURATION
@@ -55,8 +56,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		// DISTRIBUTED CACHE
 		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly bool AllowBackgroundDistributedCacheOperations = true;
-		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(200);
-		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(200);
+		public static readonly TimeSpan? DistributedCacheSoftTimeout = TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(100);
 
 		public static readonly TimeSpan DistributedCacheCircuitBreakerDuration = TimeSpan.Zero;
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
@@ -78,13 +79,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(150);
 	}
 
-	public class FakeDatabase
+	public class SimulatedDatabase
 	{
 		public int? Value { get; set; }
 		public long? LastUpdateTimestamp { get; set; }
 	}
 
-	public class CacheGroup
+	public class CacheCluster
 	{
 		public List<CacheNode> Nodes { get; } = new List<CacheNode>();
 		public int? LastUpdatedNodeIndex { get; set; }
@@ -98,7 +99,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		}
 
 		public IFusionCache Cache { get; }
-		public long? ExpirationTimestamp { get; set; }
+		public long? ExpirationTimestampUnixMs { get; set; }
 	}
 
 	public static class WorkloadScenario
@@ -106,11 +107,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		// INTERNAL
 		private static string CacheKey = "foo";
 		private static readonly Random RNG = new Random();
-		private static readonly object LockObj = new object();
+		private static readonly SemaphoreSlim GlobalMutex = new SemaphoreSlim(1, 1);
 		private static int LastValue = 0;
-		private static int? LastUpdatedGroupIdx = null;
-		private static readonly ConcurrentDictionary<int, CacheGroup> CacheGroups = new ConcurrentDictionary<int, CacheGroup>();
-		private static readonly ConcurrentDictionary<int, FakeDatabase> Databases = new ConcurrentDictionary<int, FakeDatabase>();
+		private static int? LastUpdatedClusterIdx = null;
+		private static readonly ConcurrentDictionary<int, CacheCluster> CacheClusters = new ConcurrentDictionary<int, CacheCluster>();
+		private static readonly ConcurrentDictionary<int, SimulatedDatabase> Databases = new ConcurrentDictionary<int, SimulatedDatabase>();
 
 		private static bool DatabaseEnabled = true;
 
@@ -124,7 +125,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		private static int DbWritesCount = 0;
 		private static int DbReadsCount = 0;
 
-		private static IDistributedCache? CreateDistributedCache(int groupIdx)
+		private static IDistributedCache? CreateDistributedCache(int clusterIdx)
 		{
 			switch (WorkloadScenarioOptions.DistributedCacheType)
 			{
@@ -133,14 +134,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				case DistributedCacheType.Redis:
 					return new RedisCache(new RedisCacheOptions
 					{
-						Configuration = string.Format(WorkloadScenarioOptions.DistributedCacheRedisConnection, groupIdx)
+						Configuration = string.Format(WorkloadScenarioOptions.DistributedCacheRedisConnection, clusterIdx)
 					});
 				default:
 					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			}
 		}
 
-		private static IFusionCacheBackplane? CreateBackplane(int groupIdx)
+		private static IFusionCacheBackplane? CreateBackplane(int clusterIdx)
 		{
 			switch (WorkloadScenarioOptions.BackplaneType)
 			{
@@ -149,16 +150,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				case BackplaneType.Redis:
 					return new RedisBackplane(new RedisBackplaneOptions
 					{
-						Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, groupIdx),
+						Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, clusterIdx),
 						//CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration,
 						//AllowBackgroundOperations = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
 					});
 				default:
-					return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = $"connection-{groupIdx}" });
+					return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = $"connection-{clusterIdx}" });
 			}
 		}
 
-		private static void SaveToDb(int groupIdx, int value)
+		private static void SaveToDb(int clusterIdx, int value)
 		{
 			if (DatabaseEnabled == false)
 			{
@@ -167,13 +168,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			Interlocked.Increment(ref DbWritesCount);
 
-			var db = Databases.GetOrAdd(groupIdx, new FakeDatabase());
+			var db = Databases.GetOrAdd(clusterIdx, new SimulatedDatabase());
 			db.Value = value;
 			db.LastUpdateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-			LastUpdatedGroupIdx = groupIdx;
+			LastUpdatedClusterIdx = clusterIdx;
 		}
 
-		private static int? LoadFromDb(int groupIdx)
+		private static int? LoadFromDb(int clusterIdx)
 		{
 			if (DatabaseEnabled == false)
 			{
@@ -182,13 +183,18 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			Interlocked.Increment(ref DbReadsCount);
 
-			var db = Databases.GetOrAdd(groupIdx, new FakeDatabase());
+			var db = Databases.GetOrAdd(clusterIdx, new SimulatedDatabase());
 			return db.Value;
 		}
 
-		private static void UpdateCacheGroup(int groupIdx)
+		private static async Task UpdateRandomNodeOnClusterAsync(int clusterIdx, ILogger<FusionCache>? logger)
 		{
-			lock (LockObj)
+			var sw = Stopwatch.StartNew();
+			await GlobalMutex.WaitAsync();
+			sw.Stop();
+			logger?.LogInformation($"LOCK (UPDATE) TOOK: {sw.ElapsedMilliseconds} ms");
+
+			try
 			{
 				// CHANGE THE VALUE
 				LastValue++;
@@ -196,20 +202,24 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				// SAVE TO DB
 				try
 				{
-					SaveToDb(groupIdx, LastValue);
+					SaveToDb(clusterIdx, LastValue);
 
 					// UPDATE CACHE
-					var group = CacheGroups[groupIdx];
-					var nodeIdx = RNG.Next(group.Nodes.Count);
-					var node = group.Nodes[nodeIdx];
-
 					if (WorkloadScenarioOptions.UpdateCacheOnSaveToDb)
 					{
-						node.Cache.Set(CacheKey, LastValue, opt => opt.SetSkipBackplaneNotifications(false));
+						var cluster = CacheClusters[clusterIdx];
+						var nodeIdx = RNG.Next(cluster.Nodes.Count);
+						var node = cluster.Nodes[nodeIdx];
+
+						logger?.LogInformation($"BEFORE CACHE SET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
+						sw.Restart();
+						await node.Cache.SetAsync(CacheKey, LastValue, opt => opt.SetSkipBackplaneNotifications(false));
+						sw.Stop();
+						logger?.LogInformation($"AFTER CACHE SET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
 
 						// SAVE LAST XYZ
-						node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
-						group.LastUpdatedNodeIndex = nodeIdx;
+						node.ExpirationTimestampUnixMs = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+						cluster.LastUpdatedNodeIndex = nodeIdx;
 					}
 				}
 				catch
@@ -217,14 +227,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					// EMPTY
 				}
 			}
-		}
-
-		private static void UpdateSomeRandomData()
-		{
-			// GET A RANDOM GROUP IDX
-			var groupIdx = RNG.Next(CacheGroups.Count);
-
-			UpdateCacheGroup(groupIdx);
+			finally
+			{
+				GlobalMutex.Release();
+			}
 		}
 
 		private static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
@@ -252,26 +258,26 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			return meta?.LogicalExpiration;
 		}
 
-		private static void SetupCacheGroups()
+		private static void SetupClusters(IServiceProvider serviceProvider, ILogger<FusionCache>? logger)
 		{
 			AnsiConsole.MarkupLine("[deepskyblue1]SETUP[/]");
 
-			// DI
-			var services = new ServiceCollection();
-			SetupSerilogLogger(services, LogEventLevel.Verbose);
-			var serviceProvider = services.BuildServiceProvider();
-
-			for (int groupIdx = 0; groupIdx < WorkloadScenarioOptions.GroupsCount; groupIdx++)
+			var swAll = Stopwatch.StartNew();
+			for (int clusterIdx = 0; clusterIdx < WorkloadScenarioOptions.ClustersCount; clusterIdx++)
 			{
-				var group = new CacheGroup();
-				var cacheName = $"C{groupIdx + 1}";
+				var swCluster = Stopwatch.StartNew();
+
+				var cluster = new CacheCluster();
+				var cacheName = $"C{clusterIdx + 1}";
 
 				//AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE : [/] CREATING...");
-				var distributedCache = CreateDistributedCache(groupIdx);
+				var distributedCache = CreateDistributedCache(clusterIdx);
 				//AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
-				for (int nodeIdx = 0; nodeIdx < WorkloadScenarioOptions.NodesPerGroupCount; nodeIdx++)
+				for (int nodeIdx = 0; nodeIdx < WorkloadScenarioOptions.NodesPerClusterCount; nodeIdx++)
 				{
+					var swNode = Stopwatch.StartNew();
+
 					var cacheInstanceId = $"{cacheName}-{nodeIdx + 1}";
 
 					AnsiConsole.MarkupLine($"CACHE: [deepskyblue1]{cacheName} ({cacheInstanceId})[/]");
@@ -281,9 +287,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var options = new FusionCacheOptions()
 					{
 						CacheName = cacheName,
-						InstanceId = cacheInstanceId,
 						DefaultEntryOptions = new FusionCacheEntryOptions(WorkloadScenarioOptions.CacheDuration)
 					};
+					options.SetInstanceId(cacheInstanceId);
 
 					var deo = options.DefaultEntryOptions;
 
@@ -308,35 +314,46 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
 						deo.SkipBackplaneNotifications = true;
 
-					var logger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
-					var cache = new FusionCache(options, logger: logger);
+					var cacheLogger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+					var swCache = Stopwatch.StartNew();
+					var cache = new FusionCache(options, logger: cacheLogger);
+					swCache.Stop();
+					logger?.LogInformation($"CACHE CREATION TOOK: {swCache.ElapsedMilliseconds} ms");
 					AnsiConsole.MarkupLine(" [green3_1]OK[/]");
 
 					// DISTRIBUTED CACHE
 					if (distributedCache is not null)
 					{
 						AnsiConsole.Markup(" - [default]DISTRIBUTED CACHE:[/] ...");
-						var tmp = new ChaosDistributedCache(distributedCache);
+						var chaosDistributedCacheLogger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosDistributedCache>>() : null;
+						var tmp = new ChaosDistributedCache(distributedCache, chaosDistributedCacheLogger);
 						if (WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMinDelay is not null && WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay is not null)
 						{
 							tmp.SetAlwaysDelay(WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMinDelay.Value, WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay.Value);
 						}
+						var swDistributedCache = Stopwatch.StartNew();
 						cache.SetupDistributedCache(tmp, new FusionCacheNewtonsoftJsonSerializer());
+						swDistributedCache.Stop();
+						logger?.LogInformation($"DISTRIBUTED CACHE SETUP TOOK: {swDistributedCache.ElapsedMilliseconds} ms");
 						DistributedCaches.Add(tmp);
 						AnsiConsole.MarkupLine(" [green3_1]OK[/]");
 					}
 
 					// BACKPLANE
-					var backplane = CreateBackplane(groupIdx);
+					var backplane = CreateBackplane(clusterIdx);
 					if (backplane is not null)
 					{
 						AnsiConsole.Markup(" - [default]BACKPLANE:[/] ...");
-						var tmp = new ChaosBackplane(backplane);
+						var chaosBackplaneLogger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosBackplane>>() : null;
+						var tmp = new ChaosBackplane(backplane, chaosBackplaneLogger);
 						if (WorkloadScenarioOptions.ChaosBackplaneSyntheticDelay is not null)
 						{
 							tmp.SetAlwaysDelayExactly(WorkloadScenarioOptions.ChaosBackplaneSyntheticDelay.Value);
 						}
+						var swBackplane = Stopwatch.StartNew();
 						cache.SetupBackplane(tmp);
+						swBackplane.Stop();
+						logger?.LogInformation($"BACKPLANE SETUP TOOK: {swBackplane.ElapsedMilliseconds} ms");
 						Backplanes.Add(tmp);
 						AnsiConsole.MarkupLine(" [green3_1]OK[/]");
 					}
@@ -352,29 +369,38 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 						if (maybeExpiration is not null)
 						{
-							node.ExpirationTimestamp = maybeExpiration.Value.ToUnixTimeMilliseconds();
+							node.ExpirationTimestampUnixMs = maybeExpiration.Value.ToUnixTimeMilliseconds();
 						}
 						else
 						{
 							//node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
-							node.ExpirationTimestamp = null;
+							node.ExpirationTimestampUnixMs = null;
 						}
 					};
 
-					group.Nodes.Add(node);
+					cluster.Nodes.Add(node);
+
+					swNode.Stop();
+					logger?.LogInformation($"SETUP (NODE {nodeIdx + 1}) TOOK: {swNode.ElapsedMilliseconds} ms");
 				}
 
-				CacheGroups[groupIdx] = group;
+				CacheClusters[clusterIdx] = cluster;
+
+				swCluster.Stop();
+				logger?.LogInformation($"SETUP (CLUSTER {clusterIdx + 1}) TOOK: {swCluster.ElapsedMilliseconds} ms");
 			}
+
+			swAll.Stop();
+			logger?.LogInformation($"SETUP (ALL) TOOK: {swAll.ElapsedMilliseconds} ms");
 		}
 
-		private static string GetCountdownMarkup(long nowTimestamp, long? expirationTimestamp)
+		private static string GetCountdownMarkup(long nowTimestampUnixMs, long? expirationTimestampUnixMs)
 		{
-			if (expirationTimestamp is null || expirationTimestamp.Value <= nowTimestamp)
+			if (expirationTimestampUnixMs is null || expirationTimestampUnixMs.Value <= nowTimestampUnixMs)
 				return "";
 
-			var remainingSeconds = (expirationTimestamp.Value - nowTimestamp) / 1000;
-			var v = (float)(expirationTimestamp.Value - nowTimestamp) / (float)WorkloadScenarioOptions.CacheDuration.TotalMilliseconds;
+			var remainingSeconds = (expirationTimestampUnixMs.Value - nowTimestampUnixMs) / 1_000;
+			var v = (float)(expirationTimestampUnixMs.Value - nowTimestampUnixMs) / (float)WorkloadScenarioOptions.CacheDuration.TotalMilliseconds;
 			if (v <= 0.0f)
 				return "";
 
@@ -382,22 +408,18 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			switch (v)
 			{
 				case <= 0.1f:
-					//color = "red3_1";
 					color = "darkorange3_1";
 					break;
 				case <= 0.2f:
 					color = "grey23";
 					break;
 				case <= 0.3f:
-					//color = "darkorange3_1";
 					color = "grey42";
 					break;
 				case <= 0.4f:
-					//color = "darkgoldenrod";
 					color = "grey58";
 					break;
 				case <= 0.6f:
-					//color = "greenyellow";
 					color = "grey66";
 					break;
 				case <= 0.8f:
@@ -410,100 +432,129 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			return $"[{color}]-{remainingSeconds}[/]";
 		}
 
-		private static void DisplayDashboard()
+		private static async Task DisplayDashboardAsync(ILogger<FusionCache>? logger, bool getValues)
 		{
-			var tables = new List<(string Label, Table Table)>();
-			var nowTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
-			Debug.WriteLine("DASHBOARD: BEFORE LOCK");
-			lock (LockObj)
+			static async Task GetValueFromNode(ConcurrentDictionary<int, int?> clusterValues, int clusterIdx, CacheNode node, int nodeIdx, ILogger<FusionCache>? logger)
 			{
-				Debug.WriteLine("DASHBOARD: INSIDE LOCK");
+				int? value;
+				try
+				{
+					var sw = Stopwatch.StartNew();
+					value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(clusterIdx));
+					sw.Stop();
+					logger?.LogInformation($"CACHE GET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
+				}
+				catch
+				{
+					value = null;
+					logger?.LogInformation($"CACHE GET ({node.Cache.InstanceId}) FAILED");
+				}
+				clusterValues[nodeIdx] = value;
+			}
 
-				Debug.WriteLine("SNAPSHOT VALUES: START");
+			var tables = new List<(string Label, Table Table)>();
+			var nowTimestampUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
+			var swLock = Stopwatch.StartNew();
+			await GlobalMutex.WaitAsync();
+			swLock.Stop();
+			logger?.LogInformation($"LOCK (DASHBOARD) TOOK: {swLock.ElapsedMilliseconds} ms");
+
+			try
+			{
 				var _values = new ConcurrentDictionary<int, ConcurrentDictionary<int, int?>>();
 
-				var swGroups = Stopwatch.StartNew();
-
-				// SNAPSHOT VALUES
-				Parallel.ForEach(CacheGroups.Values, (group, _, groupIdx) =>
+				if (getValues)
 				{
-					var _valueGroup = _values[(int)groupIdx] = new ConcurrentDictionary<int, int?>();
+					logger?.LogInformation("SNAPSHOT VALUES: START");
 
-					var swGroup = Stopwatch.StartNew();
-					Parallel.ForEach(group.Nodes, (node, _, nodeIdx) =>
+					var swClusters = Stopwatch.StartNew();
+
+					// SNAPSHOT VALUES
+					var tasks = new ConcurrentBag<Task>();
+
+					for (int clusterIdx = 0; clusterIdx < CacheClusters.Values.Count; clusterIdx++)
 					{
-						int? value;
-						try
+						var cluster = CacheClusters[clusterIdx];
+
+						var valueCluster = _values[clusterIdx] = new ConcurrentDictionary<int, int?>();
+
+						for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 						{
-							var swNode = Stopwatch.StartNew();
-							value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb((int)groupIdx));
-							swNode.Stop();
-							Debug.WriteLine($"READ ON GROUP {groupIdx} NODE {nodeIdx} TOOK: {swNode.Elapsed}");
+							var node = cluster.Nodes[nodeIdx];
+
+							tasks.Add(GetValueFromNode(valueCluster, clusterIdx, node, nodeIdx, logger));
 						}
-						catch
-						{
-							value = null;
-						}
-						_valueGroup[(int)nodeIdx] = value;
-					});
-					swGroup.Stop();
-					Debug.WriteLine($"READ ON GROUP {groupIdx} TOOK: {swGroup.Elapsed}");
-				});
+					}
 
-				swGroups.Stop();
-				Debug.WriteLine($"READ ON ALL GROUPS TAKEN {swGroups.Elapsed}");
+					await Task.WhenAll(tasks);
 
-				Debug.WriteLine("SNAPSHOT VALUES: END");
+					swClusters.Stop();
+					logger?.LogInformation($"READ ON ALL CLUSTERS TOOK: {swClusters.ElapsedMilliseconds} ms");
 
-				Debug.WriteLine("DASHBOARD: START");
-
-				for (int groupIdx = 0; groupIdx < CacheGroups.Count; groupIdx++)
+					logger?.LogInformation("SNAPSHOT VALUES: END");
+				}
+				else
 				{
-					var group = CacheGroups[groupIdx];
+					// NULL FILL VALUES
+					for (int clusterIdx = 0; clusterIdx < CacheClusters.Values.Count; clusterIdx++)
+					{
+						var cluster = CacheClusters[clusterIdx];
+						var clusterValues = _values[clusterIdx] = new ConcurrentDictionary<int, int?>();
+						for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
+						{
+							clusterValues[nodeIdx] = null;
+						}
+					}
+				}
+
+				logger?.LogInformation("DASHBOARD: START");
+
+				for (int clusterIdx = 0; clusterIdx < CacheClusters.Count; clusterIdx++)
+				{
+					var cluster = CacheClusters[clusterIdx];
 
 					var table = new Table();
 
-					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
+					for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 					{
 						table.AddColumn(new TableColumn($"[deepskyblue1]N {nodeIdx + 1}[/]").Centered());
 					}
 
-					var lastUpdatedNodeIdx = group.LastUpdatedNodeIndex;
+					var lastUpdatedNodeIdx = cluster.LastUpdatedNodeIndex;
 
-					var _valueGroup = _values[groupIdx];
+					var _clusterValues = _values[clusterIdx];
 
 					// BUILD CELLS
 					var cells = new List<IRenderable>();
-					var isGroupAligned = true;
-					for (int nodeIdx = 0; nodeIdx < group.Nodes.Count; nodeIdx++)
+					var isClusterInSync = true;
+					for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 					{
-						var node = group.Nodes[nodeIdx];
-						var value = _valueGroup[nodeIdx];
+						var node = cluster.Nodes[nodeIdx];
+						var value = _clusterValues[nodeIdx];
 
 						var color = "white";
 						if (lastUpdatedNodeIdx.HasValue)
 						{
 							if (lastUpdatedNodeIdx.Value == nodeIdx)
 							{
-								if (LastUpdatedGroupIdx == groupIdx)
+								if (LastUpdatedClusterIdx == clusterIdx)
 									color = "green3_1";
 								else
 									color = "green4";
 							}
-							else if (_valueGroup[lastUpdatedNodeIdx.Value] == value)
+							else if (_clusterValues[lastUpdatedNodeIdx.Value] == value)
 							{
-								if (LastUpdatedGroupIdx == groupIdx)
+								if (LastUpdatedClusterIdx == clusterIdx)
 									color = "green3_1";
 								else
 									color = "green4";
 							}
 							else
 							{
-								isGroupAligned = false;
+								isClusterInSync = false;
 
-								if (LastUpdatedGroupIdx == groupIdx)
+								if (LastUpdatedClusterIdx == clusterIdx)
 									color = "red1";
 								else
 									color = "red3_1";
@@ -518,21 +569,21 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						var borderColor = Color.Black;
 						if (string.IsNullOrWhiteSpace(text) == false && lastUpdatedNodeIdx.HasValue && lastUpdatedNodeIdx.Value == nodeIdx)
 						{
-							borderColor = LastUpdatedGroupIdx != groupIdx ? Color.Green4 : Color.Green3_1;
+							borderColor = LastUpdatedClusterIdx != clusterIdx ? Color.Green4 : Color.Green3_1;
 						}
 
-						cells.Add(new Panel(new Markup($"[{color}]{text}[/]\n\n{GetCountdownMarkup(nowTimestamp, node.ExpirationTimestamp)}")).BorderColor(borderColor));
+						cells.Add(new Panel(new Markup($"[{color}]{text}[/]\n\n{GetCountdownMarkup(nowTimestampUnixMs, node.ExpirationTimestampUnixMs)}")).BorderColor(borderColor));
 					}
 
 					table.AddRow(cells);
 
 					// TABLE LABEL
-					var label = $"CACHE C{groupIdx + 1}";
+					var label = $"CLUSTER C{clusterIdx + 1}";
 
 					// TABLE LABEL COLOR
 					var labelColor = "grey84";
 
-					if (LastUpdatedGroupIdx == groupIdx)
+					if (LastUpdatedClusterIdx == clusterIdx)
 					{
 						label += " (LAST UPDATED)";
 						labelColor = "springgreen3_1";
@@ -541,21 +592,24 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					// TABLE BORDER COLOR
 					var tableBorderColor = Color.Default;
 
-					if (LastUpdatedGroupIdx is not null)
+					if (LastUpdatedClusterIdx is not null)
 					{
-						if (isGroupAligned)
+						if (_values[clusterIdx].Values.Any(x => x is not null))
 						{
-							if (LastUpdatedGroupIdx == groupIdx)
-								tableBorderColor = Color.Green3_1;
+							if (isClusterInSync)
+							{
+								if (LastUpdatedClusterIdx == clusterIdx)
+									tableBorderColor = Color.Green3_1;
+								else
+									tableBorderColor = Color.Green4;
+							}
 							else
-								tableBorderColor = Color.Green4;
-						}
-						else
-						{
-							if (LastUpdatedGroupIdx == groupIdx)
-								tableBorderColor = Color.Red1;
-							else
-								tableBorderColor = Color.Red3_1;
+							{
+								if (LastUpdatedClusterIdx == clusterIdx)
+									tableBorderColor = Color.Red1;
+								else
+									tableBorderColor = Color.Red3_1;
+							}
 						}
 					}
 
@@ -564,25 +618,19 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					// TABLE BORDER
 					var tableBorder = TableBorder.Heavy;
 
-					//if (LastUpdatedGroupIdx == groupIdx)
-					//	tableBorder = TableBorder.Double;
-					//else
-					//	tableBorder = TableBorder.Heavy;
-
 					table.Border(tableBorder);
 
 					tables.Add(($"[{labelColor}]{label}[/]", table));
 				}
 
-				Debug.WriteLine("DASHBOARD: END");
+				logger?.LogInformation("DASHBOARD: END");
 
 				// SUMMARY
 				AnsiConsole.Clear();
 
 				AnsiConsole.MarkupLine("SUMMARY");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] GROUPS = {WorkloadScenarioOptions.GroupsCount} / NODES = {WorkloadScenarioOptions.NodesPerGroupCount}");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] CLUSTERS = {WorkloadScenarioOptions.ClustersCount} / NODES = {WorkloadScenarioOptions.NodesPerClusterCount}");
 				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
-				//AnsiConsole.MarkupLine($"- [deepskyblue1]UPDATE DELAY  :[/] {WorkloadScenarioOptions.DataChangesMinDelay} - {WorkloadScenarioOptions.DataChangesMaxDelay}");
 
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
 				AnsiConsole.Markup($"memory ");
@@ -633,12 +681,6 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					// LABEL
 					AnsiConsole.Markup(item.Label);
 
-					//// DURATION COUNTDOWN
-					//if (item.LastUpdatedTimestamp is not null)
-					//{
-					//	AnsiConsole.Markup($" [deepskyblue1]DB WRITES     :[/]   {DbWritesCount}");
-					//}
-
 					AnsiConsole.WriteLine();
 
 					// TABLE
@@ -648,34 +690,34 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 				AnsiConsole.WriteLine();
 				AnsiConsole.MarkupLine($"PRESS:");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheGroups.Count}[/]: set a value on a cache group");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]D/d[/]: enable/disable distributed cache (all groups)");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]B/b[/]: enable/disable backplane (all groups)");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]S/s[/]: enable/disable database (all groups)");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheClusters.Count}[/]: set a value on a cache cluster");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]D/d[/]: enable/disable distributed cache (all clusters)");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]B/b[/]: enable/disable backplane (all clusters)");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]S/s[/]: enable/disable database (all clusters)");
+			}
+			finally
+			{
+				GlobalMutex.Release();
 			}
 		}
 
-		public static async Task RunAsync()
+		private static void GetInputs()
 		{
-			CacheKey = $"foo-{DateTime.UtcNow.Ticks}";
-
-			AnsiConsole.Clear();
-
 			// INPUTS
 			bool inputProvided;
 
 			inputProvided = false;
 			while (inputProvided == false)
 			{
-				AnsiConsole.Markup($"[deepskyblue1]CACHE GROUPS (amount):[/] ");
-				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.GroupsCount);
+				AnsiConsole.Markup($"[deepskyblue1]CLUSTERS (amount):[/] ");
+				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.ClustersCount);
 			}
 
 			inputProvided = false;
 			while (inputProvided == false)
 			{
-				AnsiConsole.Markup($"[deepskyblue1]NODES PER GROUP (amount):[/] ");
-				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.NodesPerGroupCount);
+				AnsiConsole.Markup($"[deepskyblue1]NODES PER CLUSTER (amount):[/] ");
+				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.NodesPerClusterCount);
 			}
 
 			inputProvided = false;
@@ -693,23 +735,41 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					AnsiConsole.WriteLine();
 				}
 			}
+		}
+
+		public static async Task RunAsync()
+		{
+			CacheKey = $"foo-{DateTime.UtcNow.Ticks}";
+
+			AnsiConsole.Clear();
+
+			GetInputs();
 
 			AnsiConsole.WriteLine();
 			AnsiConsole.WriteLine();
 
-			SetupCacheGroups();
+			// DI
+			var services = new ServiceCollection();
+			SetupSerilogLogger(services, LogEventLevel.Verbose);
+			var serviceProvider = services.BuildServiceProvider();
+
+			var logger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+
+			SetupClusters(serviceProvider, logger);
 
 			using var cts = new CancellationTokenSource();
 			var ct = cts.Token;
 
 			_ = Task.Run(async () =>
 			{
+				var firstRun = true;
 				while (ct.IsCancellationRequested == false)
 				{
 					try
 					{
 						// DISPLAY DASHBOARD
-						DisplayDashboard();
+						await DisplayDashboardAsync(logger, firstRun == false);
+						firstRun = false;
 					}
 					catch (Exception exc)
 					{
@@ -718,7 +778,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						throw;
 					}
 
-					await Task.Delay(WorkloadScenarioOptions.RefreshDelay).ConfigureAwait(false);
+					await Task.Delay(WorkloadScenarioOptions.RefreshDelay);
 				}
 			});
 
@@ -730,10 +790,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				{
 					case '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9':
 						// SET VALUE
-						var groupIdx = int.Parse(tmp.KeyChar.ToString());
-						if (groupIdx > 0 && groupIdx <= CacheGroups.Count)
+						var clusterIdx = int.Parse(tmp.KeyChar.ToString());
+						if (clusterIdx > 0 && clusterIdx <= CacheClusters.Count)
 						{
-							UpdateCacheGroup(groupIdx - 1);
+							await UpdateRandomNodeOnClusterAsync(clusterIdx - 1, logger);
 						}
 						break;
 					case 'D' or 'd':
@@ -772,7 +832,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			} while (shouldExit == false);
 
 			cts.Cancel();
-			await Task.Delay(1_000).ConfigureAwait(false);
+			await Task.Delay(1_000);
 		}
 	}
 }

@@ -17,7 +17,7 @@ namespace FusionCacheTests
 
 			await Assert.ThrowsAsync<SyntheticTimeoutException>(async () =>
 			{
-				await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
+				await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
 			});
 			Assert.False(_hasRun);
 		}
@@ -29,7 +29,7 @@ namespace FusionCacheTests
 
 			Assert.Throws<SyntheticTimeoutException>(() =>
 			{
-				FusionCacheExecutionUtils.RunAsyncFuncWithTimeout(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
+				RunUtils.RunAsyncFuncWithTimeout(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
 			});
 			Assert.False(_hasRun);
 		}
@@ -41,7 +41,7 @@ namespace FusionCacheTests
 
 			await Assert.ThrowsAsync<SyntheticTimeoutException>(async () =>
 			{
-				await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
+				await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
 			});
 			Assert.False(_hasRun);
 		}
@@ -53,7 +53,7 @@ namespace FusionCacheTests
 
 			Assert.Throws<SyntheticTimeoutException>(() =>
 			{
-				FusionCacheExecutionUtils.RunAsyncActionWithTimeout(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
+				RunUtils.RunAsyncActionWithTimeout(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
 			});
 			Assert.False(_hasRun);
 		}
@@ -68,7 +68,7 @@ namespace FusionCacheTests
 			await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
 			{
 				var cts = new CancellationTokenSource(outerCancelDelayMs);
-				res = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
+				res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 			});
 			await Task.Delay(innerDelayMs);
 
@@ -86,7 +86,7 @@ namespace FusionCacheTests
 			Assert.ThrowsAny<OperationCanceledException>(() =>
 			{
 				var cts = new CancellationTokenSource(outerCancelDelayMs);
-				res = FusionCacheExecutionUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
+				res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 			});
 
 			Assert.Equal(-1, res);
@@ -103,7 +103,7 @@ namespace FusionCacheTests
 			Assert.Throws<OperationCanceledException>(() =>
 			{
 				var cts = new CancellationTokenSource(outerCancelDelayMs);
-				res = FusionCacheExecutionUtils.RunSyncFuncWithTimeout(ct => { Thread.Sleep(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
+				res = RunUtils.RunSyncFuncWithTimeout(ct => { Thread.Sleep(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 			});
 
 			Assert.Equal(-1, res);
@@ -119,7 +119,7 @@ namespace FusionCacheTests
 			var sw = Stopwatch.StartNew();
 			await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 			{
-				res = await FusionCacheExecutionUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, TimeSpan.FromMilliseconds(timeoutMs));
+				res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, TimeSpan.FromMilliseconds(timeoutMs));
 			});
 			sw.Stop();
 
@@ -137,7 +137,7 @@ namespace FusionCacheTests
 			var sw = Stopwatch.StartNew();
 			Assert.ThrowsAny<TimeoutException>(() =>
 			{
-				res = FusionCacheExecutionUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, TimeSpan.FromMilliseconds(timeoutMs));
+				res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, TimeSpan.FromMilliseconds(timeoutMs));
 			});
 			sw.Stop();
 
@@ -154,7 +154,7 @@ namespace FusionCacheTests
 			var innerDelayMs = 2_000;
 			await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 			{
-				await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), true);
+				await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), true);
 			});
 			await Task.Delay(innerDelayMs);
 
@@ -169,7 +169,7 @@ namespace FusionCacheTests
 			var innerDelayMs = 2_000;
 			Assert.ThrowsAny<TimeoutException>(() =>
 			{
-				FusionCacheExecutionUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), true);
+				RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), true);
 			});
 			Thread.Sleep(innerDelayMs);
 
@@ -184,7 +184,7 @@ namespace FusionCacheTests
 			var innerDelayMs = 2_000;
 			await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 			{
-				await FusionCacheExecutionUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
+				await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
 			});
 			await Task.Delay(innerDelayMs + timeoutMs);
 
@@ -199,7 +199,7 @@ namespace FusionCacheTests
 			var innerDelayMs = 2_000;
 			Assert.ThrowsAny<TimeoutException>(() =>
 			{
-				FusionCacheExecutionUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
+				RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
 			});
 			Thread.Sleep(innerDelayMs + timeoutMs);
 

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
-using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
@@ -14,49 +12,11 @@ using ZiggyCreatures.Caching.Fusion.Events;
 namespace FusionCacheTests
 {
 	public class EventsTests
+		: AbstractTests
 	{
-		public enum EntryActionKind
-		{
-			Miss = 0,
-			HitNormal = 1,
-			HitStale = 2,
-			Set = 3,
-			Remove = 4,
-			FailSafeActivate = 5,
-			FactoryError = 6,
-			FactorySuccess = 7,
-			BackplaneMessagePublished = 8,
-			BackplaneMessageReceived = 9
-		}
-
-		public class EntryActionsStats
-		{
-			public EntryActionsStats()
-			{
-				Data = new ConcurrentDictionary<EntryActionKind, int>();
-				foreach (EntryActionKind kind in Enum.GetValues(typeof(EntryActionKind)))
-				{
-					Data[kind] = 0;
-				}
-			}
-
-			public ConcurrentDictionary<EntryActionKind, int> Data { get; }
-			public void RecordAction(EntryActionKind kind)
-			{
-				Data.AddOrUpdate(kind, 1, (_, x) => x + 1);
-			}
-		}
-
-		private readonly ITestOutputHelper _output;
-
 		public EventsTests(ITestOutputHelper output)
+			: base(output, null)
 		{
-			_output = output;
-		}
-
-		private XUnitLogger<T> CreateLogger<T>(LogLevel minLevel = LogLevel.Trace)
-		{
-			return new XUnitLogger<T>(minLevel, _output);
 		}
 
 		[Fact]
@@ -845,9 +805,9 @@ namespace FusionCacheTests
 				SkipBackplaneNotifications = true
 			};
 
-			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
-			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
-			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateXUnitLogger<FusionCache>());
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateXUnitLogger<FusionCache>());
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateXUnitLogger<FusionCache>());
 
 			var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
@@ -873,7 +833,7 @@ namespace FusionCacheTests
 			// CACHE 2
 			await cache2.RemoveAsync("foo", opt => opt.SetSkipBackplaneNotifications(false));
 
-			await Task.Delay(TimeSpan.FromMilliseconds(500));
+			Thread.Sleep(TimeSpan.FromMilliseconds(200));
 
 			// REMOVE HANDLERS
 			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
@@ -901,9 +861,9 @@ namespace FusionCacheTests
 				SkipBackplaneNotifications = true
 			};
 
-			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
-			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
-			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateLogger<FusionCache>());
+			using var cache1 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateXUnitLogger<FusionCache>());
+			using var cache2 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateXUnitLogger<FusionCache>());
+			using var cache3 = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true, DefaultEntryOptions = entryOptions }, logger: CreateXUnitLogger<FusionCache>());
 
 			var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
@@ -929,7 +889,7 @@ namespace FusionCacheTests
 			// CACHE 2
 			cache2.Remove("foo", opt => opt.SetSkipBackplaneNotifications(false));
 
-			Thread.Sleep(TimeSpan.FromMilliseconds(500));
+			Thread.Sleep(TimeSpan.FromMilliseconds(200));
 
 			// REMOVE HANDLERS
 			cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
