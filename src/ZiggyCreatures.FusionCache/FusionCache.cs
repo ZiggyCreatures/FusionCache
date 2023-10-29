@@ -688,6 +688,14 @@ public partial class FusionCache
 		return false;
 	}
 
+	private bool MustAwaitBackplaneOperations(FusionCacheEntryOptions options)
+	{
+		if (HasBackplane && options.AllowBackgroundBackplaneOperations == false)
+			return true;
+
+		return false;
+	}
+
 	private static readonly MethodInfo __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric = typeof(FusionCache).GetMethod(nameof(TryUpdateMemoryEntryFromDistributedEntryAsync), BindingFlags.NonPublic | BindingFlags.Instance);
 
 	internal async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryUntypedAsync(string operationId, string cacheKey, FusionCacheMemoryEntry memoryEntry)
@@ -889,7 +897,7 @@ public partial class FusionCache
 			}
 		}
 
-		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, timestamp, options, expirationTicks, _autoRecoveryMaxRetryCount, message);
+		_autoRecoveryQueue[cacheKey] = new AutoRecoveryItem(cacheKey, action, timestamp, options, expirationTicks, _autoRecoveryMaxRetryCount);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): added (or overwrote) an item to the auto-recovery queue", CacheName, InstanceId, operationId, cacheKey);
@@ -1051,41 +1059,6 @@ public partial class FusionCache
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): starting auto-recovery of {Count} pending items", CacheName, InstanceId, operationId, itemsToProcess.Count);
-
-			//// TODO: MAYBE SENTINEL NOT NEEDED HERE (THE BACKPLANE MAY BE NOT NEEDED...)
-
-			//// PUBLISH (SENTINEL)
-			//var sentinelSuccess = await _bpa.PublishSentinelAsync(operationId, _autoRecoverySentinelCacheKey, _autoRecoverySentinelEntryOptions, token).ConfigureAwait(false);
-			//if (sentinelSuccess == false)
-			//{
-			//	hasStopped = true;
-			//	return false;
-			//}
-
-
-			// TODO: KEEP THIS?
-			//// AUTO-RECOVERY SPECIFIC ENTRY OPTIONS
-			//if (_autoRecoveryRemoveDistributedCacheEntryOptions is null)
-			//{
-			//	//_autoRecoveryRemoveDistributedCacheEntryOptions = _cache.DefaultEntryOptions.Duplicate();
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions = new FusionCacheEntryOptions();
-
-			//	// MEMORY CACHE
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.SkipMemoryCache = true;
-			//	// DISTRIBUTED CACHE
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.SkipDistributedCache = false;
-
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan;
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan;
-
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.AllowBackgroundDistributedCacheOperations = false;
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.ReThrowDistributedCacheExceptions = true;
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.SkipDistributedCacheReadWhenStale = false;
-			//	// BACKPLANE
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.SkipBackplaneNotifications = true;
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.AllowBackgroundBackplaneOperations = false;
-			//	_autoRecoveryRemoveDistributedCacheEntryOptions.ReThrowBackplaneExceptions = true;
-			//}
 
 			foreach (var item in itemsToProcess)
 			{
