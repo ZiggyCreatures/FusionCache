@@ -45,15 +45,12 @@ public partial class FusionCache
 	// AUTO-RECOVERY
 	private readonly ConcurrentDictionary<string, AutoRecoveryItem> _autoRecoveryQueue = new ConcurrentDictionary<string, AutoRecoveryItem>();
 	private readonly SemaphoreSlim _autoRecoveryProcessingLock = new SemaphoreSlim(1, 1);
-	//private FusionCacheEntryOptions? _autoRecoveryRemoveDistributedCacheEntryOptions;
-	//private readonly FusionCacheEntryOptions _autoRecoverySentinelEntryOptions;
 	private readonly int _autoRecoveryMaxItems;
 	private readonly int _autoRecoveryMaxRetryCount;
 	private readonly TimeSpan _autoRecoveryDelay;
 	private static readonly TimeSpan _autoRecoveryMinDelay = TimeSpan.FromMilliseconds(10);
 	private CancellationTokenSource? _autoRecoveryCts;
 	private long _autoRecoveryBarrierTicks = 0;
-	private readonly string _autoRecoverySentinelCacheKey = Guid.NewGuid().ToString("N");
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -121,24 +118,6 @@ public partial class FusionCache
 		// NOTE: THIS IS PRAGMATIC, SO TO AVOID CHECKING AN int? EVERY TIME, AND int.MaxValue IS HIGH ENOUGH THAT IT WON'T MATTER
 		_autoRecoveryMaxItems = _options.AutoRecoveryMaxItems ?? int.MaxValue;
 		_autoRecoveryMaxRetryCount = _options.AutoRecoveryMaxRetryCount ?? int.MaxValue;
-
-		//// TODO: KEEP THIS?
-		//_autoRecoverySentinelEntryOptions = new FusionCacheEntryOptions
-		//{
-		//	// MEMORY CACHE
-		//	SkipMemoryCache = true,
-		//	// DISTRIBUTED CACHE
-		//	SkipDistributedCache = false,
-		//	DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
-		//	DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
-		//	AllowBackgroundDistributedCacheOperations = false,
-		//	ReThrowDistributedCacheExceptions = true,
-		//	SkipDistributedCacheReadWhenStale = false,
-		//	// BACKPLANE
-		//	SkipBackplaneNotifications = false,
-		//	AllowBackgroundBackplaneOperations = false,
-		//	ReThrowBackplaneExceptions = true
-		//};
 
 		// AUTO-RECOVERY
 		if (_options.EnableAutoRecovery)
@@ -715,7 +694,6 @@ public partial class FusionCache
 
 			var dca = GetCurrentDistributedAccessor(null);
 
-			// TODO: MAYBE REMOVE THIS, SINCE IT'S PROBABLY USELESS...
 			if (dca is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -853,8 +831,6 @@ public partial class FusionCache
 		var duration = (options.SkipDistributedCache || HasDistributedCache == false) ? options.Duration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration);
 		var expirationTicks = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(duration, options, false).Ticks;
 
-		// TODO: MAYBE USE THE ITEM'S Timestamp HERE
-
 		if (_autoRecoveryQueue.Count >= _autoRecoveryMaxItems && _autoRecoveryQueue.ContainsKey(cacheKey) == false)
 		{
 			// IF:
@@ -870,7 +846,7 @@ public partial class FusionCache
 			try
 			{
 				var earliestToExpire = _autoRecoveryQueue.Values.ToArray().Where(x => x.ExpirationTicks is not null).OrderBy(x => x.ExpirationTicks).FirstOrDefault();
-				if (earliestToExpire is not null /*&& earliestToExpire.Message is not null*/)
+				if (earliestToExpire is not null)
 				{
 					if (earliestToExpire.ExpirationTicks < expirationTicks)
 					{
@@ -909,10 +885,6 @@ public partial class FusionCache
 	{
 		if (cacheKey is null)
 			return false;
-
-		// TODO:
-		//!!! FUCK FUCK FUCK !!!
-		//!!! THIS WAS MISSING, RE-TEST  EVERYTHING !!!
 
 		if (_autoRecoveryQueue.TryRemove(cacheKey, out _) == false)
 			return false;
@@ -991,7 +963,6 @@ public partial class FusionCache
 			return true;
 		}
 
-		// TODO: MAYBE USE THE ITEM'S Timestamp PROP DIRECTLY, IF WE'VE ADDED IT
 		if (pendingLocal.Timestamp <= message.Timestamp)
 		{
 			// PENDING LOCAL MESSAGE IS -OLDER- THAN THE INCOMING ONE -> REMOVE THE LOCAL ONE

@@ -349,7 +349,6 @@ internal sealed partial class BackplaneAccessor
 			}
 		}
 
-		// TODO: WHICH ONE?
 		//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
 	}
