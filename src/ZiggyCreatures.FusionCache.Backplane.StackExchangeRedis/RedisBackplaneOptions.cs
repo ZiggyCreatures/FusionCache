@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
@@ -21,8 +23,14 @@ public class RedisBackplaneOptions
 	public ConfigurationOptions? ConfigurationOptions { get; set; }
 
 	/// <summary>
-	/// The configuration used to connect to Redis.
+	/// A delegate to create the ConnectionMultiplexer instance.
 	/// </summary>
+	public Func<Task<IConnectionMultiplexer>>? ConnectionMultiplexerFactory { get; set; }
+
+	/// <summary>
+	/// DEPRECATED: verify that at least one clients received the notifications after each publish.
+	/// </summary>
+	[Obsolete]
 	public bool VerifyReceivedClientsCountAfterPublish { get; set; } = false;
 
 	RedisBackplaneOptions IOptions<RedisBackplaneOptions>.Value
