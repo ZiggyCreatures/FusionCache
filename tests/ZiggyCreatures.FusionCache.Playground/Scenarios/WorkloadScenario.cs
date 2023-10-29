@@ -631,7 +631,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.Clear();
 
 				AnsiConsole.MarkupLine("SUMMARY");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] {WorkloadScenarioOptions.NodesPerClusterCount} NODES * {WorkloadScenarioOptions.ClustersCount} CLUSTERS ({WorkloadScenarioOptions.NodesPerClusterCount * WorkloadScenarioOptions.ClustersCount} TOTAL NODES)");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] {WorkloadScenarioOptions.NodesPerClusterCount} NODES x {WorkloadScenarioOptions.ClustersCount} CLUSTERS ({WorkloadScenarioOptions.NodesPerClusterCount * WorkloadScenarioOptions.ClustersCount} TOTAL NODES)");
 				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
 
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
