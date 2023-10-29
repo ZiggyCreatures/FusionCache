@@ -8,7 +8,7 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests
 {
-	public class ExecutionUtilsTests
+	public class RunUtilsTests
 	{
 		[Fact]
 		public async Task ZeroTimeoutDoesNotStartAsyncFuncAsync()

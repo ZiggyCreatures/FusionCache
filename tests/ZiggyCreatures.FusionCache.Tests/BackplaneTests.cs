@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
@@ -12,6 +13,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
+using ZiggyCreatures.Caching.Fusion.Chaos;
 
 namespace FusionCacheTests
 {
@@ -667,6 +669,76 @@ namespace FusionCacheTests
 
 			Assert.Equal(30, fooA3);
 			Assert.Equal(30, fooB3);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public async Task CanExecuteBackgroundBackplaneOperationsAsync(SerializerType serializerType)
+		{
+			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+			var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+			var eo = new FusionCacheEntryOptions().SetDurationSec(10);
+			eo.AllowBackgroundDistributedCacheOperations = false;
+			eo.AllowBackgroundBackplaneOperations = true;
+
+			var logger = CreateXUnitLogger<FusionCache>();
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+			fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+			var backplane = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+			var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
+			fusionCache.SetupBackplane(chaosBackplane);
+
+			chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
+			chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
+
+			var sw = Stopwatch.StartNew();
+			await fusionCache.SetAsync<int>("foo", 21, eo);
+			sw.Stop();
+
+			Assert.True(sw.Elapsed >= simulatedDelayMs);
+			Assert.True(sw.Elapsed < simulatedDelayMs * 2);
+		}
+
+		[Theory]
+		[ClassData(typeof(SerializerTypesClassData))]
+		public void CanExecuteBackgroundBackplaneOperations(SerializerType serializerType)
+		{
+			var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+			var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+			var eo = new FusionCacheEntryOptions().SetDurationSec(10);
+			eo.AllowBackgroundDistributedCacheOperations = false;
+			eo.AllowBackgroundBackplaneOperations = true;
+
+			var logger = CreateXUnitLogger<FusionCache>();
+			using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+			using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
+
+			var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+			var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+			fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+			var backplane = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+			var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
+			fusionCache.SetupBackplane(chaosBackplane);
+
+			chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
+			chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
+
+			var sw = Stopwatch.StartNew();
+			fusionCache.Set<int>("foo", 21, eo);
+			sw.Stop();
+
+			Assert.True(sw.Elapsed >= simulatedDelayMs);
+			Assert.True(sw.Elapsed < simulatedDelayMs * 2);
 		}
 	}
 }
