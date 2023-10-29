@@ -633,9 +633,8 @@ public partial class FusionCache
 		var mustAwaitCompletion = MustAwaitDistributedOperations(options);
 		var isBackground = !mustAwaitCompletion;
 
-		// TODO: MAYBE USE A SLIMMER UTIL
 		RunUtils.RunSyncActionAdvanced(
-			ct =>
+			ct1 =>
 			{
 				// DISTRIBUTED CACHE
 				var dca = GetCurrentDistributedAccessor(options);
@@ -646,7 +645,7 @@ public partial class FusionCache
 					{
 						if (dca.IsCurrentlyUsable(operationId, key))
 						{
-							dcaSuccess = distributedCacheAction(dca, isBackground, ct);
+							dcaSuccess = distributedCacheAction(dca, isBackground, ct1);
 						}
 					}
 					catch
@@ -662,30 +661,42 @@ public partial class FusionCache
 					}
 				}
 
-				// TODO: HANDLE BACKGROUND PROCESSING HERE... MAYBE...
+				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
+				var isBackplaneBackground = isBackground || !mustAwaitBackplaneCompletion;
 
-				// BACKPLANE
-				var bpa = GetCurrentBackplaneAccessor(options);
-				if (bpa is not null)
-				{
-					var bpaSuccess = false;
-					try
+				RunUtils.RunSyncActionAdvanced(
+					ct2 =>
 					{
-						if (bpa.IsCurrentlyUsable(operationId, key))
+						// BACKPLANE
+						var bpa = GetCurrentBackplaneAccessor(options);
+						if (bpa is not null)
 						{
-							bpaSuccess = backplaneAction(bpa, isBackground, ct);
-						}
-					}
-					catch
-					{
-						bpaSuccess = false;
-					}
+							var bpaSuccess = false;
+							try
+							{
+								if (bpa.IsCurrentlyUsable(operationId, key))
+								{
+									bpaSuccess = backplaneAction(bpa, isBackplaneBackground, ct2);
+								}
+							}
+							catch
+							{
+								bpaSuccess = false;
+							}
 
-					if (bpaSuccess == false)
-					{
-						TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
-					}
-				}
+							if (bpaSuccess == false)
+							{
+								TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
+							}
+						}
+					},
+					Timeout.InfiniteTimeSpan,
+					false,
+					mustAwaitBackplaneCompletion,
+					null,
+					true,
+					token
+				);
 			},
 			Timeout.InfiniteTimeSpan,
 			false,

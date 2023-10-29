@@ -633,9 +633,8 @@ public partial class FusionCache
 		var mustAwaitCompletion = MustAwaitDistributedOperations(options);
 		var isBackground = !mustAwaitCompletion;
 
-		// TODO: MAYBE USE A SLIMMER UTIL
 		await RunUtils.RunAsyncActionAdvancedAsync(
-			async ct =>
+			async ct1 =>
 			{
 				// DISTRIBUTED CACHE
 				var dca = GetCurrentDistributedAccessor(options);
@@ -646,7 +645,7 @@ public partial class FusionCache
 					{
 						if (dca.IsCurrentlyUsable(operationId, key))
 						{
-							dcaSuccess = await distributedCacheAction(dca, isBackground, ct).ConfigureAwait(false);
+							dcaSuccess = await distributedCacheAction(dca, isBackground, ct1).ConfigureAwait(false);
 						}
 					}
 					catch
@@ -662,30 +661,42 @@ public partial class FusionCache
 					}
 				}
 
-				// TODO: HANDLE BACKGROUND PROCESSING HERE... MAYBE...
+				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
+				var isBackplaneBackground = isBackground || !mustAwaitBackplaneCompletion;
 
-				// BACKPLANE
-				var bpa = GetCurrentBackplaneAccessor(options);
-				if (bpa is not null)
-				{
-					var bpaSuccess = false;
-					try
+				await RunUtils.RunAsyncActionAdvancedAsync(
+					async ct2 =>
 					{
-						if (bpa.IsCurrentlyUsable(operationId, key))
+						// BACKPLANE
+						var bpa = GetCurrentBackplaneAccessor(options);
+						if (bpa is not null)
 						{
-							bpaSuccess = await backplaneAction(bpa, isBackground, ct).ConfigureAwait(false);
-						}
-					}
-					catch
-					{
-						bpaSuccess = false;
-					}
+							var bpaSuccess = false;
+							try
+							{
+								if (bpa.IsCurrentlyUsable(operationId, key))
+								{
+									bpaSuccess = await backplaneAction(bpa, isBackplaneBackground, ct2).ConfigureAwait(false);
+								}
+							}
+							catch
+							{
+								bpaSuccess = false;
+							}
 
-					if (bpaSuccess == false)
-					{
-						TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
-					}
-				}
+							if (bpaSuccess == false)
+							{
+								TryAddAutoRecoveryItem(operationId, key, action, timestamp, options, null);
+							}
+						}
+					},
+					Timeout.InfiniteTimeSpan,
+					false,
+					mustAwaitBackplaneCompletion,
+					null,
+					true,
+					token
+				).ConfigureAwait(false);
 			},
 			Timeout.InfiniteTimeSpan,
 			false,
