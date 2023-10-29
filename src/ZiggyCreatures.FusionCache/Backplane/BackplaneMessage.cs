@@ -62,6 +62,9 @@ public class BackplaneMessage
 			case BackplaneMessageAction.EntrySet:
 			case BackplaneMessageAction.EntryRemove:
 			case BackplaneMessageAction.EntryExpire:
+				if (string.IsNullOrEmpty(CacheKey))
+					return false;
+				return true;
 			default:
 				return false;
 		}
