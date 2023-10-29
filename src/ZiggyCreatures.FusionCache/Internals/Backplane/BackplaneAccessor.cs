@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
@@ -271,12 +270,6 @@ internal sealed partial class BackplaneAccessor
 				// HANDLE EXPIRE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO TRUE -> LOCAL EXPIRE
 				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, true, message.Timestamp);
 				break;
-			case BackplaneMessageAction.EntrySentinel:
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SENTINEL)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
-
-				// HANDLE SENTINEL: DO NOTHING
-				break;
 			default:
 				// HANDLE UNKNOWN: DO NOTHING
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
@@ -359,12 +352,5 @@ internal sealed partial class BackplaneAccessor
 		// TODO: WHICH ONE?
 		//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
-	}
-
-	public async ValueTask<bool> PublishSentinelAsync(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
-	{
-		var message = BackplaneMessage.CreateForEntrySentinel(_cache.InstanceId, key);
-
-		return await PublishAsync(operationId, FusionCacheAction.Unknown, message, options, true, true, token).ConfigureAwait(false);
 	}
 }

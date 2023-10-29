@@ -62,10 +62,6 @@ public class BackplaneMessage
 			case BackplaneMessageAction.EntrySet:
 			case BackplaneMessageAction.EntryRemove:
 			case BackplaneMessageAction.EntryExpire:
-			case BackplaneMessageAction.EntrySentinel:
-				if (string.IsNullOrEmpty(CacheKey))
-					return false;
-				return true;
 			default:
 				return false;
 		}
@@ -127,25 +123,6 @@ public class BackplaneMessage
 		{
 			SourceId = sourceId,
 			Action = BackplaneMessageAction.EntryExpire,
-			CacheKey = cacheKey
-		};
-	}
-
-	/// <summary>
-	/// Creates a message for a single cache entry sentinel operation.
-	/// </summary>
-	/// <param name="sourceId">The cache InstanceId of the source.</param>
-	/// <param name="cacheKey">The cache key.</param>
-	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntrySentinel(string sourceId, string cacheKey)
-	{
-		if (string.IsNullOrEmpty(cacheKey))
-			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
-
-		return new BackplaneMessage()
-		{
-			SourceId = sourceId,
-			Action = BackplaneMessageAction.EntrySentinel,
 			CacheKey = cacheKey
 		};
 	}

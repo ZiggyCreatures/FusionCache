@@ -20,9 +20,5 @@ public enum BackplaneMessageAction : byte
 	/// <summary>
 	/// A cache entry has been manually expired (via an Expire() method call).
 	/// </summary>
-	EntryExpire = 3,
-	/// <summary>
-	/// A cache entry has been manually expired (via an Expire() method call).
-	/// </summary>
-	EntrySentinel = 4
+	EntryExpire = 3
 }
