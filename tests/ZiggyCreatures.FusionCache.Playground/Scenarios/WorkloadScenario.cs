@@ -45,6 +45,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static int ClustersCount = 1;
 		public static int NodesPerClusterCount = 2;
 		public static bool EnableFailSafe = false;
+		public static readonly TimeSpan RandomUpdateDelay = TimeSpan.FromSeconds(1);
+		public static bool EnableRandomUpdates = false;
 
 		// DURATION
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
@@ -452,7 +454,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				clusterValues[nodeIdx] = value;
 			}
 
-			var tables = new List<(string Label, Table Table)>();
+			var items = new List<(string Label, Table Table)>();
 			var nowTimestampUnixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
 			var swLock = Stopwatch.StartNew();
@@ -462,7 +464,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			try
 			{
-				var _values = new ConcurrentDictionary<int, ConcurrentDictionary<int, int?>>();
+				var values = new ConcurrentDictionary<int, ConcurrentDictionary<int, int?>>();
 
 				if (getValues)
 				{
@@ -477,7 +479,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					{
 						var cluster = CacheClusters[clusterIdx];
 
-						var valueCluster = _values[clusterIdx] = new ConcurrentDictionary<int, int?>();
+						var valueCluster = values[clusterIdx] = new ConcurrentDictionary<int, int?>();
 
 						for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 						{
@@ -500,7 +502,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					for (int clusterIdx = 0; clusterIdx < CacheClusters.Values.Count; clusterIdx++)
 					{
 						var cluster = CacheClusters[clusterIdx];
-						var clusterValues = _values[clusterIdx] = new ConcurrentDictionary<int, int?>();
+						var clusterValues = values[clusterIdx] = new ConcurrentDictionary<int, int?>();
 						for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 						{
 							clusterValues[nodeIdx] = null;
@@ -523,7 +525,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					var lastUpdatedNodeIdx = cluster.LastUpdatedNodeIndex;
 
-					var _clusterValues = _values[clusterIdx];
+					var clusterValues = values[clusterIdx];
 
 					// BUILD CELLS
 					var cells = new List<IRenderable>();
@@ -531,7 +533,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 					{
 						var node = cluster.Nodes[nodeIdx];
-						var value = _clusterValues[nodeIdx];
+						var value = clusterValues[nodeIdx];
 
 						var color = "white";
 						if (lastUpdatedNodeIdx.HasValue)
@@ -543,7 +545,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 								else
 									color = "green4";
 							}
-							else if (_clusterValues[lastUpdatedNodeIdx.Value] == value)
+							else if (clusterValues[lastUpdatedNodeIdx.Value] == value)
 							{
 								if (LastUpdatedClusterIdx == clusterIdx)
 									color = "green3_1";
@@ -594,7 +596,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					if (LastUpdatedClusterIdx is not null)
 					{
-						if (_values[clusterIdx].Values.Any(x => x is not null))
+						if (values[clusterIdx].Values.Any(x => x is not null))
 						{
 							if (isClusterInSync)
 							{
@@ -620,7 +622,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					table.Border(tableBorder);
 
-					tables.Add(($"[{labelColor}]{label}[/]", table));
+					items.Add(($"[{labelColor}]{label}[/]", table));
 				}
 
 				logger?.LogInformation("DASHBOARD: END");
@@ -629,7 +631,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.Clear();
 
 				AnsiConsole.MarkupLine("SUMMARY");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] CLUSTERS = {WorkloadScenarioOptions.ClustersCount} / NODES = {WorkloadScenarioOptions.NodesPerClusterCount}");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] {WorkloadScenarioOptions.NodesPerClusterCount} NODES * {WorkloadScenarioOptions.ClustersCount} CLUSTERS ({WorkloadScenarioOptions.NodesPerClusterCount * WorkloadScenarioOptions.ClustersCount} TOTAL NODES)");
 				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
 
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
@@ -676,7 +678,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.WriteLine();
 
 				// TABLES
-				foreach (var item in tables)
+				foreach (var item in items)
 				{
 					// LABEL
 					AnsiConsole.Markup(item.Label);
@@ -690,10 +692,12 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 				AnsiConsole.WriteLine();
 				AnsiConsole.MarkupLine($"PRESS:");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheClusters.Count}[/]: set a value on a cache cluster");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]0[/]: enable/disable random updates (all clusters) [grey78 on {(WorkloadScenarioOptions.EnableRandomUpdates ? "darkgreen" : "grey19")}] {(WorkloadScenarioOptions.EnableRandomUpdates ? "ON" : "OFF")} [/]");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheClusters.Count}[/]: update a random node on the specified cluster");
 				AnsiConsole.MarkupLine($" - [deepskyblue1]D/d[/]: enable/disable distributed cache (all clusters)");
 				AnsiConsole.MarkupLine($" - [deepskyblue1]B/b[/]: enable/disable backplane (all clusters)");
 				AnsiConsole.MarkupLine($" - [deepskyblue1]S/s[/]: enable/disable database (all clusters)");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]Q/q[/]: quit");
 			}
 			finally
 			{
@@ -782,12 +786,26 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				}
 			});
 
+			_ = Task.Run(async () =>
+			{
+				while (ct.IsCancellationRequested == false)
+				{
+					if (WorkloadScenarioOptions.EnableRandomUpdates)
+						await UpdateRandomNodeOnClusterAsync(RNG.Next(CacheClusters.Count), logger);
+					await Task.Delay(WorkloadScenarioOptions.RandomUpdateDelay);
+				}
+			});
+
 			var shouldExit = false;
 			do
 			{
 				var tmp = Console.ReadKey();
 				switch (tmp.KeyChar)
 				{
+					case '0':
+						// TOGGLE RANDOM UPDATES
+						WorkloadScenarioOptions.EnableRandomUpdates = !WorkloadScenarioOptions.EnableRandomUpdates;
+						break;
 					case '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9':
 						// SET VALUE
 						var clusterIdx = int.Parse(tmp.KeyChar.ToString());
