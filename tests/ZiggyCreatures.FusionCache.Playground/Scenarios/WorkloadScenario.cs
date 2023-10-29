@@ -633,7 +633,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
 
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
-				AnsiConsole.Markup($"memory ");
+				AnsiConsole.Markup($"Memory ");
 				if (DatabaseEnabled)
 					AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
 				else
