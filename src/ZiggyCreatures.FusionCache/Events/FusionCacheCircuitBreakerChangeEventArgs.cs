@@ -3,7 +3,7 @@
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
-/// The specific <see cref="EventArgs"/> object for events related to opening/closing of the distributed cache circuit breaker.
+/// The specific <see cref="EventArgs"/> object for events related to opening/closing of a circuit breaker.
 /// </summary>
 public class FusionCacheCircuitBreakerChangeEventArgs : EventArgs
 {

@@ -267,23 +267,23 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs">
             <summary>
-            The specific <see cref="T:System.EventArgs"/> object for events related to cache entries (eg: with a cache key).
+            The specific <see cref="T:System.EventArgs"/> object for events related to backplane messages, either published or received.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs.#ctor(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
             <summary>
             Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs"/> class.
             </summary>
-            <param name="message">The backplane message received</param>
+            <param name="message">The backplane message.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheBackplaneMessageEventArgs.Message">
             <summary>
-            The backplane message received.
+            The backplane message.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs">
             <summary>
-            The specific <see cref="T:System.EventArgs"/> object for events related to opening/closing of the distributed cache circuit breaker.
+            The specific <see cref="T:System.EventArgs"/> object for events related to opening/closing of a circuit breaker.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCircuitBreakerChangeEventArgs.#ctor(System.Boolean)">
