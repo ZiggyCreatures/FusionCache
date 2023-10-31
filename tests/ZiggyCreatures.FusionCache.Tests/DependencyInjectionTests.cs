@@ -855,7 +855,7 @@ namespace FusionCacheTests
 		//			services.AddFusionCache(
 		//				opt =>
 		//				{
-		//					opt.BackplaneAutoRecoveryMaxItems = 123;
+		//					opt.AutoRecoveryMaxItems = 123;
 		//				}
 		//			);
 		//#pragma warning restore CS0618 // Type or member is obsolete
@@ -874,7 +874,7 @@ namespace FusionCacheTests
 		//			services.AddFusionCache(
 		//				opt =>
 		//				{
-		//					opt.BackplaneAutoRecoveryMaxItems = 123;
+		//					opt.AutoRecoveryMaxItems = 123;
 		//				},
 		//				false
 		//			);
@@ -894,7 +894,7 @@ namespace FusionCacheTests
 		//			services.AddFusionCache(
 		//				opt =>
 		//				{
-		//					opt.BackplaneAutoRecoveryMaxItems = 123;
+		//					opt.AutoRecoveryMaxItems = 123;
 		//				},
 		//				false,
 		//				false
