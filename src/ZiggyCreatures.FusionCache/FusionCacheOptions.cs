@@ -164,7 +164,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the EnableAutoRecovery property.")]
@@ -175,9 +175,9 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
-	/// Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
+	/// Enable auto-recovery to automatically handle transient errors to minimize synchronization issues.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	public bool EnableAutoRecovery { get; set; }
 
@@ -186,7 +186,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxItems property.")]
@@ -196,12 +196,12 @@ public class FusionCacheOptions
 		set { AutoRecoveryMaxItems = value; }
 	}
 
-	// TODO: CHANGE THE DOCS LINKS TO THE NEW ONE SPECIFIC FOR AUTO-RECOVERY
-
 	/// <summary>
-	/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
+	/// The maximum number of items in the auto-recovery queue: this is usually not needed, but it may help reducing memory consumption in extreme scenarios.
+	/// <br/>
+	/// When set to null <see langword="null"/> there will be no limits.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	public int? AutoRecoveryMaxItems { get; set; }
 
@@ -210,7 +210,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxRetryCount property.")]
@@ -221,9 +221,12 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
-	/// The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+	/// The maximum number of retries for a auto-recovery item: after this amount an item is discarded, to avoid keeping it for too long.
+	/// Please note though that a cleanup is automatically performed, so in theory there's no need to set this.
+	/// <br/>
+	/// When set to <see langword="null"/> there will be no limits.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	public int? AutoRecoveryMaxRetryCount { get; set; }
 
@@ -251,7 +254,7 @@ public class FusionCacheOptions
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
@@ -265,14 +268,14 @@ public class FusionCacheOptions
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	public TimeSpan AutoRecoveryDelay { get; set; }
 
 	/// <summary>
 	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("This is not needed anymore, everything is handled automatically now.")]
@@ -429,7 +432,7 @@ public class FusionCacheOptions
 			EventHandlingErrorsLogLevel = EventHandlingErrorsLogLevel,
 
 			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
-			PluginsInfoLogLevel = PluginsInfoLogLevel,
+			PluginsInfoLogLevel = PluginsInfoLogLevel
 		};
 
 		return res;

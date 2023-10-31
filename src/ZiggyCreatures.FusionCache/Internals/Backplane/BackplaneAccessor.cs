@@ -240,7 +240,7 @@ internal sealed partial class BackplaneAccessor
 			if (_cache.CheckIncomingMessageForAutoRecoveryConflicts(operationId, message) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been discarded since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been ignored since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
 				return;
 			}
