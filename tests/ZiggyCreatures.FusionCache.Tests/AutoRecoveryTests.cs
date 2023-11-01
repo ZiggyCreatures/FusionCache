@@ -78,7 +78,7 @@ public class AutoRecoveryTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task AutoRecoveryWorksAsync(SerializerType serializerType)
+	public async Task CanRecoverAsync(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
 
@@ -143,7 +143,7 @@ public class AutoRecoveryTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void AutoRecoveryWorks(SerializerType serializerType)
+	public void CanRecover(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
 
@@ -208,7 +208,7 @@ public class AutoRecoveryTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task AutoRecoveryCanBeDisabledAsync(SerializerType serializerType)
+	public async Task CanBeDisabledAsync(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
 
@@ -273,7 +273,7 @@ public class AutoRecoveryTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void AutoRecoveryCanBeDisabled(SerializerType serializerType)
+	public void CanBeDisabled(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
 
@@ -338,7 +338,7 @@ public class AutoRecoveryTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task AutoRecoveryRespectsMaxItemsAsync(SerializerType serializerType)
+	public async Task RespectsMaxItemsAsync(SerializerType serializerType)
 	{
 		var _value = 0;
 
@@ -419,7 +419,7 @@ public class AutoRecoveryTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void AutoRecoveryRespectsMaxItems(SerializerType serializerType)
+	public void RespectsMaxItems(SerializerType serializerType)
 	{
 		var _value = 0;
 
