@@ -1,22 +1,21 @@
-﻿namespace ZiggyCreatures.Caching.Fusion.Backplane
+﻿namespace ZiggyCreatures.Caching.Fusion.Backplane;
+
+/// <summary>
+/// A struct containing information about a backplane connection or re-connection.
+/// </summary>
+public class BackplaneConnectionInfo
 {
 	/// <summary>
-	/// A struct containing information about a backplane connection or re-connection.
+	/// Creates a new <see cref="BackplaneConnectionInfo"/> instance.
 	/// </summary>
-	public class BackplaneConnectionInfo
+	/// <param name="isReconnection"></param>
+	public BackplaneConnectionInfo(bool isReconnection)
 	{
-		/// <summary>
-		/// Creates a new <see cref="BackplaneConnectionInfo"/> instance.
-		/// </summary>
-		/// <param name="isReconnection"></param>
-		public BackplaneConnectionInfo(bool isReconnection)
-		{
-			IsReconnection = isReconnection;
-		}
-
-		/// <summary>
-		/// If set to <see langword="true"/>, the connection is a re-connection.
-		/// </summary>
-		public bool IsReconnection { get; }
+		IsReconnection = isReconnection;
 	}
+
+	/// <summary>
+	/// If set to <see langword="true"/>, the connection is a re-connection.
+	/// </summary>
+	public bool IsReconnection { get; }
 }
