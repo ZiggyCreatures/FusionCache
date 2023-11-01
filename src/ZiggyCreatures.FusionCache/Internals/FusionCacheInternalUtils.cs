@@ -275,7 +275,7 @@ internal static class FusionCacheInternalUtils
 
 		// SAFETY NET (BUT IT SHOULD NOT HAPPEN)
 		if (string.IsNullOrWhiteSpace(prefix))
-			prefix = "FusionCache";
+			prefix = FusionCacheOptions.DefaultCacheName;
 
 		return $"{prefix}.Backplane";
 	}
