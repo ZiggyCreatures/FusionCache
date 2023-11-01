@@ -2,12 +2,15 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using LazyCache;
+using LazyCache.Providers;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
-using ZiggyCreatures.Caching.Fusion;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.OtherLibs;
 
-public class CacheStampedeTests
+// REMOVE THE abstract MODIFIER TO RUN THESE TESTS
+public abstract class CacheStampedeTests_LazyCache
 {
 	private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
@@ -17,24 +20,26 @@ public class CacheStampedeTests
 	[InlineData(1_000)]
 	public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
 	{
-		using (var cache = new FusionCache(new FusionCacheOptions()))
+		using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 		{
+			var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+			cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 			var factoryCallsCount = 0;
 
 			var tasks = new ConcurrentBag<Task>();
 			Parallel.For(0, accessorsCount, _ =>
 			{
-				var task = cache.GetOrSetAsync<int>(
+				var task = cache.GetOrAddAsync(
 					"foo",
 					async _ =>
 					{
 						Interlocked.Increment(ref factoryCallsCount);
 						await Task.Delay(FactoryDuration).ConfigureAwait(false);
 						return 42;
-					},
-					new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+					}
 				);
-				tasks.Add(task.AsTask());
+				tasks.Add(task);
 			});
 
 			await Task.WhenAll(tasks);
@@ -49,21 +54,23 @@ public class CacheStampedeTests
 	[InlineData(1_000)]
 	public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(int accessorsCount)
 	{
-		using (var cache = new FusionCache(new FusionCacheOptions()))
+		using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 		{
+			var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+			cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 			var factoryCallsCount = 0;
 
 			Parallel.For(0, accessorsCount, _ =>
 			{
-				cache.GetOrSet<int>(
+				cache.GetOrAdd(
 					"foo",
 					_ =>
 					{
 						Interlocked.Increment(ref factoryCallsCount);
 						Thread.Sleep(FactoryDuration);
 						return 42;
-					},
-					new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+					}
 				);
 			});
 
@@ -77,8 +84,11 @@ public class CacheStampedeTests
 	[InlineData(1_000)]
 	public async Task OnlyOneFactoryGetsCalledEvenInMixedHighConcurrencyAsync(int accessorsCount)
 	{
-		using (var cache = new FusionCache(new FusionCacheOptions()))
+		using (var memoryCache = new MemoryCache(new MemoryCacheOptions()))
 		{
+			var cache = new CachingService(new MemoryCacheProvider(memoryCache));
+			cache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = 10 };
+
 			var factoryCallsCount = 0;
 
 			var tasks = new ConcurrentBag<Task>();
@@ -86,29 +96,27 @@ public class CacheStampedeTests
 			{
 				if (idx % 2 == 0)
 				{
-					var task = cache.GetOrSetAsync<int>(
+					var task = cache.GetOrAddAsync(
 					   "foo",
 					   async _ =>
 					   {
 						   Interlocked.Increment(ref factoryCallsCount);
 						   await Task.Delay(FactoryDuration).ConfigureAwait(false);
 						   return 42;
-					   },
-					   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+					   }
 				   );
-					tasks.Add(task.AsTask());
+					tasks.Add(task);
 				}
 				else
 				{
-					cache.GetOrSet<int>(
+					cache.GetOrAdd(
 					   "foo",
 					   _ =>
 					   {
 						   Interlocked.Increment(ref factoryCallsCount);
 						   Thread.Sleep(FactoryDuration);
 						   return 42;
-					   },
-					   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+					   }
 				   );
 				}
 			});
