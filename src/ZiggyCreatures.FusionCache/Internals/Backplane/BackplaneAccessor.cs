@@ -178,9 +178,9 @@ internal sealed partial class BackplaneAccessor
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): backplane " + (info.IsReconnection ? "re-connected" : "connected"), _cache.CacheName, _cache.InstanceId, operationId);
 
-		if (info.IsReconnection && _options.EnableAutoRecovery)
+		if (info.IsReconnection)
 		{
-			_cache.TryUpdateAutoRecoveryBarrier(operationId);
+			_cache.AutoRecovery.TryUpdateBarrier(operationId);
 		}
 	}
 
@@ -237,7 +237,7 @@ internal sealed partial class BackplaneAccessor
 		// AUTO-RECOVERY
 		if (_options.EnableAutoRecovery)
 		{
-			if (_cache.CheckIncomingMessageForAutoRecoveryConflicts(operationId, message) == false)
+			if (_cache.AutoRecovery.CheckIncomingMessageForConflicts(operationId, message) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been ignored since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);

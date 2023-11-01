@@ -24,7 +24,7 @@ internal partial class BackplaneAccessor
 
 		if (isAutoRecovery == false)
 		{
-			_cache.TryRemoveAutoRecoveryItemByCacheKey(operationId, cacheKey);
+			_cache.AutoRecovery.TryRemoveItemByCacheKey(operationId, cacheKey);
 		}
 
 		var actionDescription = "sending a backplane notification" + isAutoRecovery.ToString(" (auto-recovery)") + isBackground.ToString(" (background)");

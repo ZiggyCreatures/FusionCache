@@ -2388,9 +2388,9 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.ReThrowRawExceptions">
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.ReThrowOriginalExceptions">
             <summary>
-            If enabled and re-throwing of exceptions is enabled, it will not wrap the exception in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/> or <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> or <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/> but it will re-throw the original exception, as-is.
+            If enabled, and re-throwing of exceptions is also enabled, it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/>, <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> or <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/>).
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IncoherentOptionsNormalizationLogLevel">

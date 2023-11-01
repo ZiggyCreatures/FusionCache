@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace ZiggyCreatures.Caching.Fusion.Internals;
+namespace ZiggyCreatures.Caching.Fusion.Internals.AutoRecovery;
 
 [DebuggerDisplay("{" + nameof(Action) + "} ON {" + nameof(CacheKey) + "} AT {" + nameof(Timestamp) + "} (EXP: {" + nameof(ExpirationTicks) + "} RET: {" + nameof(RetryCount) + "})")]
 internal sealed class AutoRecoveryItem
