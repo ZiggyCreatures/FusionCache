@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ZiggyCreatures.Caching.Fusion;
@@ -36,6 +37,7 @@ public static class FusionCacheServiceCollectionExtensions
 	/// <param name="ignoreMemoryDistributedCache">If the registered <see cref="IDistributedCache"/> found is an instance of <see cref="MemoryDistributedCache"/> (typical when using asp.net) it will be ignored, since it is completely useless (and will consume cpu and memory).</param>
 	/// <param name="setupCacheAction">The <see cref="Action{IServiceProvider,FusionCacheOptions}"/> to configure the newly created <see cref="IFusionCache"/> instance.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("This will be removed in a future release: please use the version of this method that uses the more common and robust Builder approach. The new call corresponding to the parameterless version of this is AddFusionCache().TryWithAutoSetup()", true)]
 	public static IServiceCollection AddFusionCache(this IServiceCollection services, Action<FusionCacheOptions>? setupOptionsAction = null, bool useDistributedCacheIfAvailable = true, bool ignoreMemoryDistributedCache = true, Action<IServiceProvider, IFusionCache>? setupCacheAction = null)
 	{

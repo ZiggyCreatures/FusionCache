@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 {
-	internal class FusionCacheProvider
+	internal sealed class FusionCacheProvider
 		: IFusionCacheProvider
 	{
 		private readonly IFusionCache? _defaultCache;

@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace ZiggyCreatures.Caching.Fusion.Internals.Provider
 {
 	[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
-	internal class LazyNamedCache : IDisposable
+	internal sealed class LazyNamedCache : IDisposable
 	{
 		private string GetDebuggerDisplay()
 		{

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// <summary>
 /// Represents all the options available for a single <see cref="IFusionCache"/> entry.
 /// </summary>
-public class FusionCacheEntryOptions
+public sealed class FusionCacheEntryOptions
 {
 	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheEntryOptions"/> object.
@@ -240,6 +240,7 @@ public class FusionCacheEntryOptions
 	/// <br/>
 	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public bool EnableBackplaneNotifications
 	{
@@ -543,6 +544,7 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
 	{
@@ -823,36 +825,5 @@ public class FusionCacheEntryOptions
 			return this;
 
 		return Duplicate().SetIsSafeForAdaptiveCaching();
-	}
-
-	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	//internal bool GetDistributedCacheMustAwaitCompletion()
-	//{
-	//	return AllowBackgroundDistributedCacheOperations == false;
-	//}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	internal bool GetActualReThrowDistributedCacheExceptions()
-	{
-		return
-			ReThrowDistributedCacheExceptions
-			&& AllowBackgroundDistributedCacheOperations == false
-		//&& DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan
-		;
-	}
-
-	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	//internal bool GetBackplaneMustAwaitCompletion()
-	//{
-	//	return AllowBackgroundDistributedCacheOperations == false && AllowBackgroundBackplaneOperations == false;
-	//}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	internal bool GetBackplaneMustReThrow()
-	{
-		return
-			ReThrowBackplaneExceptions
-			&& AllowBackgroundBackplaneOperations == false
-		;
 	}
 }

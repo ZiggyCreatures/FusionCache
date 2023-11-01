@@ -13,7 +13,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Builder
 {
-	internal class FusionCacheBuilder
+	internal sealed class FusionCacheBuilder
 		: IFusionCacheBuilder
 	{
 		public FusionCacheBuilder(string cacheName)
