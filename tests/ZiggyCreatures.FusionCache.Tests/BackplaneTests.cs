@@ -759,10 +759,25 @@ public class BackplaneTests
 		{
 			await fusionCache.SetAsync<int>("foo", 42);
 		});
+	}
 
-		await Assert.ThrowsAsync<FusionCacheBackplaneException>(async () =>
+	[Fact]
+	public void ReThrowsBackplaneExceptions()
+	{
+		var backplane = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions()));
+		var chaosBackplane = new ChaosBackplane(backplane);
+
+		chaosBackplane.SetAlwaysThrow();
+		using var fusionCache = new FusionCache(CreateFusionCacheOptions());
+		fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+		fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		fusionCache.DefaultEntryOptions.ReThrowBackplaneExceptions = true;
+
+		fusionCache.SetupBackplane(chaosBackplane);
+
+		Assert.Throws<FusionCacheBackplaneException>(() =>
 		{
-			_ = await fusionCache.TryGetAsync<int>("bar");
+			fusionCache.Set<int>("foo", 42);
 		});
 	}
 }

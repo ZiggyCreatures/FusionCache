@@ -997,4 +997,150 @@ public class AutoRecoveryTests
 		Assert.Equal(30, vA2);
 		Assert.Equal(30, vB2);
 	}
+
+	[Fact]
+	public async Task CanHandleIssuesWithOnlyAndBackplaneAsync()
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var defaultOptions = new FusionCacheOptions();
+
+		// SETUP CACHE A
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		optionsA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsA.DefaultEntryOptions.SkipBackplaneNotifications = true;
+
+		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
+		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
+		cacheA.SetupBackplane(chaosBackplaneA);
+
+		// SETUP CACHE B
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		optionsB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsB.DefaultEntryOptions.SkipBackplaneNotifications = true;
+
+		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
+		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
+		cacheB.SetupBackplane(chaosBackplaneB);
+
+		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
+		var vA1 = await cacheA.GetOrSetAsync<int>("foo", async _ => 10);
+
+		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
+		var vB1 = await cacheB.GetOrSetAsync<int>("foo", async _ => 10);
+
+		// IN-SYNC
+		Assert.Equal(10, vA1);
+		Assert.Equal(10, vB1);
+
+		// DISABLE BACKPLANE
+		chaosBackplaneA.SetAlwaysThrow();
+		chaosBackplaneB.SetAlwaysThrow();
+
+		// SET ON CACHE B (NO BACKPLANE, BECAUSE CHAOS)
+		await cacheB.SetAsync<int>("foo", 30, opt => opt.SetSkipBackplaneNotifications(false));
+
+		// GET FROM CACHE A (MEMORY CACHE)
+		var vA2 = await cacheA.GetOrDefaultAsync<int>("foo", 40);
+
+		// GET FROM CACHE B (MEMORY CACHE)
+		var vB2 = await cacheB.GetOrDefaultAsync<int>("foo", 50);
+
+		// NOT IN-SYNC
+		Assert.Equal(10, vA2);
+		Assert.Equal(30, vB2);
+
+		// RE-ENABLE BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS)
+		chaosBackplaneA.SetNeverThrow();
+		chaosBackplaneB.SetNeverThrow();
+
+		// GIVE IT SOME TIME
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+
+		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
+		var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 30);
+
+		// GET FROM CACHE B
+		var vB3 = await cacheB.GetOrSetAsync<int>("foo", async _ => 30);
+
+		Assert.Equal(30, vA3);
+		Assert.Equal(30, vB3);
+	}
+
+	[Fact]
+	public void CanHandleIssuesWithOnlyAndBackplane()
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var defaultOptions = new FusionCacheOptions();
+
+		// SETUP CACHE A
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		optionsA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsA.DefaultEntryOptions.SkipBackplaneNotifications = true;
+
+		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
+		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
+		cacheA.SetupBackplane(chaosBackplaneA);
+
+		// SETUP CACHE B
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		optionsB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsB.DefaultEntryOptions.SkipBackplaneNotifications = true;
+
+		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
+		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
+		cacheB.SetupBackplane(chaosBackplaneB);
+
+		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
+		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10);
+
+		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
+		var vB1 = cacheB.GetOrSet<int>("foo", _ => 10);
+
+		// IN-SYNC
+		Assert.Equal(10, vA1);
+		Assert.Equal(10, vB1);
+
+		// DISABLE BACKPLANE
+		chaosBackplaneA.SetAlwaysThrow();
+		chaosBackplaneB.SetAlwaysThrow();
+
+		// SET ON CACHE B (NO BACKPLANE, BECAUSE CHAOS)
+		cacheB.Set<int>("foo", 30, opt => opt.SetSkipBackplaneNotifications(false));
+
+		// GET FROM CACHE A (MEMORY CACHE)
+		var vA2 = cacheA.GetOrDefault<int>("foo", 40);
+
+		// GET FROM CACHE B (MEMORY CACHE)
+		var vB2 = cacheB.GetOrDefault<int>("foo", 50);
+
+		// NOT IN-SYNC
+		Assert.Equal(10, vA2);
+		Assert.Equal(30, vB2);
+
+		// RE-ENABLE BACKPLANE (SEND AUTO-RECOVERY NOTIFICATIONS)
+		chaosBackplaneA.SetNeverThrow();
+		chaosBackplaneB.SetNeverThrow();
+
+		// GIVE IT SOME TIME
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+
+		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
+		var vA3 = cacheA.GetOrSet<int>("foo", _ => 30);
+
+		// GET FROM CACHE B
+		var vB3 = cacheB.GetOrSet<int>("foo", _ => 30);
+
+		Assert.Equal(30, vA3);
+		Assert.Equal(30, vB3);
+	}
 }

@@ -15,10 +15,10 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
 
-public class MultiLevelTests
+public class DistributedCacheLevelTests
 	: AbstractTests
 {
-	public MultiLevelTests(ITestOutputHelper output)
+	public DistributedCacheLevelTests(ITestOutputHelper output)
 		: base(output, "MyCache:")
 	{
 	}

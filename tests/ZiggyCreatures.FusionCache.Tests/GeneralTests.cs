@@ -132,7 +132,7 @@ public class GeneralTests
 	}
 
 	[Fact]
-	public void DuplicatEntryOptionsWorksCorrectly()
+	public void CanDuplicatEntryOptions()
 	{
 		var original = new FusionCacheEntryOptions()
 		{

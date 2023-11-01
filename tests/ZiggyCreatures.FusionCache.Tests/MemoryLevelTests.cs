@@ -26,10 +26,10 @@ public static class SingleLevelTestsExtMethods
 	}
 }
 
-public class SingleLevelTests
+public class MemoryLevelTests
 	: AbstractTests
 {
-	public SingleLevelTests(ITestOutputHelper output)
+	public MemoryLevelTests(ITestOutputHelper output)
 		: base(output, null)
 	{
 	}
