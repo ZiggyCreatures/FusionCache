@@ -18,11 +18,6 @@ internal partial class BackplaneAccessor
 		// CHECK: CURRENTLY NOT USABLE
 		if (IsCurrentlyUsable(operationId, cacheKey) == false)
 		{
-			if (isAutoRecovery == false)
-			{
-				_cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
-			}
-
 			return false;
 		}
 
@@ -52,14 +47,16 @@ internal partial class BackplaneAccessor
 		{
 			ProcessError(operationId, cacheKey, exc, actionDescription);
 
-			if (isAutoRecovery == false)
-			{
-				_cache.TryAddAutoRecoveryItem(operationId, message.CacheKey, action, message.Timestamp, options, message);
-			}
-
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)
 			{
-				throw;
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheBackplaneException("An error occurred while working with the backplane", exc);
+				}
 			}
 
 			return false;

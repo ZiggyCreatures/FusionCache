@@ -27,7 +27,14 @@ internal partial class DistributedCacheAccessor
 			ProcessError(operationId, key, exc, actionDescription);
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
-				throw;
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheDistributedCacheException("An error occurred while working with the distributed cache", exc);
+				}
 			}
 
 			return false;
@@ -66,11 +73,20 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
 
-			if (options.ReThrowSerializationExceptions)
-				throw;
-
 			// EVENT
 			_events.OnSerializationError(operationId, key);
+
+			if (options.ReThrowSerializationExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheSerializationException("An error occurred while serializing a cache value", exc);
+				}
+			}
 
 			data = null;
 		}
@@ -122,7 +138,14 @@ internal partial class DistributedCacheAccessor
 			ProcessError(operationId, key, exc, "getting entry from distributed");
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
-				throw;
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheDistributedCacheException("An error occurred while working with the distributed cache", exc);
+				}
 			}
 
 			data = null;
@@ -174,11 +197,20 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
 
-			if (options.ReThrowSerializationExceptions)
-				throw;
-
 			// EVENT
 			_events.OnDeserializationError(operationId, key);
+
+			if (options.ReThrowSerializationExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheSerializationException("An error occurred while deserializing a cache value", exc);
+				}
+			}
 		}
 
 		// EVENT

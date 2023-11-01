@@ -282,6 +282,11 @@ public class FusionCacheOptions
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
 
 	/// <summary>
+	/// If enabled, and re-throwing of exceptions is also enabled, it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="FusionCacheSerializationException"/>, <see cref="FusionCacheDistributedCacheException"/> or <see cref="FusionCacheBackplaneException"/>).
+	/// </summary>
+	public bool ReThrowOriginalExceptions { get; set; }
+
+	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -414,6 +419,8 @@ public class FusionCacheOptions
 			DistributedCacheCircuitBreakerDuration = DistributedCacheCircuitBreakerDuration,
 
 			EnableSyncEventHandlersExecution = EnableSyncEventHandlersExecution,
+
+			ReThrowOriginalExceptions = ReThrowOriginalExceptions,
 
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,
