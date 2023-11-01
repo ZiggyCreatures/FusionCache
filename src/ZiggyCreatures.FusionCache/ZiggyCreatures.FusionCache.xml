@@ -2216,12 +2216,22 @@
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatVersion">
             <summary>
-            The version identifier for the distributed cache wire format, used in the cache key processing.
+            The wire format version identifier for the distributed cache wire format, used in the cache key processing.
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatSeparator">
             <summary>
-            The version identifier separator for the distributed cache wire format, used in the cache key processing.
+            The wire format version separator for the distributed cache wire format, used in the cache key processing.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneWireFormatVersion">
+            <summary>
+            The wire format version identifier for the backplane wire format, used in the channel name.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneWireFormatSeparator">
+            <summary>
+            The wire format version separator for the backplane wire format, used in the channel name.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.#ctor">

@@ -277,7 +277,7 @@ internal static class FusionCacheInternalUtils
 		if (string.IsNullOrWhiteSpace(prefix))
 			prefix = FusionCacheOptions.DefaultCacheName;
 
-		return $"{prefix}.Backplane";
+		return $"{prefix}.Backplane{FusionCacheOptions.BackplaneWireFormatSeparator}{FusionCacheOptions.BackplaneWireFormatVersion}";
 	}
 
 	public static DateTimeOffset GetNormalizedAbsoluteExpiration(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
