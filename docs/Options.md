@@ -4,11 +4,14 @@
 
 </div>
 
-# :level_slider: Options
+# 🎚 Options
 
 Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite your needs, and maybe save some memory allocations, too.
 
-**:bulb: NOTE**: all of this information is fully available via Intellisense, thanks to the embedded code comments.
+| **💡 NOTE** |
+|:----------------|
+| all these informations are fully available via IntelliSense, auto-suggest or similar technologies, thanks to the embedded code comments. |
+
 
 ## FusionCacheOptions
 
@@ -57,10 +60,12 @@ In general this can be used as a set of options that will act as the *baseline*,
 | `DistributedCacheKeyModifierMode`           | `CacheKeyModifierMode`     | `Prefix` | Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version). |
 | `BackplaneCircuitBreakerDuration`           | `TimeSpan`                 | `none` | The duration of the circuit-breaker used when working with the backplane. |
 | `BackplaneChannelPrefix`                    | `string?`                  | `null` | The prefix to use in the backplane channel name: if not specified the `CacheName` will be used. |
-| `EnableBackplaneAutoRecovery`               | `bool`                     | `true` | Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again. |
-| `BackplaneAutoRecoveryMaxItems`             | `int?`                     | `null` | The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to `null` there will be no limit. |
-| `BackplaneAutoRecoveryDelay`                | `TimeSpan`                 | `2s` | The amount of time to wait before actually processing the backplane auto-recovery queue, to better handle backpressure. |
+| `EnableAutoRecovery`                        | `bool`                     | `true` | Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again. |
+| `AutoRecoveryMaxItems`                      | `int?`                     | `null` | The maximum number of items in the auto-recovery queue: this is usually not needed, but it may help reducing memory consumption in extreme scenarios. |
+| `AutoRecoveryDelay`                         | `TimeSpan`                 | `2s` | The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure. |
+| `AutoRecoveryMaxRetryCount`                 | `int?`                     | `null` | The maximum number of retries for a auto-recovery item: after this amount an item is discarded, to avoid keeping it for too long. Please note though that a cleanup is automatically performed, so in theory there's no need to set this. |
 | `EnableSyncEventHandlersExecution`          | `bool`                    | `false` | If set to `true` all registered event handlers will be run synchronously: this is really, very, highly discouraged as it may slow down all other handlers and FusionCache itself. |
+| `ReThrowOriginalExceptions`                 | `bool`                    | `false` | If enabled, and re-throwing of exceptions is also enabled, it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions. |
 | `IncoherentOptionsNormalizationLogLevel`    | `LogLevel`                | `Warning` | Used when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead. |
 | `SerializationErrorsLogLevel`               | `LogLevel`                | `Error` | Used when logging serialization errors (while working with the distributed cache). |
 | `DistributedCacheSyntheticTimeoutsLogLevel` | `LogLevel`                | `Warning` | Used when logging synthetic timeouts (both soft/hard) while using the distributed cache. |

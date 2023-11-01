@@ -58,31 +58,15 @@ The second approach (PASSIVE) is not good either, since it has these problems:
 
 The third approach (LAZY) is the sweet spot, since it just says to each node _"hey, this data is changed, evict your local copy"_: at the next request for that data, if and only if it ever arrives, the data will be automatically get from the distributed cache and everything will work normally, thanks to the cache stampede prevention and all the other features.
 
-One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call): why is that? Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls.
+One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call).
 
+But why is that?
+
+Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls.
 
 ## ↩️ Auto-Recovery
 
-Since the backplane is implemented on top of a distributed component (in general some sort of message bus, like the Redis Pub/Sub feature) sometimes things can go bad: the message bus can restart or become temporarily unavailable, transient network errors may occur or anything else.
-
-In those situations each nodes' local memory caches will become out of sync, since they would've missed some notifications.
-
-Wouldn't it be nice if FusionCache would help us is some way?
-
-Enter **auto-recovery**.
-
-With auto-recovery FusionCache will detect notifications that failed to be sent, put them in a local temporary queue and when later on the backplane will become available again, it will try to send them to all the other nodes, to re-sync them correctly.
-
-Special care has been put into correctly handling some common situations, like:
-- if more than one notification is about to be queued for the same cache key, only the last one will be kept since the result of sending 2 notifications for the same cache key back-to-back would be the same
-- if a notification is received for a cache key for which there is a queued notification, only the most recent one is kept: if the incoming one is newer, the local one is discarded and the incoming one is processed, otherwise the incoming one is ignored and the local one is sent to the other nodes. This avoids, for example, evicting an entry from a local cache if it has been updated after a change in a remote node, which would be useless
-- it is possible to set a limit in how many notifications to keep in the queue via the `BackplaneAutoRecoveryMaxItems` option to avoid consuming too much memory as it will become available again (default value: `null` which means no limits). If a notification is about to be queued but the limit has already been reached, an heuristic is used to remove the notification for the cache entry that will expire sooner (calculated as: instant when the notification has been created + cache entry's `Duration`), to limit as much as possible the impact on the global shared state synchronization
-- when a backplane becomes available again, a little amount of time is awaited to avoid small sync issues, to better handle backpressure in an automatic way (configurable via the `BackplaneAutoRecoveryDelay` option)
-- when FusionCache sends a pending backplane notification from the auto-recovery queue, it also knows if originally the distributed cache had been updated, and in case it wasn't it automatically re-sync the distributed cache before sending the notification. If it's able to do that, the notification will be sent, otherwise it will retry later on, all automatically
-
-This feature is not implemented **inside** a specific backplane implementation, of which there are multiple, but inside FusionCache itself: this means that it works with any backplane implementation, which is nice.
-
-**ℹ NOTE:** auto-recovery is available since version `0.14.0`, but it's enabled by default only since version `0.17.0`.
+Since the backplane is implemented on top of a distributed component (just like the distributed cache), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature: you can read more on the related [docs page](AutoRecovery.md).
 
 ## 📦 Packages
 
@@ -100,7 +84,7 @@ If we are already using a Redis instance as a distributed cache, we just have to
 
 As an example, we'll use FusionCache with [Redis](https://redis.io/), as both a **distributed cache** and a **backplane**.
 
-To start, just install the Nuget packages:
+To start, we just install the Nuget packages:
 
 ```PowerShell
 # CORE PACKAGE
@@ -116,7 +100,7 @@ PM> Install-Package Microsoft.Extensions.Caching.StackExchangeRedis
 PM> Install-Package ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis
 ```
 
-Then, to create and setup the cache manually, do this:
+Then, to create and setup the cache manually, we can do this:
 
 ```csharp
 // INSTANTIATE FUSION CACHE
@@ -162,8 +146,11 @@ The most common scenario is probably to use both a distributed cache and a backp
 
 But is it really necessary to use a distributed cache at all?
 
-Let's find out.
+The short answer is yes, that would be the suggested approach.
 
+A longer answer is that we may even just use a backplane without a distributed cache, if we so choose.
+
+Let's find out more.
 
 ## 🤔 Distributed cache: is it really necessary?
 
