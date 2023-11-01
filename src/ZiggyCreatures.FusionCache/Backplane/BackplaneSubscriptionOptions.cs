@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane;
 
@@ -28,6 +29,7 @@ public class BackplaneSubscriptionOptions
 	/// <summary>
 	/// The backplane message handler that will be used to process incoming messages.
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use MessageHandler instead.")]
 	public Action<BackplaneMessage>? Handler
 	{
