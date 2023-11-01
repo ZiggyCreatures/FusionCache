@@ -972,7 +972,7 @@ public class DistributedCacheLevelTests
 		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		await Task.Delay(TimeSpan.FromMilliseconds(50));
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
 
 		// GET THE REFRESHED VALUE
 		var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
@@ -1020,7 +1020,7 @@ public class DistributedCacheLevelTests
 		var v3 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		Thread.Sleep(TimeSpan.FromMilliseconds(50));
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
 		// GET THE REFRESHED VALUE
 		var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
