@@ -142,6 +142,30 @@ services.AddFusionCache()
 ;
 ```
 
+## 🗃 Wire Format Versioning
+
+When working with the memory cache, everything is easier: at every run of our apps or services everything starts clean, from scratch, so even if there's a change in the structure of the cache entries used by FusionCache there's no problem.
+
+The backplane, instead, is different: when sending a notification to other nodes that data is shared between different instances of the same applications, between different applications altogether and maybe even with different applications that are using a different version of FusionCache.
+
+So when the structure of the backplane notification need to change to evolve FusionCache, how can this be managed?
+
+Easy, by using an additional channel name modifier for the backplane, so that if and when the version of the backplane message needs to change, there will be no issues sending or receiving different versions.
+
+In practice this means that, when creating the name of the channel name for the backplane, a version modifier (eg: an extra piece of string) is used, something like `%CHANNEL_PREFIX%` + `.Backplane:` + `%VERSION%"`.
+
+This is the way to manage changes in the wire format between updates: it has been designed in this way specifically to support FusionCache to be updated safely and transparently, without interruptions or problems.
+
+So what happens when there are 2 version of FusionCache running on the same backplane instance, for example when two different apps share the same Redis instance, and one is updated and the other is not?
+
+Since the old version will send messages to the backplane with a different channel name than the new version, this will not create conflicts during the update, and it means that we don't need to stop all the apps and services that works on it just to do the upgrade.
+
+At the same time though, if we have different apps and services that use the same distributed cache shared between them, we need to understand that by updating only one app or service and not the others will mean that the ones updated will read/write using the new distributed cache keys, while the non updated ones will keep read/write using the old distributed cache keys.
+
+Again, nothing catastrophic, but something to consider.
+
+## 🤔 Distributed cache: is it really necessary?
+
 The most common scenario is probably to use both a distributed cache and a backplane, working together: the former used as a shared state that all nodes can use, and the latter used to notify all the nodes about synchronization events so that every node is perfectly updated.
 
 But is it really necessary to use a distributed cache at all?
@@ -149,10 +173,6 @@ But is it really necessary to use a distributed cache at all?
 The short answer is yes, that would be the suggested approach.
 
 A longer answer is that we may even just use a backplane without a distributed cache, if we so choose.
-
-Let's find out more.
-
-## 🤔 Distributed cache: is it really necessary?
 
 The idea seems like a nice one: in a multi-node scenario we may want to use only memory caches on each node + the backplane for cache synchronization, without having to use a shared distributed cache.
 
@@ -234,7 +254,9 @@ To better understand what would happen otherwise let's look at an example, again
 
 Now `N1` and `N2` will have different data cached for `5 min`, see the problem?
 
-So when using a backplane I would **really** suggest using a distributed cache too, otherwise the system may become a little bit too fragile. If, on the other hand, we are comfortable with such a situation, by all means use it.
+So when using a backplane I would **really** suggest using a distributed cache too, otherwise the system may become a little bit too fragile.
+
+If, on the other hand, we are comfortable with such a situation, by all means we can use it.
 
 ## Conclusion
 

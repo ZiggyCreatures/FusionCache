@@ -20,7 +20,9 @@ First thing: if your app or service does not use the distributed cache or the ba
 
 If instead you are using them, you need to know that the internal structure of the cache entries for the distributed cache is slightly changed: because of this the so called internal "wire format cache key modifier" that is used when pre-processing the cache key for the distributed cache, via prefix/suffix, had to be changed.
 
-Read about "Wire Format Versioning" in the [related page](CacheLevels.md).
+The same thing can be true for the backplane, where a wire format modifier is used to build the channel name.
+
+To read more about "Wire Format Versioning" there are chapters in the respective docs for the [distributed cache](CacheLevels.md) and for the [backplane](Backplane.md).
 
 Moral of the story: when updating to `v0.24.0` the suggestion is to update all the apps and services that use same distributed cache.
 
