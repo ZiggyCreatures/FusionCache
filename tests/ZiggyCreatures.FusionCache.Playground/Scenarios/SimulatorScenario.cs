@@ -39,7 +39,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		Redis = 2
 	}
 
-	public static class WorkloadScenarioOptions
+	public static class SimulatorScenarioOptions
 	{
 		// GENERAL
 		public static int ClustersCount = 1;
@@ -104,7 +104,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public long? ExpirationTimestampUnixMs { get; set; }
 	}
 
-	public static class WorkloadScenario
+	public static class SimulatorScenario
 	{
 		// INTERNAL
 		private static string CacheKey = "foo";
@@ -129,14 +129,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		private static IDistributedCache? CreateDistributedCache(int clusterIdx)
 		{
-			switch (WorkloadScenarioOptions.DistributedCacheType)
+			switch (SimulatorScenarioOptions.DistributedCacheType)
 			{
 				case DistributedCacheType.None:
 					return null;
 				case DistributedCacheType.Redis:
 					return new RedisCache(new RedisCacheOptions
 					{
-						Configuration = string.Format(WorkloadScenarioOptions.DistributedCacheRedisConnection, clusterIdx)
+						Configuration = string.Format(SimulatorScenarioOptions.DistributedCacheRedisConnection, clusterIdx)
 					});
 				default:
 					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -145,14 +145,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		private static IFusionCacheBackplane? CreateBackplane(int clusterIdx)
 		{
-			switch (WorkloadScenarioOptions.BackplaneType)
+			switch (SimulatorScenarioOptions.BackplaneType)
 			{
 				case BackplaneType.None:
 					return null;
 				case BackplaneType.Redis:
 					return new RedisBackplane(new RedisBackplaneOptions
 					{
-						Configuration = string.Format(WorkloadScenarioOptions.BackplaneRedisConnection, clusterIdx),
+						Configuration = string.Format(SimulatorScenarioOptions.BackplaneRedisConnection, clusterIdx),
 						//CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration,
 						//AllowBackgroundOperations = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
 					});
@@ -207,7 +207,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					SaveToDb(clusterIdx, LastValue);
 
 					// UPDATE CACHE
-					if (WorkloadScenarioOptions.UpdateCacheOnSaveToDb)
+					if (SimulatorScenarioOptions.UpdateCacheOnSaveToDb)
 					{
 						var cluster = CacheClusters[clusterIdx];
 						var nodeIdx = RNG.Next(cluster.Nodes.Count);
@@ -220,7 +220,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						logger?.LogInformation($"AFTER CACHE SET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
 
 						// SAVE LAST XYZ
-						node.ExpirationTimestampUnixMs = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+						node.ExpirationTimestampUnixMs = DateTimeOffset.UtcNow.Add(SimulatorScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
 						cluster.LastUpdatedNodeIndex = nodeIdx;
 					}
 				}
@@ -241,7 +241,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				.MinimumLevel.Is(minLevel)
 				.Enrich.FromLogContext()
 				.WriteTo.Debug(
-					outputTemplate: WorkloadScenarioOptions.EnableLoggingExceptions
+					outputTemplate: SimulatorScenarioOptions.EnableLoggingExceptions
 					? "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
 					: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}"
 				)
@@ -265,7 +265,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			AnsiConsole.MarkupLine("[deepskyblue1]SETUP[/]");
 
 			var swAll = Stopwatch.StartNew();
-			for (int clusterIdx = 0; clusterIdx < WorkloadScenarioOptions.ClustersCount; clusterIdx++)
+			for (int clusterIdx = 0; clusterIdx < SimulatorScenarioOptions.ClustersCount; clusterIdx++)
 			{
 				var swCluster = Stopwatch.StartNew();
 
@@ -276,7 +276,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				var distributedCache = CreateDistributedCache(clusterIdx);
 				//AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
-				for (int nodeIdx = 0; nodeIdx < WorkloadScenarioOptions.NodesPerClusterCount; nodeIdx++)
+				for (int nodeIdx = 0; nodeIdx < SimulatorScenarioOptions.NodesPerClusterCount; nodeIdx++)
 				{
 					var swNode = Stopwatch.StartNew();
 
@@ -289,34 +289,34 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var options = new FusionCacheOptions()
 					{
 						CacheName = cacheName,
-						DefaultEntryOptions = new FusionCacheEntryOptions(WorkloadScenarioOptions.CacheDuration)
+						DefaultEntryOptions = new FusionCacheEntryOptions(SimulatorScenarioOptions.CacheDuration)
 					};
 					options.SetInstanceId(cacheInstanceId);
 
 					var deo = options.DefaultEntryOptions;
 
 					// FAIL-SAFE
-					deo.IsFailSafeEnabled = WorkloadScenarioOptions.EnableFailSafe;
+					deo.IsFailSafeEnabled = SimulatorScenarioOptions.EnableFailSafe;
 					deo.FailSafeMaxDuration = TimeSpan.FromSeconds(60);
 					deo.FailSafeThrottleDuration = TimeSpan.FromSeconds(2);
 
 					// DISTRIBUTED CACHE
-					if (WorkloadScenarioOptions.DistributedCacheSoftTimeout is not null)
-						deo.DistributedCacheSoftTimeout = WorkloadScenarioOptions.DistributedCacheSoftTimeout.Value;
-					if (WorkloadScenarioOptions.DistributedCacheHardTimeout is not null)
-						deo.DistributedCacheHardTimeout = WorkloadScenarioOptions.DistributedCacheHardTimeout.Value;
-					deo.AllowBackgroundDistributedCacheOperations = WorkloadScenarioOptions.AllowBackgroundDistributedCacheOperations;
-					options.DistributedCacheCircuitBreakerDuration = WorkloadScenarioOptions.DistributedCacheCircuitBreakerDuration;
+					if (SimulatorScenarioOptions.DistributedCacheSoftTimeout is not null)
+						deo.DistributedCacheSoftTimeout = SimulatorScenarioOptions.DistributedCacheSoftTimeout.Value;
+					if (SimulatorScenarioOptions.DistributedCacheHardTimeout is not null)
+						deo.DistributedCacheHardTimeout = SimulatorScenarioOptions.DistributedCacheHardTimeout.Value;
+					deo.AllowBackgroundDistributedCacheOperations = SimulatorScenarioOptions.AllowBackgroundDistributedCacheOperations;
+					options.DistributedCacheCircuitBreakerDuration = SimulatorScenarioOptions.DistributedCacheCircuitBreakerDuration;
 
 					// BACKPLANE
-					deo.AllowBackgroundBackplaneOperations = WorkloadScenarioOptions.AllowBackgroundBackplaneOperations;
-					options.BackplaneCircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration;
+					deo.AllowBackgroundBackplaneOperations = SimulatorScenarioOptions.AllowBackgroundBackplaneOperations;
+					options.BackplaneCircuitBreakerDuration = SimulatorScenarioOptions.BackplaneCircuitBreakerDuration;
 
 					// SPECIAL CACSE HANDLING: BACKPLANE + NO DISTRIBUTED CACHE
-					if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None && WorkloadScenarioOptions.BackplaneType != BackplaneType.None)
+					if (SimulatorScenarioOptions.DistributedCacheType == DistributedCacheType.None && SimulatorScenarioOptions.BackplaneType != BackplaneType.None)
 						deo.SkipBackplaneNotifications = true;
 
-					var cacheLogger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+					var cacheLogger = SimulatorScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
 					var swCache = Stopwatch.StartNew();
 					var cache = new FusionCache(options, logger: cacheLogger);
 					swCache.Stop();
@@ -327,11 +327,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					if (distributedCache is not null)
 					{
 						AnsiConsole.Markup(" - [default]DISTRIBUTED CACHE:[/] ...");
-						var chaosDistributedCacheLogger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosDistributedCache>>() : null;
+						var chaosDistributedCacheLogger = SimulatorScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosDistributedCache>>() : null;
 						var tmp = new ChaosDistributedCache(distributedCache, chaosDistributedCacheLogger);
-						if (WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMinDelay is not null && WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay is not null)
+						if (SimulatorScenarioOptions.ChaosDistributedCacheSyntheticMinDelay is not null && SimulatorScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay is not null)
 						{
-							tmp.SetAlwaysDelay(WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMinDelay.Value, WorkloadScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay.Value);
+							tmp.SetAlwaysDelay(SimulatorScenarioOptions.ChaosDistributedCacheSyntheticMinDelay.Value, SimulatorScenarioOptions.ChaosDistributedCacheSyntheticMaxDelay.Value);
 						}
 						var swDistributedCache = Stopwatch.StartNew();
 						cache.SetupDistributedCache(tmp, new FusionCacheNewtonsoftJsonSerializer());
@@ -346,11 +346,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					if (backplane is not null)
 					{
 						AnsiConsole.Markup(" - [default]BACKPLANE:[/] ...");
-						var chaosBackplaneLogger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosBackplane>>() : null;
+						var chaosBackplaneLogger = SimulatorScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosBackplane>>() : null;
 						var tmp = new ChaosBackplane(backplane, chaosBackplaneLogger);
-						if (WorkloadScenarioOptions.ChaosBackplaneSyntheticDelay is not null)
+						if (SimulatorScenarioOptions.ChaosBackplaneSyntheticDelay is not null)
 						{
-							tmp.SetAlwaysDelayExactly(WorkloadScenarioOptions.ChaosBackplaneSyntheticDelay.Value);
+							tmp.SetAlwaysDelayExactly(SimulatorScenarioOptions.ChaosBackplaneSyntheticDelay.Value);
 						}
 						var swBackplane = Stopwatch.StartNew();
 						cache.SetupBackplane(tmp);
@@ -402,7 +402,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				return "";
 
 			var remainingSeconds = (expirationTimestampUnixMs.Value - nowTimestampUnixMs) / 1_000;
-			var v = (float)(expirationTimestampUnixMs.Value - nowTimestampUnixMs) / (float)WorkloadScenarioOptions.CacheDuration.TotalMilliseconds;
+			var v = (float)(expirationTimestampUnixMs.Value - nowTimestampUnixMs) / (float)SimulatorScenarioOptions.CacheDuration.TotalMilliseconds;
 			if (v <= 0.0f)
 				return "";
 
@@ -631,8 +631,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.Clear();
 
 				AnsiConsole.MarkupLine("SUMMARY");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] {WorkloadScenarioOptions.NodesPerClusterCount} NODES x {WorkloadScenarioOptions.ClustersCount} CLUSTERS ({WorkloadScenarioOptions.NodesPerClusterCount * WorkloadScenarioOptions.ClustersCount} TOTAL NODES)");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {WorkloadScenarioOptions.CacheDuration}");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] {SimulatorScenarioOptions.NodesPerClusterCount} NODES x {SimulatorScenarioOptions.ClustersCount} CLUSTERS ({SimulatorScenarioOptions.NodesPerClusterCount * SimulatorScenarioOptions.ClustersCount} TOTAL NODES)");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {SimulatorScenarioOptions.CacheDuration}");
 
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
 				AnsiConsole.Markup($"Memory ");
@@ -642,13 +642,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
 
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE   :[/] ");
-				if (WorkloadScenarioOptions.DistributedCacheType == DistributedCacheType.None)
+				if (SimulatorScenarioOptions.DistributedCacheType == DistributedCacheType.None)
 				{
 					AnsiConsole.MarkupLine("[red1]X NONE[/]");
 				}
 				else
 				{
-					AnsiConsole.Markup($"{WorkloadScenarioOptions.DistributedCacheType} ");
+					AnsiConsole.Markup($"{SimulatorScenarioOptions.DistributedCacheType} ");
 					if (DistributedCachesEnabled)
 						AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
 					else
@@ -656,13 +656,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				}
 
 				AnsiConsole.Markup("- [deepskyblue1]BACKPLANE     :[/] ");
-				if (WorkloadScenarioOptions.BackplaneType == BackplaneType.None)
+				if (SimulatorScenarioOptions.BackplaneType == BackplaneType.None)
 				{
 					AnsiConsole.MarkupLine("[red1]X NONE[/]");
 				}
 				else
 				{
-					AnsiConsole.Markup($"{WorkloadScenarioOptions.BackplaneType} ");
+					AnsiConsole.Markup($"{SimulatorScenarioOptions.BackplaneType} ");
 					if (BackplanesEnabled)
 						AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
 					else
@@ -692,7 +692,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 				AnsiConsole.WriteLine();
 				AnsiConsole.MarkupLine($"PRESS:");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]0[/]: enable/disable random updates (all clusters) [grey78 on {(WorkloadScenarioOptions.EnableRandomUpdates ? "darkgreen" : "grey19")}] {(WorkloadScenarioOptions.EnableRandomUpdates ? "ON" : "OFF")} [/]");
+				AnsiConsole.MarkupLine($" - [deepskyblue1]0[/]: enable/disable random updates (all clusters) [grey78 on {(SimulatorScenarioOptions.EnableRandomUpdates ? "darkgreen" : "grey19")}] {(SimulatorScenarioOptions.EnableRandomUpdates ? "ON" : "OFF")} [/]");
 				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheClusters.Count}[/]: update a random node on the specified cluster");
 				AnsiConsole.MarkupLine($" - [deepskyblue1]D/d[/]: enable/disable distributed cache (all clusters)");
 				AnsiConsole.MarkupLine($" - [deepskyblue1]B/b[/]: enable/disable backplane (all clusters)");
@@ -714,14 +714,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			while (inputProvided == false)
 			{
 				AnsiConsole.Markup($"[deepskyblue1]CLUSTERS (amount):[/] ");
-				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.ClustersCount);
+				inputProvided = int.TryParse(Console.ReadLine(), out SimulatorScenarioOptions.ClustersCount);
 			}
 
 			inputProvided = false;
 			while (inputProvided == false)
 			{
 				AnsiConsole.Markup($"[deepskyblue1]NODES PER CLUSTER (amount):[/] ");
-				inputProvided = int.TryParse(Console.ReadLine(), out WorkloadScenarioOptions.NodesPerClusterCount);
+				inputProvided = int.TryParse(Console.ReadLine(), out SimulatorScenarioOptions.NodesPerClusterCount);
 			}
 
 			inputProvided = false;
@@ -731,7 +731,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				var tmp = Console.ReadKey();
 				if (tmp.KeyChar is 'y' or 'n')
 				{
-					WorkloadScenarioOptions.EnableFailSafe = tmp.KeyChar == 'y';
+					SimulatorScenarioOptions.EnableFailSafe = tmp.KeyChar == 'y';
 					inputProvided = true;
 				}
 				else
@@ -757,7 +757,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			SetupSerilogLogger(services, LogEventLevel.Verbose);
 			var serviceProvider = services.BuildServiceProvider();
 
-			var logger = WorkloadScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+			var logger = SimulatorScenarioOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
 
 			SetupClusters(serviceProvider, logger);
 
@@ -782,7 +782,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						throw;
 					}
 
-					await Task.Delay(WorkloadScenarioOptions.RefreshDelay);
+					await Task.Delay(SimulatorScenarioOptions.RefreshDelay);
 				}
 			});
 
@@ -790,9 +790,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			{
 				while (ct.IsCancellationRequested == false)
 				{
-					if (WorkloadScenarioOptions.EnableRandomUpdates)
+					if (SimulatorScenarioOptions.EnableRandomUpdates)
 						await UpdateRandomNodeOnClusterAsync(RNG.Next(CacheClusters.Count), logger);
-					await Task.Delay(WorkloadScenarioOptions.RandomUpdateDelay);
+					await Task.Delay(SimulatorScenarioOptions.RandomUpdateDelay);
 				}
 			});
 
@@ -804,7 +804,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				{
 					case '0':
 						// TOGGLE RANDOM UPDATES
-						WorkloadScenarioOptions.EnableRandomUpdates = !WorkloadScenarioOptions.EnableRandomUpdates;
+						SimulatorScenarioOptions.EnableRandomUpdates = !SimulatorScenarioOptions.EnableRandomUpdates;
 						break;
 					case '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9':
 						// SET VALUE
