@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -30,6 +31,7 @@ public class RedisBackplaneOptions
 	/// <summary>
 	/// DEPRECATED: verify that at least one clients received the notifications after each publish.
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete]
 	public bool VerifyReceivedClientsCountAfterPublish { get; set; } = false;
 
