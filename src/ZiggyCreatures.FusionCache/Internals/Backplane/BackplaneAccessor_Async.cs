@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 
 internal partial class BackplaneAccessor
 {
-	private async ValueTask<bool> PublishAsync(string operationId, FusionCacheAction action, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	private async ValueTask<bool> PublishAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		if (CheckMessage(operationId, message, isAutoRecovery) == false)
 			return false;
@@ -69,14 +69,14 @@ internal partial class BackplaneAccessor
 	{
 		var message = BackplaneMessage.CreateForEntrySet(_cache.InstanceId, key, timestamp);
 
-		return await PublishAsync(operationId, FusionCacheAction.EntrySet, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
+		return await PublishAsync(operationId, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
 	}
 
 	public async ValueTask<bool> PublishRemoveAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
-		return await PublishAsync(operationId, FusionCacheAction.EntryRemove, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
+		return await PublishAsync(operationId, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
 	}
 
 	public async ValueTask<bool> PublishExpireAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
@@ -85,6 +85,6 @@ internal partial class BackplaneAccessor
 			? BackplaneMessage.CreateForEntryExpire(_cache.InstanceId, key, timestamp)
 			: BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
-		return await PublishAsync(operationId, FusionCacheAction.EntryExpire, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
+		return await PublishAsync(operationId, message, options, isAutoRecovery, isBackground, token).ConfigureAwait(false);
 	}
 }

@@ -7,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 
 internal partial class BackplaneAccessor
 {
-	private bool Publish(string operationId, FusionCacheAction action, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	private bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		if (CheckMessage(operationId, message, isAutoRecovery) == false)
 			return false;
@@ -68,14 +68,14 @@ internal partial class BackplaneAccessor
 	{
 		var message = BackplaneMessage.CreateForEntrySet(_cache.InstanceId, key, timestamp);
 
-		return Publish(operationId, FusionCacheAction.EntrySet, message, options, isAutoRecovery, isBackground, token);
+		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 
 	public bool PublishRemove(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
-		return Publish(operationId, FusionCacheAction.EntryRemove, message, options, isAutoRecovery, isBackground, token);
+		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 
 	public bool PublishExpire(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
@@ -84,6 +84,6 @@ internal partial class BackplaneAccessor
 			? BackplaneMessage.CreateForEntryExpire(_cache.InstanceId, key, timestamp)
 			: BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
-		return Publish(operationId, FusionCacheAction.EntryExpire, message, options, isAutoRecovery, isBackground, token);
+		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 }

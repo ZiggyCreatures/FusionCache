@@ -91,7 +91,7 @@ internal sealed partial class BackplaneAccessor
 		if (message is null)
 		{
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): cannot send a null backplane message (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
 
 			return false;
 		}

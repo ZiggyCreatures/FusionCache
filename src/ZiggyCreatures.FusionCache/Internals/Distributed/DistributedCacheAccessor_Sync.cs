@@ -24,6 +24,7 @@ internal partial class DistributedCacheAccessor
 		catch (Exception exc)
 		{
 			ProcessError(operationId, key, exc, actionDescription);
+
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
 				if (_options.ReThrowOriginalExceptions)

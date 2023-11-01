@@ -41,8 +41,8 @@ internal sealed class AutoRecoveryService
 		{
 			if (_delay <= TimeSpan.Zero)
 			{
-				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery is enabled but cannot be started because the AutoRecoveryDelay has been set to zero", _cache.CacheName, _cache.InstanceId, FusionCacheInternalUtils.MaybeGenerateOperationId(_logger));
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery is enabled but cannot be started because the AutoRecoveryDelay has been set to zero", _cache.CacheName, _cache.InstanceId, FusionCacheInternalUtils.MaybeGenerateOperationId(_logger));
 			}
 			else
 			{
@@ -52,7 +52,7 @@ internal sealed class AutoRecoveryService
 		}
 	}
 
-	internal bool TryAddItem(string? operationId, string? cacheKey, FusionCacheAction action, long timestamp, FusionCacheEntryOptions options, BackplaneMessage? message)
+	internal bool TryAddItem(string? operationId, string? cacheKey, FusionCacheAction action, long timestamp, FusionCacheEntryOptions options)
 	{
 		if (_options.EnableAutoRecovery == false)
 			return false;
@@ -340,15 +340,15 @@ internal sealed class AutoRecoveryService
 		{
 			hasStopped = true;
 
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during a auto-recovery of an item ({RetryCount} retries left)", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, lastProcessedItem?.RetryCount);
+			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during a auto-recovery of an item ({RetryCount} retries left)", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, lastProcessedItem?.RetryCount);
 		}
 		finally
 		{
 			if (hasStopped)
 			{
-				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, processedCount);
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, processedCount);
 
 				if (lastProcessedItem is not null)
 				{
