@@ -153,8 +153,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					return new RedisBackplane(new RedisBackplaneOptions
 					{
 						Configuration = string.Format(SimulatorScenarioOptions.BackplaneRedisConnection, clusterIdx),
-						//CircuitBreakerDuration = WorkloadScenarioOptions.BackplaneCircuitBreakerDuration,
-						//AllowBackgroundOperations = WorkloadScenarioOptions.AllowBackplaneBackgroundOperations
+						//CircuitBreakerDuration = SimulatorScenarioOptions.BackplaneCircuitBreakerDuration,
+						//AllowBackgroundOperations = SimulatorScenarioOptions.AllowBackplaneBackgroundOperations
 					});
 				default:
 					return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = $"connection-{clusterIdx}" });
@@ -375,7 +375,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						}
 						else
 						{
-							//node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(WorkloadScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
+							//node.ExpirationTimestamp = DateTimeOffset.UtcNow.Add(SimulatorScenarioOptions.CacheDuration).ToUnixTimeMilliseconds();
 							node.ExpirationTimestampUnixMs = null;
 						}
 					};
