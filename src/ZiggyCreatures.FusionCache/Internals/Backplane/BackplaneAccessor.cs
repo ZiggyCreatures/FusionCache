@@ -308,8 +308,16 @@ internal sealed partial class BackplaneAccessor
 		//	return;
 		//}
 
-		// IF MEMORY ENTRY FRESHER THAN REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
-		if (memoryEntry.Timestamp >= message.Timestamp)
+		// IF MEMORY ENTRY SAME AS REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
+		if (memoryEntry.Timestamp == message.Timestamp)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry same as the incoming backplane message, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		// IF MEMORY ENTRY MORE FRESH THAN REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
+		if (memoryEntry.Timestamp > message.Timestamp)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than the incoming backplane message, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);

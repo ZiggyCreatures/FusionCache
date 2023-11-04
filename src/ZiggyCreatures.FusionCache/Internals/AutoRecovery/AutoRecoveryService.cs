@@ -252,6 +252,16 @@ internal sealed class AutoRecoveryService
 		return true;
 	}
 
+	internal bool IsBehindBarrier()
+	{
+		var barrierTicks = Interlocked.Read(ref _barrierTicks);
+
+		if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
+			return true;
+
+		return false;
+	}
+
 	internal async ValueTask<bool> TryProcessQueueAsync(string operationId, CancellationToken token)
 	{
 		if (_options.EnableAutoRecovery == false)
@@ -294,6 +304,12 @@ internal sealed class AutoRecoveryService
 				processedCount++;
 
 				token.ThrowIfCancellationRequested();
+
+				if (IsBehindBarrier())
+				{
+					hasStopped = true;
+					return false;
+				}
 
 				lastProcessedItem = item;
 
@@ -600,11 +616,9 @@ internal sealed class AutoRecoveryService
 
 				await Task.Delay(delay, ct).ConfigureAwait(false);
 
-				// AFTER THE DELAY, READ THE BARRIER AGAIN, IN CASE IT HAS BEEN MODIFIED WHILE WAITING
-				barrierTicks = Interlocked.Read(ref _barrierTicks);
-
-				// CHECK AGAIN THE BARRIER (MAY HAVE BEEN UPDATED WHILE WAITING): IF UPDATED -> SKIP TO THE NEXT LOOP CYCLE
-				if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
+				// AFTER THE DELAY, READ THE BARRIER AGAIN, IN CASE IT HAS BEEN MODIFIED
+				// WHILE WAITING: IF UPDATED -> SKIP TO THE NEXT LOOP CYCLE
+				if (IsBehindBarrier())
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a barrier has been set after having awaited to start processing the auto-recovery queue: skipping to the next loop cycle", _cache.CacheName, _cache.InstanceId, operationId);
