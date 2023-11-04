@@ -7,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// Metadata for an entry in a <see cref="FusionCache"/> .
 /// </summary>
 [DataContract]
-public class FusionCacheEntryMetadata
+public sealed class FusionCacheEntryMetadata
 {
 	/// <summary>
 	/// Creates a new instance.
