@@ -47,6 +47,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		public static bool EnableFailSafe = false;
 		public static readonly TimeSpan RandomUpdateDelay = TimeSpan.FromSeconds(1);
 		public static bool EnableRandomUpdates = false;
+		public static readonly bool DisplayApproximateExpirationCountdown = false;
 
 		// DURATION
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
@@ -574,7 +575,12 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 							borderColor = LastUpdatedClusterIdx != clusterIdx ? Color.Green4 : Color.Green3_1;
 						}
 
-						cells.Add(new Panel(new Markup($"[{color}]{text}[/]\n\n{GetCountdownMarkup(nowTimestampUnixMs, node.ExpirationTimestampUnixMs)}")).BorderColor(borderColor));
+						var cellMarkup = $"[{color}]{text}[/]";
+						if (SimulatorScenarioOptions.DisplayApproximateExpirationCountdown)
+						{
+							cellMarkup += $"\n\n{GetCountdownMarkup(nowTimestampUnixMs, node.ExpirationTimestampUnixMs)}";
+						}
+						cells.Add(new Panel(new Markup(cellMarkup)).BorderColor(borderColor));
 					}
 
 					table.AddRow(cells);
