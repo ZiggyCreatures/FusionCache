@@ -701,9 +701,10 @@ public partial class FusionCache
 		}
 	}
 
+	private FusionCacheEntryOptions _tryUpdateOptions;
 	private async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(string operationId, string cacheKey, DistributedCacheAccessor dca, FusionCacheMemoryEntry memoryEntry)
 	{
-		var options = new FusionCacheEntryOptions()
+		_tryUpdateOptions ??= new FusionCacheEntryOptions()
 		{
 			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
 			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
@@ -714,7 +715,7 @@ public partial class FusionCache
 
 		try
 		{
-			(var distributedEntry, var isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, options, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
+			(var distributedEntry, var isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, _tryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
 
 			if (distributedEntry is null || isValid == false)
 			{
