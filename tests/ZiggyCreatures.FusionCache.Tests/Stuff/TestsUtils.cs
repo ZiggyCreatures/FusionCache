@@ -58,7 +58,7 @@ public static class TestsUtils
 
 	public static TimeSpan PlusALittleBit(this TimeSpan ts)
 	{
-		return ts + TimeSpan.FromMilliseconds(100);
+		return ts + TimeSpan.FromMilliseconds(250);
 	}
 }
 

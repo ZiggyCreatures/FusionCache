@@ -373,7 +373,7 @@ public class BackplaneTests
 		//   - DO NOTHING ON CACHE C (IT WAS NOT IN ITS MEMORY CACHE)
 		await cacheA.ExpireAsync("foo");
 
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(TimeSpan.FromMilliseconds(250));
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
 		var maybeFooA2 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
@@ -470,7 +470,7 @@ public class BackplaneTests
 		//   - DO NOTHING ON CACHE C (IT WAS NOT IN ITS MEMORY CACHE)
 		cacheA.Expire("foo");
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(TimeSpan.FromMilliseconds(250));
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
 		var maybeFooA2 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(false));
@@ -528,13 +528,17 @@ public class BackplaneTests
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.SetInstanceId("A");
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 		cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.SetInstanceId("B");
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 		cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -606,13 +610,17 @@ public class BackplaneTests
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.SetInstanceId("A");
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 		cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.SetInstanceId("B");
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 		cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -702,6 +710,8 @@ public class BackplaneTests
 		await fusionCache.SetAsync<int>("foo", 21, eo);
 		sw.Stop();
 
+		await Task.Delay(TimeSpan.FromMilliseconds(1_000));
+
 		Assert.True(sw.Elapsed >= simulatedDelayMs);
 		Assert.True(sw.Elapsed < simulatedDelayMs * 2);
 	}
@@ -736,6 +746,8 @@ public class BackplaneTests
 		var sw = Stopwatch.StartNew();
 		fusionCache.Set<int>("foo", 21, eo);
 		sw.Stop();
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
 
 		Assert.True(sw.Elapsed >= simulatedDelayMs);
 		Assert.True(sw.Elapsed < simulatedDelayMs * 2);
