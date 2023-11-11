@@ -63,7 +63,8 @@ public partial class FusionCache
 		// GLOBALLY UNIQUE INSTANCE ID
 		if (string.IsNullOrWhiteSpace(_options.InstanceId))
 		{
-			_options.SetInstanceId(Guid.NewGuid().ToString("N"));
+			//_options.SetInstanceId(Guid.NewGuid().ToString("N"));
+			_options.SetInstanceId(FusionCacheInternalUtils.GenerateOperationId());
 		}
 		InstanceId = _options.InstanceId!;
 
@@ -114,7 +115,7 @@ public partial class FusionCache
 	}
 
 	/// <inheritdoc/>
-	public string InstanceId { get; }
+	public string InstanceId { get; private set; }
 
 	/// <inheritdoc/>
 	public FusionCacheEntryOptions DefaultEntryOptions
