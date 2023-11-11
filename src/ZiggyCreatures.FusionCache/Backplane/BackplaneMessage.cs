@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Buffers.Binary;
+using System.Text;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane;
@@ -8,6 +10,8 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane;
 /// </summary>
 public class BackplaneMessage
 {
+	private static readonly Encoding _encoding = Encoding.UTF8;
+
 	/// <summary>
 	/// Creates a new instance of a backplane message.
 	/// </summary>
@@ -128,5 +132,102 @@ public class BackplaneMessage
 			Action = BackplaneMessageAction.EntryExpire,
 			CacheKey = cacheKey
 		};
+	}
+
+	/// <summary>
+	/// Serializes a backplane message to a byte array.
+	/// </summary>
+	/// <param name="message">The backplane message to serialize.</param>
+	/// <returns></returns>
+	public static byte[] ToByteArray(BackplaneMessage? message)
+	{
+		if (message is null)
+			throw new ArgumentNullException(nameof(message));
+
+		var sourceIdByteCount = _encoding.GetByteCount(message.SourceId);
+		var cacheKeyByteCount = _encoding.GetByteCount(message.CacheKey);
+
+		var size =
+			1 // VERSION
+			+ 4 + sourceIdByteCount // SOURCE ID
+			+ 8 // INSTANCE TICKS
+			+ 1 // ACTION
+			+ 4 + cacheKeyByteCount // CACHE KEY
+		;
+
+		var res = new byte[size];
+		var pos = 0;
+
+		// VERSION
+		res[pos] = 0;
+		pos++;
+
+		// SOURCE ID
+		BinaryPrimitives.WriteInt32LittleEndian(new Span<byte>(res, pos, 4), sourceIdByteCount);
+		pos += 4;
+		_encoding.GetBytes(message.SourceId!, 0, message.SourceId!.Length, res, pos);
+		pos += sourceIdByteCount;
+
+		// TIMESTAMP
+		BinaryPrimitives.WriteInt64LittleEndian(new Span<byte>(res, pos, 8), message.Timestamp);
+		pos += 8;
+
+		// ACTION
+		res[pos] = (byte)message.Action;
+		pos++;
+
+		// CACHE KEY
+		BinaryPrimitives.WriteInt32LittleEndian(new Span<byte>(res, pos, 4), cacheKeyByteCount);
+		pos += 4;
+		_encoding.GetBytes(message.CacheKey, 0, message.CacheKey!.Length, res, pos);
+		//pos += cacheKeyByteCount;
+
+		return res;
+	}
+
+	/// <summary>
+	/// Deserializes a byte array into a backplane message.
+	/// </summary>
+	/// <param name="data">The byte array to deserialize.</param>
+	/// <returns>An instance of a backplane message, or <see langword="null"/></returns>
+	/// <exception cref="FormatException"></exception>
+	public static BackplaneMessage FromByteArray(byte[]? data)
+	{
+		if (data is null)
+			throw new ArgumentNullException(nameof(data));
+
+		if (data.Length == 0)
+			throw new InvalidOperationException("The byte array is empty.");
+
+		var res = new BackplaneMessage();
+		var pos = 0;
+
+		// VERSION
+		var version = data[pos];
+		if (version != 0)
+			throw new FormatException($"The backplane message version ({version}) is not supported.");
+		pos++;
+
+		// SOURCE ID
+		var tmp = BinaryPrimitives.ReadInt32LittleEndian(new ReadOnlySpan<byte>(data, pos, 4));
+		pos += 4;
+		res.SourceId = _encoding.GetString(data, pos, tmp);
+		pos += tmp;
+
+		// TIMESTAMP
+		res.Timestamp = BinaryPrimitives.ReadInt64LittleEndian(new ReadOnlySpan<byte>(data, pos, 8));
+		pos += 8;
+
+		// ACTION
+		res.Action = (BackplaneMessageAction)data[pos];
+		pos++;
+
+		// CACHE KEY
+		tmp = BinaryPrimitives.ReadInt32LittleEndian(new ReadOnlySpan<byte>(data, pos, 4));
+		pos += 4;
+		res.CacheKey = _encoding.GetString(data, pos, tmp);
+		//pos += tmp;
+
+		return res;
 	}
 }
