@@ -530,19 +530,21 @@ public class BackplaneTests
 
 		var optionsA = CreateFusionCacheOptions();
 		optionsA.SetInstanceId("A");
+		//optionsA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsA.DefaultEntryOptions.IsFailSafeEnabled = true;
+		optionsA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 		cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
-		cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
-		cacheA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
 		var optionsB = CreateFusionCacheOptions();
 		optionsB.SetInstanceId("B");
+		//optionsB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsB.DefaultEntryOptions.IsFailSafeEnabled = true;
+		optionsB.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 		cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
-		cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
-		cacheB.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
 		// SET 10 ON CACHE-A AND DIST CACHE
 		var fooA1 = await cacheA.GetOrSetAsync("foo", async _ => 10, duration1);
@@ -612,19 +614,21 @@ public class BackplaneTests
 
 		var optionsA = CreateFusionCacheOptions();
 		optionsA.SetInstanceId("A");
+		//optionsA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsA.DefaultEntryOptions.IsFailSafeEnabled = true;
+		optionsA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 		cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
-		cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
-		cacheA.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
 		var optionsB = CreateFusionCacheOptions();
 		optionsB.SetInstanceId("B");
+		//optionsB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+		optionsB.DefaultEntryOptions.IsFailSafeEnabled = true;
+		optionsB.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 		cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
-		cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
-		cacheB.DefaultEntryOptions.FactorySoftTimeout = factorySoftTimeout;
 
 		// SET 10 ON CACHE-A AND DIST CACHE
 		var fooA1 = cacheA.GetOrSet("foo", _ => 10, duration1);
