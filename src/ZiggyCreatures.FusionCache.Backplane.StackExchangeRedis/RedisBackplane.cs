@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Buffers.Binary;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -16,7 +14,6 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 public partial class RedisBackplane
 	: IFusionCacheBackplane
 {
-	private static readonly Encoding _encoding = Encoding.UTF8;
 	private readonly RedisBackplaneOptions _options;
 	private BackplaneSubscriptionOptions? _subscriptionOptions;
 	private readonly ILogger? _logger;
@@ -24,7 +21,7 @@ public partial class RedisBackplane
 	private readonly SemaphoreSlim _connectionLock;
 	private IConnectionMultiplexer? _connection;
 
-	private string _channelName = "FusionCache.Notifications";
+	private string? _channelName = null;
 	private RedisChannel _channel;
 	private ISubscriber? _subscriber;
 
@@ -124,6 +121,9 @@ public partial class RedisBackplane
 		_subscriptionOptions = subscriptionOptions;
 
 		_channelName = _subscriptionOptions.ChannelName;
+		if (_channelName is null)
+			throw new NullReferenceException("The backplane channel name is null");
+
 		_channel = new RedisChannel(_channelName, RedisChannel.PatternMode.Literal);
 
 		_incomingMessageHandler = _subscriptionOptions.IncomingMessageHandler;
@@ -133,7 +133,7 @@ public partial class RedisBackplane
 		EnsureConnection();
 
 		if (_subscriber is null)
-			throw new NullReferenceException("The subscriber is null");
+			throw new NullReferenceException("The backplane subscriber is null");
 
 		_subscriber.Subscribe(_channel, (_, v) =>
 		{
@@ -167,45 +167,7 @@ public partial class RedisBackplane
 	{
 		try
 		{
-			byte[]? data = value;
-
-			if (data is null || data.Length == 0)
-				return null;
-
-			var pos = 0;
-			var res = new BackplaneMessage();
-
-			// VERSION
-			var version = data[pos];
-			if (version != 0)
-			{
-				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.Log(LogLevel.Warning, "FUSION: the version header does not have the expected value of 0 (zero): instead the value is " + version);
-				return null;
-			}
-			pos++;
-
-			// SOURCE ID
-			var tmp = BinaryPrimitives.ReadInt32LittleEndian(new ReadOnlySpan<byte>(data, pos, 4));
-			pos += 4;
-			res.SourceId = _encoding.GetString(data, pos, tmp);
-			pos += tmp;
-
-			// TIMESTAMP
-			res.Timestamp = BinaryPrimitives.ReadInt64LittleEndian(new ReadOnlySpan<byte>(data, pos, 8));
-			pos += 8;
-
-			// ACTION
-			res.Action = (BackplaneMessageAction)data[pos];
-			pos++;
-
-			// CACHE KEY
-			tmp = BinaryPrimitives.ReadInt32LittleEndian(new ReadOnlySpan<byte>(data, pos, 4));
-			pos += 4;
-			res.CacheKey = _encoding.GetString(data, pos, tmp);
-			//pos += tmp;
-
-			return res;
+			return BackplaneMessage.FromByteArray(value);
 		}
 		catch (Exception exc)
 		{
@@ -220,45 +182,7 @@ public partial class RedisBackplane
 	{
 		try
 		{
-			var sourceIdByteCount = _encoding.GetByteCount(message.SourceId);
-			var cacheKeyByteCount = _encoding.GetByteCount(message.CacheKey);
-
-			var size =
-				1 // VERSION
-				+ 4 + sourceIdByteCount // SOURCE ID
-				+ 8 // INSTANCE TICKS
-				+ 1 // ACTION
-				+ 4 + cacheKeyByteCount // CACHE KEY
-			;
-
-			var pos = 0;
-			var res = new byte[size];
-
-			// VERSION
-			res[pos] = 0;
-			pos++;
-
-			// SOURCE ID
-			BinaryPrimitives.WriteInt32LittleEndian(new Span<byte>(res, pos, 4), sourceIdByteCount);
-			pos += 4;
-			_encoding.GetBytes(message.SourceId!, 0, message.SourceId!.Length, res, pos);
-			pos += sourceIdByteCount;
-
-			// TIMESTAMP
-			BinaryPrimitives.WriteInt64LittleEndian(new Span<byte>(res, pos, 8), message.Timestamp);
-			pos += 8;
-
-			// ACTION
-			res[pos] = (byte)message.Action;
-			pos++;
-
-			// CACHE KEY
-			BinaryPrimitives.WriteInt32LittleEndian(new Span<byte>(res, pos, 4), cacheKeyByteCount);
-			pos += 4;
-			_encoding.GetBytes(message.CacheKey, 0, message.CacheKey!.Length, res, pos);
-			//pos += cacheKeyByteCount;
-
-			return res;
+			return BackplaneMessage.ToByteArray(message);
 		}
 		catch (Exception exc)
 		{

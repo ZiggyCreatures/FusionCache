@@ -51,17 +51,13 @@ public partial class RedisBackplane
 	{
 		EnsureConnection(token);
 
-		var v = GetRedisValueFromMessage(message, _logger);
+		var value = GetRedisValueFromMessage(message, _logger);
 
-		if (v.IsNull)
+		if (value.IsNull)
 			return;
 
 		token.ThrowIfCancellationRequested();
 
-		var receivedCount = _subscriber!.Publish(_channel, v);
-		//if (_options.VerifyReceivedClientsCountAfterPublish && receivedCount == 0)
-		//{
-		//	throw new Exception($"An error occurred while trying to send a notification of type {message.Action} for cache key {message.CacheKey} to the Redis backplane: the received count was {receivedCount}");
-		//}
+		_subscriber!.Publish(_channel, value);
 	}
 }
