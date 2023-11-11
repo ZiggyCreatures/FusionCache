@@ -209,7 +209,9 @@ public class MemoryBackplane
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before sending a backplane notification to {BackplaneChannel}", backplane._channelName);
 
-				backplane.OnMessage(message);
+				var payload = BackplaneMessage.ToByteArray(message);
+
+				backplane.OnMessage(payload);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after sending a backplane notification to {BackplaneChannel}", backplane._channelName);
@@ -222,8 +224,10 @@ public class MemoryBackplane
 		}
 	}
 
-	internal void OnMessage(BackplaneMessage message)
+	internal void OnMessage(byte[] payload)
 	{
+		var message = BackplaneMessage.FromByteArray(payload);
+
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before processing a backplane notification received from {BackplaneMessageSourceId}", message.SourceId);
 
