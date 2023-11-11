@@ -176,7 +176,14 @@ public class MemoryBackplane
 			if (backplane == this)
 				continue;
 
-			backplane.OnMessage(message);
+			try
+			{
+				backplane.OnMessage(message);
+			}
+			catch
+			{
+				// EMPTY
+			}
 		}
 	}
 
