@@ -89,6 +89,21 @@
             <param name="timestamp">The timestamp.</param>
             <returns>The message.</returns>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.ToByteArray(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage)">
+            <summary>
+            Serializes a backplane message to a byte array.
+            </summary>
+            <param name="message">The backplane message to serialize.</param>
+            <returns></returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage.FromByteArray(System.Byte[])">
+            <summary>
+            Deserializes a byte array into a backplane message.
+            </summary>
+            <param name="data">The byte array to deserialize.</param>
+            <returns>An instance of a backplane message, or <see langword="null"/></returns>
+            <exception cref="T:System.FormatException"></exception>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessageAction">
             <summary>
             The type of action for a backplane message.

@@ -33,7 +33,7 @@ internal partial class BackplaneAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): before " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): BACKPLANE: before " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 
 			await _backplane.PublishAsync(message, options, token).ConfigureAwait(false);
 
@@ -41,7 +41,7 @@ internal partial class BackplaneAccessor
 			_events.OnMessagePublished(operationId, message);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): BACKPLANE: after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 		}
 		catch (Exception exc)
 		{
