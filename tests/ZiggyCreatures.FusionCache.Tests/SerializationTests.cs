@@ -235,6 +235,8 @@ public class SerializationTests
 
 		var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
 
+		TestOutput.WriteLine($"Found {files.Length} samples for {serializer.GetType().Name}");
+
 		foreach (var file in files)
 		{
 			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1]?.Value?.Replace('_', '.');
@@ -260,6 +262,8 @@ public class SerializationTests
 		var filePrefix = $"{serializer.GetType().Name}__";
 
 		var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
+
+		TestOutput.WriteLine($"Found {files.Length} samples for {serializer.GetType().Name}");
 
 		foreach (var file in files)
 		{
