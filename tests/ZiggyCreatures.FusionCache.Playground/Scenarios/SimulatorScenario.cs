@@ -128,6 +128,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		private static int DbWritesCount = 0;
 		private static int DbReadsCount = 0;
 
+		// COLORS
+		private static readonly Color Color_DarkGreen = Color.DarkGreen;
+		private static readonly Color Color_MidGreen = Color.SpringGreen3;
+		private static readonly Color Color_LightGreen = Color.SpringGreen2;
+		private static readonly Color Color_FlashGreen = Color.SpringGreen3_1;
+		private static readonly Color Color_DarkRed = Color.DarkRed;
+		private static readonly Color Color_MidRed = Color.DeepPink2;
+		private static readonly Color Color_LightRed = Color.Red3_1;
+		private static readonly Color Color_FlashRed = Color.Red1;
+
 		private static IDistributedCache? CreateDistributedCache(int clusterIdx)
 		{
 			switch (SimulatorScenarioOptions.DistributedCacheType)
@@ -273,9 +283,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				var cluster = new CacheCluster();
 				var cacheName = $"C{clusterIdx + 1}";
 
-				//AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE : [/] CREATING...");
 				var distributedCache = CreateDistributedCache(clusterIdx);
-				//AnsiConsole.MarkupLine("[green3_1]OK[/]");
 
 				for (int nodeIdx = 0; nodeIdx < SimulatorScenarioOptions.NodesPerClusterCount; nodeIdx++)
 				{
@@ -322,7 +330,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					var cache = new FusionCache(options, logger: cacheLogger);
 					swCache.Stop();
 					logger?.LogInformation($"CACHE CREATION TOOK: {swCache.ElapsedMilliseconds} ms");
-					AnsiConsole.MarkupLine(" [green3_1]OK[/]");
+					AnsiConsole.MarkupLine($" [{Color_DarkGreen}]OK[/]");
 
 					// DISTRIBUTED CACHE
 					if (distributedCache is not null)
@@ -339,7 +347,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						swDistributedCache.Stop();
 						logger?.LogInformation($"DISTRIBUTED CACHE SETUP TOOK: {swDistributedCache.ElapsedMilliseconds} ms");
 						DistributedCaches.Add(tmp);
-						AnsiConsole.MarkupLine(" [green3_1]OK[/]");
+						AnsiConsole.MarkupLine($" [{Color_DarkGreen}]OK[/]");
 					}
 
 					// BACKPLANE
@@ -358,7 +366,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						swBackplane.Stop();
 						logger?.LogInformation($"BACKPLANE SETUP TOOK: {swBackplane.ElapsedMilliseconds} ms");
 						Backplanes.Add(tmp);
-						AnsiConsole.MarkupLine(" [green3_1]OK[/]");
+						AnsiConsole.MarkupLine($" [{Color_DarkGreen}]OK[/]");
 					}
 
 					AnsiConsole.WriteLine();
@@ -542,16 +550,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 							if (lastUpdatedNodeIdx.Value == nodeIdx)
 							{
 								if (LastUpdatedClusterIdx == clusterIdx)
-									color = "green3_1";
+									color = Color_LightGreen.ToString();
 								else
-									color = "green4";
+									color = Color_DarkGreen.ToString();
 							}
 							else if (clusterValues[lastUpdatedNodeIdx.Value] == value)
 							{
 								if (LastUpdatedClusterIdx == clusterIdx)
-									color = "green3_1";
+									color = Color_LightGreen.ToString();
 								else
-									color = "green4";
+									color = Color_DarkGreen.ToString();
 							}
 							else
 							{
@@ -564,7 +572,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 							}
 						}
 
-						var text = (value?.ToString() ?? "/").PadRight(3).PadLeft(5);
+						var text = (value?.ToString() ?? "/").PadRight(2).PadLeft(3);
 						if (string.IsNullOrEmpty(text))
 							text = " ";
 
@@ -572,7 +580,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 						var borderColor = Color.Black;
 						if (string.IsNullOrWhiteSpace(text) == false && lastUpdatedNodeIdx.HasValue && lastUpdatedNodeIdx.Value == nodeIdx)
 						{
-							borderColor = LastUpdatedClusterIdx != clusterIdx ? Color.Green4 : Color.Green3_1;
+							borderColor = LastUpdatedClusterIdx != clusterIdx ? Color_DarkGreen : Color_FlashGreen;
 						}
 
 						var cellMarkup = $"[{color}]{text}[/]";
@@ -586,15 +594,22 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					table.AddRow(cells);
 
 					// TABLE LABEL
-					var label = $"CLUSTER C{clusterIdx + 1}";
+					var isLastUpdatedCluster = LastUpdatedClusterIdx == clusterIdx;
+					var labelColor = isLastUpdatedCluster ? Color_FlashGreen.ToString() : "grey84";
+					var label = $"[{labelColor}]CLUSTER C{clusterIdx + 1}[/]";
 
-					// TABLE LABEL COLOR
-					var labelColor = "grey84";
-
-					if (LastUpdatedClusterIdx == clusterIdx)
+					if (isClusterInSync)
 					{
-						label += " (LAST UPDATED)";
-						labelColor = "springgreen3_1";
+						label += $" [{Color_DarkGreen} on {Color_MidGreen}] IN SYNC [/]";
+					}
+					else
+					{
+						label += $" [{Color_DarkRed} on {Color_MidRed}] NO SYNC [/]";
+					}
+
+					if (isLastUpdatedCluster)
+					{
+						label += $" [{Color_DarkGreen} on {Color_MidGreen}] LAST UPD [/]";
 					}
 
 					// TABLE BORDER COLOR
@@ -607,16 +622,16 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 							if (isClusterInSync)
 							{
 								if (LastUpdatedClusterIdx == clusterIdx)
-									tableBorderColor = Color.Green3_1;
+									tableBorderColor = Color_MidGreen;
 								else
-									tableBorderColor = Color.Green4;
+									tableBorderColor = Color_DarkGreen;
 							}
 							else
 							{
 								if (LastUpdatedClusterIdx == clusterIdx)
-									tableBorderColor = Color.Red1;
+									tableBorderColor = Color_MidRed;
 								else
-									tableBorderColor = Color.Red3_1;
+									tableBorderColor = Color_DarkRed;
 							}
 						}
 					}
@@ -628,7 +643,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 					table.Border(tableBorder);
 
-					items.Add(($"[{labelColor}]{label}[/]", table));
+					items.Add((label, table));
 				}
 
 				logger?.LogInformation("DASHBOARD: END");
@@ -643,9 +658,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
 				AnsiConsole.Markup($"Memory ");
 				if (DatabaseEnabled)
-					AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
+					AnsiConsole.MarkupLine($"[{Color_DarkGreen} on {Color_MidGreen}] ON [/]");
 				else
-					AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
+					AnsiConsole.MarkupLine($"[{Color_DarkRed} on {Color_MidRed}] OFF [/]");
 
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE   :[/] ");
 				if (SimulatorScenarioOptions.DistributedCacheType == DistributedCacheType.None)
@@ -656,9 +671,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				{
 					AnsiConsole.Markup($"{SimulatorScenarioOptions.DistributedCacheType} ");
 					if (DistributedCachesEnabled)
-						AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
+						AnsiConsole.MarkupLine($"[{Color_DarkGreen} on {Color_MidGreen}] ON [/]");
 					else
-						AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
+						AnsiConsole.MarkupLine($"[{Color_DarkRed} on {Color_MidRed}] OFF [/]");
 				}
 
 				AnsiConsole.Markup("- [deepskyblue1]BACKPLANE     :[/] ");
@@ -670,16 +685,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				{
 					AnsiConsole.Markup($"{SimulatorScenarioOptions.BackplaneType} ");
 					if (BackplanesEnabled)
-						AnsiConsole.MarkupLine("[green3_1]v ENABLED[/]");
+						AnsiConsole.MarkupLine($"[{Color_DarkGreen} on {Color_MidGreen}] ON [/]");
 					else
-						AnsiConsole.MarkupLine("[red1]X DISABLED[/]");
+						AnsiConsole.MarkupLine($"[{Color_DarkRed} on {Color_MidRed}] OFF [/]");
 				}
 				AnsiConsole.WriteLine();
 
 				// STATS
 				AnsiConsole.MarkupLine("STATS");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]DB WRITES     :[/] {DbWritesCount}");
-				AnsiConsole.MarkupLine($"- [deepskyblue1]DB READS      :[/] {DbReadsCount}");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]DATABASE      :[/] {DbWritesCount} WRITES - {DbReadsCount} READS");
 
 				AnsiConsole.WriteLine();
 
@@ -694,16 +708,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					// TABLE
 					AnsiConsole.Write(item.Table);
 				}
-				AnsiConsole.WriteLine();
 
 				AnsiConsole.WriteLine();
-				AnsiConsole.MarkupLine($"PRESS:");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]0[/]: enable/disable random updates (all clusters) [grey78 on {(SimulatorScenarioOptions.EnableRandomUpdates ? "darkgreen" : "grey19")}] {(SimulatorScenarioOptions.EnableRandomUpdates ? "ON" : "OFF")} [/]");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]1-{CacheClusters.Count}[/]: update a random node on the specified cluster");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]D/d[/]: enable/disable distributed cache (all clusters)");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]B/b[/]: enable/disable backplane (all clusters)");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]S/s[/]: enable/disable database (all clusters)");
-				AnsiConsole.MarkupLine($" - [deepskyblue1]Q/q[/]: quit");
+				AnsiConsole.MarkupLine($"COMMANDS:");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]0[/]: enable/disable random updates (all clusters) [{(SimulatorScenarioOptions.EnableRandomUpdates ? Color_DarkGreen.ToString() : "grey78")} on {(SimulatorScenarioOptions.EnableRandomUpdates ? Color_MidGreen.ToString() : "grey19")}] {(SimulatorScenarioOptions.EnableRandomUpdates ? "ON" : "OFF")} [/]");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]1-{CacheClusters.Count}[/]: update a random node on the specified cluster");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]D/d[/]: enable/disable distributed cache (all clusters)");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]B/b[/]: enable/disable backplane (all clusters)");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]S/s[/]: enable/disable database (all clusters)");
+				AnsiConsole.MarkupLine($"- [deepskyblue1]Q/q[/]: quit");
 			}
 			finally
 			{
