@@ -16,34 +16,27 @@ Looking at the available methods (like `Set`, `Remove`, `GetOrSet`, etc) we can 
 
 Enter **Auto-Recovery**.
 
-With auto-recovery FusionCache will automatically detect transient errors for both the distributed cache and backplane, and it will act accordingly to ensure that the **global state** is kept as much in-sync as possible, without any intervention on our side.
+With auto-recovery FusionCache will automatically detect transient errors for both the distributed cache and the backplane, and it will act accordingly to ensure that the **global state** is kept as much in-sync as possible, without any intervention on our side.
 
-This is done thanks to an auto-recovery queue, where items are put when something bad happened on the distributed side of things: the queue is then actively processed, periodically, to ensure that as soon as possible everything will be taken care of.
+This is done thanks to an auto-recovery queue, where items are put when something bad happened during the distributed side of things: the queue is then actively processed, periodically, to ensure that as soon as possible everything will be taken care of.
 
 More errors on a subsequent retry? Again, all taken care of until everything works out well.
 
 This feature is not implemented **inside** of a specific backplane implementation - of which there are multiple - but inside FusionCache itself: this means that it works with any backplane implementation automatically, which is nice.
 
-Wwe should also keep in mind that auto-recovery works for both the distributed cache and the backplane, either using together or only one of them.
-
-## ⚙ Options, options everywhere
-
-There are some [options](Options.md) that can be used to configure how auto-recovery works, even if the default developer experience is that it just works and keeps everything clean automatically.
-
-The amount of time to wait per each processing round of the auto-recovery queue can be customized via the `AutoRecoveryDelay` option, and by default is `2 sec`.
-
-The same option is used to better handle back-pressure: what it means is that, after a backplane is reconnected, all the other nodes will have some time to also reconnect. This avoids that if the first node to reconnect is one with some items in the auto-recovery queue, it may start publishing notifications immediately and so fast that other nodes will not be available yet, and in that case some notifications would go lost.
-
-Also, although usually it's not necessary, if we want we can set a limit in how many items to keep in the auto-recovery queue via the `AutoRecoveryMaxItems` option to avoid consuming too much memory (default value is `null`, which means no limits): if an auto-recovery item is about to be queued but the limit has already been reached, an heuristic is used to remove the notification for the cache entry that will expire sooner (calculated as: timestamp of when the auto-recovery item has been created + the cache entry's `Duration`), to limit as much as possible the impact on the global shared state synchronization. This means that, in such a case, the global state will be out-of-sync for as little as possible.
-Having said this, remember that auto-recovery cleans up itself automatically so there's no need to set a limit, and consider that setting a limit will create sync problems down the line.
+We should also keep in mind that auto-recovery works for both the distributed cache and the backplane, either when using them together or when using only one of them.
 
 ## ❤ Special Care
 
-Sometimes the transient errors are not so brief, and it may happen that before a retry from the auto-recovery queue has been able to succeed another new value for the same cache key is set, on the same node: should both exist and be retried?
+Sometimes the transient errors are not so transient after all, and it may happen that before a retry from the auto-recovery queue has been able to succeed a new value for the same cache key is set, on the same node.
 
-Another nice one is when, before having been able to process an auto-recovery queue, the backplane came back on and the node received a notification for the same cache key from another node: what should it do?
+WHat should FusionCache do?
 
-So special care has been put into correctly handling some common situations:
+Another nice one is when, before having been able to process an auto-recovery queue, the backplane came back on and the node received a notification for the same cache key from another node.
+
+WHat should FusionCache do?
+
+Special care has been put into correctly handling some common scenarios:
 - if an auto-recovery item is about to be queued for a cache key for which there already is another queued item, only the last one will be kept since the result of updating the cache for the same cache key back-to-back would be the same as doing only the last one
 - if a backplane notification is received on a node for a cache key for which there is a queued auto-recovery item, only the most recent one is kept: if the incoming one is newer, the local one is discarded and the incoming one is processed, otherwise the incoming one is ignored and the local one is processed to be sent to the other nodes. This avoids, for example, evicting an entry from a local cache if it has been updated after a change in a remote node, which would be useless
 - when FusionCache process an item from the auto-recovery queue, it also checks if meanwhile things have changed: if the distributed cache has since been updated and the local value is not the most updated anymore, it will stop procesing the item, remove it from the queue and update the local value from the distributed one. If, on the other hand, it is still the most updated, it will proceed in updating the distributed cache and/or publish a backplane notification to update the other nodes
