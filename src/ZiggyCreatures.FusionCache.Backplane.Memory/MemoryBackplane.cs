@@ -23,8 +23,8 @@ public class MemoryBackplane
 
 	private ConcurrentDictionary<string, List<MemoryBackplane>>? _connection;
 
-	private string _channelName = "FusionCache.Notifications";
-	private List<MemoryBackplane>? _subscriber;
+	private string? _channelName = null;
+	private List<MemoryBackplane>? _subscribers;
 
 	private Action<BackplaneConnectionInfo>? _connectHandler;
 	private Action<BackplaneMessage>? _incomingMessageHandler;
@@ -58,7 +58,7 @@ public class MemoryBackplane
 		if (_options.ConnectionId is null)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION: A MemoryBackplane should be used with an explicit ConnectionId option, otherwise concurrency issues will probably happen");
+				_logger.Log(LogLevel.Warning, "FUSION: BACKPLANE - A MemoryBackplane should be used with an explicit ConnectionId option, otherwise concurrency issues will probably happen");
 
 			_options.ConnectionId = "_default";
 		}
@@ -75,16 +75,24 @@ public class MemoryBackplane
 			_connectHandler?.Invoke(new BackplaneConnectionInfo(false));
 		}
 
-		EnsureSubscriber();
+		EnsureSubscribers();
 	}
 
-	private void EnsureSubscriber()
+	private void EnsureSubscribers()
 	{
 		if (_connection is null)
 			throw new InvalidOperationException("No connection available");
 
-		if (_subscriber is null)
-			_subscriber = _connection.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
+		if (_subscribers is null)
+		{
+			lock (_connection)
+			{
+				if (_channelName is null)
+					throw new NullReferenceException("The backplane channel name is null");
+
+				_subscribers = _connection.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
+			}
+		}
 	}
 
 	private void Disconnect()
@@ -122,27 +130,44 @@ public class MemoryBackplane
 		// CONNECTION
 		EnsureConnection();
 
-		if (_subscriber is null)
+		if (_subscribers is null)
 			throw new InvalidOperationException("The subscriber is null");
 
-		lock (_subscriber)
+		lock (_subscribers)
 		{
-			_subscriber.Add(this);
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before subscribing (Subscribers: {SubscribersCount})", _subscribers.Count);
+
+			_subscribers.Add(this);
+
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after subscribing (Subscribers: {SubscribersCount})", _subscribers.Count);
 		}
 	}
 
 	/// <inheritdoc/>
 	public void Unsubscribe()
 	{
-		if (_subscriber is not null)
+		if (_subscribers is not null)
 		{
 			_incomingMessageHandler = null;
-			lock (_subscriber)
+			lock (_subscribers)
 			{
-				_subscriber.Remove(this);
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before unsubscribing (Subscribers: {SubscribersCount})", _subscribers.Count);
+
+				var removed = _subscribers.Remove(this);
+
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after unsubscribing (Subscribers: {SubscribersCount}, Removed: {Removed}", _subscribers.Count, removed);
+
 				_subscriptionOptions = null;
+				_channelName = null;
+
+				_incomingMessageHandler = null;
+				_connectHandler = null;
 			}
-			_subscriber = null;
+			_subscribers = null;
 		}
 
 		Disconnect();
@@ -166,10 +191,13 @@ public class MemoryBackplane
 		if (message.IsValid() == false)
 			throw new InvalidOperationException("The message is invalid");
 
-		if (_subscriber is null)
+		if (_subscribers is null)
 			throw new NullReferenceException("Something went wrong :-|");
 
-		foreach (var backplane in _subscriber)
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - about to send a backplane notification to {BackplanesCount} backplanes (including self)", _subscribers.Count);
+
+		foreach (var backplane in _subscribers)
 		{
 			token.ThrowIfCancellationRequested();
 
@@ -178,17 +206,30 @@ public class MemoryBackplane
 
 			try
 			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before sending a backplane notification to {BackplaneChannel}", backplane._channelName);
+
 				backplane.OnMessage(message);
+
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after sending a backplane notification to {BackplaneChannel}", backplane._channelName);
 			}
 			catch
 			{
-				// EMPTY
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "FUSION: BACKPLANE - An error occurred while publishing a message to a subscriber");
 			}
 		}
 	}
 
 	internal void OnMessage(BackplaneMessage message)
 	{
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before processing a backplane notification received from {BackplaneMessageSourceId}", message.SourceId);
+
 		_incomingMessageHandler?.Invoke(message);
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after processing a backplane notification received from {BackplaneMessageSourceId}", message.SourceId);
 	}
 }
