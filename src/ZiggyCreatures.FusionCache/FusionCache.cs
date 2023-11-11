@@ -301,6 +301,13 @@ public partial class FusionCache
 					if (maybeNewOptions is not null && options != maybeNewOptions)
 						options = maybeNewOptions;
 
+					options = options.Duplicate();
+					options.AllowBackgroundDistributedCacheOperations = false;
+					options.ReThrowDistributedCacheExceptions = false;
+					options.AllowBackgroundBackplaneOperations = false;
+					options.ReThrowBackplaneExceptions = false;
+					options.ReThrowSerializationExceptions = false;
+
 					// ADAPTIVE CACHING UPDATE
 					var lateEntry = FusionCacheMemoryEntry.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null, typeof(TValue));
 
