@@ -29,7 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static bool EnableFailSafe = false;
 		public static readonly TimeSpan RandomUpdateDelay = TimeSpan.FromSeconds(1);
 		public static bool EnableRandomUpdates = false;
-		public static readonly bool DisplayApproximateExpirationCountdown = false;
+		public static readonly bool DisplayApproximateExpirationCountdown = true;
 
 		// DURATION
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
@@ -220,37 +220,60 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			services.AddLogging(configure => configure.AddSerilog());
 		}
 
-		private static DateTimeOffset? DangerouslyGetLogicalExpiration(IFusionCache cache, string cacheKey)
+		private static DateTimeOffset? ExtractCacheEntryExpiration(IFusionCache cache, string cacheKey)
 		{
 			var mca = cache.GetType().GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(cache);
-			var memoryCache = (IMemoryCache?)mca?.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(mca);
+
+			if (mca is null)
+			{
+				Debug.WriteLine("MEMORY CACHE ACCESSOR IS NULL");
+				return null;
+			}
+
+			var memoryCache = (IMemoryCache?)mca.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(mca);
+
+			if (memoryCache is null)
+			{
+				Debug.WriteLine("MEMORY CACHE IS NULL");
+				return null;
+			}
+
 			var entry = memoryCache?.Get(cacheKey);
 
 			if (entry is null)
 			{
-				Debug.WriteLine("CACHE NULL");
+				Debug.WriteLine("ENTRY IS NULL");
 				return null;
 			}
 
-			DateTimeOffset? exp = null;
+			// GET THE LOGICAL EXPIRATION
+			var meta = (FusionCacheEntryMetadata?)entry.GetType().GetProperty("Metadata")?.GetValue(entry);
+			var logicalExpiration = meta?.LogicalExpiration;
 
+			// GET THE PHYSICAL EXPIRATION
+			DateTimeOffset? physicalExpiration = null;
 			try
 			{
-				Debug.WriteLine($"EXPIRE ({cache.InstanceId}: {(DateTimeOffset?)entry.GetType().GetProperty("LogicalExpiration")?.GetValue(entry)}");
-				exp = (DateTimeOffset?)entry.GetType().GetProperty("LogicalExpiration")?.GetValue(entry);
+				physicalExpiration = (DateTimeOffset?)entry.GetType().GetProperty("LogicalExpiration")?.GetValue(entry);
 			}
-			catch
+			catch (Exception exc)
 			{
-				// EMPTY
+				Debug.WriteLine($"ERROR: {exc.Message}");
 			}
 
-			if (exp is null)
-			{
-				var meta = (FusionCacheEntryMetadata?)entry.GetType().GetProperty("Metadata")?.GetValue(entry);
-				exp = meta?.LogicalExpiration;
-			}
+			// WE HAVE BOTH: TAKE THE LOWER ONE
+			if (logicalExpiration is not null && physicalExpiration is not null)
+				return logicalExpiration.Value < physicalExpiration.Value ? logicalExpiration : physicalExpiration;
 
-			return exp;
+			// USE THE PHYSICAL
+			if (logicalExpiration is not null)
+				return logicalExpiration;
+
+			// USE THE LOGICAL
+			if (physicalExpiration is not null)
+				return physicalExpiration;
+
+			return null;
 		}
 
 		private static void SetupClusters(IServiceProvider serviceProvider, ILogger<FusionCache>? logger)
@@ -358,7 +381,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					// EVENTS
 					cache.Events.Memory.Set += (sender, e) =>
 					{
-						var maybeExpiration = DangerouslyGetLogicalExpiration((IFusionCache)sender!, CacheKey);
+						var maybeExpiration = ExtractCacheEntryExpiration((IFusionCache)sender!, CacheKey);
 
 						if (maybeExpiration is not null)
 						{

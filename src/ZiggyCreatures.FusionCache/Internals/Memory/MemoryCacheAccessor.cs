@@ -44,7 +44,8 @@ internal sealed class MemoryCacheAccessor
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Options} {Entry}", _options.CacheName, _options.InstanceId, operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
 
-		entry.LogicalExpiration = entry.Metadata?.LogicalExpiration ?? memoryOptions.AbsoluteExpiration!.Value;
+		entry.PhysicalExpiration = memoryOptions.AbsoluteExpiration!.Value;
+
 		_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
 
 		// EVENT
@@ -139,7 +140,6 @@ internal sealed class MemoryCacheAccessor
 
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
-			entry.LogicalExpiration = entry.Metadata.LogicalExpiration;
 
 			// EVENT
 			_events.OnExpire(operationId, key);
