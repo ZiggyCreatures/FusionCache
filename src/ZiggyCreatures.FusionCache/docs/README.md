@@ -126,7 +126,7 @@ Distributed systems are, in general, quite complex to understand.
 
 When using FusionCache with the [distributed cache](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md), the [backplane](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md) and [auto-recovery](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
 
-[![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](docs/Simulator.md)
+[![FusionCache Simulator](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/fusioncache-simulator-autorecovery.png)](docs/Simulator.md)
 
 ## 🧰 Supported Platforms
 
