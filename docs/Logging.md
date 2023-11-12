@@ -126,7 +126,7 @@ In both cases it basically boils down to specify a global minimum log level, whi
 
 Again, we can read more about this in the [official documentation](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging#configure-logging).
 
-In general though the nice thing about this is that once we've choosen the logger we want to use and have configured it, everythig will work the same for all of our components and libraries, like FusionCache (if they respect the standard logging flow of course!).
+In general though the nice thing about this is that once we've choosen the logger we want to use and have configured it, everything will work the same for all of our components and libraries, like FusionCache (if they respect the standard logging flow of course!).
 
 ## ⚡ Advanced Configuration
 

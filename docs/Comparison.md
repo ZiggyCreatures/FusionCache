@@ -25,7 +25,7 @@ And we should all be thankful for that.
 
 | 📢 A note to other library authors |
 | :--- |
-| Even though I tried my best to be fair and objective, I'm sure you may have different opinions on each topic or I may have just used your library in the wrong way in the benchmarks. <br/> <br/> If that is the case please [**open an issue**](https://github.com/ZiggyCreatures/FusionCache/issues/new) or send a pr and I will make the necessary changes. |
+| Even though I tried my best to be fair and objective, I'm sure you may have different opinions about each topic or I may have just used your library in the wrong way or maybe a newer version came out with new features. <br/> <br/> If that is the case please [**open an issue**](https://github.com/ZiggyCreatures/FusionCache/issues/new/choose) or send a pr and I will make the necessary changes. |
 
 ## ☑ Features
 
