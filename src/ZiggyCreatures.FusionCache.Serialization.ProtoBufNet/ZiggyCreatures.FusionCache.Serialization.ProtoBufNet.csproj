@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.24.0-preview1</Version>
+		<Version>0.24.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on protobuf-net</Description>
@@ -13,7 +13,7 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Dependencies update
+			- Update: dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
