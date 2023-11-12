@@ -265,12 +265,11 @@ If you are in for a ride you can read a complete [step by step example](docs/Ste
 
 </div>
 
-
 ## 🖥️ Simulator
 
 Distributed systems are, in general, quite complex to understand.
 
-When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [backplane](docs/Backplane.md) and [auto-recovery](AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
+When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [backplane](docs/Backplane.md) and [auto-recovery](docs/AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
 
 [![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](docs/Simulator.md)
 

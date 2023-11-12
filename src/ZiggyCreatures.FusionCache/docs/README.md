@@ -120,14 +120,25 @@ cache.GetOrSet<Product>(
 
 That's it 🎉
 
+## 🖥️ Simulator
 
-## 📖 Documentation
+Distributed systems are, in general, quite complex to understand.
 
-A complete documentation, including examples and common use cases, is available at the [official repo](https://github.com/ZiggyCreatures/FusionCache) page on GitHub.
+When using FusionCache with the [distributed cache](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md), the [backplane](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md) and [auto-recovery](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
 
+[![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](docs/Simulator.md)
 
 ## 🧰 Supported Platforms
 
 FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is fine: this means `.NET Framework` (the old one), `.NET Core 2+` and `.NET 5/6+` (the new ones), `Mono` 5.4+ and more (see [here](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support) for a complete rundown).
 
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
+
+## 💼 Is it Production Ready :tm: ?
+Yes!
+
+Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
+
+Considering that the FusionCache packages have been downloaded more than **2 million times** (thanks everybody!) it may very well be used even more.
+
+And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
