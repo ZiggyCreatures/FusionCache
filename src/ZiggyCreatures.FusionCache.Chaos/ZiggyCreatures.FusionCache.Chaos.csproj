@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.23.0</Version>
+		<Version>0.24.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Chaos</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>Chaos-related utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behavior in a controlled failing environment.</Description>
@@ -13,10 +13,10 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Chaos.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added re-connection support in ChaosBackplane
-			- Added logging support in ChaosBackplane
-			- Added ChaosPlugin
-			- Dependencies update
+			- Added: cancellation support
+			- Added: new AbstractChaosComponent acting as a base class for all chaos-related components
+			- Changed: all chaos-related components now inherit from AbstractChaosComponent
+			- Update: dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

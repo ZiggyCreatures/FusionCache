@@ -10,7 +10,7 @@ In .NET there's full support for [Dependency Injection (DI)](https://docs.micros
 
 This is a common way to handle creation, dependencies, scopes and disposal of resources that makes it easier and more flexible to work with any _service_ we may need.
 
-| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](Update_v0_20_0.md). |
+| 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](Update_v0_24_0.md). |
 |:-------|
 
 ## FusionCache + DI
@@ -72,7 +72,7 @@ To configure some cache-wide options we can use:
 services.AddFusionCache()
     .WithOptions(opt =>
     {
-        opt.BackplaneAutoRecoveryMaxItems = 123;
+        opt.AutoRecoveryMaxItems = 123;
     })
 ;
 ```
@@ -95,7 +95,7 @@ Of course we can combine them (remember? fluent interface!):
 services.AddFusionCache()
     .WithOptions(opt =>
     {
-        opt.BackplaneAutoRecoveryMaxItems = 123;
+        opt.AutoRecoveryMaxItems = 123;
     })
     .WithDefaultEntryOptions(opt =>
     {

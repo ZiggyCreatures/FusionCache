@@ -1,17 +1,18 @@
 ﻿using System;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 internal sealed partial class DistributedCacheAccessor
 {
-	private const string WireFormatVersion = "v1";
-	private const char WireFormatSeparator = ':';
-
 	public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 	{
 		if (distributedCache is null)
@@ -33,10 +34,18 @@ internal sealed partial class DistributedCacheAccessor
 
 		// WIRE FORMAT SETUP
 		_wireFormatToken = _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Prefix
-			? (WireFormatVersion + WireFormatSeparator)
+			? (FusionCacheOptions.DistributedCacheWireFormatVersion + FusionCacheOptions.DistributedCacheWireFormatSeparator)
 			: _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Suffix
-				? WireFormatSeparator + WireFormatVersion
+				? FusionCacheOptions.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion
 				: string.Empty;
+
+		_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
+		{
+			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + FusionCacheOptions.DistributedCacheWireFormatSeparator,
+			CacheKeyModifierMode.Suffix => FusionCacheOptions.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
+			CacheKeyModifierMode.None => string.Empty,
+			_ => throw new NotImplementedException(),
+		};
 	}
 
 	private readonly IDistributedCache _cache;
@@ -72,7 +81,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, operationId, key, _breaker.BreakDuration);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, _options.InstanceId, operationId, key, _breaker.BreakDuration);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, false);
@@ -86,7 +95,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (res && hasChanged)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed cache activated again", _options.CacheName, operationId, key);
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed cache activated again", _options.CacheName, _options.InstanceId, operationId, key);
 
 			// EVENT
 			_events.OnCircuitBreakerChange(operationId, key, true);
@@ -101,7 +110,7 @@ internal sealed partial class DistributedCacheAccessor
 		if (exc is SyntheticTimeoutException)
 		{
 			if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
-				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): a synthetic timeout occurred while " + actionDescription, _options.CacheName, operationId, key);
+				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] a synthetic timeout occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 
 			return;
 		}
@@ -109,6 +118,29 @@ internal sealed partial class DistributedCacheAccessor
 		UpdateLastError(key, operationId);
 
 		if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
-			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while " + actionDescription, _options.CacheName, operationId, key);
+			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
+	}
+
+	private static readonly MethodInfo __methodInfoSetEntryAsyncOpenGeneric = typeof(DistributedCacheAccessor).GetMethod(nameof(SetEntryAsync), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+	public async ValueTask<bool> SetEntryUntypedAsync(string operationId, string key, FusionCacheMemoryEntry memoryEntry, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
+	{
+		try
+		{
+			if (memoryEntry is null)
+				return false;
+
+			var methodInfo = __methodInfoSetEntryAsyncOpenGeneric.MakeGenericMethod(memoryEntry.ValueType);
+
+			// SIGNATURE PARAMS: string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, bool isBackground, CancellationToken token
+			return await ((ValueTask<bool>)methodInfo.Invoke(this, new object[] { operationId, key, memoryEntry, options, isBackground, token })).ConfigureAwait(false);
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while calling SetEntryUntypedAsync() to try to set a distributed entry without knowing the TValue type", _options.CacheName, _options.InstanceId, operationId, key);
+
+			return false;
+		}
 	}
 }

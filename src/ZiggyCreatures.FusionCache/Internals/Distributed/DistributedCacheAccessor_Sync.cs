@@ -1,46 +1,60 @@
 ﻿using System;
 using System.Threading;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 internal partial class DistributedCacheAccessor
 {
-	private void ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, DistributedCacheEntryOptions? distributedOptions, CancellationToken token)
+	private bool ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		if (IsCurrentlyUsable(operationId, key) == false)
-			return;
+		//if (IsCurrentlyUsable(operationId, key) == false)
+		//	return false;
 
-		token.ThrowIfCancellationRequested();
+		try
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] before " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 
-		var actionDescriptionInner = actionDescription + (options.AllowBackgroundDistributedCacheOperations ? " (background)" : null);
+			RunUtils.RunSyncActionWithTimeout(action, Timeout.InfiniteTimeSpan, true, token: token);
 
-		FusionCacheExecutionUtils
-			.RunSyncActionAdvanced(
-				action,
-				options.DistributedCacheHardTimeout,
-				false,
-				options.AllowBackgroundDistributedCacheOperations == false,
-				exc => ProcessError(operationId, key, exc, actionDescriptionInner),
-				options.ReThrowDistributedCacheExceptions && options.AllowBackgroundDistributedCacheOperations == false && options.DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan,
-				token
-			)
-		;
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
+		}
+		catch (Exception exc)
+		{
+			ProcessError(operationId, key, exc, actionDescription);
+
+			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheDistributedCacheException("An error occurred while working with the distributed cache", exc);
+				}
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
-	public void SetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token = default)
+	public bool SetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
-			return;
+			return false;
 
 		token.ThrowIfCancellationRequested();
 
 		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
 		if (options.IsFailSafeEnabled == false && options.DistributedCacheDuration.GetValueOrDefault(options.Duration) <= TimeSpan.Zero)
 		{
-			RemoveEntry(operationId, key, options, token);
-			return;
+			RemoveEntry(operationId, key, options, isBackground, token);
+			return true;
 		}
 
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
@@ -50,73 +64,91 @@ internal partial class DistributedCacheAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): serializing the entry {Entry}", _options.CacheName, operationId, key, distributedEntry.ToLogString());
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
 
 			data = _serializer.Serialize(distributedEntry);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while serializing an entry {Entry}", _options.CacheName, operationId, key, distributedEntry.ToLogString());
-
-			if (options.ReThrowSerializationExceptions)
-				throw;
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while serializing an entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
 
 			// EVENT
 			_events.OnSerializationError(operationId, key);
+
+			if (options.ReThrowSerializationExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheSerializationException("An error occurred while serializing a cache value", exc);
+				}
+			}
 
 			data = null;
 		}
 
 		if (data is null)
-			return;
+			return false;
 
 		// SAVE TO DISTRIBUTED CACHE
-		var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
-		ExecuteOperation(
+		return ExecuteOperation(
 			operationId,
 			key,
 			_ =>
 			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): setting the entry in distributed {Entry}", _options.CacheName, operationId, key, distributedEntry.ToLogString());
+				var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 
 				_cache.Set(MaybeProcessCacheKey(key), data, distributedOptions);
 
 				// EVENT
 				_events.OnSet(operationId, key);
 			},
-			"saving entry in distributed",
+			"setting entry in distributed" + isBackground.ToString(" (background)"),
 			options,
-			distributedOptions,
 			token
 		);
 	}
 
-	public (FusionCacheDistributedEntry<TValue>? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, CancellationToken token)
+	public (FusionCacheDistributedEntry<TValue>? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, TimeSpan? timeout, CancellationToken token)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
 			return (null, false);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): trying to get entry from distributed", _options.CacheName, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] trying to get entry from distributed", _options.CacheName, _options.InstanceId, operationId, key);
 
 		// GET FROM DISTRIBUTED CACHE
 		byte[]? data;
 		try
 		{
-			var timeout = options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-			data = FusionCacheExecutionUtils.RunSyncFuncWithTimeout<byte[]?>(_ => _cache.Get(MaybeProcessCacheKey(key)), timeout, true, token: token);
+			timeout ??= options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
+			data = RunUtils.RunSyncFuncWithTimeout<byte[]?>(
+				_ => _cache.Get(MaybeProcessCacheKey(key)),
+				timeout.Value,
+				true,
+				token: token
+			);
 		}
 		catch (Exception exc)
 		{
 			ProcessError(operationId, key, exc, "getting entry from distributed");
-			data = null;
-
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
-				throw;
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheDistributedCacheException("An error occurred while working with the distributed cache", exc);
+				}
 			}
+
+			data = null;
 		}
 
 		if (data is null)
@@ -130,19 +162,19 @@ internal partial class DistributedCacheAccessor
 			if (entry is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry not found", _options.CacheName, operationId, key);
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
 			}
 			else
 			{
 				if (entry.IsLogicallyExpired())
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found (expired) {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry found (expired) {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString());
 				}
 				else
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): distributed entry found {Entry}", _options.CacheName, operationId, key, entry.ToLogString());
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry found {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString());
 
 					isValid = true;
 				}
@@ -163,13 +195,22 @@ internal partial class DistributedCacheAccessor
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
-				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while deserializing an entry", _options.CacheName, operationId, key);
-
-			if (options.ReThrowSerializationExceptions)
-				throw;
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 			// EVENT
 			_events.OnDeserializationError(operationId, key);
+
+			if (options.ReThrowSerializationExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheSerializationException("An error occurred while deserializing a cache value", exc);
+				}
+			}
 		}
 
 		// EVENT
@@ -178,11 +219,24 @@ internal partial class DistributedCacheAccessor
 		return (null, false);
 	}
 
-	public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
+	public bool RemoveEntry(string operationId, string key, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
 	{
-		ExecuteOperation(operationId, key, _ => _cache.Remove(MaybeProcessCacheKey(key)), "removing entry from distributed", options, null, token);
+		if (IsCurrentlyUsable(operationId, key) == false)
+			return false;
 
-		// EVENT
-		_events.OnRemove(operationId, key);
+		return ExecuteOperation(
+			operationId,
+			key,
+			_ =>
+			{
+				_cache.Remove(MaybeProcessCacheKey(key));
+
+				// EVENT
+				_events.OnRemove(operationId, key);
+			},
+			"removing entry from distributed" + isBackground.ToString(" (background)"),
+			options,
+			token
+		);
 	}
 }

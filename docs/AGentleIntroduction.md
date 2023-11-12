@@ -109,6 +109,17 @@ In both cases it is possible (and enabled *by default*, so we don't have to do a
 
 Read more [**here**](Timeouts.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
+## ↩️ Auto-Recovery([more](AutoRecovery.md))
+
+As we know from the [Fallacies Of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing), something may go wrong while we are using distributed components like the distributed cache or the backplane, even if only in a transient way.
+
+Without some extra care what can happen is that data would not be saved in the distributed cache or other nodes may not be notified of changes: this would result in out-of-sync issues.
+
+wouldn't it be nice if FusionCache would help us is some way when transient error happens?
+
+Enter **Auto-Recovery**.: everything is done automatically, and it just works.
+
+Read more [**here**](AutoRecovery.md).
 
 ## 🎚️ Options ([more](Options.md))
 

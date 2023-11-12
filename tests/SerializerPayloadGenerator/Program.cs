@@ -19,8 +19,8 @@ var serializers = new IFusionCacheSerializer[] {
 	new FusionCacheServiceStackJsonSerializer()
 };
 
-GenerateSamples(serializers, CreateEntry());
-//TestSamples<FusionCacheDistributedEntry<string>>(serializers);
+//GenerateSamples(serializers, CreateEntry());
+TestSamples<FusionCacheDistributedEntry<string>>(serializers);
 
 static void TestSamples<T>(IFusionCacheSerializer[] serializers)
 {
@@ -69,7 +69,7 @@ static FusionCacheDistributedEntry<string> CreateEntry()
 			, "MyETagValue"
 			, logicalExpiration.AddDays(-100)
 		),
-		DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+		DateTimeOffset.UtcNow.Ticks
 	);
 }
 

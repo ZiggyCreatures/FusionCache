@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
@@ -23,13 +24,15 @@ public class RedisBackplaneOptions
 	public ConfigurationOptions? ConfigurationOptions { get; set; }
 
 	/// <summary>
-	/// Gets or sets a delegate to create the ConnectionMultiplexer instance.
+	/// A delegate to create the ConnectionMultiplexer instance.
 	/// </summary>
-    public Func<Task<IConnectionMultiplexer>>? ConnectionMultiplexerFactory { get; set; }
+	public Func<Task<IConnectionMultiplexer>>? ConnectionMultiplexerFactory { get; set; }
 
 	/// <summary>
-	/// The configuration used to connect to Redis.
+	/// DEPRECATED: verify that at least one clients received the notifications after each publish.
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete]
 	public bool VerifyReceivedClientsCountAfterPublish { get; set; } = false;
 
 	RedisBackplaneOptions IOptions<RedisBackplaneOptions>.Value

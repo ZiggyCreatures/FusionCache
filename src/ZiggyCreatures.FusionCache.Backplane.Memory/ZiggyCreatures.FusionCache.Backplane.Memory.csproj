@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.23.0</Version>
+		<Version>0.24.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.Memory</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache in memory backplane, used for testing</Description>
@@ -13,9 +13,7 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.Memory.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added support for ConnectionId (better for concurrent tests scenarios)
-			- Better log messages
-			- Dependencies update
+			- Update: dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

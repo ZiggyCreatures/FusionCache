@@ -5,42 +5,39 @@
 </div>
 
 
-# :book: Documentation
+# 📕 Documentation
 
-Sometimes topics can be explained a little bit more.
+Sometimes topics can be explained a little bit more, and the following docs can help you with that.
 
-
-### [**🦄 A Gentle Introduction**](AGentleIntroduction.md)
+## [**🦄 A Gentle Introduction**](AGentleIntroduction.md)
 
 What you need to know first, to make yourself comfortable with FusionCache.
 
-
-### Features
-
-A deeper description of the main features:
-
-- [**🔀 Cache Levels**](CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
-- [**📢 Backplane**](Backplane.md): how to get an always synchronized cache, even in a multi-node scenario
-- [**🚀 Cache Stampede prevention**](CacheStampede.md): no more overloads during a cold start or after an expiration
-- [**💣 Fail-Safe**](FailSafe.md): an explanation of how the fail-safe mechanism works
-- [**⏱ Timeouts**](Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
-- [**🔃 Dependency Injection**](DependencyInjection.md): how to work with FusionCache + DI in .NET
-- [**📛 Named Caches**](NamedCaches.md): how to work with multiple named FusionCache instances
-- [**🧙‍♂️ Adaptive Caching**](AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
-- [**🔂 Conditional Refresh**](ConditionalRefresh.md): how to save resources when the remote data is not changed
-- [**🦅 Eager Refresh**](EagerRefresh.md): how to start a background refresh eagerly, before the expiration occurs
-- [**🎚 Options**](Options.md): everything about the available options, both cache-wide and per-call
-- [**🕹 Core Methods**](CoreMethods.md): what you need to know about the core methods available
-- [**📞 Events**](Events.md): the events hub and how to use it
-- [**🧩 Plugins**](Plugins.md): how to create and use plugins
-- [**📜 Logging**](Logging.md): logging configuration and usage
-
-
-### [**👩‍🏫 Step By Step**](StepByStep.md)
+## [**👩‍🏫 Step By Step**](StepByStep.md)
 
 A complete step by step example of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what results you can expect to obtain.
 
 
-### [**🆎 Comparison**](Comparison.md)
+## [**🆎 Comparison**](Comparison.md)
 
 A feature comparison between existing .NET caching solutions, to  help you choose which one to use.
+
+## 📖 Features
+
+A deeper description of the main features:
+
+- [**🚀 Cache Stampede prevention**](CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🔀 Optional 2nd level**](CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
+- [**💣 Fail-Safe**](FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
+- [**⏱ Soft/Hard timeouts**](Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
+- [**📢 Backplane**](Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
+- [**↩️ Auto-Recovery**](AutoRecovery.md): automatic handling of transient issues with retries and sync logic
+- [**🧙‍♂️ Adaptive Caching**](AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
+- [**🔂 Conditional Refresh**](ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
+- [**🦅 Eager Refresh**](EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
+- [**🔃 Dependency Injection**](DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
+- [**📛 Named Caches**](NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**💫 Natively sync/async**](CoreMethods.md): native support for both the synchronous and asynchronous programming model
+- [**📞 Events**](Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
+- [**🧩 Plugins**](Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
+- [**📜 Logging**](Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface

@@ -28,7 +28,7 @@ public interface IFusionCacheEntry
 	FusionCacheEntryMetadata? Metadata { get; }
 
 	/// <summary>
-	/// The timestamp at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
+	/// The timestamp (in ticks) at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
 	/// </summary>
-	public long? Timestamp { get; }
+	public long Timestamp { get; }
 }

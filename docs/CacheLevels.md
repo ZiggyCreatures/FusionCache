@@ -4,7 +4,7 @@
 
 </div>
 
-# :twisted_rightwards_arrows: Cache Levels: Primary and Secondary
+# 🔀 Cache Levels: Primary and Secondary
 
 There are 2 caching levels available, transparently handled by FusionCache for you:
 
@@ -27,6 +27,42 @@ Of course in both cases you will also have at your disposal the added ability to
 
 Finally, if needed you can also specify a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option, so that updates to the distributed cache can be picked up more frequently, in case you don't want to use a [backplane](Backplane.md) for some reason.
 
+## 🗃 Wire Format Versioning
+
+When working with the memory cache, everything is easier: at every run of our apps or services everything starts clean, from scratch, so even if there's a change in the structure of the cache entries used by FusionCache there's no problem.
+
+The distributed cache, instead, is a different beast: when saving a cache entry in there, that data is shared between different instances of the same applications, between different applications altogether and maybe even with different applications that are using a different version of FusionCache.
+
+So when the structure of the cache entries need to change to evolve FusionCache, how can this be managed?
+
+Easy, by using an additional cache key modifier for the distributed cache, so that if and when the version of the cache entry structure changes, there will be no issues serializing or deserializing different versions of the saved data.
+
+In practice this means that, when saving something for the cache key `"foo"`, in reality in the distributed cache it will be saved with the cache key `"v0:foo"`.
+
+This has been planned from the beginning, and is the way to manage changes in the wire format used in the distributed cache between updates: it has been designed in this way specifically to support FusionCache to be updated safely and transparently, without interruptions or problems.
+
+So what happens when there are 2 version of FusionCache running on the same distributed cache instance, for example when two different apps share the same distributed cache and one is updated and the other is not?
+
+Since the old version will write to the distributed cache with a different cache key than the new version, this will not create conflicts during the update, and it means that we don't need to stop all the apps and services that works on it and wipe all the distributed cache data just to do the upgrade.
+
+At the same time though, if we have different apps and services that use the same distributed cache shared between them, we need to understand that by updating only one app or service and not the others will mean that the ones updated will read/write using the new distributed cache keys, while the non updated ones will keep read/write using the old distributed cache keys.
+
+Again, nothing catastrophic, but something to consider.
+
+## 💾 Disk Cache
+
+In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it: a good example may be a mobile app, where everything should be self contained.
+
+In those situations we may want a distributed cache that is "not really distributed", something like an implementation of `IDistributedCache` that reads and writes directly to one or more local files.
+
+Is this possible?
+
+Yes, totally, and there's a [dedicated page](DiskCache.md) to learn more.
+
+## ↩️ Auto-Recovery
+
+Since the distributed cache is a distributed component (just like the backplane), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature: you can read more on the related [docs page](AutoRecovery.md).
+
 ## 📦 Packages
 
 There are a variety of already existing `IDistributedCache` implementations available, just pick one:
@@ -40,6 +76,7 @@ There are a variety of already existing `IDistributedCache` implementations avai
 | [MarkCBB.Extensions.Caching.MongoDB](https://www.nuget.org/packages/MarkCBB.Extensions.Caching.MongoDB/) <br/> Another implementation for MongoDB | `Apache v2` | [![NuGet](https://img.shields.io/nuget/v/MarkCBB.Extensions.Caching.MongoDB.svg)](https://www.nuget.org/packages/MarkCBB.Extensions.Caching.MongoDB/) |
 | [EnyimMemcachedCore](https://www.nuget.org/packages/EnyimMemcachedCore/) <br/> An implementation for Memcached | `Apache v2` | [![NuGet](https://img.shields.io/nuget/v/EnyimMemcachedCore.svg)](https://www.nuget.org/packages/EnyimMemcachedCore/) |
 | [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) <br/> An implementation for SQLite | `MIT` | [![NuGet](https://img.shields.io/nuget/v/NeoSmart.Caching.Sqlite.svg)](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) |
+| [AWS.AspNetCore.DistributedCacheProvider](https://www.nuget.org/packages/AWS.AspNetCore.DistributedCacheProvider/) <br/> An implementation for AWS DynamoDB | `Apache v2` | [![NuGet](https://img.shields.io/nuget/v/AWS.AspNetCore.DistributedCacheProvider.svg)](https://www.nuget.org/packages/AWS.AspNetCore.DistributedCacheProvider/) |
 | [Microsoft.Extensions.Caching.Memory](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Memory/) <br/> An in-memory implementation | `MIT` | [![NuGet](https://img.shields.io/nuget/v/Microsoft.Extensions.Caching.Memory.svg)](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Memory/) |
 
 As for an implementation of `IFusionCacheSerializer`, pick one of these:
@@ -54,7 +91,7 @@ As for an implementation of `IFusionCacheSerializer`, pick one of these:
 | [ZiggyCreatures.FusionCache.Serialization.ServiceStackJson](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) <br/> A serializer based on the [ServiceStack](https://servicestack.net/) JSON serializer | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) |
 
 
-### Example
+### 👩‍💻 Example
 
 As an example let's use FusionCache with [Redis](https://redis.io/) as a distributed cache and [Newtonsoft Json.NET](https://www.newtonsoft.com/json) as the serializer:
 
@@ -64,7 +101,7 @@ PM> Install-Package ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson
 PM> Install-Package Microsoft.Extensions.Caching.StackExchangeRedis
 ```
 
-Then, to create and setup the cache manually, do this:
+Then, to create and setup the cache manually, we can do this:
 
 ```csharp
 // INSTANTIATE A REDIS DISTRIBUTED CACHE
@@ -80,7 +117,7 @@ var cache = new FusionCache(new FusionCacheOptions());
 cache.SetupDistributedCache(redis, serializer);
 ```
 
-If instead you prefer a **DI (Dependency Injection)** approach you can do this:
+If instead we prefer a **DI (Dependency Injection)** approach, we should simply do this:
 
 ```csharp
 services.AddFusionCache()
@@ -94,83 +131,3 @@ services.AddFusionCache()
 ```
 
 Easy peasy.
-
-## 🙋‍♀️ What about a disk cache?
-
-In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it. A good example of that may be a mobile app, where everything should be self contained.
-
-In those situations we may want a distributed cache that is "not really distributed", something like an implementation of `IDistributedCache` that reads and writes directly to one or more local files: makes sense, right?
-
-Yes, kinda, but there is more to that.
-
-We should also think about the details, about all the things it should handle for a real-real world usage:
-- have the ability to read and write data in a **persistent** way to local files (so the cached data will survive restarts)
-- ability to prevent **data corruption** when writing to disk
-- support some form of **compression**, to avoid wasting too much space on disk
-- support **concurrent** access without deadlocks, starvations and whatnot
-- be **fast** and **resource optimized**, so to consume as little cpu cycles and memory as possible
-- and probably something more that I'm forgetting
-
-That's a lot to do... but wait a sec, isn't that exactly what a **database** is?
-
-Yes, yes it is!
-
-### An actual database? Are you kidding me?
-
-Of course I'm not suggesting to install (and manage) a local MySql/SqlServer/PostgreSQL instance or something, that would be hard to do in most cases, impossible in others and frankly overkill.
-
-So, what should we use?
-
-### SQLite to the rescue!
-
-If case you didn't know it yet, [SQLite](https://www.sqlite.org/) is an incredible piece of software:
-- it's one of the highest quality software [ever produced](https://www.i-programmer.info/news/84-database/15609-in-praise-of-sqlite.html)
-- it's used in production on [billions of devices](https://www.sqlite.org/mostdeployed.html), with a higher instance count than all the other database engines, combined
-- it's [fully tested](https://www.sqlite.org/testing.html), with millions of test cases, 100% coverage, fuzz tests and more, way more (the link is a good read, I suggest to take a look at it)
-- it's very robust and fully [transactional](https://www.sqlite.org/hirely.html), no worries about [data corruption](https://www.sqlite.org/transactional.html)
-- it's fast, like [really really fast](https://www.sqlite.org/fasterthanfs.html). Like, 35% faster than direct file I/O!
-- has a very [small footprint](https://www.sqlite.org/footprint.html)
-- the [license](https://www.sqlite.org/copyright.html) is as free and open as it can get
-
-Ok so SQLite is the best, how can we use it as the 2nd level?
-
-### Ok but how?
-
-Luckily someone in the community created an implementation of `IDistributedCache` based on SQLite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
-
-The package:
-- supports both the sync and async models natively, meaning it's not doing async-over-sync or vice versa, but a real double impl (like FusionCache does) which is very nice and will use the underlying system resources best
-- uses a [pooling mechanism](https://github.com/neosmart/AspSqliteCache/blob/master/SqliteCache/DbCommandPool.cs) which means the memory allocation will be lower since they reuse existing objects instead of creating new ones every time and consequently, because of that, less cpu usage in the long run because less pressure on the GC (Garbage Collector)
-- supports `CancellationToken`s, meaning that it will gracefully handle cancellations in case it's needed, like for example a mobile app pause/shutdown events or similar
-
-So we simply use the `SqliteCache` impl instead of the `RedisCache` we used above and we'll be good to go:
-
-```csharp
-services.AddFusionCache()
-    .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
-    )
-    .WithDistributedCache(
-        new SqliteCache(new SqliteCacheOptions { CachePath = "CACHE PATH" })
-    )
-;
-```
-
-Alternatively, we can register it as *THE* `IDistributedCache` implementation, and just tell FusionCache to use the registered one, whatever that may be:
-
-```csharp
-// REGISTER SQLITE AS THE IDistributedCache IMPL
-services.AddSqliteCache(options => {
-    options.CachePath = "CACHE PATH";
-});
-
-services.AddFusionCache()
-    .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
-    )
-    // USE THE REGISTERED IDistributedCache IMPL
-    .WithRegisteredDistributedCache()
-;
-```
-
-If you like what you are seeing, remember to give that [repo](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) a star ⭐ and share it!

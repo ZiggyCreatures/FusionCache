@@ -4,7 +4,7 @@
 
 </div>
 
-# :bomb: Fail-Safe
+# 💣 Fail-Safe
 
 Using a cache in general - not necessarily FusionCache - is a good thing because it makes our systems **way faster**, even though it means using values that may be **a little bit stale**.
 

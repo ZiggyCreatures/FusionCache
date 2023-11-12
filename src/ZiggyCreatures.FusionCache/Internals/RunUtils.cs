@@ -7,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// <summary>
 /// A set of utility methods to deal with sync/async execution of actions/functions, with support for timeouts, fire-and-forget execution, etc.
 /// </summary>
-public static class FusionCacheExecutionUtils
+internal static class RunUtils
 {
 	private static readonly TaskFactory _taskFactory = new TaskFactory(
 		CancellationToken.None,
@@ -247,19 +247,25 @@ public static class FusionCacheExecutionUtils
 			throw exc;
 		}
 
-		Task<TResult> task;
-
 		if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 		{
-			//task = _taskFactory.StartNew(() => syncFunc(token), token);
 			return syncFunc(token);
 		}
-		else
-		{
-			task = RunAsyncFuncWithTimeoutAsync(ct => _taskFactory.StartNew(() => syncFunc(ct), ct), timeout, cancelIfTimeout, timedOutTaskProcessor, token);
-		}
 
-		return task.GetAwaiter().GetResult();
+		return
+			RunAsyncFuncWithTimeoutAsync(
+				ct => _taskFactory.StartNew(
+					() => syncFunc(ct),
+					ct
+				),
+				timeout,
+				cancelIfTimeout,
+				timedOutTaskProcessor,
+				token
+			)
+			.GetAwaiter()
+			.GetResult()
+		;
 	}
 
 	/// <summary>
@@ -282,20 +288,24 @@ public static class FusionCacheExecutionUtils
 			throw exc;
 		}
 
-		Task task;
-
 		if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 		{
-			//task = _taskFactory.StartNew(() => syncAction(token), token);
 			syncAction(token);
 			return;
 		}
-		else
-		{
-			task = RunAsyncActionWithTimeoutAsync(ct => _taskFactory.StartNew(() => syncAction(ct), ct), timeout, cancelIfTimeout, timedOutTaskProcessor, token);
-		}
 
-		task.GetAwaiter().GetResult();
+		RunAsyncActionWithTimeoutAsync(
+			ct => _taskFactory.StartNew(
+				() => syncAction(ct),
+				ct
+			),
+			timeout,
+			cancelIfTimeout,
+			timedOutTaskProcessor,
+			token
+		)
+		.GetAwaiter()
+		.GetResult();
 	}
 
 	/// <summary>

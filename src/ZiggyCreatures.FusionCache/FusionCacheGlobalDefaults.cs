@@ -6,6 +6,8 @@ namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// Contains the default values used globally.
+/// <br/><br/>
+/// <strong>NOTE:</strong> since these values are used *globally*, they should be changed only as a last resort, and if you *really* know what you are doing.
 /// </summary>
 public static class FusionCacheGlobalDefaults
 {
@@ -108,6 +110,11 @@ public static class FusionCacheGlobalDefaults
 	/// The global default <see cref="FusionCacheEntryOptions.AllowBackgroundBackplaneOperations"/>.
 	/// </summary>
 	public static bool EntryOptionsAllowBackgroundBackplaneOperations { get; set; } = true;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.ReThrowBackplaneExceptions"/>.
+	/// </summary>
+	public static bool EntryOptionsReThrowBackplaneExceptions { get; set; } = false;
 
 	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCache"/>.

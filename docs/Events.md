@@ -4,7 +4,7 @@
 
 </div>
 
-# :telephone_receiver: Events
+# 📞 Events
 
 FusionCache has a comprehensive set of events you can subscribe to, so you can be notified of core events when they happen.
 
@@ -62,7 +62,7 @@ Here's a non comprehensive list of the available events:
 There are more, and you easily discover them with code completion by just typing `cache.Events.` or `cache.Events.Memory` / `cache.Events.Distributed` in your code editor.
 
 
-## :gear: On high-level and low-level events
+## ⚙️ On high-level and low-level events
 
 One thing to consider is that subscribing to high level events (via `cache.Events`) should give you the expected results, whereas using directly events from lower levels (via `cache.Events.Memory` or `cache.Events.Distributed`) may surprise you, at first.
 
@@ -84,14 +84,12 @@ As you can see lower level events may delve into the internals of how FusionCach
 Also note that newer locking implementations may be possible in the future (I'm actually trying them out) so lower level events may even change one day.
 
 
-## :construction_worker: Safe execution
+## 👷 Safe execution
 Since an event handler is a normal piece of code that FusionCache runs at a certain point in time, with no special care taken a bad event handler may generate errors or slow everything down.
 
-Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately, on a different thread and is guarded against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
+Thankfully FusionCache takes this into consideration and executes the event handlers in a safe way: each handler is run separately and is guarded against unhandled exceptions (and in case one is thrown you'll find that in the log for later detective work).
 
-All of this is done to avoid one bad handler from slowing down subsequent handlers and FusionCache itself.
-
-:bulb: Because of these design decisions, **by default** the order in which the handlers are executed is not guaranteed and it is not possible to know when they will finish running: this should not be a problem, but is good to know.
+Also, by default, the event handlers are run in a background thread so not to slow down FusionCache and, in turn, your application.
 
 | :warning: WARNING |
 |:------------------|

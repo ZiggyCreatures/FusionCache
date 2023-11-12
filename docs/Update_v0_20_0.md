@@ -6,7 +6,7 @@
 
 # 🆙 Update to v0.20.0
 
-With the `v0.20.0` release, FusionCache introduced an important feature: [Builder](DependencyInjection.md) support.
+With the [v0.20.0](https://github.com/ZiggyCreatures/FusionCache/releases/tag/v0.20.0) release, FusionCache introduced an important feature: [Builder](DependencyInjection.md) support.
 
 This has made the experience of using FusionCache much easier and clearer, allowing us to be more precise in what we want to do and also allowing us to work with multiple [Named Caches](NamedCaches.md), also introduced in `v0.20.0`.
 
@@ -49,7 +49,7 @@ This could have been used like this:
 ```csharp
 services.AddFusionCache(opt =>
 {
-    opt.BackplaneAutoRecoveryMaxItems = 123;
+    opt.AutoRecoveryMaxItems = 123;
 });
 ```
 
@@ -115,7 +115,7 @@ services.AddFusionCache()
     .TryWithAutoSetup()
     .WithOptions(opt =>
     {
-        opt.BackplaneAutoRecoveryMaxItems = 123;
+        opt.AutoRecoveryMaxItems = 123;
     })
     .WithDefaultEntryOptions(opt =>
     {

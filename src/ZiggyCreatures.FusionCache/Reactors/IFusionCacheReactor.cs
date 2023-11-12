@@ -14,38 +14,41 @@ public interface IFusionCacheReactor
 	/// <summary>
 	/// Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
 	/// </summary>
-	/// <param name="cacheName">The name of the FusionCache instance.</param>
+	/// <param name="cacheName">The CacheName of the FusionCache instance.</param>
+	/// <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
 	/// <param name="key">The key for which to obtain a lock.</param>
 	/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 	/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
 	/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	ValueTask<object?> AcquireLockAsync(string cacheName, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
+	ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
 
 	/// <summary>
 	/// Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
 	/// </summary>
 	/// <param name="cacheName">The name of the FusionCache instance.</param>
+	/// <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
 	/// <param name="key">The key for which to obtain a lock.</param>
 	/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 	/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 	/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
-	object? AcquireLock(string cacheName, string key, string operationId, TimeSpan timeout, ILogger? logger);
+	object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger);
 
 	/// <summary>
 	/// Release the generic lock object.
 	/// </summary>
 	/// <param name="cacheName">The name of the FusionCache instance.</param>
+	/// <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
 	/// <param name="key">The key for which to obtain a lock.</param>
 	/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 	/// <param name="lockObj">The generic lock object to release.</param>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
-	void ReleaseLock(string cacheName, string key, string operationId, object? lockObj, ILogger? logger);
+	void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger);
 
 	/// <summary>
-	/// Exposes the eventual amount ofcollisions happened inside the reactor, for diagnostics purposes.
+	/// Exposes the eventual amount of collisions happened inside the reactor, for diagnostics purposes.
 	/// </summary>
 	int Collisions { get; }
 }

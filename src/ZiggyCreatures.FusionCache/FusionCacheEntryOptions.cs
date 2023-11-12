@@ -1,17 +1,19 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// Represents all the options available for a single <see cref="IFusionCache"/> entry.
 /// </summary>
-public class FusionCacheEntryOptions
+public sealed class FusionCacheEntryOptions
 {
 	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheEntryOptions"/> object.
@@ -43,6 +45,7 @@ public class FusionCacheEntryOptions
 
 		SkipBackplaneNotifications = FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications;
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
+		ReThrowBackplaneExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowBackplaneExceptions;
 
 		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
 		SkipDistributedCacheReadWhenStale = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale;
@@ -223,7 +226,7 @@ public class FusionCacheEntryOptions
 	public bool ReThrowDistributedCacheExceptions { get; set; }
 
 	/// <summary>
-	///	Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="false"/>).
+	///	Set this to <see langword="true"/> to allow the bubble up of serialization exceptions (default is <see langword="true"/>).
 	///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundDistributedCacheOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
@@ -237,6 +240,7 @@ public class FusionCacheEntryOptions
 	/// <br/>
 	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public bool EnableBackplaneNotifications
 	{
@@ -263,6 +267,14 @@ public class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public bool AllowBackgroundBackplaneOperations { get; set; }
+
+	/// <summary>
+	///	Set this to <see langword="true"/> to allow the bubble up of backplane exceptions (default is <see langword="false"/>).
+	///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundBackplaneOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public bool ReThrowBackplaneExceptions { get; set; }
 
 	/// <summary>
 	/// Skip the usage of the distributed cache, if any.
@@ -532,6 +544,7 @@ public class FusionCacheEntryOptions
 	/// </summary>
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
 	public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
 	{
@@ -635,7 +648,10 @@ public class FusionCacheEntryOptions
 		if (events.HasEvictionSubscribers())
 		{
 			res.RegisterPostEvictionCallback(
-				(key, _, reason, state) => ((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason),
+				(key, entry, reason, state) =>
+				{
+					((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason, ((FusionCacheMemoryEntry?)entry)?.Value);
+				},
 				events
 			);
 		}
@@ -644,7 +660,7 @@ public class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
@@ -690,7 +706,7 @@ public class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
@@ -789,6 +805,7 @@ public class FusionCacheEntryOptions
 
 			ReThrowDistributedCacheExceptions = ReThrowDistributedCacheExceptions,
 			ReThrowSerializationExceptions = ReThrowSerializationExceptions,
+			ReThrowBackplaneExceptions = ReThrowBackplaneExceptions,
 
 			AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations,
@@ -798,7 +815,7 @@ public class FusionCacheEntryOptions
 			SkipDistributedCache = SkipDistributedCache,
 			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
 
-			SkipMemoryCache = SkipMemoryCache,
+			SkipMemoryCache = SkipMemoryCache
 		};
 	}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -19,6 +20,26 @@ public class FusionCacheOptions
 	public const string DefaultCacheName = "FusionCache";
 
 	/// <summary>
+	/// The wire format version identifier for the distributed cache wire format, used in the cache key processing.
+	/// </summary>
+	public const string DistributedCacheWireFormatVersion = "v0";
+
+	/// <summary>
+	/// The wire format version separator for the distributed cache wire format, used in the cache key processing.
+	/// </summary>
+	public const string DistributedCacheWireFormatSeparator = ":";
+
+	/// <summary>
+	/// The wire format version identifier for the backplane wire format, used in the channel name.
+	/// </summary>
+	public const string BackplaneWireFormatVersion = "v0";
+
+	/// <summary>
+	/// The wire format version separator for the backplane wire format, used in the channel name.
+	/// </summary>
+	public const string BackplaneWireFormatSeparator = ":";
+
+	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheOptions"/> object.
 	/// </summary>
 	public FusionCacheOptions()
@@ -27,11 +48,11 @@ public class FusionCacheOptions
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
 
-		// BACKPLANE AUTO-RECOVERY
-		EnableBackplaneAutoRecovery = true;
-		BackplaneAutoRecoveryMaxItems = null;
-		BackplaneAutoRecoveryReconnectDelay = TimeSpan.FromMilliseconds(2_000);
-		EnableDistributedExpireOnBackplaneAutoRecovery = true;
+		// AUTO-RECOVERY
+		EnableAutoRecovery = true;
+		AutoRecoveryMaxItems = null;
+		AutoRecoveryMaxRetryCount = null;
+		AutoRecoveryDelay = TimeSpan.FromMilliseconds(2_000);
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
@@ -72,6 +93,22 @@ public class FusionCacheOptions
 
 			_cacheName = value;
 		}
+	}
+
+	/// <summary>
+	/// The instance id of the cache: it will be used for low-level identification for the same logical cache between different nodes in a multi-node scenario: it is automatically set to a random value.
+	/// </summary>
+	public string? InstanceId { get; private set; }
+
+	/// <summary>
+	/// Set the InstanceId of the cache, but please don't use this.
+	/// <br/><br/>
+	/// <strong>⚠ WARNING:</strong> again, this should NOT be set, basically never ever, unless you really know what you are doing. For example by using the same value for two different cache instances they will be considered as the same cache, and this will lead to critical errors. So again, really: you should not use this.
+	/// </summary>
+	/// <param name="instanceId"></param>
+	public void SetInstanceId(string instanceId)
+	{
+		InstanceId = instanceId;
 	}
 
 	/// <summary>
@@ -133,34 +170,131 @@ public class FusionCacheOptions
 	public string? BackplaneChannelPrefix { get; set; }
 
 	/// <summary>
+	/// DEPRECATED: please use EnableAutoRecovery.
+	/// <br/><br/>
 	/// Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
-	public bool EnableBackplaneAutoRecovery { get; set; }
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the EnableAutoRecovery property.")]
+	public bool EnableBackplaneAutoRecovery
+	{
+		get { return EnableAutoRecovery; }
+		set { EnableAutoRecovery = value; }
+	}
 
 	/// <summary>
+	/// Enable auto-recovery to automatically handle transient errors to minimize synchronization issues.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
+	/// </summary>
+	public bool EnableAutoRecovery { get; set; }
+
+	/// <summary>
+	/// DEPRECATED: please use AutoRecoveryMaxItems.
+	/// <br/><br/>
 	/// The maximum number of items in the auto-recovery queue: this can help reducing memory consumption. If set to <see langword="null"/> there will be no limit.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
-	public int? BackplaneAutoRecoveryMaxItems { get; set; }
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxItems property.")]
+	public int? BackplaneAutoRecoveryMaxItems
+	{
+		get { return AutoRecoveryMaxItems; }
+		set { AutoRecoveryMaxItems = value; }
+	}
 
 	/// <summary>
+	/// The maximum number of items in the auto-recovery queue: this is usually not needed, but it may help reducing memory consumption in extreme scenarios.
+	/// <br/>
+	/// When set to null <see langword="null"/> there will be no limits.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
+	/// </summary>
+	public int? AutoRecoveryMaxItems { get; set; }
+
+	/// <summary>
+	/// DEPRECATED: please use AutoRecoveryMaxRetryCount.
+	/// <br/><br/>
+	/// The maximum number of retries for a auto-recovery item: after this amount the item is discarded, to avoid keeping it retrying forever. If set to <see langword="null"/> there will be no limit.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxRetryCount property.")]
+	public int? BackplaneAutoRecoveryMaxRetryCount
+	{
+		get { return AutoRecoveryMaxRetryCount; }
+		set { AutoRecoveryMaxRetryCount = value; }
+	}
+
+	/// <summary>
+	/// The maximum number of retries for a auto-recovery item: after this amount an item is discarded, to avoid keeping it for too long.
+	/// Please note though that a cleanup is automatically performed, so in theory there's no need to set this.
+	/// <br/>
+	/// When set to <see langword="null"/> there will be no limits.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
+	/// </summary>
+	public int? AutoRecoveryMaxRetryCount { get; set; }
+
+	/// <summary>
+	/// DEPRECATED: please use AutoRecoveryDelay.
+	/// <br/><br/>
 	/// The amount of time to wait, after a backplane reconnection, before trying to process the auto-recovery queue: this may be useful to allow all the other nodes to be ready.
 	/// <br/>
 	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public TimeSpan BackplaneAutoRecoveryReconnectDelay { get; set; }
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Please use AutoRecoveryDelay instead.")]
+	public TimeSpan BackplaneAutoRecoveryReconnectDelay
+	{
+		get { return AutoRecoveryDelay; }
+		set { AutoRecoveryDelay = value; }
+	}
+
+	/// <summary>
+	/// DEPRECATED: please use AutoRecoveryDelay.
+	/// <br/><br/>
+	/// The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
+	/// <br/>
+	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
+	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
+	public TimeSpan BackplaneAutoRecoveryDelay
+	{
+		get; set;
+	}
+
+	/// <summary>
+	/// The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
+	/// <br/>
+	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
+	/// </summary>
+	public TimeSpan AutoRecoveryDelay { get; set; }
 
 	/// <summary>
 	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
 	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("This is not needed anymore, everything is handled automatically now.")]
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
+
+	/// <summary>
+	/// If enabled, and re-throwing of exceptions is also enabled, it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="FusionCacheSerializationException"/>, <see cref="FusionCacheDistributedCacheException"/> or <see cref="FusionCacheBackplaneException"/>).
+	/// </summary>
+	public bool ReThrowOriginalExceptions { get; set; }
 
 	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
@@ -257,14 +391,67 @@ public class FusionCacheOptions
 		get { return this; }
 	}
 
-	/// <summary>
-	/// Set the <see cref="CacheKeyPrefix"/> to the <see cref="CacheName"/>, and a ":" separator.
-	/// </summary>
-	/// <returns>The <see cref="FusionCacheOptions"/> so that additional calls can be chained.</returns>
-	public FusionCacheOptions SetCacheNameAsCacheKeyPrefix()
-	{
-		CacheKeyPrefix = $"{CacheName}:";
+	///// <summary>
+	///// Set the <see cref="CacheKeyPrefix"/> to the <see cref="CacheName"/>, and a ":" separator.
+	///// </summary>
+	///// <returns>The <see cref="FusionCacheOptions"/> so that additional calls can be chained.</returns>
+	//public FusionCacheOptions SetCacheNameAsCacheKeyPrefix()
+	//{
+	//	CacheKeyPrefix = $"{CacheName}:";
 
-		return this;
+	//	return this;
+	//}
+
+	/// <summary>
+	/// Creates a new <see cref="FusionCacheOptions"/> object by duplicating all the options of the current one.
+	/// </summary>
+	/// <returns>The newly created <see cref="FusionCacheOptions"/> object.</returns>
+	public FusionCacheOptions Duplicate()
+	{
+		var res = new FusionCacheOptions
+		{
+			CacheName = CacheName,
+			InstanceId = InstanceId,
+
+			CacheKeyPrefix = CacheKeyPrefix,
+
+			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
+
+			EnableAutoRecovery = EnableAutoRecovery,
+			AutoRecoveryDelay = AutoRecoveryDelay,
+			AutoRecoveryMaxItems = AutoRecoveryMaxItems,
+			AutoRecoveryMaxRetryCount = AutoRecoveryMaxRetryCount,
+
+			BackplaneChannelPrefix = BackplaneChannelPrefix,
+			BackplaneCircuitBreakerDuration = BackplaneCircuitBreakerDuration,
+
+			DistributedCacheKeyModifierMode = DistributedCacheKeyModifierMode,
+			DistributedCacheCircuitBreakerDuration = DistributedCacheCircuitBreakerDuration,
+
+			EnableSyncEventHandlersExecution = EnableSyncEventHandlersExecution,
+
+			ReThrowOriginalExceptions = ReThrowOriginalExceptions,
+
+			// LOG LEVELS
+			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,
+
+			FailSafeActivationLogLevel = FailSafeActivationLogLevel,
+			FactorySyntheticTimeoutsLogLevel = FactorySyntheticTimeoutsLogLevel,
+			FactoryErrorsLogLevel = FactoryErrorsLogLevel,
+
+			DistributedCacheSyntheticTimeoutsLogLevel = DistributedCacheSyntheticTimeoutsLogLevel,
+			DistributedCacheErrorsLogLevel = DistributedCacheErrorsLogLevel,
+			SerializationErrorsLogLevel = SerializationErrorsLogLevel,
+
+			BackplaneSyntheticTimeoutsLogLevel = BackplaneSyntheticTimeoutsLogLevel,
+			BackplaneErrorsLogLevel = BackplaneErrorsLogLevel,
+
+			EventHandlingErrorsLogLevel = EventHandlingErrorsLogLevel,
+
+			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
+			PluginsInfoLogLevel = PluginsInfoLogLevel
+		};
+
+		return res;
 	}
 }

@@ -16,53 +16,6 @@
             <param name="innerBackplane">The actual <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> used if and when chaos does not happen.</param>
             <param name="logger">The logger to use, or <see langword="null"/>.</param>
         </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.ChaosThrowProbability">
-            <summary>
-            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.ChaosMinDelay">
-            <summary>
-            The minimum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.ChaosMaxDelay">
-            <summary>
-            The maximum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetNeverThrow">
-            <summary>
-            Force chaos exceptions to never be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetAlwaysThrow">
-            <summary>
-            Force chaos exceptions to always be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetNeverDelay">
-            <summary>
-            Force chaos delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetAlwaysDelayExactly(System.TimeSpan)">
-            <summary>
-            Force chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetNeverChaos">
-            <summary>
-            Force chaos exceptions and delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetAlwaysChaos(System.TimeSpan)">
-            <summary>
-            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.Publish(ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -75,63 +28,20 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.Unsubscribe">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosBackplane.SetNeverThrow">
+            <inheritdoc/>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache">
             <summary>
             An implementation of <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> that acts on behalf of another one, but with a (controllable) amount of chaos in-between.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.#ctor(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.#ctor(Microsoft.Extensions.Caching.Distributed.IDistributedCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache})">
             <summary>
             Initializes a new instance of the ChaosDistributedCache class.
             </summary>
             <param name="innerCache">The actual <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> used if and when chaos does not happen.</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.ChaosThrowProbability">
-            <summary>
-            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.ChaosMinDelay">
-            <summary>
-            The minimum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.ChaosMaxDelay">
-            <summary>
-            The maximum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.SetNeverThrow">
-            <summary>
-            Force chaos exceptions to never be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.SetAlwaysThrow">
-            <summary>
-            Force chaos exceptions to always be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.SetNeverDelay">
-            <summary>
-            Force chaos delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.SetAlwaysDelayExactly(System.TimeSpan)">
-            <summary>
-            Force chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.SetNeverChaos">
-            <summary>
-            Force chaos exceptions and delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.SetAlwaysChaos(System.TimeSpan)">
-            <summary>
-            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
+            <param name="logger">The logger to use, or <see langword="null"/>.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosDistributedCache.Get(System.String)">
             <inheritdoc/>
@@ -186,58 +96,12 @@
             An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> with a (controllable) amount of chaos in-between.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.#ctor(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.#ctor(ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin})">
             <summary>
             Initializes a new instance of the ChaosPlugin class.
             </summary>
             <param name="innerPlugin">The actual <see cref="T:ZiggyCreatures.Caching.Fusion.Plugins.IFusionCachePlugin"/> used if and when chaos does not happen.</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.ChaosThrowProbability">
-            <summary>
-            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.ChaosMinDelay">
-            <summary>
-            The minimum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.ChaosMaxDelay">
-            <summary>
-            The maximum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.SetNeverThrow">
-            <summary>
-            Force chaos exceptions to never be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.SetAlwaysThrow">
-            <summary>
-            Force chaos exceptions to always be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.SetNeverDelay">
-            <summary>
-            Force chaos delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.SetAlwaysDelayExactly(System.TimeSpan)">
-            <summary>
-            Force chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.SetNeverChaos">
-            <summary>
-            Force chaos exceptions and delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.SetAlwaysChaos(System.TimeSpan)">
-            <summary>
-            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
+            <param name="logger">The logger to use, or <see langword="null"/>.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosPlugin.Start(ZiggyCreatures.Caching.Fusion.IFusionCache)">
             <inheritdoc/>
@@ -250,58 +114,12 @@
             An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> that acts on behalf of another one, but with a (controllable) amount of chaos in-between.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.#ctor(ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.#ctor(ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer})">
             <summary>
             Initializes a new instance of the ChaosSerializer class.
             </summary>
             <param name="innerSerializer">The actual <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> used if and when chaos does not happen.</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.ChaosThrowProbability">
-            <summary>
-            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.ChaosMinDelay">
-            <summary>
-            The minimum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.ChaosMaxDelay">
-            <summary>
-            The maximum amount of randomized delay.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SetNeverThrow">
-            <summary>
-            Force chaos exceptions to never be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SetAlwaysThrow">
-            <summary>
-            Force chaos exceptions to always be thrown.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SetNeverDelay">
-            <summary>
-            Force chaos delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SetAlwaysDelayExactly(System.TimeSpan)">
-            <summary>
-            Force chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SetNeverChaos">
-            <summary>
-            Force chaos exceptions and delays to never happen.
-            </summary>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.SetAlwaysChaos(System.TimeSpan)">
-            <summary>
-            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
-            </summary>
-            <param name="delay"></param>
+            <param name="logger">The logger to use, or <see langword="null"/>.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosSerializer.Deserialize``1(System.Byte[])">
             <inheritdoc/>
@@ -320,7 +138,7 @@
             Various utils to work with randomized controllable chaos.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.ShouldCreateChaos(System.Single)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.ShouldThrow(System.Single)">
             <summary>
             Determines if an exception should be thrown.
             </summary>
@@ -333,7 +151,7 @@
             </summary>
             <param name="throwProbability">The probabilty that an exception will be thrown.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.RandomizeDelay(System.TimeSpan,System.TimeSpan)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.GetRandomDelay(System.TimeSpan,System.TimeSpan)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>.
             </summary>
@@ -341,39 +159,138 @@
             <param name="maxDelay">The maximum amount of delay.</param>
             <returns>The randomized delay.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeDelay(System.TimeSpan,System.TimeSpan)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeDelay(System.TimeSpan,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
             </summary>
             <param name="minDelay">The minimun amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
+            <param name="token">The cancellation token.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeDelayAsync(System.TimeSpan,System.TimeSpan)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeDelayAsync(System.TimeSpan,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
             </summary>
             <param name="minDelay">The minimun amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
+            <param name="token">The cancellation token.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeChaos(System.TimeSpan,System.TimeSpan,System.Single)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeChaos(System.TimeSpan,System.TimeSpan,System.Single,System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
             Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
             </summary>
-            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
             <param name="minDelay">The minimun amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="token">The cancellation token.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeChaosAsync(System.TimeSpan,System.TimeSpan,System.Single)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeChaosAsync(System.TimeSpan,System.TimeSpan,System.Single,System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
             Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
             </summary>
-            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
             <param name="minDelay">The minimun amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
+            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="token">The cancellation token.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent">
+            <summary>
+            A base implementation for a component with a controllable amount of chaos.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent._logger">
+            <summary>
+            The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, or <see langword="null"/> for no logging.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.#ctor(Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Initializes a new instance of the AbstractChaosComponent class.
+            </summary>
+            <param name="logger">The logger to use, or <see langword="null"/>.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.ChaosMaxDelay">
+            <summary>
+            The maximum amount of randomized delay.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.ChaosMinDelay">
+            <summary>
+            The minimum amount of randomized delay.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.ChaosThrowProbability">
+            <summary>
+            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysDelay(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Force chaos delays to always be between certain amounts.
+            </summary>
+            <param name="minDelay">The minimum amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysDelayExactly(System.TimeSpan)">
+            <summary>
+            Force chaos delays to always be of exactly this amount.
+            </summary>
+            <param name="delay">The amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysThrow">
+            <summary>
+            Force chaos exceptions to always be thrown.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysChaos(System.TimeSpan)">
+            <summary>
+            Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
+            </summary>
+            <param name="delay">The amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysChaos(System.TimeSpan,System.TimeSpan)">
+            <summary>
+            Force chaos exceptions to always throw, and chaos delays to always be between certain amounts.
+            </summary>
+            <param name="minDelay">The minimum amount of delay.</param>
+            <param name="maxDelay">The maximum amount of delay.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetNeverChaos">
+            <summary>
+            Force chaos exceptions and delays to never happen.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetNeverDelay">
+            <summary>
+            Force chaos delays to never happen.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetNeverThrow">
+            <summary>
+            Force chaos exceptions to never be thrown.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.ShouldThrow">
+            <summary>
+            Determines if an exception should be thrown.
+            </summary>
+            <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.MaybeChaos(System.Threading.CancellationToken)">
+            <summary>
+            Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.MaybeChaosAsync(System.Threading.CancellationToken)">
+            <summary>
+            Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            </summary>
         </member>
     </members>
 </doc>

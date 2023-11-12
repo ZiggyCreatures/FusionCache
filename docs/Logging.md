@@ -155,7 +155,7 @@ For example:
 
 We can see all of them [here](Options.md) in the Options docs.
 
-### Example
+### 👩‍💻 Example
 
 Let's say we want to know about all the problems related to calling the database in our factory calls, except for when synthetic timeouts occur (eg: because we set a soft timeout to a very low `10 ms` value, so it will be hit frequently). Also suppose we set our configuration with a min level of something like `Information` or `Warning`.
 

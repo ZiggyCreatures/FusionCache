@@ -18,9 +18,11 @@ internal static class FusionCacheInternalUtils
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static long GetCurrentTimestamp()
 	{
-		return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		//return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		return DateTimeOffset.UtcNow.UtcTicks;
 	}
 
 	private static string GenerateOperationId(long id)
@@ -206,11 +208,18 @@ internal static class FusionCacheInternalUtils
 		return b ? "Y" : "N";
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static string? ToString(this bool b, string? trueString, string? falseString = null)
+	{
+		return b ? trueString : falseString;
+	}
+
 	public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
 		if (entry is FusionCacheDistributedEntry<TValue>)
 			return (FusionCacheDistributedEntry<TValue>)entry;
 
+		// TODO: CHECK THIS AGAIN
 		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
@@ -235,7 +244,7 @@ internal static class FusionCacheInternalUtils
 				}
 				catch (Exception exc)
 				{
-					logger?.Log(errorLogLevel, exc, "FUSION [N={CacheName}] (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", cache.CacheName, operationId, key, eventName);
+					logger?.Log(errorLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while handling an event handler for {EventName}", cache.CacheName, cache.InstanceId, operationId, key, eventName);
 				}
 			}
 		}
@@ -266,9 +275,9 @@ internal static class FusionCacheInternalUtils
 
 		// SAFETY NET (BUT IT SHOULD NOT HAPPEN)
 		if (string.IsNullOrWhiteSpace(prefix))
-			prefix = "FusionCache";
+			prefix = FusionCacheOptions.DefaultCacheName;
 
-		return $"{prefix}.Backplane";
+		return $"{prefix}.Backplane{FusionCacheOptions.BackplaneWireFormatSeparator}{FusionCacheOptions.BackplaneWireFormatVersion}";
 	}
 
 	public static DateTimeOffset GetNormalizedAbsoluteExpiration(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
@@ -318,4 +327,15 @@ internal static class FusionCacheInternalUtils
 
 		return false;
 	}
+
+	//public static bool CanBeUsed(this BackplaneAccessor? bpa, string? operationId, string? key)
+	//{
+	//	if (bpa is null)
+	//		return false;
+
+	//	if (bpa.IsCurrentlyUsable(operationId, key))
+	//		return true;
+
+	//	return false;
+	//}
 }

@@ -4,7 +4,7 @@
 
 </div>
 
-# :jigsaw: Plugins
+# 🧩 Plugins
 
 FusionCache supports extensibility via plugins: it is possible for example to listen to [events](Events.md) and react in any way you want.
 
@@ -13,7 +13,7 @@ In time, the most useful plugins will be listed directly in the homepage.
 
 ## How to create a plugin
 
-Simply write a class that implements the [`IFusionCachePlugin`](https://github.com/jodydonetti/ZiggyCreatures.FusionCache/blob/main/src/ZiggyCreatures.FusionCache/Plugins/IFusionCachePlugin.cs) interface, which basically boils down to implement just the `Start` and `Stop` methods: from there you can setup your custom logic and do your thing.
+Simply write a class that implements the [`IFusionCachePlugin`](https://github.com/ZiggyCreatures/FusionCache/blob/main/src/ZiggyCreatures.FusionCache/Plugins/IFusionCachePlugin.cs) interface, which basically boils down to implement just the `Start` and `Stop` methods: from there you can setup your custom logic and do your thing.
 
 Of course it can also accept its own set of options, typically modelled via `IOptions<MyPluginType>` and friends.
 

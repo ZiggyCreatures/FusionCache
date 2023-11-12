@@ -10,11 +10,11 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache)
-[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=flat&logo=twitter)](https://twitter.com/intent/tweet?hashtags=fusioncache,caching,cache,dotnet,oss,csharp&text=🚀+FusionCache:+a+new+cache+with+an+optional+2nd+layer+and+some+advanced+features&url=https%3A%2F%2Fgithub.com%2Fjodydonetti%2FZiggyCreatures.FusionCache&via=jodydonetti)
+[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=flat&logo=twitter)](https://twitter.com/intent/tweet?hashtags=fusioncache,caching,cache,dotnet,oss,csharp&text=🚀+FusionCache:+a+new+cache+with+an+optional+2nd+layer+and+some+advanced+features&url=https%3A%2F%2Fgithub.com%2FZiggyCreatures%2FFusionCache&via=jodydonetti)
 
 </div>
 
-| 🙋‍♂️ Updating from before `v0.20.0` ? please [read here](docs/Update_v0_20_0.md). |
+| 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](docs/Update_v0_24_0.md). |
 |:-------|
 
 ### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd layer.
@@ -66,10 +66,11 @@ These are the **key features** of FusionCache:
 - [**🔀 Optional 2nd level**](docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
 - [**💣 Fail-Safe**](docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
 - [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
+- [**📢 Backplane**](docs/Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
+- [**↩️ Auto-Recovery**](docs/AutoRecovery.md): automatic handling of transient issues with retries and sync logic
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
 - [**🔂 Conditional Refresh**](docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
 - [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
-- [**📢 Backplane**](docs/Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
 - [**💫 Natively sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
@@ -255,28 +256,6 @@ The `DefaultEntryOptions` we did set before will be duplicated and only the dura
 
 </details>
 
-## 📖 Documentation
-
-The documentation is available in the :open_file_folder: [docs](docs/README.md) folder, with:
-
-- [**🦄 A Gentle Introduction**](docs/AGentleIntroduction.md): what you need to know first
-- [**🔀 Cache Levels**](docs/CacheLevels.md): a bried description of the 2 available caching levels and how to setup them
-- [**📢 Backplane**](docs/Backplane.md): how to get an always synchronized cache, even in a multi-node scenario
-- [**🚀 Cache Stampede prevention**](docs/CacheStampede.md): no more overloads during a cold start or after an expiration
-- [**💣 Fail-Safe**](docs/FailSafe.md): an explanation of how the fail-safe mechanism works
-- [**⏱ Timeouts**](docs/Timeouts.md): the various types of timeouts at your disposal (calling a factory, using the distributed cache, etc)
-- [**📛 Named Caches**](docs/NamedCaches.md): how to work with multiple named FusionCache instances
-- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): how to adapt cache duration (and more) based on the object being cached itself
-- [**🔂 Conditional Refresh**](ConditionalRefresh.md): how to save resources when the remote data is not changed
-- [**🦅 Eager Refresh**](EagerRefresh.md): how to start a background refresh eagerly, before the expiration occurs
-- [**🔃 Dependency Injection**](docs/DependencyInjection.md): how to work with FusionCache + DI in .NET
-- [**🎚 Options**](docs/Options.md): everything about the available options, both cache-wide and per-call
-- [**🕹 Core Methods**](docs/CoreMethods.md): what you need to know about the core methods available
-- [**📞 Events**](docs/Events.md): the events hub and how to use it
-- [**🧩 Plugins**](docs/Plugins.md): how to create and use plugins
-- [**📜 Logging**](docs/Logging.md): logging configuration and usage
-
-
 ## **👩‍🏫 Step By Step**
 If you are in for a ride you can read a complete [step by step example](docs/StepByStep.md) of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what **results** you can expect to obtain.
 
@@ -286,6 +265,13 @@ If you are in for a ride you can read a complete [step by step example](docs/Ste
 
 </div>
 
+## 🖥️ Simulator
+
+Distributed systems are, in general, quite complex to understand.
+
+When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [backplane](docs/Backplane.md) and [auto-recovery](docs/AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
+
+[![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](docs/Simulator.md)
 
 ## 🆎 Comparison
 

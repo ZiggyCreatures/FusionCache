@@ -46,12 +46,12 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions.ConnectionMultiplexerFactory">
             <summary>
-            Gets or sets a delegate to create the ConnectionMultiplexer instance.
+            A delegate to create the ConnectionMultiplexer instance.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions.VerifyReceivedClientsCountAfterPublish">
             <summary>
-            The configuration used to connect to Redis.
+            DEPRECATED: verify that at least one clients received the notifications after each publish.
             </summary>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.StackExchangeRedisBackplaneExtensions">

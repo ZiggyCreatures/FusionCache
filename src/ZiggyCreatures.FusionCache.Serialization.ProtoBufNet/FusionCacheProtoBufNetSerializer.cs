@@ -112,11 +112,15 @@ public class FusionCacheProtoBufNetSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
+		//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} before MaybeRegisterDistributedEntryModel");
 		MaybeRegisterDistributedEntryModel<T>();
+		//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} after MaybeRegisterDistributedEntryModel");
 
 		using (var stream = new MemoryStream())
 		{
+			//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} before Serialize");
 			_model.Serialize(stream, obj);
+			//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} before Serialize");
 			return stream.ToArray();
 		}
 	}

@@ -2,17 +2,17 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net7.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Benchmarks</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.13.6" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.13.10" />
 		<PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.2.0" />
-		<PackageReference Include="CacheTower" Version="0.13.0" />
-		<PackageReference Include="EasyCaching.InMemory" Version="1.9.0" />
+		<PackageReference Include="CacheTower" Version="0.14.0" />
+		<PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
 		<PackageReference Include="LazyCache" Version="2.4.0" />
 	</ItemGroup>
 

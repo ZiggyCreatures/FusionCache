@@ -4,7 +4,7 @@
 
 </div>
 
-# :jigsaw: A plugin sample
+# 🧩 A plugin sample
 
 Let's say we want to create a [plugin](Plugins.md) that sends an email when a fail-safe activation happens.
 

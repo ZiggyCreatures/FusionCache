@@ -4,7 +4,7 @@
 
 </div>
 
-# :ab: Comparison
+# 🆎 Comparison
 
 FusionCache of course is not the only player in the field of caching libraries.
 
@@ -23,11 +23,11 @@ In the end, any library out there is the materialization of a lot of **passion**
 
 And we should all be thankful for that.
 
-| :loudspeaker: A note to other library authors |
+| 📢 A note to other library authors |
 | :--- |
 | Even though I tried my best to be fair and objective, I'm sure you may have different opinions about each topic or I may have just used your library in the wrong way or maybe a newer version came out with new features. <br/> <br/> If that is the case please [**open an issue**](https://github.com/ZiggyCreatures/FusionCache/issues/new/choose) or send a pr and I will make the necessary changes. |
 
-## :ballot_box_with_check: Features
+## ☑ Features
 
 Every library has a different set of features, mostly based on each library design: you may find logging support, both a sync and an async api, statistics, events, jittering, cache regions and a lot more so making a 1:1 comparison is hardly possible.
 
@@ -44,13 +44,13 @@ The general features I've identified are:
 - [**Multi-provider**](CacheLevels.md): the abilty to use the same caching api towards different implementations (memory, Redis, MongoDb, etc)
 - [**Multi-level**](CacheLevels.md): the ability to handle more than one caching level, transparently. This can give you - at the same time - the benefits of a local in-memory cache (high performance + data locality) and the benefits of a distributed cache (sharing of cached data + better cold start) without having to handle them separately
 - [**Backplane**](Backplane.md): available with different names, it allows a change in a distributed cache to be reflected in the local memory cache
-- [**Auto-Recovery**](Backplane.md): the ability to automatically recover from an out-of-sync scenario due to some transient problems to a globally synchronized state
+- [**Auto-Recovery**](AutoRecovery.md): a way to automatically handle transient errors so that they can be solved, automatically, without doing anything
 - [**Events**](Events.md): the ability to be notified when certain events happen in the cache, useful to collect custom metrics, etc
 - [**Logging**](Logging.md): when things go bad you would like to have some help investigating what went wrong, and logging is key
 - **Portable**: the ability to run on both the older **.NET Framework** (full fx) and the new **.NET Core**. As time goes by .NET Core (from v5 now simply **.NET**) is the platform to be on, but it's a nice plus to be able to run on the older one as well
 - **Tests**: having a suite of tests covering most of the library can greatly reduce the probabilty of bugs or regressions so, in theory, you can count on a more solid and stable library
 - [**Xml Comments**](https://docs.microsoft.com/en-us/dotnet/csharp/codedoc): having informations always available at your fingertips while you type (Intellisense :tm: or similar) is fundamental for learning as you code and to avoid common pitfalls
-- **Docs**: an expanded documentation, a getting started guide or maybe some samples can greatly improve your learning
+- [**Docs**](docs/README.md): an expanded documentation, a getting started guide or maybe some samples can greatly improve your learning
 - [**License**](../LICENSE.md): important to know what are your rights and obligations
 
 This is how they compare:
@@ -74,9 +74,8 @@ This is how they compare:
 | **Tests**                | ✔          | ✔            | ✔          | ✔              | ✔            |
 | **Xml Comments**         | ✔          | ✔            | ✔          | ✔              | ❌           |
 | **Docs**                 | ✔          | ✔            | ✔          | ✔              | ✔            |
-| **License**              | `MIT`       | `Apache 2.0` | `MIT`      | `MIT`           | `MIT`         |
+| **License**              | `MIT`      | `Apache 2.0`  | `MIT`      | `MIT`           | `MIT`        |
 
-:information_source: **NOTES**
+ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
 - (2): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.
-

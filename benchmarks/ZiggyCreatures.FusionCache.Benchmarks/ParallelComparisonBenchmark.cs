@@ -45,9 +45,9 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Params(1, 10)]
 		public int Rounds;
 
-		private List<string> Keys;
+		private List<string> Keys = null!;
 		private TimeSpan CacheDuration = TimeSpan.FromDays(10);
-		private IServiceProvider ServiceProvider;
+		private IServiceProvider ServiceProvider = null!;
 
 		[GlobalSetup]
 		public void Setup()
@@ -263,7 +263,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		[Benchmark]
 		public async Task CacheTower()
 		{
-			await using (var cache = new CacheStack(new[] { new MemoryCacheLayer() }, new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) }))
+			await using (var cache = new CacheStack(null, new CacheStackOptions(new[] { new MemoryCacheLayer() }) { Extensions = new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) } }))
 			{
 				var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
 
