@@ -35,7 +35,7 @@ public abstract class CacheStampedeTests_EasyCaching
 				async () =>
 				{
 					Interlocked.Increment(ref factoryCallsCount);
-					await Task.Delay(FactoryDuration).ConfigureAwait(false);
+					await Task.Delay(FactoryDuration);
 					return 42;
 				},
 				TimeSpan.FromSeconds(10)
@@ -103,7 +103,7 @@ public abstract class CacheStampedeTests_EasyCaching
 					async () =>
 					{
 						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						await Task.Delay(FactoryDuration);
 						return 42;
 					},
 					TimeSpan.FromSeconds(10)

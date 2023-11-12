@@ -197,7 +197,7 @@ public class DistributedCacheLevelTests
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache);
 		fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 		await fusionCache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions().SetDuration(duration).SetFailSafe(true));
-		await Task.Delay(duration.PlusALittleBit()).ConfigureAwait(false);
+		await Task.Delay(duration.PlusALittleBit());
 		var sw = Stopwatch.StartNew();
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 		var res = await fusionCache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
@@ -255,7 +255,7 @@ public class DistributedCacheLevelTests
 		await fusionCache.SetAsync<int>("foo", 2, options => options.SetDurationSec(60).SetFailSafe(true));
 		chaosDistributedCache.SetNeverThrow();
 		await fusionCache.SetAsync<int>("foo", 3, options => options.SetDurationSec(60).SetFailSafe(true));
-		await Task.Delay(circuitBreakerDuration.PlusALittleBit()).ConfigureAwait(false);
+		await Task.Delay(circuitBreakerDuration.PlusALittleBit());
 		memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey("foo", TestingCacheKeyPrefix));
 		var res = await fusionCache.GetOrDefaultAsync<int>("foo", -1);
 

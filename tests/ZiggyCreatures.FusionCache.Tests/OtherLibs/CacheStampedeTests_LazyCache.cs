@@ -35,7 +35,7 @@ public abstract class CacheStampedeTests_LazyCache
 					async _ =>
 					{
 						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						await Task.Delay(FactoryDuration);
 						return 42;
 					}
 				);
@@ -101,7 +101,7 @@ public abstract class CacheStampedeTests_LazyCache
 					   async _ =>
 					   {
 						   Interlocked.Increment(ref factoryCallsCount);
-						   await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						   await Task.Delay(FactoryDuration);
 						   return 42;
 					   }
 				   );

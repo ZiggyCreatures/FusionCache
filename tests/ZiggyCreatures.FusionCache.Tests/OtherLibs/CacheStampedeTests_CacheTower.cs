@@ -34,7 +34,7 @@ public abstract class CacheStampedeTests_CacheTower
 					async old =>
 					{
 						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						await Task.Delay(FactoryDuration);
 						return 42;
 					},
 					cacheSettings

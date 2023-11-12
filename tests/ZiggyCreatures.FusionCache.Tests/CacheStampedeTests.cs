@@ -29,7 +29,7 @@ public class CacheStampedeTests
 					async _ =>
 					{
 						Interlocked.Increment(ref factoryCallsCount);
-						await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						await Task.Delay(FactoryDuration);
 						return 42;
 					},
 					new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
@@ -91,7 +91,7 @@ public class CacheStampedeTests
 					   async _ =>
 					   {
 						   Interlocked.Increment(ref factoryCallsCount);
-						   await Task.Delay(FactoryDuration).ConfigureAwait(false);
+						   await Task.Delay(FactoryDuration);
 						   return 42;
 					   },
 					   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))

@@ -514,7 +514,7 @@ public class MemoryLevelTests
 		// SET THE VALUE (WITH FAIL-SAFE ENABLED)
 		await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));
 		// LET IT EXPIRE
-		await Task.Delay(duration.PlusALittleBit()).ConfigureAwait(false);
+		await Task.Delay(duration.PlusALittleBit());
 		// CHECK EXPIRED (WITHOUT FAIL-SAFE)
 		var nope = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
 		// DO NOT ACTIVATE FAIL-SAFE AND THROTTLE DURATION
@@ -522,11 +522,11 @@ public class MemoryLevelTests
 		// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
 		var throttled1 = await cache.GetOrDefaultAsync("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
 		// WAIT A LITTLE BIT (LESS THAN THE DURATION)
-		await Task.Delay(100).ConfigureAwait(false);
+		await Task.Delay(100);
 		// GET THE THROTTLED (NON EXPIRED) VALUE
 		var throttled2 = await cache.GetOrDefaultAsync("foo", 2, opt => opt.SetFailSafe(true));
 		// LET THE THROTTLE DURATION PASS
-		await Task.Delay(throttleDuration).ConfigureAwait(false);
+		await Task.Delay(throttleDuration);
 		// FALLBACK TO THE DEFAULT VALUE
 		var default3 = await cache.GetOrDefaultAsync("foo", 3, opt => opt.SetFailSafe(false));
 
