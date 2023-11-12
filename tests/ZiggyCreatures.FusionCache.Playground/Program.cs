@@ -7,8 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground
 	{
 		static async Task Main(string[] args)
 		{
-			//await LoggingScenario.RunAsync().ConfigureAwait(false);
-			await SimulatorScenario.RunAsync().ConfigureAwait(false);
+			await LoggingScenario.RunAsync().ConfigureAwait(false);
 		}
 	}
 }
