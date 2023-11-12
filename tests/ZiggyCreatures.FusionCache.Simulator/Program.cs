@@ -29,7 +29,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static bool EnableFailSafe = false;
 		public static readonly TimeSpan RandomUpdateDelay = TimeSpan.FromSeconds(1);
 		public static bool EnableRandomUpdates = false;
-		public static readonly bool DisplayApproximateExpirationCountdown = true;
+		public static readonly bool DisplayApproximateExpirationCountdown = false;
 
 		// DURATION
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
