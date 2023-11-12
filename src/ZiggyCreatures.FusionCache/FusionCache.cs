@@ -106,6 +106,16 @@ public partial class FusionCache
 
 		// AUTO-RECOVERY
 		_autoRecovery = new AutoRecoveryService(this, _options, _logger);
+
+		// TRY UPDATE OPTIONS
+		_tryUpdateOptions = new FusionCacheEntryOptions()
+		{
+			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
+			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
+			AllowBackgroundDistributedCacheOperations = false,
+			ReThrowDistributedCacheExceptions = true,
+			ReThrowSerializationExceptions = true,
+		};
 	}
 
 	/// <inheritdoc/>
@@ -712,15 +722,6 @@ public partial class FusionCache
 	private FusionCacheEntryOptions _tryUpdateOptions;
 	private async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(string operationId, string cacheKey, DistributedCacheAccessor dca, FusionCacheMemoryEntry memoryEntry)
 	{
-		_tryUpdateOptions ??= new FusionCacheEntryOptions()
-		{
-			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
-			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
-			AllowBackgroundDistributedCacheOperations = false,
-			ReThrowDistributedCacheExceptions = true,
-			ReThrowSerializationExceptions = true,
-		};
-
 		try
 		{
 			(var distributedEntry, var isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, _tryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
