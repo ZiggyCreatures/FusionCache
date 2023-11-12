@@ -105,4 +105,4 @@ Wanna see auto-recovery in action?
 
 Sure, why not? Thanks to the [Simulator](Simulator.md) it's very easy:
 
-[![FusionCache Simulator](https://img.youtube.com/vi/redH-2qs-gk/maxresdefault.jpg)](https://youtu.be/redH-2qs-gk)
+[![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](https://youtu.be/6jGX6ePgD3Q)
