@@ -238,6 +238,6 @@ internal partial class DistributedCacheAccessor
 			"removing entry from distributed" + isBackground.ToString(" (background)"),
 			options,
 			token
-		);
+		).ConfigureAwait(false);
 	}
 }
