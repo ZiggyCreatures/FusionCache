@@ -35,6 +35,8 @@ internal sealed class FusionCacheMemoryEntry
 	/// <inheritdoc/>
 	public long Timestamp { get; private set; }
 
+	public DateTimeOffset LogicalExpiration { get; set; }
+
 	/// <inheritdoc/>
 	public TValue GetValue<TValue>()
 	{
@@ -65,6 +67,8 @@ internal sealed class FusionCacheMemoryEntry
 		Value = distributedEntry.GetValue<TValue2>();
 		Timestamp = distributedEntry.Timestamp;
 		Metadata = distributedEntry.Metadata;
+		if (Metadata is not null)
+			LogicalExpiration = Metadata.LogicalExpiration;
 	}
 
 	/// <summary>
