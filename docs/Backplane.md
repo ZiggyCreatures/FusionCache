@@ -80,7 +80,8 @@ Currently there are 2 official packages we can use:
 If we are already using a Redis instance as a distributed cache, we just have to point the backplane to the same instance and we'll be good to go (but if we share the same Redis instance with multiple caches, please read [some notes](RedisNotes.md)).
 
 
-### Example
+### 👩‍💻 Example
+
 
 As an example, we'll use FusionCache with [Redis](https://redis.io/), as both a **distributed cache** and a **backplane**.
 
@@ -214,7 +215,7 @@ But then, when we **want** to publish a notification, how can we do it? Easy pea
 Let's look at a concrete example.
 
 
-### Example
+### 👩‍💻 Example
 
 ```csharp
 // INITIAL SETUP: SKIP AUTOMATIC NOTIFICATIONS

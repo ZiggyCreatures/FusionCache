@@ -4,7 +4,7 @@
 
 </div>
 
-# :joystick: Core Methods
+# 🕹️ Core Methods
 
 At a high level there are 6 core methods:
 
@@ -229,7 +229,7 @@ foo = cache.GetOrDefault<int>("foo");
 foo = cache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
 ```
 
-## :recycle: Common overloads
+## ♻️ Common overloads
 
 Every core method that needs a set of options (`FusionCacheEntryOptions`) for how to behave has different overloads to let you specify these options, for better ease of use.
 

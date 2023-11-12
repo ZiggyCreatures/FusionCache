@@ -98,3 +98,11 @@ And now all the nodes that had a cached value for that cache key are all aligned
 And the out-of-sync dragon has been defeated, and all of the nodes lived happily ever after.
 
 *Fin*.
+
+## 🖥️ Seeing is believing
+
+Wanna see auto-recovery in action?
+
+Sure, why not? Thanks to the [Simulator](Simulator.md) it's very easy:
+
+[![FusionCache Simulator](https://img.youtube.com/vi/redH-2qs-gk/maxresdefault.jpg)](https://youtu.be/redH-2qs-gk)

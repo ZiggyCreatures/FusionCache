@@ -4,11 +4,13 @@
 
 </div>
 
-# :stopwatch: Timeouts
+# ⏱️ Timeouts
 
-There are different types of timeouts available and it may be useful to know them.
+There are different types of timeouts available and it may be useful to know them:
+- Factory Timeouts
+- Distributed Cache Timeouts
 
-:bulb: For a complete example of how to use them and what results you can achieve there's the [👩‍🏫 Step By Step](StepByStep.md) guide.
+💡 For a complete example of how to use them and what results you can achieve there's the [👩‍🏫 Step By Step](StepByStep.md) guide.
 ## Factory Timeouts
 
 Sometimes your data source (database, webservice, etc) is overloaded, the network is congested or something else bad is happening and the end result is things start to get **:snail: very slow** to get a fresh piece of data.
@@ -27,7 +29,7 @@ You can specify them both (the **soft** should be lower than the **hard**, of co
 
 In both cases it is possible to set the bool flag `AllowTimedOutFactoryBackgroundCompletion`: it is enabled *by default*, so you don't have to do anything, and it lets the timed-out factory keep running in the background and update the cached value as soon as it finishes. This will give you the best of both worlds: a **fast response** and **fresh data** as soon as possible.
 
-### :bulb: Example
+### 👩‍💻 Example
 As an example let's say we have a piece of code like this:
 
 ```csharp
@@ -69,7 +71,7 @@ Now after `100 ms` the factory will timeout and FusionCache will **temporarily**
 Also, it will complete the factory execution **in the background**: as soon as it will complete, the cached value **will be updated** so that any new request will have the fresh value ready to be used.
 
 
-## Distributed Cache Timeouts
+## ⏱️ Distributed Cache Timeouts
 
 When using a distributed cache it is also possible to observe some slowdowns in case of network congestions or something else.
 

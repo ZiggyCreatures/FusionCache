@@ -4,7 +4,7 @@
 
 </div>
 
-# :jigsaw: Plugins
+# 🧩 Plugins
 
 FusionCache supports extensibility via plugins: it is possible for example to listen to [events](Events.md) and react in any way you want.
 

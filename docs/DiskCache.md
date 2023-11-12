@@ -24,13 +24,13 @@ That's a lot to do... but wait a sec, isn't that exactly what a **database** is?
 
 Yes, yes it is!
 
-## An actual database? Are you kidding me?
+## 😐 An actual database? Are you kidding me?
 
 Of course I'm not suggesting to install (and manage) a local MySql/SqlServer/PostgreSQL instance or similar, that would be hard to do in most cases, impossible in others and frankly overkill.
 
 So, what should we use?
 
-## SQLite to the rescue!
+## 💪 SQLite to the rescue!
 
 If case you didn't know it yet, [SQLite](https://www.sqlite.org/) is an incredible piece of software:
 - it's one of the highest quality software [ever produced](https://www.i-programmer.info/news/84-database/15609-in-praise-of-sqlite.html)
@@ -43,7 +43,7 @@ If case you didn't know it yet, [SQLite](https://www.sqlite.org/) is an incredib
 
 Ok so SQLite is the best, how can we use it as the 2nd level?
 
-## Ok but how?
+## 👩‍🏫 Ok but how?
 
 Luckily someone in the community created an implementation of `IDistributedCache` based on SQLite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
 
@@ -52,7 +52,11 @@ The package:
 - uses a [pooling mechanism](https://github.com/neosmart/AspSqliteCache/blob/master/SqliteCache/DbCommandPool.cs) which means the memory allocation will be lower since they reuse existing objects instead of creating new ones every time and consequently, because of that, less cpu usage in the long run because less pressure on the GC (Garbage Collector)
 - supports `CancellationToken`s, meaning that it will gracefully handle cancellations in case it's needed, like for example a mobile app pause/shutdown events or similar
 
-So we simply use the `SqliteCache` impl instead of the `RedisCache` we used above and we'll be good to go:
+It's a really good package, let's see how to use it.
+
+### 👩‍💻 Example
+
+We simply use the `SqliteCache` implementation and we'll be good to go:
 
 ```csharp
 services.AddFusionCache()

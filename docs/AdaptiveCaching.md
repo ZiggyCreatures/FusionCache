@@ -30,7 +30,7 @@ In the ones **with** the context you can simply change the context's `Options` p
 Here are 2 examples, with and without the *context* object.
 
 
-### Example: without adaptive caching
+### 👩‍💻 Example: without adaptive caching
 
 As you can see we are specifying the factory as a lambda that takes as input only a cancellation token `ct` (of type `CancellationToken`) and nothing else.
 
@@ -45,7 +45,7 @@ var product = cache.GetOrSet<Product>(
 );
 ```
 
-### Example: with adaptive caching
+### 👩‍💻 Example: with adaptive caching
 
 As you can see we are specifying the factory as a lambda that takes as input both a context `ctx` (of type `FusionCacheFactoryExecutionContext`) and a cancellation token `ct` (of type `CancellationToken`), so that we are able to change the options inside the factory itself.
 
@@ -83,7 +83,7 @@ You may change other options too, like the `Priority` for example.
 Of course ther are some changes that wouldn't make much sense: if for example we change the `FactorySoftTimeout` after the factory has been already executed we shouldn't expect much to happen, right 😅 ?
 
 
-## ⏱ Timeouts & Background factory completion
+## ⏱ Timeouts & Background Factory Completion
 
 Short version: everything works as expected!
 

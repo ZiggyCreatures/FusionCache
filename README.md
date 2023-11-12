@@ -266,6 +266,14 @@ If you are in for a ride you can read a complete [step by step example](docs/Ste
 </div>
 
 
+## 🖥️ Simulator
+
+Distributed systems are, in general, quite complex to understand.
+
+When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [backplane](docs/Backplane.md) and [auto-recovery](AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
+
+[![FusionCache Simulator](https://img.youtube.com/vi/redH-2qs-gk/maxresdefault.jpg)](docs/Simulator.md)
+
 ## 🆎 Comparison
 
 There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
@@ -297,6 +305,6 @@ Yes!
 
 Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
 
-Considering that the FusionCache packages have been downloaded more than **a million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **2 million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!

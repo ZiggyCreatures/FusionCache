@@ -4,7 +4,7 @@
 
 </div>
 
-# :twisted_rightwards_arrows: Cache Levels: Primary and Secondary
+# 🔀 Cache Levels: Primary and Secondary
 
 There are 2 caching levels available, transparently handled by FusionCache for you:
 
@@ -51,7 +51,7 @@ Again, nothing catastrophic, but something to consider.
 
 ## 💾 Disk Cache
 
-In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it. A good example of that may be a mobile app, where everything should be self contained.
+In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it: a good example may be a mobile app, where everything should be self contained.
 
 In those situations we may want a distributed cache that is "not really distributed", something like an implementation of `IDistributedCache` that reads and writes directly to one or more local files.
 
@@ -91,7 +91,7 @@ As for an implementation of `IFusionCacheSerializer`, pick one of these:
 | [ZiggyCreatures.FusionCache.Serialization.ServiceStackJson](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) <br/> A serializer based on the [ServiceStack](https://servicestack.net/) JSON serializer | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/) |
 
 
-### Example
+### 👩‍💻 Example
 
 As an example let's use FusionCache with [Redis](https://redis.io/) as a distributed cache and [Newtonsoft Json.NET](https://www.newtonsoft.com/json) as the serializer:
 
