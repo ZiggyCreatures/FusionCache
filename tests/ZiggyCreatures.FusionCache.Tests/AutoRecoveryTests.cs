@@ -134,7 +134,7 @@ public class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// WAIT FOR THE AUTO-RECOVERY DELAY
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		Assert.Equal(3, await cache1.GetOrSetAsync<int>(key, async _ => _value));
 		Assert.Equal(3, await cache2.GetOrSetAsync<int>(key, async _ => _value));
@@ -199,7 +199,7 @@ public class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// WAIT FOR THE AUTO-RECOVERY DELAY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value));
 		Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value));
@@ -264,7 +264,7 @@ public class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// WAIT FOR THE AUTO-RECOVERY DELAY
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value));
 		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value));
@@ -329,7 +329,7 @@ public class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// WAIT FOR THE AUTO-RECOVERY DELAY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
 		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
@@ -404,7 +404,7 @@ public class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// WAIT FOR THE AUTO-RECOVERY DELAY
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		_value = 42;
 
@@ -485,7 +485,7 @@ public class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// WAIT FOR THE AUTO-RECOVERY DELAY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		_value = 42;
 
@@ -565,7 +565,7 @@ public class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// GIVE IT SOME TIME
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
@@ -644,7 +644,7 @@ public class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// GIVE IT SOME TIME
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA3 = cacheA.GetOrSet<int>("foo", _ => 60);
@@ -722,7 +722,7 @@ public class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// GIVE IT SOME TIME
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA3 = await cacheA.GetOrDefaultAsync<int>("foo");
@@ -737,7 +737,7 @@ public class AutoRecoveryTests
 		chaosDistributedCache.SetNeverThrow();
 
 		// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA4 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60);
@@ -817,7 +817,7 @@ public class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// GIVE IT SOME TIME
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA3 = cacheA.GetOrDefault<int>("foo");
@@ -832,7 +832,7 @@ public class AutoRecoveryTests
 		chaosDistributedCache.SetNeverThrow();
 
 		// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA4 = cacheA.GetOrSet<int>("foo", _ => 60);
@@ -908,7 +908,7 @@ public class AutoRecoveryTests
 		chaosDistributedCache.SetNeverThrow();
 
 		// WAIT FOR AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA2 = await cacheA.GetOrSetAsync<int>("foo", async _ => 50);
@@ -984,7 +984,7 @@ public class AutoRecoveryTests
 		chaosDistributedCache.SetNeverThrow();
 
 		// WAIT FOR AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA2 = cacheA.GetOrSet<int>("foo", _ => 50);
@@ -1059,7 +1059,7 @@ public class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// GIVE IT SOME TIME
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
 		var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 30);
@@ -1132,7 +1132,7 @@ public class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// GIVE IT SOME TIME
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
 		var vA3 = cacheA.GetOrSet<int>("foo", _ => 30);

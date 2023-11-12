@@ -60,6 +60,11 @@ public static class TestsUtils
 	{
 		return ts + TimeSpan.FromMilliseconds(250);
 	}
+
+	public static TimeSpan PlusASecond(this TimeSpan ts)
+	{
+		return ts + TimeSpan.FromSeconds(1);
+	}
 }
 
 public class SerializerTypesClassData : IEnumerable<object[]>

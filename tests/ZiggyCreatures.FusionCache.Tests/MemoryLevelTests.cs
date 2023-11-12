@@ -387,6 +387,10 @@ public class MemoryLevelTests
 		});
 		sw.Stop();
 
+		TestOutput.WriteLine($"Outer Cancel: {outerCancelDelayMs} ms");
+		TestOutput.WriteLine($"Factory Delay: {factoryDelayMs} ms");
+		TestOutput.WriteLine($"Elapsed: {sw.ElapsedMilliseconds} ms");
+
 		Assert.Equal(-1, res);
 		Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is less than outer cancel");
 		Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is not less than factory delay");
@@ -406,6 +410,10 @@ public class MemoryLevelTests
 			res = cache.GetOrSet<int>("foo", ct => { Thread.Sleep(factoryDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, options => options.SetDurationSec(60), cts.Token);
 		});
 		sw.Stop();
+
+		TestOutput.WriteLine($"Outer Cancel: {outerCancelDelayMs} ms");
+		TestOutput.WriteLine($"Factory Delay: {factoryDelayMs} ms");
+		TestOutput.WriteLine($"Elapsed: {sw.ElapsedMilliseconds} ms");
 
 		Assert.Equal(-1, res);
 		Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is less than outer cancel");
