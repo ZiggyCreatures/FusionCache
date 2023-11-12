@@ -1,8 +1,8 @@
 ﻿namespace ZiggyCreatures.Caching.Fusion.Simulator.Stuff
 {
-	public class CacheCluster
+	public class SimulatedCluster
 	{
-		public List<CacheNode> Nodes { get; } = new List<CacheNode>();
+		public List<SimulatedNode> Nodes { get; } = new List<SimulatedNode>();
 		public int? LastUpdatedNodeIndex { get; set; }
 	}
 }

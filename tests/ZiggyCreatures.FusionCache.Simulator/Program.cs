@@ -35,14 +35,14 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
 
 		// LOGGING
-		public static readonly bool EnableLogging = true;
+		public static readonly bool EnableLogging = false;
 		public static readonly bool EnableLoggingExceptions = false;
 
 		// DISTRIBUTED CACHE
 		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly bool AllowBackgroundDistributedCacheOperations = true;
-		public static readonly TimeSpan? DistributedCacheSoftTimeout = TimeSpan.FromMilliseconds(100);
-		public static readonly TimeSpan? DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(500);
+		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
+		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(500);
 		public static readonly TimeSpan DistributedCacheCircuitBreakerDuration = TimeSpan.Zero;
 		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
 		public static readonly TimeSpan? ChaosDistributedCacheSyntheticMinDelay = null; //TimeSpan.FromMilliseconds(500);
@@ -71,7 +71,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static readonly SemaphoreSlim GlobalMutex = new SemaphoreSlim(1, 1);
 		private static int LastValue = 0;
 		private static int? LastUpdatedClusterIdx = null;
-		private static readonly ConcurrentDictionary<int, CacheCluster> CacheClusters = new ConcurrentDictionary<int, CacheCluster>();
+		private static readonly ConcurrentDictionary<int, SimulatedCluster> CacheClusters = new ConcurrentDictionary<int, SimulatedCluster>();
 		private static readonly ConcurrentDictionary<int, SimulatedDatabase> Databases = new ConcurrentDictionary<int, SimulatedDatabase>();
 
 		private static bool DatabaseEnabled = true;
@@ -222,11 +222,35 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 
 		private static DateTimeOffset? DangerouslyGetLogicalExpiration(IFusionCache cache, string cacheKey)
 		{
-			var dca = cache.GetType().GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(cache);
-			var memoryCache = (IMemoryCache?)dca?.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(dca);
+			var mca = cache.GetType().GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(cache);
+			var memoryCache = (IMemoryCache?)mca?.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(mca);
 			var entry = memoryCache?.Get(cacheKey);
-			var meta = (FusionCacheEntryMetadata?)entry?.GetType().GetProperty("Metadata")?.GetValue(entry);
-			return meta?.LogicalExpiration;
+
+			if (entry is null)
+			{
+				Debug.WriteLine("CACHE NULL");
+				return null;
+			}
+
+			DateTimeOffset? exp = null;
+
+			try
+			{
+				Debug.WriteLine($"EXPIRE ({cache.InstanceId}: {(DateTimeOffset?)entry.GetType().GetProperty("LogicalExpiration")?.GetValue(entry)}");
+				exp = (DateTimeOffset?)entry.GetType().GetProperty("LogicalExpiration")?.GetValue(entry);
+			}
+			catch
+			{
+				// EMPTY
+			}
+
+			if (exp is null)
+			{
+				var meta = (FusionCacheEntryMetadata?)entry.GetType().GetProperty("Metadata")?.GetValue(entry);
+				exp = meta?.LogicalExpiration;
+			}
+
+			return exp;
 		}
 
 		private static void SetupClusters(IServiceProvider serviceProvider, ILogger<FusionCache>? logger)
@@ -238,7 +262,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			{
 				var swCluster = Stopwatch.StartNew();
 
-				var cluster = new CacheCluster();
+				var cluster = new SimulatedCluster();
 				var cacheName = $"C{clusterIdx + 1}";
 
 				var distributedCache = CreateDistributedCache(clusterIdx);
@@ -329,7 +353,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 
 					AnsiConsole.WriteLine();
 
-					var node = new CacheNode(cache);
+					var node = new SimulatedNode(cache);
 
 					// EVENTS
 					cache.Events.Memory.Set += (sender, e) =>
@@ -366,12 +390,12 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static string GetCountdownMarkup(long nowTimestampUnixMs, long? expirationTimestampUnixMs)
 		{
 			if (expirationTimestampUnixMs is null || expirationTimestampUnixMs.Value <= nowTimestampUnixMs)
-				return "";
+				return "-";
 
 			var remainingSeconds = (expirationTimestampUnixMs.Value - nowTimestampUnixMs) / 1_000;
 			var v = (float)(expirationTimestampUnixMs.Value - nowTimestampUnixMs) / (float)SimulatorOptions.CacheDuration.TotalMilliseconds;
 			if (v <= 0.0f)
-				return "";
+				return "-";
 
 			var color = "grey93";
 			switch (v)
@@ -403,7 +427,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 
 		private static async Task DisplayDashboardAsync(ILogger<FusionCache>? logger, bool getValues)
 		{
-			static async Task GetValueFromNode(ConcurrentDictionary<int, int?> clusterValues, int clusterIdx, CacheNode node, int nodeIdx, ILogger<FusionCache>? logger)
+			static async Task GetValueFromNode(ConcurrentDictionary<int, int?> clusterValues, int clusterIdx, SimulatedNode node, int nodeIdx, ILogger<FusionCache>? logger)
 			{
 				int? value;
 				try
@@ -524,13 +548,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 								isClusterInSync = false;
 
 								if (LastUpdatedClusterIdx == clusterIdx)
-									color = "red1";
+									color = Color_MidRed.ToString();
 								else
-									color = "red3_1";
+									color = Color_DarkRed.ToString();
 							}
 						}
 
-						var text = (value?.ToString() ?? "/").PadRight(2).PadLeft(3);
+						var text = (value?.ToString() ?? "-").PadRight(2).PadLeft(3);
 						if (string.IsNullOrEmpty(text))
 							text = " ";
 

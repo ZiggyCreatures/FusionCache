@@ -1,8 +1,8 @@
 ﻿namespace ZiggyCreatures.Caching.Fusion.Simulator.Stuff
 {
-	public class CacheNode
+	public class SimulatedNode
 	{
-		public CacheNode(IFusionCache cache)
+		public SimulatedNode(IFusionCache cache)
 		{
 			Cache = cache;
 		}
