@@ -34,7 +34,7 @@ Additionally there are some extra props and methods to make it easier working in
 
 With these features available it's very easy to avoid sending huge payloads when that is not actually needed, resulting in less bandwidth consumed and more performance.
 
-## A practical example
+## 👩‍💻 A Practical Example
 
 Let's say we have some data returned from a remote HTTP endpoint, and we want to support conditional refresh.
 

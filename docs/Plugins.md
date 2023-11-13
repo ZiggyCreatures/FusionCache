@@ -108,6 +108,6 @@ Normally there's no need to remove a plugin manually: if you just want to clean 
 But if, for whatever reason, you need to keep using a FusionCache instance after removing a particular plugin you've previously added, you can call the `cache.RemovePlugin` method: it will automatically call the `Stop` method of the plugin and then remove it.
 
 
-## A practical example
+## 👩‍💻 A practical example
 
 Want to follow a complete, end-to-end example to create your first plugin? There's one available [:jigsaw: right here](PluginSample.md).

@@ -38,7 +38,7 @@ The end result (also adding some [timeouts](Timeouts.md)) would be something lik
 
 Isn't it great?
 
-## A practical example
+## 👩‍💻 A Practical Example
 
 Suppose we want to put something in the cache that should expire after `5` minutes, but we also want to be able to use the value for a total of `2` hours in case of problems, even if it is logically expired. Also, in case fail-safe will be *activated*, we want to use the expired value for at least `1` min before checking again.
 
