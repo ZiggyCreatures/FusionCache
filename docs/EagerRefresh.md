@@ -52,7 +52,7 @@ Something interesting to note is that the Akamai CDN took the same approach for 
 
 This basically makes the threshold *dynamic* based on each call's `Duration`: by setting it to `0.9` (`90%`) it will always mean *"start refreshing in the background after 90% of this cached data duration, whatever that is"*.
 
-## A Practical Example
+## 👩‍💻 A Practical Example
 
 Let's say we store some data in the cache with a `Duration` of `10 min` with [fail-safe](FailSafe.md) enabled:
 
