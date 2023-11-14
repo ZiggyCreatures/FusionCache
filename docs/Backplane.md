@@ -161,7 +161,7 @@ So what happens when there are 2 version of FusionCache running on the same back
 
 Since the old version will send messages to the backplane with a different channel name than the new version, this will not create conflicts during the update, and it means that we don't need to stop all the apps and services that works on it just to do the upgrade.
 
-At the same time though, if we have different apps and services that use the same distributed cache shared between them, we need to understand that by updating only one app or service and not the others will mean that the ones updated will read/write using the new distributed cache keys, while the non updated ones will keep read/write using the old distributed cache keys.
+At the same time though, if we have different apps and services that use the same backplane shared between them, we need to understand that by updating only one app or service and not the others will mean that the ones updated will publish/receive messages on the new channel, while the non updated ones will keep publishing/receiving messages on the old channel.
 
 Again, nothing catastrophic, but something to consider.
 
