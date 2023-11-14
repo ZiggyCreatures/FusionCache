@@ -6,7 +6,7 @@
 
 # ↩️ Auto-Recovery
 
-Both the distributed cache and the backplane are, as the names suggest, distributed components.
+Both the [distributed cache](CacheLevels.md) and the [backplane](Backplane.md) are, as the names suggest, distributed components.
 
 This means that, as we know from the [Fallacies Of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing), something may go wrong while we are using them, even if only in a transient way.
 
@@ -18,7 +18,7 @@ Enter **Auto-Recovery**.
 
 With auto-recovery FusionCache will automatically detect transient errors for both the distributed cache and the backplane, and it will act accordingly to ensure that the **global state** is kept as much in-sync as possible, without any intervention on our side.
 
-This is done thanks to an auto-recovery queue, where items are put when something bad happened during the distributed side of things: the queue is then actively processed, periodically, to ensure that as soon as possible everything will be taken care of.
+This is done thanks to an internal auto-recovery queue, where items are put when something bad happened during the distributed side of things: the queue is then actively processed, periodically, to ensure that as soon as possible everything will be taken care of.
 
 More errors on a subsequent retry? Again, all taken care of until everything works out well.
 
