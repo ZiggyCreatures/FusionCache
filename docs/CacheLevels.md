@@ -41,7 +41,7 @@ In practice this means that, when saving something for the cache key `"foo"`, in
 
 This has been planned from the beginning, and is the way to manage changes in the wire format used in the distributed cache between updates: it has been designed in this way specifically to support FusionCache to be updated safely and transparently, without interruptions or problems.
 
-So what happens when there are 2 version of FusionCache running on the same distributed cache instance, for example when two different apps share the same distributed cache and one is updated and the other is not?
+So what happens when there are 2 versions of FusionCache running on the same distributed cache instance, for example when two different apps share the same distributed cache and one is updated and the other is not?
 
 Since the old version will write to the distributed cache with a different cache key than the new version, this will not create conflicts during the update, and it means that we don't need to stop all the apps and services that works on it and wipe all the distributed cache data just to do the upgrade.
 
