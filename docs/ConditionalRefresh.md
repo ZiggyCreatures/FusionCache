@@ -49,8 +49,8 @@ var product = await cache.GetOrSetAsync<Product>(
 
 		if (ctx.HasETag && ctx.HasStaleValue)
 		{
-			// LAST MODIFIED + STALE VALUE -> TRY WITH A CONDITIONAL GET
-			req.Headers.Add("ETag", ctx.ETag);
+			// ETAG + STALE VALUE -> TRY WITH A CONDITIONAL GET
+			req.Headers.Add("If-None-Match", ctx.ETag);
 		}
 
 		using var resp = await client.SendAsync(req, ct);
