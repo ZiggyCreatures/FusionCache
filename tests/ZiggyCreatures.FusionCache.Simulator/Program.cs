@@ -450,22 +450,23 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 
 		private static async Task DisplayDashboardAsync(ILogger<FusionCache>? logger, bool getValues)
 		{
-			static async Task GetValueFromNode(ConcurrentDictionary<int, int?> clusterValues, int clusterIdx, SimulatedNode node, int nodeIdx, ILogger<FusionCache>? logger)
+			static async Task GetValueFromNode(ConcurrentDictionary<int, (bool Error, int? Value)> clusterValues, int clusterIdx, SimulatedNode node, int nodeIdx, ILogger<FusionCache>? logger)
 			{
-				int? value;
+				(bool Error, int? Value) item;
 				try
 				{
 					var sw = Stopwatch.StartNew();
-					value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(clusterIdx));
+					item.Value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(clusterIdx));
+					item.Error = false;
 					sw.Stop();
 					logger?.LogInformation($"CACHE GET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
 				}
 				catch
 				{
-					value = null;
+					item = (true, null);
 					logger?.LogInformation($"CACHE GET ({node.Cache.InstanceId}) FAILED");
 				}
-				clusterValues[nodeIdx] = value;
+				clusterValues[nodeIdx] = item;
 			}
 
 			var items = new List<(string Label, Table Table)>();
@@ -478,7 +479,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 
 			try
 			{
-				var values = new ConcurrentDictionary<int, ConcurrentDictionary<int, int?>>();
+				var values = new ConcurrentDictionary<int, ConcurrentDictionary<int, (bool Error, int? Value)>>();
 
 				if (getValues)
 				{
@@ -493,7 +494,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					{
 						var cluster = CacheClusters[clusterIdx];
 
-						var valueCluster = values[clusterIdx] = new ConcurrentDictionary<int, int?>();
+						var valueCluster = values[clusterIdx] = new ConcurrentDictionary<int, (bool Error, int? Value)>();
 
 						for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 						{
@@ -516,10 +517,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					for (int clusterIdx = 0; clusterIdx < CacheClusters.Values.Count; clusterIdx++)
 					{
 						var cluster = CacheClusters[clusterIdx];
-						var clusterValues = values[clusterIdx] = new ConcurrentDictionary<int, int?>();
+						var clusterValues = values[clusterIdx] = new ConcurrentDictionary<int, (bool Error, int? Value)>();
 						for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 						{
-							clusterValues[nodeIdx] = null;
+							clusterValues[nodeIdx] = default;
 						}
 					}
 				}
@@ -547,52 +548,64 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					for (int nodeIdx = 0; nodeIdx < cluster.Nodes.Count; nodeIdx++)
 					{
 						var node = cluster.Nodes[nodeIdx];
-						var value = clusterValues[nodeIdx];
+						var item = clusterValues[nodeIdx];
 
-						var color = "white";
-						if (lastUpdatedNodeIdx.HasValue)
+						// CELL TEXT
+						var cellText = (item.Value?.ToString() ?? "-").PadRight(2).PadLeft(3);
+						if (string.IsNullOrEmpty(cellText))
+							cellText = " ";
+
+						// CELL MARKUP
+						string cellMarkup;
+						if (item.Error)
 						{
-							if (lastUpdatedNodeIdx.Value == nodeIdx)
+							cellMarkup = $"[white on {Color_MidRed}] X [/]";
+						}
+						else
+						{
+							var cellColor = "white";
+							if (lastUpdatedNodeIdx.HasValue)
 							{
-								if (LastUpdatedClusterIdx == clusterIdx)
-									color = Color_LightGreen.ToString();
+								if (lastUpdatedNodeIdx.Value == nodeIdx)
+								{
+									if (LastUpdatedClusterIdx == clusterIdx)
+										cellColor = Color_LightGreen.ToString();
+									else
+										cellColor = Color_DarkGreen.ToString();
+								}
+								else if (clusterValues[lastUpdatedNodeIdx.Value].Value == item.Value)
+								{
+									if (LastUpdatedClusterIdx == clusterIdx)
+										cellColor = Color_LightGreen.ToString();
+									else
+										cellColor = Color_DarkGreen.ToString();
+								}
 								else
-									color = Color_DarkGreen.ToString();
-							}
-							else if (clusterValues[lastUpdatedNodeIdx.Value] == value)
-							{
-								if (LastUpdatedClusterIdx == clusterIdx)
-									color = Color_LightGreen.ToString();
-								else
-									color = Color_DarkGreen.ToString();
-							}
-							else
-							{
-								isClusterInSync = false;
+								{
+									isClusterInSync = false;
 
-								if (LastUpdatedClusterIdx == clusterIdx)
-									color = Color_MidRed.ToString();
-								else
-									color = Color_DarkRed.ToString();
+									if (LastUpdatedClusterIdx == clusterIdx)
+										cellColor = Color_MidRed.ToString();
+									else
+										cellColor = Color_DarkRed.ToString();
+								}
 							}
+							cellMarkup = $"[{cellColor}]{cellText}[/]";
 						}
 
-						var text = (value?.ToString() ?? "-").PadRight(2).PadLeft(3);
-						if (string.IsNullOrEmpty(text))
-							text = " ";
-
-
-						var borderColor = Color.Black;
-						if (string.IsNullOrWhiteSpace(text) == false && lastUpdatedNodeIdx.HasValue && lastUpdatedNodeIdx.Value == nodeIdx)
-						{
-							borderColor = LastUpdatedClusterIdx != clusterIdx ? Color_DarkGreen : Color_FlashGreen;
-						}
-
-						var cellMarkup = $"[{color}]{text}[/]";
+						// EXTRA COUNTDOWN
 						if (SimulatorOptions.DisplayApproximateExpirationCountdown)
 						{
 							cellMarkup += $"\n\n{GetCountdownMarkup(nowTimestampUnixMs, node.ExpirationTimestampUnixMs)}";
 						}
+
+						// BORDER COLOR
+						var borderColor = Color.Black;
+						if (string.IsNullOrWhiteSpace(cellText) == false && lastUpdatedNodeIdx.HasValue && lastUpdatedNodeIdx.Value == nodeIdx)
+						{
+							borderColor = LastUpdatedClusterIdx != clusterIdx ? Color_DarkGreen : Color_FlashGreen;
+						}
+
 						cells.Add(new Panel(new Markup(cellMarkup)).BorderColor(borderColor));
 					}
 
@@ -622,7 +635,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 
 					if (LastUpdatedClusterIdx is not null)
 					{
-						if (values[clusterIdx].Values.Any(x => x is not null))
+						if (values[clusterIdx].Values.Any(x => x.Value is not null))
 						{
 							if (isClusterInSync)
 							{
