@@ -38,7 +38,7 @@ More into videos? The great Anna Hoffman has been so nice to listen to me mumble
 ## ✔ Features
 These are the **key features** of FusionCache:
 
-- [**🚀 Cache Stampede prevention**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🛡️ Cache Stampede prevention**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md): automatic protection from the Cache Stampede problem
 - [**🔀 Optional 2nd level**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
 - [**💣 Fail-Safe**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
 - [**⏱ Soft/Hard timeouts**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted

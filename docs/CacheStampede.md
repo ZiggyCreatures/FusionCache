@@ -4,7 +4,7 @@
 
 </div>
 
-# 🚀 Cache Stampede prevention
+# 🛡️ Cache Stampede prevention
 
 A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario, and basically it's what happens when a lot of requests comes in for the same data and there's no special handling of that.
 

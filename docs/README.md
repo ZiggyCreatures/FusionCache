@@ -26,7 +26,7 @@ A feature comparison between existing .NET caching solutions, to  help you choos
 
 A deeper description of the main features:
 
-- [**🚀 Cache Stampede prevention**](CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🛡️ Cache Stampede prevention**](CacheStampede.md): automatic protection from the Cache Stampede problem
 - [**🔀 Optional 2nd level**](CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
 - [**💣 Fail-Safe**](FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
 - [**⏱ Soft/Hard timeouts**](Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
