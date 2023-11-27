@@ -30,11 +30,11 @@ We should also keep in mind that auto-recovery works for both the distributed ca
 
 Sometimes the transient errors are not so transient after all, and it may happen that before a retry from the auto-recovery queue has been able to succeed a new value for the same cache key is set, on the same node.
 
-WHat should FusionCache do?
+What should FusionCache do?
 
 Another nice one is when, before having been able to process an auto-recovery queue, the backplane came back on and the node received a notification for the same cache key from another node.
 
-WHat should FusionCache do?
+What should FusionCache do?
 
 Special care has been put into correctly handling some common scenarios:
 - if an auto-recovery item is about to be queued for a cache key for which there already is another queued item, only the last one will be kept since the result of updating the cache for the same cache key back-to-back would be the same as doing only the last one
