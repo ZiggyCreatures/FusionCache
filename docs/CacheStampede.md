@@ -6,14 +6,14 @@
 
 # 🛡️ Cache Stampede prevention
 
-A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario, and basically it's what happens when a lot of requests comes in for the same data and there's no special handling of that.
+A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario, and basically it's what happens when a lot of requests comes in for the same data at the same time and there's no special handling of that.
 
-Imagine multiple requets coming in, all for the same data. They would:
+Imagine multiple requests coming in, all for the same data at the same moment. They would:
 
 - all go to the cache to check for the same data
-- all not find that in the cache
-- then they would all go to the database
-- and finally they would all save the same fresh piece of data in the cache
+- all would not find anything in the cache
+- all would then go to the database to get fresh data
+- and finally, all would save the same fresh piece of data in the cache
 
 all of them at the same time, for the same data.
 
