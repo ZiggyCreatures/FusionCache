@@ -17,6 +17,8 @@ Imagine multiple requests coming in, all for the same data at the same moment. T
 
 all of them at the same time, for the same data.
 
+![Cache Stampde with no optimization](images/cache-stampede-before.png)
+
 Now imagine that scenario with 100 or 1.000 concurrent requests: that is both a waste of resources and something that may potentially tear down your database during peak traffic time.
 
 FusionCache takes great care in coordinating the execution of concurrent factories for the same cache key, to avoid this type of failure altogether.
@@ -43,7 +45,7 @@ Special care is put into calling just one factory per key, concurrently, thanks 
 
 This means that if 10 (or 100, or more) concurrent requests for the same cache key arrive at the same time and the data is not there, **only one factory** will be executed, and the result will be stored and shared with all callers right away.
 
-![Factory Call Optimization](images/factory-optimization.png)
+![Factory Call Optimization](images/cache-stampede-after.png)
 
 As you can see, when multiple concurrent `GetOrSet[Async]` calls are made for the same key, only 1 of them will be executed: the returned value will be cached to be readily available, and then returned to all the callers for the same cache key.
 
