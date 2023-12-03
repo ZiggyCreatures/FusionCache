@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -41,6 +42,10 @@ public partial class FusionCache
 	private FusionCacheEventsHub _events;
 	private readonly List<IFusionCachePlugin> _plugins;
 	private AutoRecoveryService _autoRecovery;
+
+	private FusionCacheEntryOptions _tryUpdateOptions;
+	private static readonly MethodInfo __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric = typeof(FusionCache).GetMethod(nameof(TryUpdateMemoryEntryFromDistributedEntryAsync), BindingFlags.NonPublic | BindingFlags.Instance);
+	private static readonly ConcurrentDictionary<Type, MethodInfo> __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncCache = new ConcurrentDictionary<Type, MethodInfo>();
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -671,8 +676,6 @@ public partial class FusionCache
 		return false;
 	}
 
-	private static readonly MethodInfo __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric = typeof(FusionCache).GetMethod(nameof(TryUpdateMemoryEntryFromDistributedEntryAsync), BindingFlags.NonPublic | BindingFlags.Instance);
-
 	internal async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryUntypedAsync(string operationId, string cacheKey, FusionCacheMemoryEntry memoryEntry)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -706,7 +709,8 @@ public partial class FusionCache
 				return (true, false, false);
 			}
 
-			var methodInfo = __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric.MakeGenericMethod(memoryEntry.ValueType);
+			var methodInfo = __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncCache.GetOrAdd(memoryEntry.ValueType, x => __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric.MakeGenericMethod(x));
+
 			// SIGNATURE PARAMS: string operationId, string cacheKey, DistributedCacheAccessor dca, FusionCacheMemoryEntry memoryEntry
 			return await ((ValueTask<(bool error, bool isSame, bool hasUpdated)>)methodInfo.Invoke(this, new object[] { operationId, cacheKey, dca, memoryEntry })).ConfigureAwait(false);
 		}
@@ -719,7 +723,6 @@ public partial class FusionCache
 		}
 	}
 
-	private FusionCacheEntryOptions _tryUpdateOptions;
 	private async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(string operationId, string cacheKey, DistributedCacheAccessor dca, FusionCacheMemoryEntry memoryEntry)
 	{
 		try
