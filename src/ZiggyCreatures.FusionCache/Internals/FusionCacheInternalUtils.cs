@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +61,15 @@ internal static class FusionCacheInternalUtils
 			return string.Empty;
 
 		return GenerateOperationId();
+	}
+
+	// SEE HERE: https://devblogs.microsoft.com/pfxteam/little-known-gems-atomic-conditional-removals-from-concurrentdictionary/
+	public static bool TryRemove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+	{
+		if (dictionary is null)
+			throw new ArgumentNullException(nameof(dictionary));
+
+		return ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Remove(new KeyValuePair<TKey, TValue>(key, value));
 	}
 
 	/// <summary>

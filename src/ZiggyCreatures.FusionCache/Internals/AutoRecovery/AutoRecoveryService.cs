@@ -161,25 +161,15 @@ internal sealed class AutoRecoveryService
 		if (item.CacheKey is null)
 			return false;
 
-		if (_queue.TryGetValue(item.CacheKey, out var pendingLocal) == false)
-			return false;
+		if (_queue.TryRemove(item.CacheKey, item))
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): removed an item from the auto-recovery queue", _cache.CacheName, _cache.InstanceId, operationId, item.CacheKey);
 
-		// NOTE: HERE WE SHOULD USE THE NEW OVERLOAD TryRemove(KeyValuePair<TKey,TValue>) BUT THAT IS NOT AVAILABLE UNTIL .NET 5
-		// SO WE DO THE NEXT BEST THING WE CAN: TRY TO GET THE VALUE AND, IF IT IS THE SAME AS THE ONE WE HAVE, THEN REMOVE IT
-		// OTHERWISE SKIP THE REMOVAL
-		//
-		// SEE: https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.tryremove?view=net-7.0#system-collections-concurrent-concurrentdictionary-2-tryremove(system-collections-generic-keyvaluepair((-0-1)))
+			return true;
+		}
 
-		if (ReferenceEquals(item, pendingLocal) == false)
-			return false;
-
-		if (_queue.TryRemove(item.CacheKey, out _) == false)
-			return false;
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): removed an item from the auto-recovery queue", _cache.CacheName, _cache.InstanceId, operationId, item.CacheKey);
-
-		return true;
+		return false;
 	}
 
 	internal bool TryCleanUpQueue(string operationId, IList<AutoRecoveryItem> items)
