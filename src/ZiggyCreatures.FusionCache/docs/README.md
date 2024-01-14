@@ -5,7 +5,7 @@
 | 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Update_v0_24_0.md). |
 |:-------|
 
-## FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd layer.
+## FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
