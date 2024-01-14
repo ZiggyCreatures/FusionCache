@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.AutoRecovery;
 
@@ -284,6 +286,9 @@ internal sealed class AutoRecoveryService
 		var hasStopped = false;
 		AutoRecoveryItem? lastProcessedItem = null;
 
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.AutoRecoveryProcessQueue, _cache.CacheName, _cache.InstanceId, null, operationId);
+
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -305,20 +310,31 @@ internal sealed class AutoRecoveryService
 
 				var success = false;
 
-				switch (item.Action)
+				// ACTIVITY
+				using var activityForItem = Activities.Source.StartActivityWithCommonTags(Activities.Names.AutoRecoveryProcessItem, _cache.CacheName, _cache.InstanceId, item.CacheKey, operationId);
+
+				try
 				{
-					case FusionCacheAction.EntrySet:
-						success = await TryProcessItemSetAsync(operationId, item, token).ConfigureAwait(false);
-						break;
-					case FusionCacheAction.EntryRemove:
-						success = await TryProcessItemRemoveAsync(operationId, item, token).ConfigureAwait(false);
-						break;
-					case FusionCacheAction.EntryExpire:
-						success = await TryProcessItemExpireAsync(operationId, item, token).ConfigureAwait(false);
-						break;
-					default:
-						success = true;
-						break;
+					switch (item.Action)
+					{
+						case FusionCacheAction.EntrySet:
+							success = await TryProcessItemSetAsync(operationId, item, token).ConfigureAwait(false);
+							break;
+						case FusionCacheAction.EntryRemove:
+							success = await TryProcessItemRemoveAsync(operationId, item, token).ConfigureAwait(false);
+							break;
+						case FusionCacheAction.EntryExpire:
+							success = await TryProcessItemExpireAsync(operationId, item, token).ConfigureAwait(false);
+							break;
+						default:
+							success = true;
+							break;
+					}
+				}
+				catch (Exception exc)
+				{
+					activityForItem?.SetStatus(ActivityStatusCode.Error, exc.Message);
+					throw;
 				}
 
 				if (success)
@@ -348,6 +364,8 @@ internal sealed class AutoRecoveryService
 
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during a auto-recovery of an item ({RetryCount} retries left)", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, lastProcessedItem?.RetryCount);
+
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 		}
 		finally
 		{

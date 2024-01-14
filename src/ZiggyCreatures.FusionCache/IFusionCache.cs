@@ -198,7 +198,7 @@ public interface IFusionCache
 	void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Sets a secondary caching layer, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+	/// Sets a secondary caching level, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
 	/// </summary>
 	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
 	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
@@ -206,7 +206,7 @@ public interface IFusionCache
 	IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer);
 
 	/// <summary>
-	/// Removes the secondary caching layer.
+	/// Removes the secondary caching level.
 	/// </summary>
 	/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
 	IFusionCache RemoveDistributedCache();
@@ -233,24 +233,6 @@ public interface IFusionCache
 	/// Gets whether there is a backplane configured.
 	/// </summary>
 	bool HasBackplane { get; }
-
-	///// <summary>
-	///// Tries to send a message to other nodes connected to the same backplane, if any.
-	///// </summary>
-	///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
-	///// <param name="options">The options to use.</param>
-	///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	///// <returns><see langword="true"/> if there was at least one backplane to send a notification to, otherwise <see langword="false"/>.</returns>
-	//ValueTask<bool> PublishAsync(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
-
-	///// <summary>
-	///// Tries to send a message to other nodes connected to the same backplane, if any.
-	///// </summary>
-	///// <param name="message">The message to send. It can be created using one of the static methods like BackplaneMessage.CreateForXyz().</param>
-	///// <param name="options">The options to use.</param>
-	///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	///// <returns><see langword="true"/> if there was at least one backplane to send a notification to, otherwise <see langword="false"/>.</returns>
-	//bool Publish(BackplaneMessage message, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
 	/// The central place for all events handling of this FusionCache instance.

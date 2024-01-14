@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -147,6 +149,9 @@ public partial class FusionCache
 
 					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry);
 
+					// ACTIVITY
+					var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+
 					try
 					{
 						if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
@@ -157,6 +162,8 @@ public partial class FusionCache
 						{
 							value = await RunUtils.RunAsyncFuncWithTimeoutAsync(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token).ConfigureAwait(false);
 						}
+
+						activityForFactory?.Dispose();
 
 						hasNewValue = true;
 
@@ -177,15 +184,19 @@ public partial class FusionCache
 						// EVENTS
 						_events.OnFactorySuccess(operationId, key);
 					}
-					catch (OperationCanceledException)
+					catch (OperationCanceledException exc)
 					{
+						// ACTIVITY
+						activityForFactory?.SetStatus(ActivityStatusCode.Error, exc.Message);
+						activityForFactory?.Dispose();
+
 						throw;
 					}
 					catch (Exception exc)
 					{
 						ProcessFactoryError(operationId, key, exc);
 
-						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, token);
+						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory, token);
 
 						if (TryPickFailSafeFallbackValue(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options, out var maybeFallbackValue, out timestamp, out isStale))
 						{
@@ -239,6 +250,9 @@ public partial class FusionCache
 
 	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
 	{
+		// EVENT
+		_events.OnEagerRefresh(operationId, key);
+
 		// TRY WITH DISTRIBUTED CACHE (IF ANY)
 		try
 		{
@@ -288,19 +302,22 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
 
-		// EVENT
-		_events.OnEagerRefresh(operationId, key);
+		// ACTIVITY
+		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+		activity?.SetTag("fusioncache.factory.eager_refresh", true);
 
 		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
 		var factoryTask = factory(ctx, token);
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, lockObj, token);
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, lockObj, activity, token);
 	}
 
 	/// <inheritdoc/>
 	public async ValueTask<TValue?> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, MaybeValue<TValue?> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
 		ValidateCacheKey(key);
 
 		MaybePreProcessCacheKey(ref key);
@@ -314,6 +331,9 @@ public partial class FusionCache
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
 		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, factory, true, failSafeDefaultValue, options, token).ConfigureAwait(false);
 
@@ -333,6 +353,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue?> GetOrSetAsync<TValue>(string key, TValue? defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
 		ValidateCacheKey(key);
 
 		MaybePreProcessCacheKey(ref key);
@@ -343,6 +365,9 @@ public partial class FusionCache
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling GetOrSetAsync<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
 		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, (_, _) => Task.FromResult(defaultValue), false, default, options, token).ConfigureAwait(false);
 
@@ -389,8 +414,8 @@ public partial class FusionCache
 
 		var dca = GetCurrentDistributedAccessor(options);
 
-		// SHORT-CIRCUIT: NO USABLE DISTRIBUTED CACHE
-		if (options.SkipDistributedCacheReadWhenStale || dca.CanBeUsed(operationId, key) == false)
+		// EARLY RETURN: NO USABLE DISTRIBUTED CACHE
+		if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) || dca.CanBeUsed(operationId, key) == false)
 		{
 			if (options.IsFailSafeEnabled && memoryEntry is not null)
 			{
@@ -479,6 +504,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		Metrics.CounterTryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
 		ValidateCacheKey(key);
 
 		MaybePreProcessCacheKey(ref key);
@@ -489,6 +516,9 @@ public partial class FusionCache
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling TryGetAsync<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.TryGet, CacheName, InstanceId, key, operationId);
 
 		var entry = await TryGetEntryInternalAsync<TValue>(operationId, key, options, token).ConfigureAwait(false);
 
@@ -509,6 +539,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue?> GetOrDefaultAsync<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		Metrics.CounterGetOrDefault.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
 		ValidateCacheKey(key);
 
 		MaybePreProcessCacheKey(ref key);
@@ -519,6 +551,9 @@ public partial class FusionCache
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling GetOrDefaultAsync<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrDefault, CacheName, InstanceId, key, operationId);
 
 		var entry = await TryGetEntryInternalAsync<TValue>(operationId, key, options, token).ConfigureAwait(false);
 
@@ -552,6 +587,9 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling SetAsync<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
+
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
 		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null, typeof(TValue));
 
@@ -561,7 +599,10 @@ public partial class FusionCache
 			mca.SetEntry<TValue>(operationId, key, entry, options);
 		}
 
-		await DistributedSetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+		if (RequiresDistributedOperations(options))
+		{
+			await DistributedSetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+		}
 
 		// EVENT
 		_events.OnSet(operationId, key);
@@ -583,6 +624,9 @@ public partial class FusionCache
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling RemoveAsync {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Remove, CacheName, InstanceId, key, operationId);
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
@@ -613,6 +657,9 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling ExpireAsync {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Expire, CacheName, InstanceId, key, operationId);
+
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
 		{
@@ -628,7 +675,9 @@ public partial class FusionCache
 	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, Task<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, Task<bool>> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
+		{
 			return;
+		}
 
 		var mustAwaitCompletion = MustAwaitDistributedOperations(options);
 		var isBackground = !mustAwaitCompletion;

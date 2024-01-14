@@ -1,14 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
-/// The events hub for events specific for the memory layer.
+/// The events hub for events specific for the memory level.
 /// </summary>
-public class FusionCacheMemoryEventsHub
+public sealed class FusionCacheMemoryEventsHub
 	: FusionCacheCommonEventsHub
 {
 	/// <summary>
@@ -43,11 +45,43 @@ public class FusionCacheMemoryEventsHub
 
 	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value)
 	{
+		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		Eviction?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnExpire(string operationId, string key)
 	{
+		Metrics.CounterMemoryExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		Expire?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal override void OnHit(string operationId, string key, bool isStale)
+	{
+		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.stale", isStale));
+
+		base.OnHit(operationId, key, isStale);
+	}
+
+	internal override void OnMiss(string operationId, string key)
+	{
+		Metrics.CounterMemoryMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnMiss(operationId, key);
+	}
+
+	internal override void OnSet(string operationId, string key)
+	{
+		Metrics.CounterMemorySet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnSet(operationId, key);
+	}
+
+	internal override void OnRemove(string operationId, string key)
+	{
+		Metrics.CounterMemoryRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnRemove(operationId, key);
 	}
 }

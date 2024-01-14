@@ -314,7 +314,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub">
             <summary>
-            A class with base events that are common to any cache layer (general, memroy or distributed)
+            A class with base events that are common to any cache level (general, memroy or distributed)
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
@@ -347,7 +347,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub">
             <summary>
-            The events hub for events specific for the distributed layer.
+            The events hub for events specific for the distributed level.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheDistributedEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
@@ -444,12 +444,12 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Memory">
             <summary>
-            The events hub for the memory layer.
+            The events hub for the memory level.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Distributed">
             <summary>
-            The events hub for the distributed layer.
+            The events hub for the distributed level.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.Backplane">
@@ -499,7 +499,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub">
             <summary>
-            The events hub for events specific for the memory layer.
+            The events hub for events specific for the memory level.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
@@ -1062,6 +1062,56 @@
             <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics">
+            <summary>
+            A support class for FusionCache diagnostics.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.FusionCacheVersion">
+            <summary>
+            The current version of FusionCache.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.ActivitySourceName">
+            <summary>
+            The activity source name for FusionCache.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.ActivitySourceNameMemoryLevel">
+            <summary>
+            The activity source name for the FusionCache memory level.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.ActivitySourceNameDistributedLevel">
+            <summary>
+            The activity source name for the FusionCache distributed level.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.ActivitySourceNameBackplane">
+            <summary>
+            The activity source name for the FusionCache backplane.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.MeterName">
+            <summary>
+            The meter name for FusionCache.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.MeterNameMemoryLevel">
+            <summary>
+            The meter name for the FusionCache memory level.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.MeterNameDistributedLevel">
+            <summary>
+            The meter name for the FusionCache distributed level.
+            </summary>
+        </member>
+        <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheDiagnostics.MeterNameBackplane">
+            <summary>
+            The meter name for the FusionCache backplane.
+            </summary>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException">
             <summary>
             The generic exception that is thrown when a distributed cache error occurs: the InnerException contains the original exception.
@@ -1234,7 +1284,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations">
             <summary>
-            Even if the distributed cache is a secondary layer, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
+            Even if the distributed cache is a secondary level, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
             <br/>
             This is to avoid rare edge cases like saving a value in the cache and immediately cheking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
             <br/>
@@ -1307,9 +1357,9 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCacheReadWhenStale">
             <summary>
-            When a 2nd layer (distributed cache) is used and a cache entry in the 1st layer (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
+            When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
             <br/><br/>
-            There are situations though, like in a mobile app with a SQLite 2nd layer, where the 2nd layer is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd layer, so we can skip that extra read for a perf boost (of course the write part will still be done).
+            There are situations though, like in a mobile app with a SQLite 2nd level, where the 2nd level is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd level, so we can skip that extra read for a perf boost (of course the write part will still be done).
             <br/><br/>
             <strong>TL/DR:</strong> if your 2nd level is not "distributed" but only "out of process", setting this to <see langword="true"/> can give you a nice performance boost.
             <br/><br/>
@@ -1320,7 +1370,7 @@
             <summary>
             Skip the usage of the memory cache.
             <br/><br/>
-            <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+            <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
@@ -1504,7 +1554,7 @@
             <summary>
             Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipMemoryCache"/> option.
             <br/><br/>
-            <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+            <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
@@ -2727,7 +2777,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>
-            Sets a secondary caching layer, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+            Sets a secondary caching level, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
             </summary>
             <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
             <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
@@ -2735,7 +2785,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.RemoveDistributedCache">
             <summary>
-            Removes the secondary caching layer.
+            Removes the secondary caching level.
             </summary>
             <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
         </member>
@@ -3033,7 +3083,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> distributed layer.
+            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> distributed level.
             </summary>
             <typeparam name="TValue">The type of the entry's value</typeparam>
         </member>
@@ -3182,7 +3232,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory layer.
+            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory level.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Int64,System.Type)">

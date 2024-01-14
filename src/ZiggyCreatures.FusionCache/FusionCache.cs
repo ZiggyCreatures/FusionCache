@@ -16,6 +16,7 @@ using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.AutoRecovery;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -263,15 +264,22 @@ public partial class FusionCache
 		return false;
 	}
 
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, CancellationToken token)
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
 		if (factoryTask is null || options.AllowTimedOutFactoryBackgroundCompletion == false)
-			return;
+		{
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
+			activity?.Dispose();
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, token);
+			return;
+		}
+
+		activity?.AddEvent(new ActivityEvent(Activities.EventNames.FactoryBackgroundMove));
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity, token);
 	}
 
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, object? lockObj, CancellationToken token)
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, object? lockObj, Activity? activity, CancellationToken token)
 	{
 		if (factoryTask.IsFaulted)
 		{
@@ -286,6 +294,10 @@ public partial class FusionCache
 			finally
 			{
 				ReleaseLock(operationId, key, lockObj);
+
+				// ACTIVITY
+				activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
+				activity?.Dispose();
 			}
 
 			return;
@@ -304,6 +316,10 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
 						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
 
+					// ACTIVITY
+					activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
+					activity?.Dispose();
+
 					// EVENT
 					_events.OnBackgroundFactoryError(operationId, key);
 				}
@@ -311,6 +327,9 @@ public partial class FusionCache
 				{
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory successfully completed, keeping the result", CacheName, InstanceId, operationId, key);
+
+					// ACTIVITY
+					activity?.Dispose();
 
 					// UPDATE ADAPTIVE OPTIONS
 					var maybeNewOptions = ctx.GetOptions();
@@ -765,6 +784,7 @@ public partial class FusionCache
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, cacheKey);
 
+			// EVENT
 			_events.Memory.OnSet(operationId, cacheKey);
 
 			return (false, false, true);

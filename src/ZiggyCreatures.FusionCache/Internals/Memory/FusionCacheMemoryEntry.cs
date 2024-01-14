@@ -4,7 +4,7 @@ using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 /// <summary>
-/// An entry in a <see cref="FusionCache"/> memory layer.
+/// An entry in a <see cref="FusionCache"/> memory level.
 /// </summary>
 internal sealed class FusionCacheMemoryEntry
 	: IFusionCacheEntry

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
@@ -25,12 +27,12 @@ public class FusionCacheEventsHub
 	}
 
 	/// <summary>
-	/// The events hub for the memory layer.
+	/// The events hub for the memory level.
 	/// </summary>
 	public FusionCacheMemoryEventsHub Memory { get; }
 
 	/// <summary>
-	/// The events hub for the distributed layer.
+	/// The events hub for the distributed level.
 	/// </summary>
 	public FusionCacheDistributedEventsHub Distributed { get; }
 
@@ -81,41 +83,85 @@ public class FusionCacheEventsHub
 
 	internal void OnFailSafeActivate(string operationId, string key)
 	{
+		Metrics.CounterFailSafeActivate.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		FailSafeActivate?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactorySyntheticTimeout(string operationId, string key)
 	{
+		Metrics.CounterFactorySyntheticTimeout.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		FactorySyntheticTimeout?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactorySyntheticTimeout), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactoryError(string operationId, string key)
 	{
+		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", false));
+
 		FactoryError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactorySuccess(string operationId, string key)
 	{
+		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", false));
+
 		FactorySuccess?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactoryError(string operationId, string key)
 	{
+		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", true));
+
 		BackgroundFactoryError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactorySuccess(string operationId, string key)
 	{
+		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", true));
+
 		BackgroundFactorySuccess?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnEagerRefresh(string operationId, string key)
 	{
+		Metrics.CounterEagerRefresh.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		EagerRefresh?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(EagerRefresh), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnExpire(string operationId, string key)
 	{
+		Metrics.CounterExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		Expire?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal override void OnHit(string operationId, string key, bool isStale)
+	{
+		Metrics.CounterHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.stale", isStale));
+
+		base.OnHit(operationId, key, isStale);
+	}
+
+	internal override void OnMiss(string operationId, string key)
+	{
+		Metrics.CounterMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnMiss(operationId, key);
+	}
+
+	internal override void OnSet(string operationId, string key)
+	{
+		Metrics.CounterSet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnSet(operationId, key);
+	}
+
+	internal override void OnRemove(string operationId, string key)
+	{
+		Metrics.CounterRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnRemove(operationId, key);
 	}
 }
