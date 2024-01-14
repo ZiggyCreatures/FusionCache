@@ -752,10 +752,10 @@ public class DependencyInjectionTests
 				var options = sp.GetService<IOptionsMonitor<MemoryDistributedCacheOptions>>()?.Get("Baz") ?? new MemoryDistributedCacheOptions();
 				var loggerFactory = sp.GetService<ILoggerFactory>();
 
-				return new MemoryDistributedCache(
-					Options.Create(options),
-					loggerFactory
-				);
+				if (loggerFactory is null)
+					return new MemoryDistributedCache(Options.Create(options));
+
+				return new MemoryDistributedCache(Options.Create(options), loggerFactory);
 			})
 			.WithMemoryBackplane()
 		;
