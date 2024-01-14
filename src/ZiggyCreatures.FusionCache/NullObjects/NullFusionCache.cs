@@ -33,6 +33,9 @@ public class NullFusionCache
 		// OPTIONS
 		_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
 
+		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
+		_options = _options.Duplicate();
+
 		// GLOBALLY UNIQUE INSTANCE ID
 		InstanceId = _options.InstanceId ?? Guid.NewGuid().ToString("N");
 
