@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.24.0</Version>
+		<Version>0.25.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>
@@ -15,18 +15,11 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Added: all new Auto-Recovery (ex: Backplane Auto-Recovery) supporting both distributed cache and backplane, more robust, with continuous background processing, auto-cleanup and more
-			- Added: Simulator app
-			- Added: custom exceptions
-			- Added: eviction event now pass the cache value
-			- Added: ReThrowBackplaneExceptions entry option
-			- Changed: better distributed workflow
-			- Changed: better handling of backplane messages
-			- Changed: wire format version (distributed cache + backplane)
-			- Changed: better logging (InstanceId everywhere)
-			- Changed: better timestamps (more precise)
-			- Changed: NullFusionCache now correctly handles CreateEntryOptions
-			- Perf: various performance optimizations
+			- Added: full observability with tracing and metrics (logging was already there)
+			- Changed: better items cleanup in auto-recovery
+			- Update: package dependencies
+			- Fixed: SkipDistributedCacheReadWhenStale was not working as expected in get-only operations (TryGet, GetOrDefault)
+			- Fixed: minor reference error in xml docs
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<!--<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>-->

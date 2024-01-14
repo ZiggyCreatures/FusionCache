@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package contains utility methods and classes to integrate FusionCache with [OpenTelemetry](https://opentelemetry.io/).
+This package adds native [OpenTelemetry](https://opentelemetry.io/) instrumentation to FusionCache.
