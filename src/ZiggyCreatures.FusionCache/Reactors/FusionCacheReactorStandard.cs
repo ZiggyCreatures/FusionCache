@@ -42,15 +42,15 @@ internal sealed class FusionCacheReactorStandard
 
 	private SemaphoreSlim GetSemaphore(string cacheName, string cacheInstanceId, string key, ILogger? logger)
 	{
-		object _semaphore;
+		object? _semaphore;
 
 		if (_lockCache.TryGetValue(key, out _semaphore))
-			return (SemaphoreSlim)_semaphore;
+			return (SemaphoreSlim)_semaphore!;
 
 		lock (_lockPool[GetLockIndex(key)])
 		{
 			if (_lockCache.TryGetValue(key, out _semaphore))
-				return (SemaphoreSlim)_semaphore;
+				return (SemaphoreSlim)_semaphore!;
 
 			_semaphore = new SemaphoreSlim(1, 1);
 
@@ -61,7 +61,7 @@ internal sealed class FusionCacheReactorStandard
 			{
 				try
 				{
-					((SemaphoreSlim)value).Dispose();
+					((SemaphoreSlim?)value)?.Dispose();
 				}
 				catch (Exception exc)
 				{

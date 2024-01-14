@@ -83,7 +83,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		public static void AddWithCommonTags<T>(this Counter<T> counter, T delta, string cacheName, string cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
 			where T : struct
 		{
-			// TODO: MAYBE REMOVE THIS?
 			if (counter.Enabled == false)
 				return;
 
