@@ -755,8 +755,8 @@ public class DistributedCacheLevelTests
 		using var fusionCache1 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		using var fusionCache2 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
-		var v1 = await fusionCache1.GetOrSetAsync<int>("foo", 1, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
-		var v2 = await fusionCache2.GetOrSetAsync<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
+		var v1 = await fusionCache1.GetOrSetAsync<int>("foo", 1, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
+		var v2 = await fusionCache2.GetOrSetAsync<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
 
 		Assert.Equal(1, v1);
 		Assert.Equal(1, v2);
@@ -778,8 +778,8 @@ public class DistributedCacheLevelTests
 		using var fusionCache1 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		using var fusionCache2 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
-		var v1 = fusionCache1.GetOrSet<int>("foo", 1, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
-		var v2 = fusionCache2.GetOrSet<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true));
+		var v1 = fusionCache1.GetOrSet<int>("foo", 1, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
+		var v2 = fusionCache2.GetOrSet<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(2)).SetFailSafe(true).SetSkipDistributedCacheReadWhenStale(true));
 
 		Assert.Equal(1, v1);
 		Assert.Equal(1, v2);
@@ -791,6 +791,46 @@ public class DistributedCacheLevelTests
 
 		Assert.Equal(3, v1);
 		Assert.Equal(4, v2);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task DoesNotSkipOnMemoryCacheMissWhenSkipDistributedCacheReadWhenStaleIsTrueAsync(SerializerType serializerType)
+	{
+		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		using var fusionCache1 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+		using var fusionCache2 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		fusionCache1.DefaultEntryOptions.SkipDistributedCacheReadWhenStale = true;
+		fusionCache2.DefaultEntryOptions.SkipDistributedCacheReadWhenStale = true;
+
+		await fusionCache1.SetAsync("foo", 21);
+
+		var v1 = await fusionCache1.TryGetAsync<int>("foo");
+		var v2 = await fusionCache2.TryGetAsync<int>("foo");
+
+		Assert.True(v1.HasValue);
+		Assert.True(v2.HasValue);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void DoesNotSkipOnMemoryCacheMissWhenSkipDistributedCacheReadWhenStaleIsTrue(SerializerType serializerType)
+	{
+		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		using var fusionCache1 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+		using var fusionCache2 = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		fusionCache1.DefaultEntryOptions.SkipDistributedCacheReadWhenStale = true;
+		fusionCache2.DefaultEntryOptions.SkipDistributedCacheReadWhenStale = true;
+
+		fusionCache1.Set("foo", 21);
+
+		var v1 = fusionCache1.TryGet<int>("foo");
+		var v2 = fusionCache2.TryGet<int>("foo");
+
+		Assert.True(v1.HasValue);
+		Assert.True(v2.HasValue);
 	}
 
 	[Theory]
