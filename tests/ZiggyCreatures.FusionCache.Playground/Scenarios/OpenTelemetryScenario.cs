@@ -5,7 +5,6 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Honeycomb.OpenTelemetry;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -104,11 +104,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					//options.IncludeBackplane = true;
 				})
 
-				.AddHoneycomb(new HoneycombOptions
-				{
-					ServiceName = ServiceName,
-					ApiKey = "*********"
-				})
+				//.AddHoneycomb(new HoneycombOptions
+				//{
+				//	ServiceName = ServiceName,
+				//	ApiKey = "*********"
+				//})
 				//.AddConsoleExporter()
 				.Build();
 
@@ -129,11 +129,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					options.IncludeBackplane = true;
 				})
 
-				.AddHoneycomb(new HoneycombOptions
-				{
-					ServiceName = ServiceName,
-					ApiKey = "*********"
-				})
+				//.AddHoneycomb(new HoneycombOptions
+				//{
+				//	ServiceName = ServiceName,
+				//	ApiKey = "*********"
+				//})
 
 				//.AddOtlpExporter(o =>
 				//{
