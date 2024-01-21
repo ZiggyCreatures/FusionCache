@@ -5,4 +5,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Simplification", "RCS1049:Simplify boolean comparison.", Justification = "<Pending>")]
+[assembly: SuppressMessage("Simplification", "RCS1049:Simplify boolean comparison.")]
