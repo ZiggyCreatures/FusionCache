@@ -27,9 +27,10 @@ public class BackplaneTests
 
 	private FusionCacheOptions CreateFusionCacheOptions()
 	{
-		var res = new FusionCacheOptions();
-
-		res.CacheKeyPrefix = TestingCacheKeyPrefix;
+		var res = new FusionCacheOptions
+		{
+			CacheKeyPrefix = TestingCacheKeyPrefix
+		};
 
 		return res;
 	}
@@ -336,6 +337,7 @@ public class BackplaneTests
 		cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheA.DefaultEntryOptions.Duration = duration;
+		cacheA.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
@@ -343,6 +345,7 @@ public class BackplaneTests
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheB.DefaultEntryOptions.Duration = duration;
+		cacheB.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		using var cacheC = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
@@ -350,6 +353,7 @@ public class BackplaneTests
 		cacheC.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheC.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheC.DefaultEntryOptions.Duration = duration;
+		cacheC.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheC.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		await Task.Delay(TimeSpan.FromMilliseconds(200));
@@ -433,6 +437,7 @@ public class BackplaneTests
 		cacheA.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheA.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheA.DefaultEntryOptions.Duration = duration;
+		cacheA.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
@@ -440,6 +445,7 @@ public class BackplaneTests
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheB.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheB.DefaultEntryOptions.Duration = duration;
+		cacheB.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		using var cacheC = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
@@ -447,6 +453,7 @@ public class BackplaneTests
 		cacheC.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cacheC.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cacheC.DefaultEntryOptions.Duration = duration;
+		cacheC.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheC.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(200));

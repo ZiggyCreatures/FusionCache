@@ -5,5 +5,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Performance", "HAA0301:Closure Allocation Source", Justification = "<Pending>")]
-[assembly: SuppressMessage("Performance", "HAA0302:Display class allocation to capture closure", Justification = "<Pending>")]
+[assembly: SuppressMessage("Performance", "HAA0301:Closure Allocation Source")]
+[assembly: SuppressMessage("Performance", "HAA0302:Display class allocation to capture closure")]
+[assembly: SuppressMessage("Style", "IDE0290:Use primary constructor")]

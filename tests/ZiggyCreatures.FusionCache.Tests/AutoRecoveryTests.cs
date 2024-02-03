@@ -26,9 +26,10 @@ public class AutoRecoveryTests
 
 	private FusionCacheOptions CreateFusionCacheOptions()
 	{
-		var res = new FusionCacheOptions();
-
-		res.CacheKeyPrefix = TestingCacheKeyPrefix;
+		var res = new FusionCacheOptions
+		{
+			CacheKeyPrefix = TestingCacheKeyPrefix
+		};
 
 		return res;
 	}
