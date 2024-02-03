@@ -11,6 +11,7 @@ using Serilog;
 using Serilog.Events;
 using Spectre.Console;
 using Spectre.Console.Rendering;
+using StackExchange.Redis;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
@@ -38,13 +39,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static readonly bool EnableLogging = false;
 		public static readonly bool EnableLoggingExceptions = false;
 
+		private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,defaultDatabase={0},connectTimeout=1000,syncTimeout=500";
+
 		// DISTRIBUTED CACHE
 		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
 		public static readonly bool AllowBackgroundDistributedCacheOperations = true;
 		public static readonly TimeSpan? DistributedCacheSoftTimeout = null; //TimeSpan.FromMilliseconds(100);
 		public static readonly TimeSpan? DistributedCacheHardTimeout = null; //TimeSpan.FromMilliseconds(500);
 		public static readonly TimeSpan DistributedCacheCircuitBreakerDuration = TimeSpan.Zero;
-		public static readonly string DistributedCacheRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
+		public static readonly string DistributedCacheRedisConnection = RedisConnection;
 		public static readonly TimeSpan? ChaosDistributedCacheSyntheticMinDelay = null; //TimeSpan.FromMilliseconds(500);
 		public static readonly TimeSpan? ChaosDistributedCacheSyntheticMaxDelay = null; //TimeSpan.FromMilliseconds(500);
 
@@ -52,7 +55,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static readonly BackplaneType BackplaneType = BackplaneType.Memory;
 		public static readonly bool AllowBackgroundBackplaneOperations = true;
 		public static readonly TimeSpan BackplaneCircuitBreakerDuration = TimeSpan.Zero;
-		public static readonly string BackplaneRedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False,defaultDatabase={0}";
+		public static readonly string BackplaneRedisConnection = RedisConnection;
 		public static readonly TimeSpan? ChaosBackplaneSyntheticDelay = null; //TimeSpan.FromMilliseconds(500);
 
 		// OTHERS
@@ -71,15 +74,15 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static readonly SemaphoreSlim GlobalMutex = new SemaphoreSlim(1, 1);
 		private static int LastValue = 0;
 		private static int? LastUpdatedClusterIdx = null;
-		private static readonly ConcurrentDictionary<int, SimulatedCluster> CacheClusters = new ConcurrentDictionary<int, SimulatedCluster>();
-		private static readonly ConcurrentDictionary<int, SimulatedDatabase> Databases = new ConcurrentDictionary<int, SimulatedDatabase>();
+		private static readonly ConcurrentDictionary<int, SimulatedCluster> CacheClusters = [];
+		private static readonly ConcurrentDictionary<int, SimulatedDatabase> Databases = [];
 
 		private static bool DatabaseEnabled = true;
 
-		private static readonly List<ChaosDistributedCache> DistributedCaches = new List<ChaosDistributedCache>();
+		private static readonly List<ChaosDistributedCache> DistributedCaches = [];
 		private static bool DistributedCachesEnabled = true;
 
-		private static readonly List<ChaosBackplane> Backplanes = new List<ChaosBackplane>();
+		private static readonly List<ChaosBackplane> Backplanes = [];
 		private static bool BackplanesEnabled = true;
 
 		// STATS
@@ -96,6 +99,12 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static readonly Color Color_LightRed = Color.Red3_1;
 		private static readonly Color Color_FlashRed = Color.Red1;
 
+		private static ConcurrentDictionary<string, IConnectionMultiplexer> _connectionMultiplexerCache = new ConcurrentDictionary<string, IConnectionMultiplexer>();
+		private static IConnectionMultiplexer GetRedisConnectionMultiplexer(string configuration)
+		{
+			return _connectionMultiplexerCache.GetOrAdd(configuration, x => ConnectionMultiplexer.Connect(x));
+		}
+
 		private static IDistributedCache? CreateDistributedCache(int clusterIdx)
 		{
 			switch (SimulatorOptions.DistributedCacheType)
@@ -105,7 +114,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				case DistributedCacheType.Redis:
 					return new RedisCache(new RedisCacheOptions
 					{
-						Configuration = string.Format(SimulatorOptions.DistributedCacheRedisConnection, clusterIdx)
+						//Configuration = string.Format(SimulatorOptions.DistributedCacheRedisConnection, clusterIdx)
+						ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(string.Format(SimulatorOptions.BackplaneRedisConnection, clusterIdx))
 					});
 				default:
 					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
@@ -121,9 +131,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				case BackplaneType.Redis:
 					return new RedisBackplane(new RedisBackplaneOptions
 					{
-						Configuration = string.Format(SimulatorOptions.BackplaneRedisConnection, clusterIdx),
-						//CircuitBreakerDuration = SimulatorScenarioOptions.BackplaneCircuitBreakerDuration,
-						//AllowBackgroundOperations = SimulatorScenarioOptions.AllowBackplaneBackgroundOperations
+						//Configuration = string.Format(SimulatorOptions.DistributedCacheRedisConnection, clusterIdx)
+						ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(string.Format(SimulatorOptions.BackplaneRedisConnection, clusterIdx))
 					});
 				default:
 					return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = $"connection-{clusterIdx}" });
@@ -133,13 +142,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static void SaveToDb(int clusterIdx, int value)
 		{
 			if (DatabaseEnabled == false)
-			{
 				throw new Exception("Synthetic database exception");
-			}
 
 			Interlocked.Increment(ref DbWritesCount);
 
-			var db = Databases.GetOrAdd(clusterIdx, new SimulatedDatabase());
+			var db = Databases.GetOrAdd(clusterIdx, _ => new SimulatedDatabase());
 			db.Value = value;
 			db.LastUpdateTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 			LastUpdatedClusterIdx = clusterIdx;
@@ -148,13 +155,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static int? LoadFromDb(int clusterIdx)
 		{
 			if (DatabaseEnabled == false)
-			{
 				throw new Exception("Synthetic database exception");
-			}
 
 			Interlocked.Increment(ref DbReadsCount);
 
-			var db = Databases.GetOrAdd(clusterIdx, new SimulatedDatabase());
+			var db = Databases.GetOrAdd(clusterIdx, _ => new SimulatedDatabase());
 			return db.Value;
 		}
 
@@ -163,7 +168,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			var sw = Stopwatch.StartNew();
 			await GlobalMutex.WaitAsync();
 			sw.Stop();
-			logger?.LogInformation($"LOCK (UPDATE) TOOK: {sw.ElapsedMilliseconds} ms");
+			logger?.LogInformation("LOCK (UPDATE) TOOK: {ElapsedMs} ms", sw.ElapsedMilliseconds);
 
 			try
 			{
@@ -182,11 +187,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 						var nodeIdx = RNG.Next(cluster.Nodes.Count);
 						var node = cluster.Nodes[nodeIdx];
 
-						logger?.LogInformation($"BEFORE CACHE SET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
+						logger?.LogInformation("BEFORE CACHE SET ({CacheInstanceId}) TOOK: {ElapsedMs} ms", node.Cache.InstanceId, sw.ElapsedMilliseconds);
 						sw.Restart();
 						await node.Cache.SetAsync(CacheKey, LastValue, opt => opt.SetSkipBackplaneNotifications(false));
 						sw.Stop();
-						logger?.LogInformation($"AFTER CACHE SET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
+						logger?.LogInformation("AFTER CACHE SET ({CacheInstanceId}) TOOK: {ElapsedMs} ms", node.Cache.InstanceId, sw.ElapsedMilliseconds);
 
 						// SAVE LAST XYZ
 						node.ExpirationTimestampUnixMs = DateTimeOffset.UtcNow.Add(SimulatorOptions.CacheDuration).ToUnixTimeMilliseconds();
@@ -334,7 +339,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					var swCache = Stopwatch.StartNew();
 					var cache = new FusionCache(options, logger: cacheLogger);
 					swCache.Stop();
-					logger?.LogInformation($"CACHE CREATION TOOK: {swCache.ElapsedMilliseconds} ms");
+					logger?.LogInformation("CACHE CREATION TOOK: {ElapsedMs} ms", swCache.ElapsedMilliseconds);
 					AnsiConsole.MarkupLine($" [black on {Color_DarkGreen}] OK [/]");
 
 					// DISTRIBUTED CACHE
@@ -350,7 +355,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 						var swDistributedCache = Stopwatch.StartNew();
 						cache.SetupDistributedCache(tmp, new FusionCacheNewtonsoftJsonSerializer());
 						swDistributedCache.Stop();
-						logger?.LogInformation($"DISTRIBUTED CACHE SETUP TOOK: {swDistributedCache.ElapsedMilliseconds} ms");
+						logger?.LogInformation("DISTRIBUTED CACHE SETUP TOOK: {ElapsedMs} ms", swDistributedCache.ElapsedMilliseconds);
 						DistributedCaches.Add(tmp);
 						AnsiConsole.MarkupLine($" [black on {Color_DarkGreen}] OK [/]");
 					}
@@ -369,7 +374,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 						var swBackplane = Stopwatch.StartNew();
 						cache.SetupBackplane(tmp);
 						swBackplane.Stop();
-						logger?.LogInformation($"BACKPLANE SETUP TOOK: {swBackplane.ElapsedMilliseconds} ms");
+						logger?.LogInformation("BACKPLANE SETUP TOOK: {ElapsedMs} ms", swBackplane.ElapsedMilliseconds);
 						Backplanes.Add(tmp);
 						AnsiConsole.MarkupLine($" [black on {Color_DarkGreen}] OK [/]");
 					}
@@ -397,17 +402,17 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					cluster.Nodes.Add(node);
 
 					swNode.Stop();
-					logger?.LogInformation($"SETUP (NODE {nodeIdx + 1}) TOOK: {swNode.ElapsedMilliseconds} ms");
+					logger?.LogInformation("SETUP (NODE {NodeIdx}) TOOK: {ElapsedMs} ms", nodeIdx + 1, swNode.ElapsedMilliseconds);
 				}
 
 				CacheClusters[clusterIdx] = cluster;
 
 				swCluster.Stop();
-				logger?.LogInformation($"SETUP (CLUSTER {clusterIdx + 1}) TOOK: {swCluster.ElapsedMilliseconds} ms");
+				logger?.LogInformation("SETUP (CLUSTER {ClusterIdx}) TOOK: {ElapsedMs} ms", clusterIdx + 1, swCluster.ElapsedMilliseconds);
 			}
 
 			swAll.Stop();
-			logger?.LogInformation($"SETUP (ALL) TOOK: {swAll.ElapsedMilliseconds} ms");
+			logger?.LogInformation("SETUP (ALL) TOOK: {ElapsedMs} ms", swAll.ElapsedMilliseconds);
 		}
 
 		private static string GetCountdownMarkup(long nowTimestampUnixMs, long? expirationTimestampUnixMs)
@@ -456,15 +461,18 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				try
 				{
 					var sw = Stopwatch.StartNew();
-					item.Value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(clusterIdx));
+					//// SYNC
+					//item.Value = node.Cache.GetOrSet<int?>(CacheKey, _ => LoadFromDb(clusterIdx));
+					// ASYNC
+					item.Value = await node.Cache.GetOrSetAsync<int?>(CacheKey, async _ => LoadFromDb(clusterIdx)).ConfigureAwait(false);
 					item.Error = false;
 					sw.Stop();
-					logger?.LogInformation($"CACHE GET ({node.Cache.InstanceId}) TOOK: {sw.ElapsedMilliseconds} ms");
+					logger?.LogInformation("CACHE GET ({CacheInstanceId}) TOOK: {ElapsedMs} ms", node.Cache.InstanceId, sw.ElapsedMilliseconds);
 				}
 				catch
 				{
 					item = (true, null);
-					logger?.LogInformation($"CACHE GET ({node.Cache.InstanceId}) FAILED");
+					logger?.LogInformation("CACHE GET ({CacheInstanceId}) FAILED", node.Cache.InstanceId);
 				}
 				clusterValues[nodeIdx] = item;
 			}
@@ -475,7 +483,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			var swLock = Stopwatch.StartNew();
 			await GlobalMutex.WaitAsync();
 			swLock.Stop();
-			logger?.LogInformation($"LOCK (DASHBOARD) TOOK: {swLock.ElapsedMilliseconds} ms");
+			logger?.LogInformation("LOCK (DASHBOARD) TOOK: {ElapsedMs} ms", swLock.ElapsedMilliseconds);
 
 			try
 			{
@@ -507,7 +515,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					await Task.WhenAll(tasks);
 
 					swClusters.Stop();
-					logger?.LogInformation($"READ ON ALL CLUSTERS TOOK: {swClusters.ElapsedMilliseconds} ms");
+					logger?.LogInformation("READ ON ALL CLUSTERS TOOK: {ElapsedMs} ms", swClusters.ElapsedMilliseconds);
 
 					logger?.LogInformation("SNAPSHOT VALUES: END");
 				}
