@@ -96,7 +96,7 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// The timeout to apply when trying to acquire a lock during a factory execution.
+	/// The timeout to apply when trying to acquire a memory lock during a factory execution.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
 	/// </summary>
@@ -712,16 +712,16 @@ public sealed class FusionCacheEntryOptions
 		return res;
 	}
 
-	internal TimeSpan GetAppropriateLockTimeout(bool hasFallbackValue)
+	internal TimeSpan GetAppropriateMemoryLockTimeout(bool hasFallbackValue)
 	{
 		var res = LockTimeout;
 		if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
 		{
-			// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+			// IF THERE IS NO SPECIFIC MEMORY LOCK TIMEOUT
 			// + THERE IS A FALLBACK ENTRY
 			// + FAIL-SAFE IS ENABLED
 			// + THERE IS A FACTORY SOFT TIMEOUT
-			// --> USE IT AS A LOCK TIMEOUT
+			// --> USE IT AS A MEMORY LOCK TIMEOUT
 			res = FactorySoftTimeout;
 		}
 

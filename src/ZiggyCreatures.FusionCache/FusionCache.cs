@@ -19,8 +19,8 @@ using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
-using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion;
@@ -35,18 +35,32 @@ public partial class FusionCache
 	private readonly FusionCacheOptions _options;
 	private readonly string? _cacheKeyPrefix;
 	private readonly ILogger<FusionCache>? _logger;
-	private IFusionCacheReactor _reactor;
+	private IFusionCacheMemoryLocker _memoryLocker;
 	private MemoryCacheAccessor _mca;
 	private DistributedCacheAccessor? _dca;
 	private BackplaneAccessor? _bpa;
 	private readonly object _backplaneLock = new object();
+	private AutoRecoveryService _autoRecovery;
 	private FusionCacheEventsHub _events;
 	private readonly List<IFusionCachePlugin> _plugins;
-	private AutoRecoveryService _autoRecovery;
 
-	private FusionCacheEntryOptions _tryUpdateOptions;
+	private readonly FusionCacheEntryOptions _tryUpdateOptions;
 	private static readonly MethodInfo __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric = typeof(FusionCache).GetMethod(nameof(TryUpdateMemoryEntryFromDistributedEntryAsync), BindingFlags.NonPublic | BindingFlags.Instance);
 	private static readonly ConcurrentDictionary<Type, MethodInfo> __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncCache = new ConcurrentDictionary<Type, MethodInfo>();
+
+	///// <summary>
+	///// Creates a new <see cref="FusionCache"/> instance.
+	///// </summary>
+	///// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
+	///// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
+	///// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
+	///// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+	//[Obsolete("Please stop using this constructor, it will be removed in future versions.")]
+	//public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache, ILogger<FusionCache>? logger, IFusionCacheReactor? reactor)
+	//	: this(optionsAccessor, memoryCache, logger, (IFusionCacheMemoryLocker?)null)
+	//{
+	//	// EMPTY
+	//}
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -54,8 +68,8 @@ public partial class FusionCache
 	/// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
 	/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
 	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
-	/// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-	public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheReactor? reactor = null)
+	/// <param name="memoryLocker">The <see cref="IFusionCacheMemoryLocker"/> instance to use. If <see langword="null"/>, a standard one will be automatically created and managed.</param>
+	public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheMemoryLocker? memoryLocker = null)
 	{
 		if (optionsAccessor is null)
 			throw new ArgumentNullException(nameof(optionsAccessor));
@@ -89,14 +103,14 @@ public partial class FusionCache
 			_logger = logger;
 		}
 
-		// REACTOR
-		_reactor = reactor ?? new FusionCacheReactorStandard();
+		// MEMORY LOCKER
+		_memoryLocker = memoryLocker ?? new StandardMemoryLocker();
 
 		// EVENTS
 		_events = new FusionCacheEventsHub(this, _options, _logger);
 
 		// PLUGINS
-		_plugins = new List<IFusionCachePlugin>();
+		_plugins = [];
 
 		// MEMORY CACHE
 		_mca = new MemoryCacheAccessor(memoryCache, _options, _logger, _events.Memory);
@@ -266,7 +280,15 @@ public partial class FusionCache
 
 	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		if (factoryTask is null || options.AllowTimedOutFactoryBackgroundCompletion == false)
+		if (factoryTask is null)
+		{
+			// ACTIVITY
+			activity?.Dispose();
+
+			return;
+		}
+
+		if (factoryTask.IsFaulted)
 		{
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
@@ -275,11 +297,22 @@ public partial class FusionCache
 			return;
 		}
 
+		if (options.AllowTimedOutFactoryBackgroundCompletion == false)
+		{
+			// ACTIVITY
+			activity?.AddEvent(new ActivityEvent(Activities.EventNames.FactoryBackgroundMoveNotAllowed));
+			activity?.Dispose();
+
+			return;
+		}
+
+		token.ThrowIfCancellationRequested();
+
 		activity?.AddEvent(new ActivityEvent(Activities.EventNames.FactoryBackgroundMove));
 		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity, token);
 	}
 
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, object? lockObj, Activity? activity, CancellationToken token)
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity, CancellationToken token)
 	{
 		if (factoryTask.IsFaulted)
 		{
@@ -293,7 +326,9 @@ public partial class FusionCache
 			}
 			finally
 			{
-				ReleaseLock(operationId, key, lockObj);
+				// MEMORY LOCK
+				if (memoryLockObj is not null)
+					ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				// ACTIVITY
 				activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
@@ -361,30 +396,32 @@ public partial class FusionCache
 			}
 			finally
 			{
-				ReleaseLock(operationId, key, lockObj);
+				// MEMORY LOCK
+				if (memoryLockObj is not null)
+					ReleaseMemoryLock(operationId, key, memoryLockObj);
 			}
 		});
 	}
 
-	private void ReleaseLock(string operationId, string key, object? lockObj)
+	private void ReleaseMemoryLock(string operationId, string key, object? memoryLockObj)
 	{
-		if (lockObj is null)
+		if (memoryLockObj is null)
 			return;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing MEMORY LOCK", CacheName, InstanceId, operationId, key);
 
 		try
 		{
-			_reactor.ReleaseLock(CacheName, InstanceId, key, operationId, lockObj, _logger);
+			_memoryLocker.ReleaseLock(CacheName, InstanceId, key, operationId, memoryLockObj, _logger);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK released", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): MEMORY LOCK released", CacheName, InstanceId, operationId, key);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing the LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing the MEMORY LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
 		}
 	}
 
@@ -642,8 +679,8 @@ public partial class FusionCache
 				_autoRecovery.Dispose();
 				_autoRecovery = null;
 
-				_reactor.Dispose();
-				_reactor = null;
+				_memoryLocker.Dispose();
+				_memoryLocker = null;
 
 				_mca.Dispose();
 				_mca = null;

@@ -23,7 +23,7 @@ public partial class FusionCache
 
 		FusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
-		object? lockObj = null;
+		object? memoryLockObj = null;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		var mca = GetCurrentMemoryAccessor(options);
@@ -46,9 +46,9 @@ public partial class FusionCache
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): should eagerly refresh", CacheName, InstanceId, operationId, key);
 
-				// TRY TO GET THE LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST ONE WILL ACTUALLY REFRESH THE ENTRY
-				lockObj = await _reactor.AcquireLockAsync(CacheName, InstanceId, key, operationId, TimeSpan.Zero, _logger, token).ConfigureAwait(false);
-				if (lockObj is null)
+				// TRY TO GET THE MEMORY LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST ONE WILL ACTUALLY REFRESH THE ENTRY
+				memoryLockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, key, operationId, TimeSpan.Zero, _logger, token).ConfigureAwait(false);
+				if (memoryLockObj is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring", CacheName, InstanceId, operationId, key);
@@ -56,7 +56,9 @@ public partial class FusionCache
 				else
 				{
 					// EXECUTE EAGER REFRESH
-					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, lockObj, token).ConfigureAwait(false);
+					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj, token).ConfigureAwait(false);
+					// RESET MEMORY LOCK (WILL BE RELEASED BY THE EAGER REFRESH FACTORY)
+					memoryLockObj = null;
 				}
 			}
 
@@ -72,12 +74,12 @@ public partial class FusionCache
 
 		try
 		{
-			// LOCK
-			lockObj = await _reactor.AcquireLockAsync(CacheName, InstanceId, key, operationId, options.GetAppropriateLockTimeout(memoryEntry is not null), _logger, token).ConfigureAwait(false);
+			// MEMORY LOCK
+			memoryLockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, key, operationId, options.GetAppropriateMemoryLockTimeout(memoryEntry is not null), _logger, token).ConfigureAwait(false);
 
-			if (lockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
+			if (memoryLockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
 			{
-				// IF THE LOCK HAS NOT BEEN ACQUIRED
+				// IF THE MEMORY LOCK HAS NOT BEEN ACQUIRED
 
 				// + THERE IS A FALLBACK ENTRY
 				// + FAIL-SAFE IS ENABLED
@@ -89,7 +91,7 @@ public partial class FusionCache
 				return memoryEntry;
 			}
 
-			// TRY AGAIN WITH MEMORY CACHE (AFTER THE LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
+			// TRY AGAIN WITH MEMORY CACHE (AFTER THE MEMORY LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
 			if (mca is not null)
 			{
 				(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
@@ -223,8 +225,9 @@ public partial class FusionCache
 		}
 		finally
 		{
-			if (lockObj is not null)
-				ReleaseLock(operationId, key, lockObj);
+			// MEMORY LOCK
+			if (memoryLockObj is not null)
+				ReleaseMemoryLock(operationId, key, memoryLockObj);
 		}
 
 		// EVENT
@@ -248,7 +251,7 @@ public partial class FusionCache
 		return entry;
 	}
 
-	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object lockObj, CancellationToken token)
+	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
 	{
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
@@ -281,7 +284,9 @@ public partial class FusionCache
 						}
 						finally
 						{
-							ReleaseLock(operationId, key, lockObj);
+							// MEMORY LOCK
+							if (memoryLockObj is not null)
+								ReleaseMemoryLock(operationId, key, memoryLockObj);
 						}
 
 						return;
@@ -310,7 +315,7 @@ public partial class FusionCache
 
 		var factoryTask = factory(ctx, token);
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, lockObj, activity, token);
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
 	}
 
 	/// <inheritdoc/>

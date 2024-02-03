@@ -5,10 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace ZiggyCreatures.Caching.Fusion.Reactors;
+namespace ZiggyCreatures.Caching.Fusion.Locking;
 
-internal sealed class FusionCacheReactorStandard
-	: IFusionCacheReactor
+/// <summary>
+/// A standard implementation of <see cref="IFusionCacheMemoryLocker"/>.
+/// </summary>
+internal sealed class StandardMemoryLocker
+	: IFusionCacheMemoryLocker
 {
 	private MemoryCache _lockCache;
 
@@ -16,22 +19,21 @@ internal sealed class FusionCacheReactorStandard
 	private readonly object[] _lockPool;
 	private TimeSpan _slidingExpiration = TimeSpan.FromMinutes(5);
 
-	public FusionCacheReactorStandard(int reactorSize = 8_440)
+	/// <summary>
+	/// Initializes a new instance of the <see cref="StandardMemoryLocker"/> class.
+	/// </summary>
+	/// <param name="size">The size of the pool used internally for the 1st level locking strategy.</param>
+	public StandardMemoryLocker(int size = 8_440)
 	{
 		_lockCache = new MemoryCache(new MemoryCacheOptions());
 
 		// LOCKING
-		_lockPoolSize = reactorSize;
+		_lockPoolSize = size;
 		_lockPool = new object[_lockPoolSize];
-		for (int i = 0; i < _lockPool.Length; i++)
+		for (var i = 0; i < _lockPool.Length; i++)
 		{
 			_lockPool[i] = new object();
 		}
-	}
-
-	public int Collisions
-	{
-		get { return 0; }
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -54,7 +56,7 @@ internal sealed class FusionCacheReactorStandard
 
 			_semaphore = new SemaphoreSlim(1, 1);
 
-			using ICacheEntry entry = _lockCache.CreateEntry(key);
+			using var entry = _lockCache.CreateEntry(key);
 			entry.Value = _semaphore;
 			entry.SlidingExpiration = _slidingExpiration;
 			entry.RegisterPostEvictionCallback((key, value, _, _) =>
@@ -66,7 +68,7 @@ internal sealed class FusionCacheReactorStandard
 				catch (Exception exc)
 				{
 					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-						logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the reactor", cacheName, cacheInstanceId, key);
+						logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
 				}
 			});
 
@@ -74,11 +76,9 @@ internal sealed class FusionCacheReactorStandard
 		}
 	}
 
-	// ACQUIRE LOCK ASYNC
+	/// <inheritdoc/>
 	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
-		token.ThrowIfCancellationRequested();
-
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -102,15 +102,15 @@ internal sealed class FusionCacheReactorStandard
 		return acquired ? semaphore : null;
 	}
 
-	// ACQUIRE LOCK
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger)
+	/// <inheritdoc/>
+	public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
 		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
 			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
 
-		var acquired = semaphore.Wait(timeout);
+		var acquired = semaphore.Wait(timeout, token);
 
 		if (acquired)
 		{
@@ -128,7 +128,7 @@ internal sealed class FusionCacheReactorStandard
 		return acquired ? semaphore : null;
 	}
 
-	// RELEASE LOCK ASYNC
+	/// <inheritdoc/>
 	public void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger)
 	{
 		if (lockObj is null)
@@ -141,13 +141,12 @@ internal sealed class FusionCacheReactorStandard
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the reactor", cacheName, cacheInstanceId, operationId, key);
+				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, operationId, key);
 		}
 	}
 
 	// IDISPOSABLE
 	private bool disposedValue;
-	/*protected virtual*/
 	private void Dispose(bool disposing)
 	{
 		if (!disposedValue)
@@ -165,6 +164,7 @@ internal sealed class FusionCacheReactorStandard
 		}
 	}
 
+	/// <inheritdoc/>
 	public void Dispose()
 	{
 		Dispose(disposing: true);

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -340,7 +341,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="factory">The factory used to create the serializer, with access to the <see cref="IServiceProvider"/>.</param>
+	/// <param name="factory">The factory used to create the memory cache, with access to the <see cref="IServiceProvider"/>.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithMemoryCache(this IFusionCacheBuilder builder, Func<IServiceProvider, IMemoryCache> factory)
 	{
@@ -357,6 +358,138 @@ public static partial class FusionCacheBuilderExtMethods
 
 		return builder;
 	}
+
+	#endregion
+
+	#region MEMORY LOCKER
+
+	/// <summary>
+	/// The standard implementation of an <see cref="IFusionCacheMemoryLocker"/> will be used (this is the default behaviour).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithStandardMemoryLocker(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseRegisteredMemoryLocker = false;
+		builder.MemoryLocker = null;
+		builder.MemoryLockerFactory = null;
+		builder.ThrowIfMissingMemoryLocker = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// The builder will look for an <see cref="IFusionCacheMemoryLocker"/> service registered in the DI container and use it, and throws if it cannot find one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredMemoryLocker(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseRegisteredMemoryLocker = true;
+		builder.MemoryLocker = null;
+		builder.MemoryLockerFactory = null;
+		builder.ThrowIfMissingMemoryLocker = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheMemoryLocker"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredMemoryLocker(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.WithRegisteredMemoryLocker();
+		builder.ThrowIfMissingMemoryLocker = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom <see cref="IFusionCacheMemoryLocker"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="memoryLocker">The <see cref="IFusionCacheMemoryLocker"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithMemoryLocker(this IFusionCacheBuilder builder, IFusionCacheMemoryLocker memoryLocker)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (memoryLocker is null)
+			throw new ArgumentNullException(nameof(memoryLocker));
+
+		builder.UseRegisteredMemoryLocker = false;
+		builder.MemoryLocker = memoryLocker;
+		builder.MemoryLockerFactory = null;
+		builder.ThrowIfMissingMemoryLocker = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom <see cref="IFusionCacheMemoryLocker"/> factory to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="factory">The factory used to create the memory locker, with access to the <see cref="IServiceProvider"/>.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithMemoryLocker(this IFusionCacheBuilder builder, Func<IServiceProvider, IFusionCacheMemoryLocker> factory)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (factory is null)
+			throw new ArgumentNullException(nameof(factory));
+
+		builder.UseRegisteredMemoryLocker = false;
+		builder.MemoryLocker = null;
+		builder.MemoryLockerFactory = factory;
+		builder.ThrowIfMissingMemoryLocker = true;
+
+		return builder;
+	}
+
+	///// <summary>
+	///// Indicates that the builder should not use a memory locker at all.
+	///// <br/><br/>
+	///// ⚠️ WARNING: if you don't use any memory locker at all, you will NOT be protected from cache stampede.
+	///// <br/><br/>
+	///// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	///// </summary>
+	///// <param name="builder"></param>
+	///// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	//public static IFusionCacheBuilder WithoutMemoryLocker(this IFusionCacheBuilder builder)
+	//{
+	//	if (builder is null)
+	//		throw new ArgumentNullException(nameof(builder));
+
+	//	builder.UseRegisteredMemoryLocker = false;
+	//	builder.MemoryLocker = null;
+	//	builder.MemoryLockerFactory = null;
+	//	builder.ThrowIfMissingMemoryLocker = false;
+
+	//	return builder;
+	//}
 
 	#endregion
 

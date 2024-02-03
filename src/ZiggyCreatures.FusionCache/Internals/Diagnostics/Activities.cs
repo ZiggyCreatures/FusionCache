@@ -46,6 +46,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		internal static class EventNames
 		{
 			public const string FactoryBackgroundMove = "factory moved to the background";
+			public const string FactoryBackgroundMoveNotAllowed = "factory not allowed to be moved to the background";
 		}
 
 		public static IEnumerable<KeyValuePair<string, object?>> GetCommonTags(string? cacheName, string? cacheInstanceId, string? key, string? operationId, CacheLevelKind? levelKind)

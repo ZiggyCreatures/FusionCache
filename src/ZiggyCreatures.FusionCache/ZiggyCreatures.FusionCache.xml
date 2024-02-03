@@ -531,14 +531,14 @@
             The standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/>.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.
             </summary>
             <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>.</param>
             <param name="memoryCache">The <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
-            <param name="reactor">The <see cref="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+            <param name="memoryLocker">The <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> instance to use. If <see langword="null"/>, a standard one will be automatically created and managed.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCache.CacheName">
             <inheritdoc/>
@@ -823,7 +823,54 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="factory">The factory used to create the serializer, with access to the <see cref="T:System.IServiceProvider"/>.</param>
+            <param name="factory">The factory used to create the memory cache, with access to the <see cref="T:System.IServiceProvider"/>.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithStandardMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+            <summary>
+            The standard implementation of an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> will be used (this is the default behaviour).
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+            <summary>
+            The builder will look for an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> service registered in the DI container and use it, and throws if it cannot find one.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+            <summary>
+            Indicates if the builder should try to find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> service registered in the DI container.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker)">
+            <summary>
+            Specify a custom <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> instance to be used.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <param name="memoryLocker">The <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> instance to use.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Func{System.IServiceProvider,ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker})">
+            <summary>
+            Specify a custom <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> factory to be used.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+            </summary>
+            <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
+            <param name="factory">The factory used to create the memory locker, with access to the <see cref="T:System.IServiceProvider"/>.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
@@ -1175,7 +1222,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.LockTimeout">
             <summary>
-            The timeout to apply when trying to acquire a lock during a factory execution.
+            The timeout to apply when trying to acquire a memory lock during a factory execution.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
             </summary>
@@ -2465,7 +2512,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.ReThrowOriginalExceptions">
             <summary>
-            If enabled, and re-throwing of exceptions is also enabled, it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/>, <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> or <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/>).
+            If enabled, and re-throwing of exceptions is also enabled (see <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowSerializationExceptions"/>, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowDistributedCacheExceptions"/> or  <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowBackplaneExceptions"/>), it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/>, <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> or <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/>).
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IncoherentOptionsNormalizationLogLevel">
@@ -2917,6 +2964,26 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.ThrowIfMissingMemoryCache">
             <summary>
             Throws an <see cref="T:System.InvalidOperationException"/> if a memory cache (an instance of <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/>) is not specified or is not found in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredMemoryLocker">
+            <summary>
+            Indicates if the builder should try find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> service registered in the DI container.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.MemoryLocker">
+            <summary>
+            A specific <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.MemoryLockerFactory">
+            <summary>
+            A factory that creates the <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> instance to be used.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.ThrowIfMissingMemoryLocker">
+            <summary>
+            Throws an <see cref="T:System.InvalidOperationException"/> if a memory locker (an instance of <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/>) is not specified or is not found in the DI container.
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder.UseRegisteredSerializer">
@@ -3415,6 +3482,96 @@
             </summary>
             <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
             <returns><see langword="true"/> if the circuit is closed, either because it was already closed or because it has been closed with this operation. <see langword="false"/> otherwise.</returns>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker">
+            <summary>
+            A FusionCache component to handle acquiring and releasing memory locks in a highly optimized way.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker.AcquireLockAsync(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <summary>
+            Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
+            </summary>
+            <param name="cacheName">The CacheName of the FusionCache instance.</param>
+            <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
+            <param name="key">The key for which to obtain a lock.</param>
+            <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="timeout">The optional timeout for the lock acquisition.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+            <returns>The acquired generic lock object, later released when the critical section is over.</returns>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker.AcquireLock(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <summary>
+            Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.
+            </summary>
+            <param name="cacheName">The name of the FusionCache instance.</param>
+            <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
+            <param name="key">The key for which to obtain a lock.</param>
+            <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="timeout">The optional timeout for the lock acquisition.</param>
+            <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+            <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+            <summary>
+            Release the generic lock object.
+            </summary>
+            <param name="cacheName">The name of the FusionCache instance.</param>
+            <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
+            <param name="key">The key for which to obtain a lock.</param>
+            <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="lockObj">The generic lock object to release.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker">
+            <summary>
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> based on a probabilistic approach.
+            <br></br>
+            ⚠️ WARNING: this type of locker may lead to deadlocks, so be careful.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker"/> class.
+            </summary>
+            <param name="poolSize">The size of the pool used internally.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker.AcquireLockAsync(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker.AcquireLock(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.ProbabilisticMemoryLocker.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker">
+            <summary>
+            A standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/>.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker"/> class.
+            </summary>
+            <param name="size">The size of the pool used internally for the 1st level locking strategy.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker.AcquireLockAsync(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker.AcquireLock(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Locking.StandardMemoryLocker.Dispose">
+            <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.MaybeValue`1">
             <summary>

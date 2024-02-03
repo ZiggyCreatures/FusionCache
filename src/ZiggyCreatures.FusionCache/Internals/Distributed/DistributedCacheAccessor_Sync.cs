@@ -172,7 +172,12 @@ internal partial class DistributedCacheAccessor
 		}
 
 		if (data is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
+
 			return (null, false);
+		}
 
 		// DESERIALIZATION
 		try

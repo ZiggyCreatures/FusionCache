@@ -3,13 +3,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace ZiggyCreatures.Caching.Fusion.Reactors;
+namespace ZiggyCreatures.Caching.Fusion.Locking;
 
 /// <summary>
-/// Represents one of the core pieces of an instance of an <see cref="FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
+/// A FusionCache component to handle acquiring and releasing memory locks in a highly optimized way.
 /// </summary>
-[Obsolete("This interface is obsolete and will be removed in the next major version of the library: please use IFusionCacheMemoryLocker instead.")]
-public interface IFusionCacheReactor
+public interface IFusionCacheMemoryLocker
 	: IDisposable
 {
 	/// <summary>
@@ -21,7 +20,7 @@ public interface IFusionCacheReactor
 	/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 	/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
-	/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+	/// <returns>The acquired generic lock object, later released when the critical section is over.</returns>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
 
@@ -35,7 +34,8 @@ public interface IFusionCacheReactor
 	/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 	/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
-	object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger);
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
 
 	/// <summary>
 	/// Release the generic lock object.
@@ -47,9 +47,4 @@ public interface IFusionCacheReactor
 	/// <param name="lockObj">The generic lock object to release.</param>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
 	void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger);
-
-	/// <summary>
-	/// Exposes the eventual amount of collisions happened inside the reactor, for diagnostics purposes.
-	/// </summary>
-	int Collisions { get; }
 }

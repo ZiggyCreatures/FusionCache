@@ -58,7 +58,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		public static readonly Counter<long> CounterBackplaneReceive = MeterBackplane.CreateCounter<long>("fusioncache.backplane.receive");
 		public static readonly Counter<long> CounterBackplaneCircuitBreakerChange = MeterBackplane.CreateCounter<long>("fusioncache.backplane.circuit_breaker_change");
 
-		// TODO: THIS OK?
 		public static Counter<T>? Maybe<T>(this Counter<T> counter)
 			where T : struct
 		{
