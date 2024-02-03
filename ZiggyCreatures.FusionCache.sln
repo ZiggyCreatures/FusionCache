@@ -45,7 +45,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SerializerPayloadGenerator"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.Simulator", "tests\ZiggyCreatures.FusionCache.Simulator\ZiggyCreatures.FusionCache.Simulator.csproj", "{BDB46997-84D1-4CB5-B967-7F820820CB8E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.OpenTelemetry", "src\ZiggyCreatures.FusionCache.OpenTelemetry\ZiggyCreatures.FusionCache.OpenTelemetry.csproj", "{DA78EB72-93B1-4A77-8525-79AF3EEC4C8D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZiggyCreatures.FusionCache.OpenTelemetry", "src\ZiggyCreatures.FusionCache.OpenTelemetry\ZiggyCreatures.FusionCache.OpenTelemetry.csproj", "{DA78EB72-93B1-4A77-8525-79AF3EEC4C8D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
