@@ -250,7 +250,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please use AutoRecoveryDelay instead.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay
 	{
 		get { return AutoRecoveryDelay; }

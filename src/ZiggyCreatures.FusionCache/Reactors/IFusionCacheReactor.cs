@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -8,6 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion.Reactors;
 /// <summary>
 /// Represents one of the core pieces of an instance of an <see cref="FusionCache"/>, dealing with acquiring and releasing locks in a highly optimized way.
 /// </summary>
+[EditorBrowsable(EditorBrowsableState.Never)]
 [Obsolete("This interface is obsolete and will be removed in the next major version of the library: please use IFusionCacheMemoryLocker instead.")]
 public interface IFusionCacheReactor
 	: IDisposable
