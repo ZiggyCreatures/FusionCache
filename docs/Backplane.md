@@ -7,7 +7,7 @@
 
 # 📢 Backplane
 
-If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary layer (see [here](CacheLevels.md)).
+If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary level (see [here](CacheLevels.md)).
 
 But even when using that, we may find that each memory cache on each node may not be in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.
 
@@ -115,7 +115,7 @@ var redis = new RedisCache(new RedisCacheOptions() {
 // INSTANTIATE THE FUSION CACHE SERIALIZER
 var serializer = new FusionCacheNewtonsoftJsonSerializer();
 
-// SETUP THE DISTRIBUTED 2ND LAYER
+// SETUP THE DISTRIBUTED 2ND LEVEL
 cache.SetupDistributedCache(redis, serializer);
 
 // CREATE THE BACKPLANE

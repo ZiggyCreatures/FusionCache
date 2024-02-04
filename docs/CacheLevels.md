@@ -19,9 +19,9 @@ On top of this you also need to specify a *serializer* to use, by providing an i
 
 Basically it boils down to 2 possible ways:
 
-- **1️⃣ MEMORY ONLY:** if you don't setup a 2nd layer, FusionCache will act as a **normal memory cache** (`IMemoryCache`)
+- **1️⃣ MEMORY ONLY:** if you don't setup a 2nd level, FusionCache will act as a **normal memory cache** (`IMemoryCache`)
 
-- **2️⃣ MEMORY + DISTRIBUTED:** if you also setup a 2nd layer, FusionCache will automatically coordinate the 2 layers (`IMemoryCache` + `IDistributedCache`) gracefully handling all edge cases to get a smooth experience
+- **2️⃣ MEMORY + DISTRIBUTED:** if you also setup a 2nd level, FusionCache will automatically coordinate the 2 levels (`IMemoryCache` + `IDistributedCache`) gracefully handling all edge cases to get a smooth experience
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), [advanced timeouts](Timeouts.md) and so on.
 
@@ -113,7 +113,7 @@ var serializer = new FusionCacheNewtonsoftJsonSerializer();
 // INSTANTIATE FUSION CACHE
 var cache = new FusionCache(new FusionCacheOptions());
 
-// SETUP THE DISTRIBUTED 2ND LAYER
+// SETUP THE DISTRIBUTED 2ND LEVEL
 cache.SetupDistributedCache(redis, serializer);
 ```
 

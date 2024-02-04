@@ -95,7 +95,7 @@ var serializer = new FusionCacheNewtonsoftJsonSerializer();
 // INSTANTIATE FUSION CACHE
 var cache = new FusionCache(new FusionCacheOptions());
 
-// SETUP THE DISTRIBUTED 2ND LAYER
+// SETUP THE DISTRIBUTED 2ND LEVEL
 cache.SetupDistributedCache(redis, serializer);
 
 // SET A VALUE IN THE CACHE VIA FUSION CACHE, WITH BACKGROUND DISTRIBUTED OPERATIONS

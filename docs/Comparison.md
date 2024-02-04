@@ -77,5 +77,5 @@ This is how they compare:
 | **License**              | `MIT`      | `Apache 2.0`  | `MIT`      | `MIT`           | `MIT`        |
 
 ℹ **NOTES**
-- (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 layers transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
+- (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
 - (2): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.

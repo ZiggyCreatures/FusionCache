@@ -37,7 +37,8 @@ A deeper description of the main features:
 - [**🦅 Eager Refresh**](EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
 - [**🔃 Dependency Injection**](DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**🔭 OpenTelemetry**](OpenTelemetry.md): native observability support via OpenTelemetry
+- [**📜 Logging**](Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 - [**💫 Natively sync/async**](CoreMethods.md): native support for both the synchronous and asynchronous programming model
 - [**📞 Events**](Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
 - [**🧩 Plugins**](Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
-- [**📜 Logging**](Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface

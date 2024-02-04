@@ -10,14 +10,13 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache)
-[![Twitter](https://img.shields.io/twitter/url/http/shields.io.svg?style=flat&logo=twitter)](https://twitter.com/intent/tweet?hashtags=fusioncache,caching,cache,dotnet,oss,csharp&text=🚀+FusionCache:+a+new+cache+with+an+optional+2nd+layer+and+some+advanced+features&url=https%3A%2F%2Fgithub.com%2FZiggyCreatures%2FFusionCache&via=jodydonetti)
 
 </div>
 
 | 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](docs/Update_v0_24_0.md). |
 |:-------|
 
-### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd layer.
+### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
@@ -73,10 +72,11 @@ These are the **key features** of FusionCache:
 - [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
 - [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
+- [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 - [**💫 Natively sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
 - [**📞 Events**](docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
 - [**🧩 Plugins**](docs/Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
-- [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 
 <details>
 	<summary>Something more 😏 ?</summary>
@@ -90,7 +90,6 @@ Also, FusionCache has some nice **additional features**:
 - **✅ Null caching**: explicitly supports caching of `null` values differently than "no value". This creates a less ambiguous usage, and typically leads to better performance because it avoids the classic problem of not being able to differentiate between *"the value was not in the cache, go check the database"* and *"the value was in the cache, and it was `null`"*
 - **✅ Circuit-breaker**: it is possible to enable a simple circuit-breaker for when the distributed cache or the backplane become temporarily unavailable. This will prevent those components to be hit with an excessive load of requests (that would probably fail anyway) in a problematic moment, so it can gracefully get back on its feet. More advanced scenarios can be covered using a dedicated solution, like <a href="https://github.com/App-vNext/Polly">Polly</a>
 - **✅ Dynamic Jittering**: setting `JitterMaxDuration` will add a small randomized extra duration to a cache entry's normal duration. This is useful to prevent variations of the <a href="https://en.wikipedia.org/wiki/Cache_stampede">Cache Stampede problem</a> in a multi-node scenario
-- **✅ Hot Swap**: supports thread-safe changes of the entire distributed cache or backplane implementation (add/swap/removal)
 - **✅ Cancellation**: every method supports cancellation via the standard `CancellationToken`, so it is easy to cancel an entire pipeline of operation gracefully
 - **✅ Code comments**: every property and method is fully documented in code, with useful informations provided via IntelliSense or similar technologies
 - **✅ Fully annotated for [nullability](https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references)**: every usage of nullable references has been annotated for a better flow analysis by the compiler
@@ -105,7 +104,8 @@ Main packages:
 | Package Name                   | Version | Downloads |
 |--------------------------------|:---------------:|:---------:|
 | [ZiggyCreatures.FusionCache](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) <br/> The core package | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache) |
-| [ZiggyCreatures.FusionCache.Chaos](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) <br/> A package with additional chaos-related utilities and implementations | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Chaos.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Chaos) |
+| [ZiggyCreatures.FusionCache.OpenTelemetry](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.OpenTelemetry/) <br/> Adds native support for OpenTelemetry setup | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.OpenTelemetry.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.OpenTelemetry/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.OpenTelemetry) |
+| [ZiggyCreatures.FusionCache.Chaos](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) <br/> A package to add some controller chaos, for testing | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Chaos.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Chaos) |
 
 Serializers:
 
@@ -273,21 +273,17 @@ When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [b
 
 [![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](docs/Simulator.md)
 
-## 🆎 Comparison
-
-There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
-
-A [feature comparison](docs/Comparison.md) between existing .NET caching solutions may help you choose which one to use.
-
 ## 🧰 Supported Platforms
 
 FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is fine: this means `.NET Framework` (the old one), `.NET Core 2+` and `.NET 5/6/7/8+` (the new ones), `Mono` 5.4+ and more (see [here](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support) for a complete rundown).
 
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
 
-## 🖼 Logo
+## 🆎 Comparison
 
-The logo is an [original creation](https://dribbble.com/shots/14854206-FusionCache-logo) and is a [sloth](https://en.wikipedia.org/wiki/Sloth) because, you know, speed.
+There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
+
+A [feature comparison](docs/Comparison.md) between existing .NET caching solutions may help you choose which one to use.
 
 ## 💰 Support
 
@@ -295,15 +291,15 @@ Nothing to do here.
 
 After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
 
-If you find FusionCache useful please just [**✉ drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing about your usage.
+If you find FusionCache useful just [**✉ drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing how you're using it.
 
-And if you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and maybe let me know about that.
+And if you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
 
 ## 💼 Is it Production Ready :tm: ?
 Yes!
 
 Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
 
-Considering that the FusionCache packages have been downloaded more than **2 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **3 million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
