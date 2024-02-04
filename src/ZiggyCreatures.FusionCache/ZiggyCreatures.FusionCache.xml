@@ -531,6 +531,15 @@
             The standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/>.
             </summary>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor)">
+            <summary>
+            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.
+            </summary>
+            <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>.</param>
+            <param name="memoryCache">The <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
+            <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> instance to use. If null, logging will be completely disabled.</param>
+            <param name="reactor">The <see cref="T:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.#ctor(Microsoft.Extensions.Options.IOptions{ZiggyCreatures.Caching.Fusion.FusionCacheOptions},Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache},ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker)">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> instance.

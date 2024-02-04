@@ -21,6 +21,7 @@ using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
+using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion;
@@ -48,19 +49,19 @@ public partial class FusionCache
 	private static readonly MethodInfo __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncOpenGeneric = typeof(FusionCache).GetMethod(nameof(TryUpdateMemoryEntryFromDistributedEntryAsync), BindingFlags.NonPublic | BindingFlags.Instance);
 	private static readonly ConcurrentDictionary<Type, MethodInfo> __methodInfoTryUpdateMemoryEntryFromDistributedEntryAsyncCache = new ConcurrentDictionary<Type, MethodInfo>();
 
-	///// <summary>
-	///// Creates a new <see cref="FusionCache"/> instance.
-	///// </summary>
-	///// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
-	///// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
-	///// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
-	///// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-	//[Obsolete("Please stop using this constructor, it will be removed in future versions.")]
-	//public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache, ILogger<FusionCache>? logger, IFusionCacheReactor? reactor)
-	//	: this(optionsAccessor, memoryCache, logger, (IFusionCacheMemoryLocker?)null)
-	//{
-	//	// EMPTY
-	//}
+	/// <summary>
+	/// Creates a new <see cref="FusionCache"/> instance.
+	/// </summary>
+	/// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
+	/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
+	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
+	/// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
+	[Obsolete("Please stop using this constructor, it will be removed in future versions.")]
+	public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache, ILogger<FusionCache>? logger, IFusionCacheReactor? reactor)
+		: this(optionsAccessor, memoryCache, logger, (IFusionCacheMemoryLocker?)null)
+	{
+		// EMPTY
+	}
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
