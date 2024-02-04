@@ -17,6 +17,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
@@ -172,6 +173,72 @@ public class DependencyInjectionTests
 		Assert.NotNull(allPlugins.Single(p => p.Name == "P_1"));
 		Assert.NotNull(allPlugins.Single(p => p.Name == "P_2"));
 		Assert.NotNull(allPlugins.Single(p => p.Name == "P_3"));
+	}
+
+	[Fact]
+	public void CanUseRegisteredMemoryLocker()
+	{
+		var services = new ServiceCollection();
+		services.AddTransient<IFusionCacheMemoryLocker>(sp => new SimpleMemoryLocker());
+
+		services.AddFusionCache()
+			.WithRegisteredMemoryLocker()
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IFusionCacheMemoryLocker GetMemoryLocker(IFusionCache cache)
+		{
+			return (IFusionCacheMemoryLocker)(typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+		}
+
+		var memoryLocker = GetMemoryLocker(cache);
+
+		Assert.NotNull(cache);
+		Assert.IsType<SimpleMemoryLocker>(memoryLocker);
+	}
+
+	[Fact]
+	public void CanThrowWithoutRegisteredMemoryLocker()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache()
+			.WithRegisteredMemoryLocker()
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			_ = serviceProvider.GetRequiredService<IFusionCache>();
+		});
+	}
+
+	[Fact]
+	public void CanUseCustomMemoryLocker()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache()
+			.WithMemoryLocker(new SimpleMemoryLocker())
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IFusionCacheMemoryLocker GetMemoryLocker(IFusionCache cache)
+		{
+			return (IFusionCacheMemoryLocker)(typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+		}
+
+		var memoryLocker = GetMemoryLocker(cache);
+
+		Assert.NotNull(cache);
+		Assert.IsType<SimpleMemoryLocker>(memoryLocker);
 	}
 
 	[Fact]
