@@ -242,6 +242,28 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
+	public void UsesStandardMemoryLockerByDefault()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache();
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IFusionCacheMemoryLocker GetMemoryLocker(IFusionCache cache)
+		{
+			return (IFusionCacheMemoryLocker)(typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+		}
+
+		var memoryLocker = GetMemoryLocker(cache);
+
+		Assert.NotNull(cache);
+		Assert.IsType<StandardMemoryLocker>(memoryLocker);
+	}
+
+	[Fact]
 	public void TryAutoSetupWorks()
 	{
 		var services = new ServiceCollection();
