@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 
@@ -234,6 +235,10 @@ internal sealed partial class BackplaneAccessor
 			_events.OnCircuitBreakerChange(operationId, message.CacheKey, true);
 		}
 
+		// ACTIVITY
+		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
+		activity?.SetTag("fusioncache.backplane.message_action", message.Action.ToString());
+
 		// EVENT
 		_events.OnMessageReceived(operationId, message);
 
@@ -272,7 +277,7 @@ internal sealed partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				// // HANDLE REMOVE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO FALSE -> LOCAL REMOVE
+				// HANDLE REMOVE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO FALSE -> LOCAL REMOVE
 				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, false, null);
 				break;
 			case BackplaneMessageAction.EntryExpire:

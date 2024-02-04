@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
@@ -25,6 +27,9 @@ internal partial class DistributedCacheAccessor
 		catch (Exception exc)
 		{
 			ProcessError(operationId, key, exc, actionDescription);
+
+			// ACTIVITY
+			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
@@ -51,6 +56,9 @@ internal partial class DistributedCacheAccessor
 
 		token.ThrowIfCancellationRequested();
 
+		// ACTIVITY
+		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedSet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
+
 		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
 		if (options.IsFailSafeEnabled == false && options.DistributedCacheDuration.GetValueOrDefault(options.Duration) <= TimeSpan.Zero)
 		{
@@ -73,6 +81,9 @@ internal partial class DistributedCacheAccessor
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while serializing an entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 
 			// EVENT
 			_events.OnSerializationError(operationId, key);
@@ -116,11 +127,16 @@ internal partial class DistributedCacheAccessor
 
 	public async ValueTask<(FusionCacheDistributedEntry<TValue>? entry, bool isValid)> TryGetEntryAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, TimeSpan? timeout, CancellationToken token)
 	{
+		Metrics.CounterDistributedGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
 		if (IsCurrentlyUsable(operationId, key) == false)
 			return (null, false);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] trying to get entry from distributed", _options.CacheName, _options.InstanceId, operationId, key);
+
+		// ACTIVITY
+		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
 		// GET FROM DISTRIBUTED CACHE
 		byte[]? data;
@@ -137,6 +153,10 @@ internal partial class DistributedCacheAccessor
 		catch (Exception exc)
 		{
 			ProcessError(operationId, key, exc, "getting entry from distributed");
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
 				if (_options.ReThrowOriginalExceptions)
@@ -153,7 +173,12 @@ internal partial class DistributedCacheAccessor
 		}
 
 		if (data is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
+
 			return (null, false);
+		}
 
 		// DESERIALIZATION
 		try
@@ -198,6 +223,9 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
 
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+
 			// EVENT
 			_events.OnDeserializationError(operationId, key);
 
@@ -224,6 +252,9 @@ internal partial class DistributedCacheAccessor
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
 			return false;
+
+		// ACTIVITY
+		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedRemove, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
 		return await ExecuteOperationAsync(
 			operationId,

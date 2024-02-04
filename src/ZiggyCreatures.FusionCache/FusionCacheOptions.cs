@@ -250,7 +250,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please use AutoRecoveryDelay instead.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay
 	{
 		get { return AutoRecoveryDelay; }
@@ -292,7 +292,7 @@ public class FusionCacheOptions
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
 
 	/// <summary>
-	/// If enabled, and re-throwing of exceptions is also enabled, it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="FusionCacheSerializationException"/>, <see cref="FusionCacheDistributedCacheException"/> or <see cref="FusionCacheBackplaneException"/>).
+	/// If enabled, and re-throwing of exceptions is also enabled (see <see cref="FusionCacheEntryOptions.ReThrowSerializationExceptions"/>, <see cref="FusionCacheEntryOptions.ReThrowDistributedCacheExceptions"/> or  <see cref="FusionCacheEntryOptions.ReThrowBackplaneExceptions"/>), it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="FusionCacheSerializationException"/>, <see cref="FusionCacheDistributedCacheException"/> or <see cref="FusionCacheBackplaneException"/>).
 	/// </summary>
 	public bool ReThrowOriginalExceptions { get; set; }
 

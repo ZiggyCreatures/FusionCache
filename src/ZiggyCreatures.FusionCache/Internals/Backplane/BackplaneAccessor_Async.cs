@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 
@@ -22,6 +24,10 @@ internal partial class BackplaneAccessor
 		}
 
 		token.ThrowIfCancellationRequested();
+
+		// ACTIVITY
+		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplanePublish, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
+		activity?.SetTag("fusioncache.backplane.message_action", message.Action.ToString());
 
 		if (isAutoRecovery == false)
 		{
@@ -46,6 +52,9 @@ internal partial class BackplaneAccessor
 		catch (Exception exc)
 		{
 			ProcessError(operationId, cacheKey, exc, actionDescription);
+
+			// ACTIVITY
+			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)
 			{

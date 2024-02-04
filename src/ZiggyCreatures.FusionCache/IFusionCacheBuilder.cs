@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -112,6 +113,30 @@ public interface IFusionCacheBuilder
 	/// Throws an <see cref="InvalidOperationException"/> if a memory cache (an instance of <see cref="IMemoryCache"/>) is not specified or is not found in the DI container.
 	/// </summary>
 	bool ThrowIfMissingMemoryCache { get; set; }
+
+	#endregion
+
+	#region MEMORY LOCKER
+
+	/// <summary>
+	/// Indicates if the builder should try find and use an <see cref="IFusionCacheMemoryLocker"/> service registered in the DI container.
+	/// </summary>
+	bool UseRegisteredMemoryLocker { get; set; }
+
+	/// <summary>
+	/// A specific <see cref="IFusionCacheMemoryLocker"/> instance to be used.
+	/// </summary>
+	IFusionCacheMemoryLocker? MemoryLocker { get; set; }
+
+	/// <summary>
+	/// A factory that creates the <see cref="IFusionCacheMemoryLocker"/> instance to be used.
+	/// </summary>
+	Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
+
+	/// <summary>
+	/// Throws an <see cref="InvalidOperationException"/> if a memory locker (an instance of <see cref="IFusionCacheMemoryLocker"/>) is not specified or is not found in the DI container.
+	/// </summary>
+	bool ThrowIfMissingMemoryLocker { get; set; }
 
 	#endregion
 

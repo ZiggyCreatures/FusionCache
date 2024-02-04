@@ -5,7 +5,7 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 /// <summary>
-/// An entry in a <see cref="FusionCache"/> distributed layer.
+/// An entry in a <see cref="FusionCache"/> distributed level.
 /// </summary>
 /// <typeparam name="TValue">The type of the entry's value</typeparam>
 [DataContract]

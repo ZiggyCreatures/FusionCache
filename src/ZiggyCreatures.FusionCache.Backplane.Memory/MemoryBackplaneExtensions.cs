@@ -49,7 +49,11 @@ public static class MemoryBackplaneExtensions
 		return builder
 			.WithBackplane(sp =>
 			{
-				var options = sp.GetService<IOptionsMonitor<MemoryBackplaneOptions>>().Get(builder.CacheName);
+				var options = sp.GetService<IOptionsMonitor<MemoryBackplaneOptions>>()?.Get(builder.CacheName);
+
+				if (options is null)
+					throw new NullReferenceException($"Unable to find an instance of {nameof(MemoryBackplaneOptions)} for the cache named '{builder.CacheName}'.");
+
 				if (setupOptionsAction is not null)
 					setupOptionsAction?.Invoke(options);
 				var logger = sp.GetService<ILogger<MemoryBackplane>>();

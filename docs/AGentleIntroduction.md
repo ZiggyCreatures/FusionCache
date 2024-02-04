@@ -7,7 +7,7 @@
 
 # 🦄 A Gentle Introduction
 
-FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd layer.
+FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
 
 It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and, optionally, a distributed cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
 
@@ -52,7 +52,7 @@ Read more [**here**](CacheLevels.md), or enjoy the complete [**step by step**](S
 
 ## 📢 Backplane ([more](Backplane.md))
 
-If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary layer (see above).
+If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary level (see above).
 
 Even using that, we may find that each memory cache may not be necessarily in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.
 
@@ -144,7 +144,7 @@ At a high level there are 6 core methods:
 - `GetOrSet[Async]`
 - `Expire[Async]`
 
-All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: we don't have to do anything extra for it to coordinate the 2 layers.
+All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: we don't have to do anything extra for it to coordinate the 2 levels.
 
 All of them are available in both a **sync** and an **async** version.
 
@@ -179,7 +179,7 @@ Read more [**here**](NamedCaches.md).
 
 ## 📞 Events ([more](Events.md))
 
-There's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed layers).
+There's a comprehensive set of events to subscribe to regarding core events inside of a FusionCache instance, both at a high level and at lower levels (memory/distributed levels).
 
 Read more [**here**](Events.md).
 

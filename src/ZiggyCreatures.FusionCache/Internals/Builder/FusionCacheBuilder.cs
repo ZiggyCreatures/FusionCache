@@ -7,8 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
-using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Builder;
@@ -24,14 +24,14 @@ internal sealed class FusionCacheBuilder
 
 		UseRegisteredOptions = true;
 
-		UseRegisteredReactor = true;
+		UseRegisteredMemoryLocker = true;
 
 		UseRegisteredSerializer = true;
 
 		IgnoreRegisteredMemoryDistributedCache = true;
 
-		Plugins = new List<IFusionCachePlugin>();
-		PluginsFactories = new List<Func<IServiceProvider, IFusionCachePlugin>>();
+		Plugins = [];
+		PluginsFactories = [];
 	}
 
 	public string CacheName { get; }
@@ -46,7 +46,10 @@ internal sealed class FusionCacheBuilder
 	public Func<IServiceProvider, IMemoryCache>? MemoryCacheFactory { get; set; }
 	public bool ThrowIfMissingMemoryCache { get; set; }
 
-	private bool UseRegisteredReactor { get; set; }
+	public bool UseRegisteredMemoryLocker { get; set; }
+	public IFusionCacheMemoryLocker? MemoryLocker { get; set; }
+	public Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
+	public bool ThrowIfMissingMemoryLocker { get; set; }
 
 	public bool UseRegisteredOptions { get; set; }
 	public FusionCacheOptions? Options { get; set; }
@@ -169,16 +172,29 @@ internal sealed class FusionCacheBuilder
 			throw new InvalidOperationException("A memory cache has not been specified, or found in the DI container.");
 		}
 
-		// REACTOR
-		IFusionCacheReactor? reactor = null;
+		// MEMORY LOCKER
+		IFusionCacheMemoryLocker? memoryLocker = null;
 
-		if (UseRegisteredReactor)
+		if (UseRegisteredMemoryLocker)
 		{
-			reactor = serviceProvider.GetService<IFusionCacheReactor>();
+			memoryLocker = serviceProvider.GetService<IFusionCacheMemoryLocker>();
+		}
+		else if (MemoryLockerFactory is not null)
+		{
+			memoryLocker = MemoryLockerFactory?.Invoke(serviceProvider);
+		}
+		else
+		{
+			memoryLocker = MemoryLocker;
+		}
+
+		if (memoryLocker is null && ThrowIfMissingMemoryLocker)
+		{
+			throw new InvalidOperationException("A memory locker has not been specified, or found in the DI container.");
 		}
 
 		// CREATE THE CACHE
-		var cache = new FusionCache(options, memoryCache, logger, reactor);
+		var cache = new FusionCache(options, memoryCache, logger, memoryLocker);
 
 		// DISTRIBUTED CACHE
 		IDistributedCache? distributedCache;
@@ -262,7 +278,7 @@ internal sealed class FusionCacheBuilder
 		}
 
 		// PLUGINS
-		List<IFusionCachePlugin> plugins = new List<IFusionCachePlugin>();
+		List<IFusionCachePlugin> plugins = [];
 
 		if (UseAllRegisteredPlugins)
 		{

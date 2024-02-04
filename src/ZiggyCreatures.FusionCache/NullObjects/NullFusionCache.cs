@@ -33,6 +33,9 @@ public class NullFusionCache
 		// OPTIONS
 		_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
 
+		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
+		_options = _options.Duplicate();
+
 		// GLOBALLY UNIQUE INSTANCE ID
 		InstanceId = _options.InstanceId ?? Guid.NewGuid().ToString("N");
 
@@ -85,12 +88,6 @@ public class NullFusionCache
 		var res = _options.DefaultEntryOptions.Duplicate(duration);
 		setupAction?.Invoke(res);
 		return res;
-	}
-
-	/// <inheritdoc/>
-	public void Dispose()
-	{
-		// EMTPY
 	}
 
 	/// <inheritdoc/>
@@ -205,5 +202,11 @@ public class NullFusionCache
 	public ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		return new ValueTask<MaybeValue<TValue>>();
+	}
+
+	/// <inheritdoc/>
+	public void Dispose()
+	{
+		// EMTPY
 	}
 }

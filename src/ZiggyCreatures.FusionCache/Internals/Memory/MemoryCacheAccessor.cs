@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -32,6 +33,9 @@ internal sealed class MemoryCacheAccessor
 
 	public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 	{
+		// ACTIVITY
+		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemorySet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
+
 		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
 		if (options.IsFailSafeEnabled == false && options.Duration <= TimeSpan.Zero)
 		{
@@ -54,11 +58,33 @@ internal sealed class MemoryCacheAccessor
 
 	public FusionCacheMemoryEntry? GetEntryOrNull(string operationId, string key)
 	{
-		return _cache.Get<FusionCacheMemoryEntry?>(key);
+		Metrics.CounterMemoryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
+		// ACTIVITY
+		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
+
+		var entry = _cache.Get<FusionCacheMemoryEntry?>(key);
+
+		// EVENT
+		if (entry is not null)
+		{
+			_events.OnHit(operationId, key, entry.IsLogicallyExpired());
+		}
+		else
+		{
+			_events.OnMiss(operationId, key);
+		}
+
+		return entry;
 	}
 
 	public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry(string operationId, string key)
 	{
+		Metrics.CounterMemoryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+
+		// ACTIVITY
+		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
+
 		FusionCacheMemoryEntry? entry;
 		bool isValid = false;
 
@@ -101,6 +127,9 @@ internal sealed class MemoryCacheAccessor
 
 	public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options)
 	{
+		// ACTIVITY
+		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryRemove, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
+
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
 
@@ -112,6 +141,9 @@ internal sealed class MemoryCacheAccessor
 
 	public bool ExpireEntry(string operationId, string key, bool allowFailSafe, long? timestampThreshold)
 	{
+		// ACTIVITY
+		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryExpire, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
+
 		var entry = _cache.Get<FusionCacheMemoryEntry>(key);
 
 		if (entry is null)

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.AutoRecovery;
 
@@ -161,25 +163,15 @@ internal sealed class AutoRecoveryService
 		if (item.CacheKey is null)
 			return false;
 
-		if (_queue.TryGetValue(item.CacheKey, out var pendingLocal) == false)
-			return false;
+		if (_queue.TryRemove(item.CacheKey, item))
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): removed an item from the auto-recovery queue", _cache.CacheName, _cache.InstanceId, operationId, item.CacheKey);
 
-		// NOTE: HERE WE SHOULD USE THE NEW OVERLOAD TryRemove(KeyValuePair<TKey,TValue>) BUT THAT IS NOT AVAILABLE UNTIL .NET 5
-		// SO WE DO THE NEXT BEST THING WE CAN: TRY TO GET THE VALUE AND, IF IT IS THE SAME AS THE ONE WE HAVE, THEN REMOVE IT
-		// OTHERWISE SKIP THE REMOVAL
-		//
-		// SEE: https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.tryremove?view=net-7.0#system-collections-concurrent-concurrentdictionary-2-tryremove(system-collections-generic-keyvaluepair((-0-1)))
+			return true;
+		}
 
-		if (ReferenceEquals(item, pendingLocal) == false)
-			return false;
-
-		if (_queue.TryRemove(item.CacheKey, out _) == false)
-			return false;
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): removed an item from the auto-recovery queue", _cache.CacheName, _cache.InstanceId, operationId, item.CacheKey);
-
-		return true;
+		return false;
 	}
 
 	internal bool TryCleanUpQueue(string operationId, IList<AutoRecoveryItem> items)
@@ -294,6 +286,9 @@ internal sealed class AutoRecoveryService
 		var hasStopped = false;
 		AutoRecoveryItem? lastProcessedItem = null;
 
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.AutoRecoveryProcessQueue, _cache.CacheName, _cache.InstanceId, null, operationId);
+
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -315,20 +310,31 @@ internal sealed class AutoRecoveryService
 
 				var success = false;
 
-				switch (item.Action)
+				// ACTIVITY
+				using var activityForItem = Activities.Source.StartActivityWithCommonTags(Activities.Names.AutoRecoveryProcessItem, _cache.CacheName, _cache.InstanceId, item.CacheKey, operationId);
+
+				try
 				{
-					case FusionCacheAction.EntrySet:
-						success = await TryProcessItemSetAsync(operationId, item, token).ConfigureAwait(false);
-						break;
-					case FusionCacheAction.EntryRemove:
-						success = await TryProcessItemRemoveAsync(operationId, item, token).ConfigureAwait(false);
-						break;
-					case FusionCacheAction.EntryExpire:
-						success = await TryProcessItemExpireAsync(operationId, item, token).ConfigureAwait(false);
-						break;
-					default:
-						success = true;
-						break;
+					switch (item.Action)
+					{
+						case FusionCacheAction.EntrySet:
+							success = await TryProcessItemSetAsync(operationId, item, token).ConfigureAwait(false);
+							break;
+						case FusionCacheAction.EntryRemove:
+							success = await TryProcessItemRemoveAsync(operationId, item, token).ConfigureAwait(false);
+							break;
+						case FusionCacheAction.EntryExpire:
+							success = await TryProcessItemExpireAsync(operationId, item, token).ConfigureAwait(false);
+							break;
+						default:
+							success = true;
+							break;
+					}
+				}
+				catch (Exception exc)
+				{
+					activityForItem?.SetStatus(ActivityStatusCode.Error, exc.Message);
+					throw;
 				}
 
 				if (success)
@@ -358,6 +364,8 @@ internal sealed class AutoRecoveryService
 
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during a auto-recovery of an item ({RetryCount} retries left)", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, lastProcessedItem?.RetryCount);
+
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 		}
 		finally
 		{

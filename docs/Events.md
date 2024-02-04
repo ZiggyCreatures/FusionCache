@@ -8,15 +8,15 @@
 
 FusionCache has a comprehensive set of events you can subscribe to, so you can be notified of core events when they happen.
 
-They cover both high-level things related to the FusionCache instance as a whole such as cache hits/misses, fail-safe activations or factory timeouts but also more lower level things related to each specific layer (memory/distributed) such as evictions in the memory cache, serialization/deserialization errors or cache hits/misses, but specific for each specific layer.
+They cover both high-level things related to the FusionCache instance as a whole such as cache hits/misses, fail-safe activations or factory timeouts but also more lower level things related to each specific level (memory/distributed) such as evictions in the memory cache, serialization/deserialization errors or cache hits/misses, but specific for each specific level.
 
 Each event is modeled with native .NET `event`s so if you know how to use them you'll feel at home subscribing and unsubscribing to them.
 
 They are grouped into "hubs":
 
 - **general**: useful for high level events related to the FusionCache instance as a whole. It is accessible via the `cache.Events` object
-- **memory layer**: useful for the lower level memory layer. It is accessible via the `cache.Events.Memory` object
-- **distributed layer**: useful for the lower level distributed layer (if any). It is accessible via the `cache.Events.Distributed` object
+- **memory level**: useful for the lower level memory level. It is accessible via the `cache.Events.Memory` object
+- **distributed level**: useful for the lower level distributed level (if any). It is accessible via the `cache.Events.Distributed` object
 
 An event handler is a simple .NET function you can express in the usual ways (lambda, etc...).
 
@@ -56,7 +56,7 @@ Here's a non comprehensive list of the available events:
 - **Hit**: when a value was in the cache (there's also a flag to indicate if the data was stale or not)
 - **Miss**: when a value was not in the cache
 - **Remove**: when an entry has been removed
-- **Eviction**: when an eviction occurred, along with the reason (only for the memory layer)
+- **Eviction**: when an eviction occurred, along with the reason (only for the memory level)
 - **FailSafeActivation**: when the fail-safe mechanism kicked in
 
 There are more, and you easily discover them with code completion by just typing `cache.Events.` or `cache.Events.Memory` / `cache.Events.Distributed` in your code editor.
@@ -73,7 +73,7 @@ A single high level `GetOrSet` method call may result in one of these two set of
 - **🟢 1 HIT**: if found
 - **🔴 1 MISS + 🔵 1 SET**: if not found, the factory is called and the returned value is then set into the cache
 
-But if you subscribe to the lower **memory layer** events you may fall into one of these situations:
+But if you subscribe to the lower **memory level** events you may fall into one of these situations:
 
 - **🟢 1 HIT**: if immediately found
 - **🔴 1 MISS + 🟢 1 HIT**: if not immediately found, a lock is acquired to call the factory in an optimized way, then another cache read is done and this time the entry is found (because another thread set it while acquiring the lock)

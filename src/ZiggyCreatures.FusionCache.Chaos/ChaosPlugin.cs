@@ -12,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		: AbstractChaosComponent
 		, IFusionCachePlugin
 	{
-		IFusionCachePlugin _innerPlugin;
+		private readonly IFusionCachePlugin _innerPlugin;
 
 		/// <summary>
 		/// Initializes a new instance of the ChaosPlugin class.

@@ -712,7 +712,7 @@ public class EventsTests
 	}
 
 	[Fact]
-	public async Task MemoryLayerEventsAsync()
+	public async Task MemoryLevelEventsAsync()
 	{
 		var stats = new EntryActionsStats();
 
@@ -752,7 +752,7 @@ public class EventsTests
 	}
 
 	[Fact]
-	public void MemoryLayerEvents()
+	public void MemoryLevelEvents()
 	{
 		var stats = new EntryActionsStats();
 

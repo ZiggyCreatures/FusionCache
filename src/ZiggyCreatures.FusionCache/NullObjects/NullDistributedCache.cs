@@ -11,15 +11,15 @@ public class NullDistributedCache
 	: IDistributedCache
 {
 	/// <inheritdoc/>
-	public byte[] Get(string key)
+	public byte[]? Get(string key)
 	{
 		return null!;
 	}
 
 	/// <inheritdoc/>
-	public Task<byte[]> GetAsync(string key, CancellationToken token = default)
+	public Task<byte[]?> GetAsync(string key, CancellationToken token = default)
 	{
-		return Task.FromResult<byte[]>(null!);
+		return Task.FromResult<byte[]?>(null!);
 	}
 
 	/// <inheritdoc/>

@@ -96,7 +96,7 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// The timeout to apply when trying to acquire a lock during a factory execution.
+	/// The timeout to apply when trying to acquire a memory lock during a factory execution.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
 	/// </summary>
@@ -205,7 +205,7 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan DistributedCacheHardTimeout { get; set; }
 
 	/// <summary>
-	/// Even if the distributed cache is a secondary layer, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
+	/// Even if the distributed cache is a secondary level, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
 	/// <br/>
 	/// This is to avoid rare edge cases like saving a value in the cache and immediately cheking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
 	/// <br/>
@@ -241,7 +241,7 @@ public sealed class FusionCacheEntryOptions
 	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
+	[Obsolete("Please use the SkipBackplaneNotifications option and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
 	public bool EnableBackplaneNotifications
 	{
 		get { return !SkipBackplaneNotifications; }
@@ -284,9 +284,9 @@ public sealed class FusionCacheEntryOptions
 	public bool SkipDistributedCache { get; set; }
 
 	/// <summary>
-	/// When a 2nd layer (distributed cache) is used and a cache entry in the 1st layer (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
+	/// When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
 	/// <br/><br/>
-	/// There are situations though, like in a mobile app with a SQLite 2nd layer, where the 2nd layer is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd layer, so we can skip that extra read for a perf boost (of course the write part will still be done).
+	/// There are situations though, like in a mobile app with a SQLite 2nd level, where the 2nd level is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd level, so we can skip that extra read for a perf boost (of course the write part will still be done).
 	/// <br/><br/>
 	/// <strong>TL/DR:</strong> if your 2nd level is not "distributed" but only "out of process", setting this to <see langword="true"/> can give you a nice performance boost.
 	/// <br/><br/>
@@ -297,7 +297,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Skip the usage of the memory cache.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
@@ -545,7 +545,7 @@ public sealed class FusionCacheEntryOptions
 	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false", true)]
+	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
 	public FusionCacheEntryOptions SetBackplane(bool enableBackplaneNotifications)
 	{
 		return SetSkipBackplaneNotifications(!enableBackplaneNotifications);
@@ -596,7 +596,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Set the <see cref="SkipMemoryCache"/> option.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd layer (distributed cache) and a lot of extra network traffic.
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
@@ -650,7 +650,7 @@ public sealed class FusionCacheEntryOptions
 			res.RegisterPostEvictionCallback(
 				(key, entry, reason, state) =>
 				{
-					((FusionCacheMemoryEventsHub)state)?.OnEviction(string.Empty, key.ToString(), reason, ((FusionCacheMemoryEntry?)entry)?.Value);
+					((FusionCacheMemoryEventsHub?)state)?.OnEviction(string.Empty, key.ToString(), reason, ((FusionCacheMemoryEntry?)entry)?.Value);
 				},
 				events
 			);
@@ -706,22 +706,22 @@ public sealed class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {{FailSafeMaxDuration}} was lower than the DistributedCache/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {FailSafeMaxDuration} was lower than the DistributedCacheDuration/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
 		}
 
 		return res;
 	}
 
-	internal TimeSpan GetAppropriateLockTimeout(bool hasFallbackValue)
+	internal TimeSpan GetAppropriateMemoryLockTimeout(bool hasFallbackValue)
 	{
 		var res = LockTimeout;
 		if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
 		{
-			// IF THERE IS NO SPECIFIC LOCK TIMEOUT
+			// IF THERE IS NO SPECIFIC MEMORY LOCK TIMEOUT
 			// + THERE IS A FALLBACK ENTRY
 			// + FAIL-SAFE IS ENABLED
 			// + THERE IS A FACTORY SOFT TIMEOUT
-			// --> USE IT AS A LOCK TIMEOUT
+			// --> USE IT AS A MEMORY LOCK TIMEOUT
 			res = FactorySoftTimeout;
 		}
 

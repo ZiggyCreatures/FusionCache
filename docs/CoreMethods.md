@@ -15,7 +15,7 @@ At a high level there are 6 core methods:
 - `GetOrSet[Async]`
 - `Expire[Async]`
 
-All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: you don't have to do anything extra for it to coordinate the 2 layers.
+All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: you don't have to do anything extra for it to coordinate the 2 levels.
 
 All of them are available in both a **sync** and an **async** version.
 

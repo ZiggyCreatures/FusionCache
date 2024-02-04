@@ -28,14 +28,14 @@ public class ChaosDistributedCache
 	}
 
 	/// <inheritdoc/>
-	public byte[] Get(string key)
+	public byte[]? Get(string key)
 	{
 		MaybeChaos();
 		return _innerCache.Get(key);
 	}
 
 	/// <inheritdoc/>
-	public async Task<byte[]> GetAsync(string key, CancellationToken token = default)
+	public async Task<byte[]?> GetAsync(string key, CancellationToken token = default)
 	{
 		await MaybeChaosAsync(token).ConfigureAwait(false);
 		return await _innerCache.GetAsync(key, token).ConfigureAwait(false);

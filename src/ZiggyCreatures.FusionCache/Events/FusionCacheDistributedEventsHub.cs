@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
-/// The events hub for events specific for the distributed layer.
+/// The events hub for events specific for the distributed level.
 /// </summary>
-public class FusionCacheDistributedEventsHub
+public sealed class FusionCacheDistributedEventsHub
 	: FusionCacheCommonEventsHub
 {
 	/// <summary>
@@ -38,16 +40,50 @@ public class FusionCacheDistributedEventsHub
 
 	internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 	{
+		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.distributed.circuit_breaker.closed", isClosed));
+
 		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnSerializationError(string? operationId, string? key)
 	{
+		Metrics.CounterSerializationError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		SerializationError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(SerializationError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnDeserializationError(string? operationId, string? key)
 	{
+		Metrics.CounterDeserializationError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
 		DeserializationError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	internal override void OnHit(string operationId, string key, bool isStale)
+	{
+		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.stale", isStale));
+
+		base.OnHit(operationId, key, isStale);
+	}
+
+	internal override void OnMiss(string operationId, string key)
+	{
+		Metrics.CounterDistributedMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnMiss(operationId, key);
+	}
+
+	internal override void OnSet(string operationId, string key)
+	{
+		Metrics.CounterDistributedSet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnSet(operationId, key);
+	}
+
+	internal override void OnRemove(string operationId, string key)
+	{
+		Metrics.CounterDistributedRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		base.OnRemove(operationId, key);
 	}
 }
