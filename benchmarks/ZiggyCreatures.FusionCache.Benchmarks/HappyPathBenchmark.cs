@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using FastCache;
 using LazyCache;
@@ -10,11 +12,22 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 {
 	[RankColumn]
 	[MemoryDiagnoser]
+	[Config(typeof(Config))]
 	[ShortRunJob(RuntimeMoniker.Net60)]
 	[ShortRunJob(RuntimeMoniker.Net80)]
 	[Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 	public class HappyPathBenchmark
 	{
+		private class Config : ManualConfig
+		{
+			public Config()
+			{
+				AddColumn(
+					StatisticColumn.P95
+				);
+			}
+		}
+
 		const string Key = "test key";
 		const string Value = "test value";
 
