@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.25.0-preview1</Version>
+		<Version>0.25.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.OpenTelemetry</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>Add native OpenTelemetry support to FusionCache.</Description>
