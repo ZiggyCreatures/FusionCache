@@ -19,8 +19,6 @@ public partial class FusionCache
 		if (options is null)
 			options = _options.DefaultEntryOptions;
 
-		token.ThrowIfCancellationRequested();
-
 		FusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
@@ -117,6 +115,8 @@ public partial class FusionCache
 			{
 				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
 				{
+					token.ThrowIfCancellationRequested();
+
 					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 				}
 			}
@@ -156,6 +156,8 @@ public partial class FusionCache
 
 					try
 					{
+						token.ThrowIfCancellationRequested();
+
 						if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 						{
 							value = await factory(ctx, CancellationToken.None).ConfigureAwait(false);
@@ -399,7 +401,6 @@ public partial class FusionCache
 		FusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 
-		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
 		{
