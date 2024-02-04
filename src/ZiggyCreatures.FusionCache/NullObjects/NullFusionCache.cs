@@ -91,12 +91,6 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public void Dispose()
-	{
-		// EMTPY
-	}
-
-	/// <inheritdoc/>
 	public void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		// EMPTY
@@ -208,5 +202,11 @@ public class NullFusionCache
 	public ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		return new ValueTask<MaybeValue<TValue>>();
+	}
+
+	/// <inheritdoc/>
+	public void Dispose()
+	{
+		// EMTPY
 	}
 }

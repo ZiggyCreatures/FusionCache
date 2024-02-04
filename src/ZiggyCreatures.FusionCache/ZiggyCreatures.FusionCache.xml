@@ -3734,9 +3734,6 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.Dispose">
-            <inheritdoc/>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.Expire(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
             <inheritdoc/>
         </member>
@@ -3792,6 +3789,26 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.TryGetAsync``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullMemoryLocker">
+            <summary>
+            An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> that implements the null object pattern, meaning that it does nothing. Consider this a kind of a pass-through implementation.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullMemoryLocker.AcquireLock(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullMemoryLocker.AcquireLockAsync(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullMemoryLocker.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullMemoryLocker.Dispose">
             <inheritdoc/>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.NullObjects.NullPlugin">
