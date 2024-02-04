@@ -46,6 +46,7 @@ The general features I've identified are:
 - [**Backplane**](Backplane.md): available with different names, it allows a change in a distributed cache to be reflected in the local memory cache
 - [**Auto-Recovery**](AutoRecovery.md): a way to automatically handle transient errors so that they can be solved, automatically, without doing anything
 - [**Events**](Events.md): the ability to be notified when certain events happen in the cache, useful to collect custom metrics, etc
+- [**OpenTelemetry**](OpenTelemetry.md): support for full observability via [OpenTelemetry](https://opentelemetry.io/)
 - [**Logging**](Logging.md): when things go bad you would like to have some help investigating what went wrong, and logging is key
 - **Portable**: the ability to run on both the older **.NET Framework** (full fx) and the new **.NET Core**. As time goes by .NET Core (from v5 now simply **.NET**) is the platform to be on, but it's a nice plus to be able to run on the older one as well
 - **Tests**: having a suite of tests covering most of the library can greatly reduce the probabilty of bugs or regressions so, in theory, you can count on a more solid and stable library
@@ -69,6 +70,7 @@ This is how they compare:
 | **Backplane**            | ✔          | ✔            | ✔          | ✔              | ❌           |
 | **Auto-Recovery**        | ✔          | ❌           | ❌         | ❌             | ❌           |
 | **Events**               | ✔          | ✔            | ❌         | ❌             | ❌           |
+| **OpenTelemetry**        | ✔          | ❌           | ❌         | ❌             | ❌           |
 | **Logging**              | ✔          | ✔            | ❌         | ✔              | ❌           |
 | **Portable**             | ✔          | ✔            | ✔          | ✔              | ✔            |
 | **Tests**                | ✔          | ✔            | ✔          | ✔              | ✔            |
