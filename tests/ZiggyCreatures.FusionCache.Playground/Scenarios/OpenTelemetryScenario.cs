@@ -12,11 +12,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenTelemetry;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
+using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
@@ -99,11 +99,12 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 				.AddFusionCacheInstrumentation(options =>
 				{
-					//options.IncludeMemoryLevel = true;
-					//options.IncludeDistributedLevel = true;
-					//options.IncludeBackplane = true;
+					options.IncludeMemoryLevel = true;
+					options.IncludeDistributedLevel = true;
+					options.IncludeBackplane = true;
 				})
 
+				//.AddOtlpExporter()
 				//.AddHoneycomb(new HoneycombOptions
 				//{
 				//	ServiceName = ServiceName,
@@ -164,23 +165,26 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			//app.Run();
 
-			var cachesCount = 2;
+			var cachesCount = 1;
 			var caches = new List<IFusionCache>();
 			IFusionCache fusionCache;
 
 			IDistributedCache? distributedCache = null;
 			if (UseDistributedCache)
 			{
-				distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+				// MEMORY
+				//distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
+				// CHAOS + MEMORY
+				var chaosDistributedCache = new ChaosDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
+				chaosDistributedCache.SetAlwaysDelay(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(100));
+
+				distributedCache = chaosDistributedCache;
 			}
 
-			//using (var activity = Activity.StartActivity("Setup Caches", ActivityKind.Consumer /*, parentContext.ActivityContext*/))
-			//{
 			for (int i = 0; i < cachesCount; i++)
 			{
 				var name = $"CACHE-OTLP";
-
-				//using var activity2 = Activity.StartActivity($"Setup Cache {name}", ActivityKind.Consumer, activity?.Context ?? default /*, parentContext.ActivityContext*/);
 
 				// CACHE OPTIONS
 				var options = new FusionCacheOptions
@@ -225,7 +229,6 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 				caches.Add(cache);
 			}
-			//}
 
 			fusionCache = caches[0];
 
