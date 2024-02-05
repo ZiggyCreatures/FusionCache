@@ -12,8 +12,6 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 	public class NullMemoryLocker
 		: IFusionCacheMemoryLocker
 	{
-		private bool disposedValue;
-
 		/// <inheritdoc/>
 		public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
