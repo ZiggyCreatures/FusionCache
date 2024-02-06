@@ -27,7 +27,7 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 		/// <inheritdoc/>
 		public void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger)
 		{
-			throw new NotImplementedException();
+			// EMPTY
 		}
 
 		/// <inheritdoc/>
