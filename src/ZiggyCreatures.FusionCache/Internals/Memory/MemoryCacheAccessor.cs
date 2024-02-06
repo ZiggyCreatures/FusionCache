@@ -31,7 +31,7 @@ internal sealed class MemoryCacheAccessor
 	private readonly ILogger? _logger;
 	private readonly FusionCacheMemoryEventsHub _events;
 
-	public void SetEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
+	public void SetEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 	{
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemorySet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
@@ -50,20 +50,20 @@ internal sealed class MemoryCacheAccessor
 
 		entry.PhysicalExpiration = memoryOptions.AbsoluteExpiration!.Value;
 
-		_cache.Set<FusionCacheMemoryEntry>(key, entry, memoryOptions);
+		_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryOptions);
 
 		// EVENT
 		_events.OnSet(operationId, key);
 	}
 
-	public FusionCacheMemoryEntry? GetEntryOrNull(string operationId, string key)
+	public IFusionCacheMemoryEntry? GetEntryOrNull(string operationId, string key)
 	{
 		Metrics.CounterMemoryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		var entry = _cache.Get<FusionCacheMemoryEntry?>(key);
+		var entry = _cache.Get<IFusionCacheMemoryEntry?>(key);
 
 		// EVENT
 		if (entry is not null)
@@ -78,20 +78,20 @@ internal sealed class MemoryCacheAccessor
 		return entry;
 	}
 
-	public (FusionCacheMemoryEntry? entry, bool isValid) TryGetEntry(string operationId, string key)
+	public (IFusionCacheMemoryEntry? entry, bool isValid) TryGetEntry(string operationId, string key)
 	{
 		Metrics.CounterMemoryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		FusionCacheMemoryEntry? entry;
+		IFusionCacheMemoryEntry? entry;
 		bool isValid = false;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] trying to get from memory", _options.CacheName, _options.InstanceId, operationId, key);
 
-		if (_cache.TryGetValue<FusionCacheMemoryEntry>(key, out entry) == false)
+		if (_cache.TryGetValue<IFusionCacheMemoryEntry>(key, out entry) == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry not found", _options.CacheName, _options.InstanceId, operationId, key);
@@ -144,7 +144,7 @@ internal sealed class MemoryCacheAccessor
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryExpire, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		var entry = _cache.Get<FusionCacheMemoryEntry>(key);
+		var entry = _cache.Get<IFusionCacheMemoryEntry>(key);
 
 		if (entry is null)
 		{

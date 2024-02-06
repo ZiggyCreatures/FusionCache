@@ -14,12 +14,12 @@ namespace ZiggyCreatures.Caching.Fusion;
 public partial class FusionCache
 	: IFusionCache
 {
-	private async ValueTask<FusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		if (options is null)
 			options = _options.DefaultEntryOptions;
 
-		FusionCacheMemoryEntry? memoryEntry = null;
+		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
 
@@ -30,7 +30,7 @@ public partial class FusionCache
 			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
 		}
 
-		FusionCacheMemoryEntry? entry;
+		IFusionCacheMemoryEntry? entry;
 		bool isStale = false;
 		var hasNewValue = false;
 
@@ -128,7 +128,7 @@ public partial class FusionCache
 			if (distributedEntryIsValid)
 			{
 				isStale = false;
-				entry = FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options);
+				entry = FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options);
 			}
 			else
 			{
@@ -213,7 +213,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp, typeof(TValue));
+				entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp);
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
@@ -221,7 +221,8 @@ public partial class FusionCache
 			{
 				if (mca is not null)
 				{
-					mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
+					//mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
+					mca.SetEntry<TValue>(operationId, key, entry, options);
 				}
 			}
 		}
@@ -253,7 +254,7 @@ public partial class FusionCache
 		return entry;
 	}
 
-	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
+	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
 	{
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
@@ -281,7 +282,7 @@ public partial class FusionCache
 								if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 									_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
 
-								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options), options);
+								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
 							}
 						}
 						finally
@@ -398,7 +399,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		FusionCacheMemoryEntry? memoryEntry = null;
+		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 
 		var mca = GetCurrentMemoryAccessor(options);
@@ -597,7 +598,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null, typeof(TValue));
+		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, false, null, null, null);
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)

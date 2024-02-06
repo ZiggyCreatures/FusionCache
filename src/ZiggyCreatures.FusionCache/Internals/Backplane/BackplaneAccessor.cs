@@ -107,18 +107,6 @@ internal sealed partial class BackplaneAccessor
 			return false;
 		}
 
-		//// CHECK: EMPTY SOURCE ID
-		//if (string.IsNullOrEmpty(message.SourceId))
-		//{
-		//	//// AUTO-ASSIGN LOCAL SOURCE ID
-		//	//message.SourceId = _cache.InstanceId;
-
-		//	if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-		//		_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + isAutoRecovery.ToString(" (auto-recovery)") + " with a null/empty SourceId", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
-
-		//	return false;
-		//}
-
 		// CHECK: WRONG SOURCE ID
 		if (message.SourceId != _cache.InstanceId)
 		{
@@ -354,7 +342,7 @@ internal sealed partial class BackplaneAccessor
 				return;
 			}
 
-			(var error, var isSame, var hasUpdated) = await _cache.TryUpdateMemoryEntryFromDistributedEntryUntypedAsync(operationId, cacheKey, memoryEntry).ConfigureAwait(false);
+			(var error, var isSame, var hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, cacheKey, _cache).ConfigureAwait(false);
 
 			if (error == false)
 			{
@@ -374,7 +362,6 @@ internal sealed partial class BackplaneAccessor
 			}
 		}
 
-		//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
 	}
 }

@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
-using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -21,9 +16,6 @@ internal sealed partial class DistributedCacheAccessor
 	private readonly FusionCacheDistributedEventsHub _events;
 	private readonly SimpleCircuitBreaker _breaker;
 	private readonly string _wireFormatToken;
-
-	private static readonly MethodInfo __methodInfoSetEntryAsyncOpenGeneric = typeof(DistributedCacheAccessor).GetMethod(nameof(SetEntryAsync), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-	private static readonly ConcurrentDictionary<Type, MethodInfo> __methodInfoSetEntryAsyncCache = new ConcurrentDictionary<Type, MethodInfo>();
 
 	public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 	{
@@ -63,15 +55,12 @@ internal sealed partial class DistributedCacheAccessor
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private string MaybeProcessCacheKey(string key)
 	{
-		switch (_options.DistributedCacheKeyModifierMode)
+		return _options.DistributedCacheKeyModifierMode switch
 		{
-			case CacheKeyModifierMode.Prefix:
-				return _wireFormatToken + key;
-			case CacheKeyModifierMode.Suffix:
-				return key + _wireFormatToken;
-			default:
-				return key;
-		}
+			CacheKeyModifierMode.Prefix => _wireFormatToken + key,
+			CacheKeyModifierMode.Suffix => key + _wireFormatToken,
+			_ => key,
+		};
 	}
 
 	private void UpdateLastError(string key, string operationId)
@@ -123,26 +112,5 @@ internal sealed partial class DistributedCacheAccessor
 
 		if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
 			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
-	}
-
-	public async ValueTask<bool> SetEntryUntypedAsync(string operationId, string key, FusionCacheMemoryEntry memoryEntry, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
-	{
-		try
-		{
-			if (memoryEntry is null)
-				return false;
-
-			var methodInfo = __methodInfoSetEntryAsyncCache.GetOrAdd(memoryEntry.ValueType, x => __methodInfoSetEntryAsyncOpenGeneric.MakeGenericMethod(x));
-
-			// SIGNATURE PARAMS: string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, bool isBackground, CancellationToken token
-			return await ((ValueTask<bool>)methodInfo.Invoke(this, new object[] { operationId, key, memoryEntry, options, isBackground, token })).ConfigureAwait(false);
-		}
-		catch (Exception exc)
-		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while calling SetEntryUntypedAsync() to try to set a distributed entry without knowing the TValue type", _options.CacheName, _options.InstanceId, operationId, key);
-
-			return false;
-		}
 	}
 }

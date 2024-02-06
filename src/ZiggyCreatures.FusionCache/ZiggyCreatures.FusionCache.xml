@@ -3159,7 +3159,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> distributed level.
+            Represents a distributed entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>.
             </summary>
             <typeparam name="TValue">The type of the entry's value</typeparam>
         </member>
@@ -3193,26 +3193,6 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.ToString">
             <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOptions(`0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Int64)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/> instance from a value and some options.
-            </summary>
-            <param name="value">The value to be cached.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="timestamp">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.Timestamp"/> property.</param>
-            <returns>The newly created entry.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOtherEntry(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from another entry and some options.
-            </summary>
-            <param name="entry">The source entry.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <returns>The newly created entry.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata">
             <summary>
@@ -3279,7 +3259,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry">
             <summary>
-            Represents an generic entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, which can be either a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> or a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/>.
+            Represents a generic entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>: it can be either a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry`1"/> or a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/>.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry.GetValue``1">
@@ -3306,58 +3286,15 @@
             The timestamp (in ticks) at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
             </summary>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry`1">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory level.
+            Represents a memory entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, which can be either a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry`1"/> or a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/>.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Int64,System.Type)">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.IFusionCacheMemoryEntry">
             <summary>
-            Creates a new instance.
+            Represents a memory entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, but as a non-generic interface so it can be used from code that doesn't know the actual type of the value (eg: auto-recovery and other places).
             </summary>
-            <param name="value">The actual value.</param>
-            <param name="metadata">The metadata for the entry.</param>
-            <param name="timestamp">The original timestamp of the entry, see <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp"/>.</param>
-            <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Value">
-            <inheritdoc/>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Metadata">
-            <inheritdoc/>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.GetValue``1">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.SetValue``1(``0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.ToString">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOptions(System.Object,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.Int64},System.Type)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from a value and some options.
-            </summary>
-            <param name="value">The value to be cached.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="timestamp">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp"/> property.</param>
-            <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
-            <returns>The newly created entry.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOtherEntry``1(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from another entry and some options.
-            </summary>
-            <param name="entry">The source entry.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <returns>The newly created entry.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.RunUtils">
             <summary>

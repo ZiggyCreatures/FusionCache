@@ -235,12 +235,12 @@ internal static class FusionCacheInternalUtils
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static FusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
+	public static IFusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (entry is FusionCacheMemoryEntry)
-			return (FusionCacheMemoryEntry)entry;
+		if (entry is IFusionCacheMemoryEntry)
+			return (IFusionCacheMemoryEntry)entry;
 
-		return FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(entry, options);
+		return FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
 	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)

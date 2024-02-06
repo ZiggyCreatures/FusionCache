@@ -4,9 +4,9 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 namespace ZiggyCreatures.Caching.Fusion.Internals;
 
 /// <summary>
-/// Represents an generic entry in a <see cref="FusionCache"/>, which can be either a <see cref="FusionCacheMemoryEntry"/> or a <see cref="FusionCacheDistributedEntry{TValue}"/>.
+/// Represents a generic entry in <see cref="FusionCache"/>: it can be either a <see cref="FusionCacheMemoryEntry{TValue}"/> or a <see cref="FusionCacheDistributedEntry{TValue}"/>.
 /// </summary>
-public interface IFusionCacheEntry
+internal interface IFusionCacheEntry
 {
 	/// <summary>
 	/// Get the value inside the entry.

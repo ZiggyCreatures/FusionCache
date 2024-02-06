@@ -183,6 +183,38 @@ public class GeneralTests
 	}
 
 	[Fact]
+	public void CanCacheNullValues()
+	{
+		var duration = TimeSpan.FromSeconds(1);
+		using var cache = new FusionCache(new FusionCacheOptions()
+		{
+			DefaultEntryOptions = new FusionCacheEntryOptions()
+			{
+				Duration = duration
+			}
+		});
+
+		object? foo = new object();
+		int factoryCallCount = 0;
+
+		for (int i = 0; i < 10; i++)
+		{
+			foo = cache.GetOrSet<object?>(
+				"foo",
+				_ =>
+				{
+					factoryCallCount++;
+
+					return null;
+				}
+			);
+		}
+
+		Assert.Null(foo);
+		Assert.Equal(1, factoryCallCount);
+	}
+
+	[Fact]
 	public void CanDisposeEvictedEntries()
 	{
 		var duration = TimeSpan.FromSeconds(1);
