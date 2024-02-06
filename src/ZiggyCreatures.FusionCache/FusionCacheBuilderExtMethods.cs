@@ -996,6 +996,7 @@ public static partial class FusionCacheBuilderExtMethods
 
 		builder = builder
 			.TryWithRegisteredLogger()
+			.TryWithRegisteredMemoryLocker()
 			.TryWithRegisteredMemoryCache()
 			.TryWithRegisteredDistributedCache(ignoreMemoryDistributedCache, false)
 			.TryWithRegisteredBackplane()
