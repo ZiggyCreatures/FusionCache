@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Jobs;
 using FastCache;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
