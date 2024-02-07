@@ -2,8 +2,8 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<!--<TargetFramework>net8.0</TargetFramework>-->
-		<TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+		<TargetFramework>net8.0</TargetFramework>
+		<!--<TargetFrameworks>net6.0;net8.0</TargetFrameworks>-->
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Benchmarks</RootNamespace>
