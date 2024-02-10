@@ -4,6 +4,7 @@ using System.Reflection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -36,10 +37,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
 
 		// LOGGING
-		public static readonly bool EnableLogging = false;
+		public static readonly bool EnableFusionCacheLogging = false;
+		public static readonly bool EnableSimulatorLogging = false;
 		public static readonly bool EnableLoggingExceptions = false;
 
-		private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,defaultDatabase={0},connectTimeout=1000,syncTimeout=500";
+		private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,defaultDatabase={0},connectTimeout=1000,syncTimeout=1000";
 
 		// DISTRIBUTED CACHE
 		public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
@@ -99,13 +101,23 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		private static readonly Color Color_LightRed = Color.Red3_1;
 		private static readonly Color Color_FlashRed = Color.Red1;
 
+		// NOTE: THIS SEEMS TO HAVE PROBLEMS WHEN CONNECTING MULTIPLE TIMES TO THE SAME REDIS INSTANCE
+		// FROM THE SAME PROCESS, PARTICULARLY REGARDING PUBSUB
+		private static bool ReUseConnectionMultiplexers = false;
+
 		private static ConcurrentDictionary<string, IConnectionMultiplexer> _connectionMultiplexerCache = new ConcurrentDictionary<string, IConnectionMultiplexer>();
-		private static IConnectionMultiplexer GetRedisConnectionMultiplexer(string configuration)
+
+		private static IConnectionMultiplexer GetRedisConnectionMultiplexer(int clusterIdx, int nodeIdx)
 		{
-			return _connectionMultiplexerCache.GetOrAdd(configuration, x => ConnectionMultiplexer.Connect(x));
+			var configuration = string.Format(SimulatorOptions.BackplaneRedisConnection, clusterIdx);
+
+			if (ReUseConnectionMultiplexers)
+				return _connectionMultiplexerCache.GetOrAdd($"C{clusterIdx}_N{nodeIdx}", x => ConnectionMultiplexer.Connect(configuration));
+
+			return ConnectionMultiplexer.Connect(configuration);
 		}
 
-		private static IDistributedCache? CreateDistributedCache(int clusterIdx)
+		private static IDistributedCache? CreateDistributedCache(int clusterIdx, IServiceProvider serviceProvider)
 		{
 			switch (SimulatorOptions.DistributedCacheType)
 			{
@@ -114,28 +126,35 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				case DistributedCacheType.Redis:
 					return new RedisCache(new RedisCacheOptions
 					{
-						//Configuration = string.Format(SimulatorOptions.DistributedCacheRedisConnection, clusterIdx)
-						ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(string.Format(SimulatorOptions.BackplaneRedisConnection, clusterIdx))
+						ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(clusterIdx, -1)
 					});
 				default:
 					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			}
 		}
 
-		private static IFusionCacheBackplane? CreateBackplane(int clusterIdx)
+		private static IFusionCacheBackplane? CreateBackplane(int clusterIdx, int nodeIdx, IServiceProvider serviceProvider)
 		{
 			switch (SimulatorOptions.BackplaneType)
 			{
 				case BackplaneType.None:
 					return null;
 				case BackplaneType.Redis:
-					return new RedisBackplane(new RedisBackplaneOptions
-					{
-						//Configuration = string.Format(SimulatorOptions.DistributedCacheRedisConnection, clusterIdx)
-						ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(string.Format(SimulatorOptions.BackplaneRedisConnection, clusterIdx))
-					});
+					return new RedisBackplane(
+						new RedisBackplaneOptions
+						{
+							ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(clusterIdx, nodeIdx)
+						},
+						serviceProvider.GetService<ILogger<RedisBackplane>>()
+					);
 				default:
-					return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = $"connection-{clusterIdx}" });
+					return new MemoryBackplane(
+						new MemoryBackplaneOptions()
+						{
+							ConnectionId = $"connection-{clusterIdx}"
+						},
+						serviceProvider.GetService<ILogger<MemoryBackplane>>()
+					);
 			}
 		}
 
@@ -293,13 +312,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				var cluster = new SimulatedCluster();
 				var cacheName = $"C{clusterIdx + 1}";
 
-				var distributedCache = CreateDistributedCache(clusterIdx);
+				var distributedCache = CreateDistributedCache(clusterIdx, serviceProvider);
 
 				for (int nodeIdx = 0; nodeIdx < SimulatorOptions.NodesPerClusterCount; nodeIdx++)
 				{
 					var swNode = Stopwatch.StartNew();
 
-					var cacheInstanceId = $"{cacheName}-{nodeIdx + 1}";
+					var cacheInstanceId = $"{cacheName}_{nodeIdx + 1}";
 
 					AnsiConsole.MarkupLine($"CACHE: [deepskyblue1]{cacheName} ({cacheInstanceId})[/]");
 
@@ -308,7 +327,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					var options = new FusionCacheOptions()
 					{
 						CacheName = cacheName,
-						DefaultEntryOptions = new FusionCacheEntryOptions(SimulatorOptions.CacheDuration)
+						DefaultEntryOptions = new FusionCacheEntryOptions(SimulatorOptions.CacheDuration),
+						AutoRecoveryDelay = TimeSpan.FromSeconds(3),
 					};
 					options.SetInstanceId(cacheInstanceId);
 
@@ -335,7 +355,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					if (SimulatorOptions.DistributedCacheType == DistributedCacheType.None && SimulatorOptions.BackplaneType != BackplaneType.None)
 						deo.SkipBackplaneNotifications = true;
 
-					var cacheLogger = SimulatorOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+					var cacheLogger = SimulatorOptions.EnableFusionCacheLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
 					var swCache = Stopwatch.StartNew();
 					var cache = new FusionCache(options, logger: cacheLogger);
 					swCache.Stop();
@@ -346,7 +366,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					if (distributedCache is not null)
 					{
 						AnsiConsole.Markup(" - [default]DISTRIBUTED CACHE:[/] ...");
-						var chaosDistributedCacheLogger = SimulatorOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosDistributedCache>>() : null;
+						var chaosDistributedCacheLogger = SimulatorOptions.EnableFusionCacheLogging ? serviceProvider.GetService<ILogger<ChaosDistributedCache>>() : null;
 						var tmp = new ChaosDistributedCache(distributedCache, chaosDistributedCacheLogger);
 						if (SimulatorOptions.ChaosDistributedCacheSyntheticMinDelay is not null && SimulatorOptions.ChaosDistributedCacheSyntheticMaxDelay is not null)
 						{
@@ -361,11 +381,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					}
 
 					// BACKPLANE
-					var backplane = CreateBackplane(clusterIdx);
+					var backplane = CreateBackplane(clusterIdx, nodeIdx, serviceProvider);
 					if (backplane is not null)
 					{
 						AnsiConsole.Markup(" - [default]BACKPLANE:[/] ...");
-						var chaosBackplaneLogger = SimulatorOptions.EnableLogging ? serviceProvider.GetService<ILogger<ChaosBackplane>>() : null;
+						var chaosBackplaneLogger = SimulatorOptions.EnableFusionCacheLogging ? serviceProvider.GetService<ILogger<ChaosBackplane>>() : null;
 						var tmp = new ChaosBackplane(backplane, chaosBackplaneLogger);
 						if (SimulatorOptions.ChaosBackplaneSyntheticDelay is not null)
 						{
@@ -804,7 +824,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			SetupSerilogLogger(services, LogEventLevel.Verbose);
 			var serviceProvider = services.BuildServiceProvider();
 
-			var logger = SimulatorOptions.EnableLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
+			var logger = SimulatorOptions.EnableSimulatorLogging ? serviceProvider.GetService<ILogger<FusionCache>>() : null;
 
 			SetupClusters(serviceProvider, logger);
 
