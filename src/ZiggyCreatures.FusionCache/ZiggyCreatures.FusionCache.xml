@@ -3938,7 +3938,9 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
             <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Registers a named cache to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by registering a named cache in this way it's not possible to then change the CacheName in any other way, including usage of the WithOptions(...) method.
             <br/><br/>
             <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
             <br/><br/>
@@ -3950,7 +3952,9 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Registers the default cache (not a named cache) to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by registering the default cache it's not possible to then change the CacheName in any other way, including usage of the WithOptions(...) method. If you want to register a named cache please use the AddFusionCache("MyCache") method instead.
             <br/><br/>
             <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
             <br/><br/>

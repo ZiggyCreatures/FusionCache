@@ -144,6 +144,53 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
+	public void CannotSpecifyCacheNameOfDefaultCacheViaOptions()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache()
+			.WithOptions(opt =>
+			{
+				opt.CacheName = "foo";
+			})
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		});
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+		});
+	}
+
+	[Fact]
+	public void CannotSpecifyCacheNameOfNamedCacheViaOptions()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache("foo")
+			.WithOptions(opt =>
+			{
+				opt.CacheName = "bar";
+			})
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			var cache = cacheProvider.GetCache("foo");
+		});
+	}
+
+	[Fact]
 	public void CanAddPlugins()
 	{
 		var services = new ServiceCollection();

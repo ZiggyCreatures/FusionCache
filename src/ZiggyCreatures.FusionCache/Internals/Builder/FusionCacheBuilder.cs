@@ -93,6 +93,10 @@ internal sealed class FusionCacheBuilder
 		if (UseRegisteredOptions)
 		{
 			options = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheOptions>>().Get(CacheName);
+			if (options is not null)
+			{
+				options.CacheName = CacheName;
+			}
 		}
 
 		if (options is null)
@@ -102,21 +106,18 @@ internal sealed class FusionCacheBuilder
 
 		if (options is null)
 		{
-			options = new FusionCacheOptions();
+			options = new FusionCacheOptions()
+			{
+				CacheName = CacheName
+			};
 		}
 
-		// ENSURE CACHE NAME
-		options.CacheName = CacheName;
+		SetupOptionsAction?.Invoke(options);
 
 		// CACHE KEY PREFIX
 		if (UseCacheKeyPrefix)
 		{
 			options.CacheKeyPrefix = CacheKeyPrefix;
-		}
-
-		if (SetupOptionsAction is not null)
-		{
-			SetupOptionsAction?.Invoke(options);
 		}
 
 		// DEFAULT ENTRY OPTIONS
@@ -130,6 +131,15 @@ internal sealed class FusionCacheBuilder
 			SetupDefaultEntryOptionsAction?.Invoke(options.DefaultEntryOptions);
 		}
 
+		// CHECK INCOHERENT CACHE NAMES
+		if (options.CacheName != CacheName)
+		{
+			throw new InvalidOperationException($"When using dependency injection and/or the builder, the cache name must be specified via the AddFusionCache(\"MyCache\") method.");
+		}
+
+		// ENSURE CACHE NAME
+		options.CacheName = CacheName;
+
 		// LOGGER
 		ILogger<FusionCache>? logger;
 
@@ -139,7 +149,7 @@ internal sealed class FusionCacheBuilder
 		}
 		else if (LoggerFactory is not null)
 		{
-			logger = LoggerFactory?.Invoke(serviceProvider);
+			logger = LoggerFactory.Invoke(serviceProvider);
 		}
 		else
 		{
@@ -160,7 +170,7 @@ internal sealed class FusionCacheBuilder
 		}
 		else if (MemoryCacheFactory is not null)
 		{
-			memoryCache = MemoryCacheFactory?.Invoke(serviceProvider);
+			memoryCache = MemoryCacheFactory.Invoke(serviceProvider);
 		}
 		else
 		{
@@ -181,7 +191,7 @@ internal sealed class FusionCacheBuilder
 		}
 		else if (MemoryLockerFactory is not null)
 		{
-			memoryLocker = MemoryLockerFactory?.Invoke(serviceProvider);
+			memoryLocker = MemoryLockerFactory.Invoke(serviceProvider);
 		}
 		else
 		{
@@ -208,7 +218,7 @@ internal sealed class FusionCacheBuilder
 		}
 		else if (DistributedCacheFactory is not null)
 		{
-			distributedCache = DistributedCacheFactory?.Invoke(serviceProvider);
+			distributedCache = DistributedCacheFactory.Invoke(serviceProvider);
 		}
 		else
 		{
@@ -229,7 +239,7 @@ internal sealed class FusionCacheBuilder
 			}
 			else if (SerializerFactory is not null)
 			{
-				serializer = SerializerFactory?.Invoke(serviceProvider);
+				serializer = SerializerFactory.Invoke(serviceProvider);
 			}
 			else
 			{
@@ -317,10 +327,7 @@ internal sealed class FusionCacheBuilder
 		}
 
 		// CUSTOM SETUP ACTION
-		if (PostSetupAction is not null)
-		{
-			PostSetupAction?.Invoke(serviceProvider, cache);
-		}
+		PostSetupAction?.Invoke(serviceProvider, cache);
 
 		return cache;
 	}
