@@ -71,8 +71,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		{
 			return [
 				new KeyValuePair<string, object?>("fusioncache.cache.name", name),
-				new KeyValuePair<string, object?>("fusioncache.cache.instance_id", instanceId),
 				// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS, PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES
+				//new KeyValuePair<string, object?>("fusioncache.cache.instance_id", instanceId),
 				//new KeyValuePair<string, object?>("fusioncache.operation.key", key),
 				//new KeyValuePair<string, object?>("fusioncache.operation.operation_id", operationId),
 				.. extraTags ?? []
