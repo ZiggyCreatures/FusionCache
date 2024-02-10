@@ -35,6 +35,7 @@ internal sealed class AutoRecoveryService
 
 		_delay = _options.AutoRecoveryDelay;
 		// NOTE: THIS IS PRAGMATIC, SO TO AVOID CHECKING AN int? EVERY TIME, AND int.MaxValue IS HIGH ENOUGH THAT IT WON'T MATTER
+		// ALSO, AFTER THE CACHE ENTRY Duration is PASSED, THE ENTRY WILL BE REMOVED ANYWAY, SO NO ACTUAL WASTE OF RESOURCES
 		_maxItems = _options.AutoRecoveryMaxItems ?? int.MaxValue;
 		_maxRetryCount = _options.AutoRecoveryMaxRetryCount ?? int.MaxValue;
 
