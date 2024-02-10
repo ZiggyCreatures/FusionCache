@@ -35,23 +35,23 @@ public class BackplaneTests
 		return res;
 	}
 
-	private static readonly string? RedisConnection = null;
-	//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
+	private static readonly bool UseRedis = false;
+	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
 
 	private IFusionCacheBackplane CreateBackplane(string connectionId)
 	{
-		if (string.IsNullOrWhiteSpace(RedisConnection))
-			return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
+		if (UseRedis)
+			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
 
-		return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
+		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
 	}
 
 	private static IDistributedCache CreateDistributedCache()
 	{
-		if (string.IsNullOrWhiteSpace(RedisConnection))
-			return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		if (UseRedis)
+			return new RedisCache(new RedisCacheOptions { Configuration = RedisConnection });
 
-		return new RedisCache(new RedisCacheOptions { Configuration = RedisConnection });
+		return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 	}
 
 	private IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null)
