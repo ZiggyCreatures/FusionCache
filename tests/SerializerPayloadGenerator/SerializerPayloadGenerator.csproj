@@ -8,12 +8,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack" Version="0.24.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack" Version="0.24.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson" Version="0.24.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="0.24.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="0.24.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="0.24.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack" Version="0.25.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack" Version="0.25.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson" Version="0.25.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="0.25.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="0.25.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="0.25.0" />
 	</ItemGroup>
 
 	<ItemGroup>
