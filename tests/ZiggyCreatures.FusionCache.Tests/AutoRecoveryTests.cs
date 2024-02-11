@@ -725,10 +725,7 @@ public class AutoRecoveryTests
 		// GIVE IT SOME TIME
 		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA3 = await cacheA.GetOrDefaultAsync<int>("foo");
-
-		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
 		var vB3 = await cacheB.GetOrDefaultAsync<int>("foo");
 
 		Assert.Equal(10, vA3);
@@ -820,10 +817,7 @@ public class AutoRecoveryTests
 		// GIVE IT SOME TIME
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA3 = cacheA.GetOrDefault<int>("foo");
-
-		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
 		var vB3 = cacheB.GetOrDefault<int>("foo");
 
 		Assert.Equal(10, vA3);
