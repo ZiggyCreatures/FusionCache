@@ -221,7 +221,6 @@ public partial class FusionCache
 			{
 				if (mca is not null)
 				{
-					//mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
 					mca.SetEntry<TValue>(operationId, key, entry, options);
 				}
 			}
