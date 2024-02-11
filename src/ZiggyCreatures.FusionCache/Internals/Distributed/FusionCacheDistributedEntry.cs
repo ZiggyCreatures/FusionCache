@@ -78,7 +78,6 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified),
-			//timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp()
 			timestamp
 		);
 	}
