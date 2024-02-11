@@ -276,7 +276,9 @@ public class FusionCacheOptions
 	/// <summary>
 	/// The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
 	/// <br/>
-	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
+	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky, like very very risky).
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> when used with a distributed cache that supports a delayed reconnection logic (like StackExchange.Redis), set this to a higher value than the one used by the distributed cache, to avoid sending backplane notifications when not all nodes are reconnected yet, therefore avoiding that some nodes will not receive all the notifications.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>

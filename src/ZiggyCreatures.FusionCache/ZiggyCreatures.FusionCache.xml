@@ -142,6 +142,26 @@
             <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
             <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.#ctor(System.String,System.String,System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo},System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
+            <summary>
+            Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions"/>.
+            </summary>
+            <param name="cacheName">The cache name.</param>
+            <param name="cacheInstanceId">The unique cache instance id.</param>
+            <param name="channelName">The channel name to be used.</param>
+            <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
+            <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.CacheName">
+            <summary>
+            The cache name.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.CacheInstanceId">
+            <summary>
+            The cache instance id.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ChannelName">
             <summary>
             The channel name to be used.
@@ -2507,7 +2527,9 @@
             <summary>
             The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
             <br/>
-            Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky).
+            Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky, like very very risky).
+            <br/><br/>
+            <strong>NOTE:</strong> when used with a distributed cache that supports a delayed reconnection logic (like StackExchange.Redis), set this to a higher value than the one used by the distributed cache, to avoid sending backplane notifications when not all nodes are reconnected yet, therefore avoiding that some nodes will not receive all the notifications.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
             </summary>
