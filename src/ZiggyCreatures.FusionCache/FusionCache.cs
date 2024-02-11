@@ -402,9 +402,55 @@ public partial class FusionCache
 		});
 	}
 
-	private void ReleaseMemoryLock(string operationId, string key, object? memoryLockObj)
+	private async ValueTask<object?> AcquireMemoryLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
 	{
-		if (memoryLockObj is null)
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", CacheName, InstanceId, operationId, key);
+
+		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, key, operationId, timeout, _logger, token);
+
+		if (lockObj is not null)
+		{
+			// LOCK ACQUIRED
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", CacheName, InstanceId, operationId, key);
+		}
+		else
+		{
+			// LOCK TIMEOUT
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", CacheName, InstanceId, operationId, key);
+		}
+
+		return lockObj;
+	}
+
+	private object? AcquireMemoryLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
+	{
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", CacheName, InstanceId, operationId, key);
+
+		var lockObj = _memoryLocker.AcquireLock(CacheName, InstanceId, key, operationId, timeout, _logger, token);
+
+		if (lockObj is not null)
+		{
+			// LOCK ACQUIRED
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", CacheName, InstanceId, operationId, key);
+		}
+		else
+		{
+			// LOCK TIMEOUT
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", CacheName, InstanceId, operationId, key);
+		}
+
+		return lockObj;
+	}
+
+	private void ReleaseMemoryLock(string operationId, string key, object? lockObj)
+	{
+		if (lockObj is null)
 			return;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -412,7 +458,7 @@ public partial class FusionCache
 
 		try
 		{
-			_memoryLocker.ReleaseLock(CacheName, InstanceId, key, operationId, memoryLockObj, _logger);
+			_memoryLocker.ReleaseLock(CacheName, InstanceId, key, operationId, lockObj, _logger);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): MEMORY LOCK released", CacheName, InstanceId, operationId, key);

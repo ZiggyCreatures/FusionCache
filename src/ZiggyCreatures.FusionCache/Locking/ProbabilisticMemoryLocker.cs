@@ -43,40 +43,7 @@ internal sealed class ProbabilisticMemoryLocker
 		var idx = GetLockIndex(key);
 		var semaphore = _pool[idx];
 
-		//if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//	logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
-		//var acquired = semaphore.Wait(0);
-		//if (acquired)
-		//{
-		//	_lockPoolKeys[idx] = key;
-		//	if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//		logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", cacheName, cacheInstanceId, operationId, key);
-
-		//	return semaphore;
-		//}
-
-		//if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//	logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK already taken", cacheName, cacheInstanceId, operationId, key);
-
-		//var key2 = _lockPoolKeys[idx];
-		//if (key2 != key)
-		//{
-		//	if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//		logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", cacheName, cacheInstanceId, operationId, key);
-
-		//	Interlocked.Increment(ref _lockPoolCollisions);
-		//}
-
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
 		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
-
-		//_lockPoolKeys[idx] = key;
-
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, cacheInstanceId, operationId, key);
 
 		return acquired ? semaphore : null;
 	}
@@ -87,40 +54,7 @@ internal sealed class ProbabilisticMemoryLocker
 		var idx = GetLockIndex(key);
 		var semaphore = _pool[idx];
 
-		//if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//	logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to fast-acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
-		//var acquired = semaphore.Wait(0);
-		//if (acquired)
-		//{
-		//	_lockPoolKeys[idx] = key;
-		//	if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//		logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK fast-acquired", cacheName, cacheInstanceId, operationId, key);
-
-		//	return semaphore;
-		//}
-
-		//if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//	logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK already taken", cacheName, cacheInstanceId, operationId, key);
-
-		//var key2 = _lockPoolKeys[idx];
-		//if (key2 != key)
-		//{
-		//	if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//		logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK " + (key2 is null ? "maybe " : string.Empty) + "acquired for a different key (current key: " + key + ", other key: " + key2 + ")", cacheName, cacheInstanceId, operationId, key);
-
-		//	Interlocked.Increment(ref _lockPoolCollisions);
-		//}
-
-		//if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-		//	logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
 		var acquired = semaphore.Wait(timeout, token);
-
-		//_lockPoolKeys[idx] = key;
-
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, cacheInstanceId, operationId, key);
 
 		return acquired ? semaphore : null;
 	}
@@ -130,9 +64,6 @@ internal sealed class ProbabilisticMemoryLocker
 	{
 		if (lockObj is null)
 			return;
-
-		//var idx = GetLockIndex(key);
-		//_lockPoolKeys[idx] = null;
 
 		try
 		{

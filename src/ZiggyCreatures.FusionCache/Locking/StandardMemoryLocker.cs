@@ -81,23 +81,7 @@ internal sealed class StandardMemoryLocker
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
 		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
-
-		if (acquired)
-		{
-			// LOCK ACQUIRED
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, cacheInstanceId, operationId, key);
-		}
-		else
-		{
-			// LOCK TIMEOUT
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", cacheName, cacheInstanceId, operationId, key);
-		}
 
 		return acquired ? semaphore : null;
 	}
@@ -107,23 +91,7 @@ internal sealed class StandardMemoryLocker
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
 		var acquired = semaphore.Wait(timeout, token);
-
-		if (acquired)
-		{
-			// LOCK ACQUIRED
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, cacheInstanceId, operationId, key);
-		}
-		else
-		{
-			// LOCK TIMEOUT
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", cacheName, cacheInstanceId, operationId, key);
-		}
 
 		return acquired ? semaphore : null;
 	}

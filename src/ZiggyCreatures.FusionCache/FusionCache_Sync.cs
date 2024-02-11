@@ -45,7 +45,7 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): should eagerly refresh", CacheName, InstanceId, operationId, key);
 
 				// TRY TO GET THE MEMORY LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST ONE WILL ACTUALLY REFRESH THE ENTRY
-				memoryLockObj = _memoryLocker.AcquireLock(CacheName, InstanceId, key, operationId, TimeSpan.Zero, _logger, token);
+				memoryLockObj = AcquireMemoryLock(operationId, key, TimeSpan.Zero, token);
 				if (memoryLockObj is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -73,7 +73,7 @@ public partial class FusionCache
 		try
 		{
 			// MEMORY LOCK
-			memoryLockObj = _memoryLocker.AcquireLock(CacheName, InstanceId, key, operationId, options.GetAppropriateMemoryLockTimeout(memoryEntry is not null), _logger, token);
+			memoryLockObj = AcquireMemoryLock(operationId, key, options.GetAppropriateMemoryLockTimeout(memoryEntry is not null), token);
 
 			if (memoryLockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
 			{
