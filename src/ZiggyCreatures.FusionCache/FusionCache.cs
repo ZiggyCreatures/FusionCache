@@ -416,7 +416,7 @@ public partial class FusionCache
 
 		try
 		{
-			_memoryLocker.ReleaseLock(CacheName, InstanceId, key, operationId, memoryLockObj, _logger);
+			_memoryLocker.ReleaseLock(CacheName, InstanceId, operationId, key, memoryLockObj, _logger);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): MEMORY LOCK released", CacheName, InstanceId, operationId, key);

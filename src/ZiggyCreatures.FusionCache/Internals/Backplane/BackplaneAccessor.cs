@@ -36,7 +36,7 @@ internal sealed partial class BackplaneAccessor
 		_breaker = new SimpleCircuitBreaker(options.BackplaneCircuitBreakerDuration);
 	}
 
-	private void UpdateLastError(string key, string operationId)
+	private void UpdateLastError(string operationId, string key)
 	{
 		// NO DISTRIBUTEC CACHE
 		if (_backplane is null)
@@ -80,7 +80,7 @@ internal sealed partial class BackplaneAccessor
 			return;
 		}
 
-		UpdateLastError(key, operationId);
+		UpdateLastError(operationId, key);
 
 		if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
 			_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] an error occurred while " + actionDescription, _cache.CacheName, _cache.InstanceId, operationId, key);
