@@ -52,7 +52,7 @@ public partial class RedisBackplane
 	{
 		await EnsureConnectionAsync(token).ConfigureAwait(false);
 
-		var value = GetRedisValueFromMessage(message, _logger);
+		var value = GetRedisValueFromMessage(message, _logger, _subscriptionOptions);
 
 		if (value.IsNull)
 			return;

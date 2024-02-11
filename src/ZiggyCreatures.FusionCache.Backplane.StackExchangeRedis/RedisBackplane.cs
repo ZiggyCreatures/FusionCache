@@ -97,7 +97,7 @@ public partial class RedisBackplane
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION: An error occurred while disconnecting from Redis {Config}", _options.ConfigurationOptions?.ToString() ?? _options.Configuration);
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] An error occurred while disconnecting from Redis {Config}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _options.ConfigurationOptions?.ToString() ?? _options.Configuration);
 		}
 
 		_connection = null;
@@ -137,11 +137,12 @@ public partial class RedisBackplane
 
 		_subscriber.Subscribe(_channel, (_, v) =>
 		{
-			var message = GetMessageFromRedisValue(v, _logger);
-			if (message is not null)
-			{
-				OnMessage(message);
-			}
+			var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
+
+			if (message is null)
+				return;
+
+			OnMessage(message);
 		});
 	}
 
@@ -160,10 +161,16 @@ public partial class RedisBackplane
 
 	internal void OnMessage(BackplaneMessage message)
 	{
+		if (_incomingMessageHandler is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] incoming message handler was null", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
+		}
+
 		_incomingMessageHandler?.Invoke(message);
 	}
 
-	private static BackplaneMessage? GetMessageFromRedisValue(RedisValue value, ILogger? logger)
+	private static BackplaneMessage? GetMessageFromRedisValue(RedisValue value, ILogger? logger, BackplaneSubscriptionOptions? subscriptionOptions)
 	{
 		try
 		{
@@ -172,13 +179,13 @@ public partial class RedisBackplane
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION: an error occurred while converting a RedisValue into a BackplaneMessage");
+				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] an error occurred while converting a RedisValue into a BackplaneMessage", subscriptionOptions?.CacheName, subscriptionOptions?.CacheInstanceId);
 		}
 
 		return null;
 	}
 
-	private static RedisValue GetRedisValueFromMessage(BackplaneMessage message, ILogger? logger)
+	private static RedisValue GetRedisValueFromMessage(BackplaneMessage message, ILogger? logger, BackplaneSubscriptionOptions? subscriptionOptions)
 	{
 		try
 		{
@@ -187,7 +194,7 @@ public partial class RedisBackplane
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION: an error occurred while converting a BackplaneMessage into a RedisValue");
+				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] an error occurred while converting a BackplaneMessage into a RedisValue", subscriptionOptions?.CacheName, subscriptionOptions?.CacheInstanceId);
 		}
 
 		return RedisValue.Null;

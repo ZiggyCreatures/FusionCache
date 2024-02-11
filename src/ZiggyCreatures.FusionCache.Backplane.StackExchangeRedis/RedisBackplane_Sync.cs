@@ -51,7 +51,7 @@ public partial class RedisBackplane
 	{
 		EnsureConnection(token);
 
-		var value = GetRedisValueFromMessage(message, _logger);
+		var value = GetRedisValueFromMessage(message, _logger, _subscriptionOptions);
 
 		if (value.IsNull)
 			return;
