@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>0.25.0</Version>
+		<Version>1.0.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache backplane for Redis based on the StackExchange.Redis library</Description>
@@ -14,6 +14,7 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
 			- Update: package dependencies
+			- Changed: better logging
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
