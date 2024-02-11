@@ -58,7 +58,7 @@ public class MemoryBackplane
 		if (_options.ConnectionId is null)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION: BACKPLANE - A MemoryBackplane should be used with an explicit ConnectionId option, otherwise concurrency issues will probably happen");
+				_logger.Log(LogLevel.Warning, "FUSION: [BP] A MemoryBackplane should be used with an explicit ConnectionId option, otherwise concurrency issues will probably happen");
 
 			_options.ConnectionId = "_default";
 		}
@@ -136,12 +136,12 @@ public class MemoryBackplane
 		lock (_subscribers)
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before subscribing (Subscribers: {SubscribersCount})", _subscribers.Count);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before subscribing (Subscribers: {SubscribersCount})", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count);
 
 			_subscribers.Add(this);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after subscribing (Subscribers: {SubscribersCount})", _subscribers.Count);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after subscribing (Subscribers: {SubscribersCount})", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count);
 		}
 	}
 
@@ -154,12 +154,12 @@ public class MemoryBackplane
 			lock (_subscribers)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before unsubscribing (Subscribers: {SubscribersCount})", _subscribers.Count);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before unsubscribing (Subscribers: {SubscribersCount})", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count);
 
 				var removed = _subscribers.Remove(this);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after unsubscribing (Subscribers: {SubscribersCount}, Removed: {Removed}", _subscribers.Count, removed);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after unsubscribing (Subscribers: {SubscribersCount}, Removed: {Removed}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count, removed);
 
 				_subscriptionOptions = null;
 				_channelName = null;
@@ -195,7 +195,7 @@ public class MemoryBackplane
 			throw new NullReferenceException("Something went wrong :-|");
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - about to send a backplane notification to {BackplanesCount} backplanes (including self)", _subscribers.Count);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] about to send a backplane notification to {BackplanesCount} backplanes (including self)", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count);
 
 		foreach (var backplane in _subscribers)
 		{
@@ -207,19 +207,19 @@ public class MemoryBackplane
 			try
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before sending a backplane notification to {BackplaneChannel}", backplane._channelName);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before sending a backplane notification to {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, backplane._channelName);
 
 				var payload = BackplaneMessage.ToByteArray(message);
 
 				backplane.OnMessage(payload);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after sending a backplane notification to {BackplaneChannel}", backplane._channelName);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after sending a backplane notification to {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, backplane._channelName);
 			}
 			catch
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, "FUSION: BACKPLANE - An error occurred while publishing a message to a subscriber");
+					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] An error occurred while publishing a message to a subscriber", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
 			}
 		}
 	}
@@ -229,11 +229,11 @@ public class MemoryBackplane
 		var message = BackplaneMessage.FromByteArray(payload);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - before processing a backplane notification received from {BackplaneMessageSourceId}", message.SourceId);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before processing a backplane notification received from {BackplaneMessageSourceId}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.SourceId);
 
 		_incomingMessageHandler?.Invoke(message);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION: BACKPLANE - after processing a backplane notification received from {BackplaneMessageSourceId}", message.SourceId);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after processing a backplane notification received from {BackplaneMessageSourceId}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.SourceId);
 	}
 }
