@@ -77,7 +77,7 @@ internal sealed class StandardMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
@@ -87,7 +87,7 @@ internal sealed class StandardMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
@@ -97,7 +97,7 @@ internal sealed class StandardMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger)
+	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
 	{
 		if (lockObj is null)
 			return;

@@ -28,24 +28,24 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		}
 
 		/// <inheritdoc/>
-		public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+		public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
 			MaybeChaos();
-			return _innerMemoryLocker.AcquireLock(cacheName, cacheInstanceId, key, operationId, timeout, logger, token);
+			return _innerMemoryLocker.AcquireLock(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
 		}
 
 		/// <inheritdoc/>
-		public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+		public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
 			MaybeChaos();
-			return await _innerMemoryLocker.AcquireLockAsync(cacheName, cacheInstanceId, key, operationId, timeout, logger, token);
+			return await _innerMemoryLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
 		}
 
 		/// <inheritdoc/>
-		public void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger)
+		public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
 		{
 			MaybeChaos();
-			_innerMemoryLocker.ReleaseLock(cacheName, cacheInstanceId, key, operationId, lockObj, logger);
+			_innerMemoryLocker.ReleaseLock(cacheName, cacheInstanceId, operationId, key, lockObj, logger);
 		}
 
 		/// <inheritdoc/>

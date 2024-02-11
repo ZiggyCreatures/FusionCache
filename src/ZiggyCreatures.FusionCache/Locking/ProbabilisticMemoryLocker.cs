@@ -38,7 +38,7 @@ internal sealed class ProbabilisticMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		var idx = GetLockIndex(key);
 		var semaphore = _pool[idx];
@@ -49,7 +49,7 @@ internal sealed class ProbabilisticMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		var idx = GetLockIndex(key);
 		var semaphore = _pool[idx];
@@ -60,7 +60,7 @@ internal sealed class ProbabilisticMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger)
+	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
 	{
 		if (lockObj is null)
 			return;

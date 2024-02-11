@@ -13,19 +13,19 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 		: IFusionCacheMemoryLocker
 	{
 		/// <inheritdoc/>
-		public object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+		public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
 			return null;
 		}
 
 		/// <inheritdoc/>
-		public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token)
+		public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
 			return new ValueTask<object?>(null);
 		}
 
 		/// <inheritdoc/>
-		public void ReleaseLock(string cacheName, string cacheInstanceId, string key, string operationId, object? lockObj, ILogger? logger)
+		public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
 		{
 			// EMPTY
 		}

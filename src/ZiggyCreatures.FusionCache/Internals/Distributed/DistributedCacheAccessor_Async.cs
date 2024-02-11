@@ -104,7 +104,12 @@ internal partial class DistributedCacheAccessor
 		}
 
 		if (data is null)
+		{
+			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
+				_logger.Log(_options.SerializationErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] the entry {Entry} has been serialized to null, skipping", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
+
 			return false;
+		}
 
 		// SAVE TO DISTRIBUTED CACHE
 		return await ExecuteOperationAsync(

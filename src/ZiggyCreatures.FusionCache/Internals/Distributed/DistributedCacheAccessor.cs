@@ -63,7 +63,7 @@ internal sealed partial class DistributedCacheAccessor
 		};
 	}
 
-	private void UpdateLastError(string key, string operationId)
+	private void UpdateLastError(string operationId, string key)
 	{
 		// NO DISTRIBUTEC CACHE
 		if (_cache is null)
@@ -108,7 +108,7 @@ internal sealed partial class DistributedCacheAccessor
 			return;
 		}
 
-		UpdateLastError(key, operationId);
+		UpdateLastError(operationId, key);
 
 		if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
 			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);

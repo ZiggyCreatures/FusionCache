@@ -3462,8 +3462,8 @@
             </summary>
             <param name="cacheName">The CacheName of the FusionCache instance.</param>
             <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
-            <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="key">The key for which to obtain a lock.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
             <returns>The acquired generic lock object, later released when the critical section is over.</returns>
@@ -3475,8 +3475,8 @@
             </summary>
             <param name="cacheName">The name of the FusionCache instance.</param>
             <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
-            <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="key">The key for which to obtain a lock.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
             <returns>The acquired genericlock object, later released when the critical section is over.</returns>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
@@ -3488,8 +3488,8 @@
             </summary>
             <param name="cacheName">The name of the FusionCache instance.</param>
             <param name="cacheInstanceId">The InstanceId of the FusionCache instance.</param>
-            <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
+            <param name="key">The key for which to obtain a lock.</param>
             <param name="lockObj">The generic lock object to release.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
         </member>

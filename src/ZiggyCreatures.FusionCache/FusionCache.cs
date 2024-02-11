@@ -230,9 +230,13 @@ public partial class FusionCache
 		IFusionCacheEntry? entry;
 		//if (distributedEntry is not null && (memoryEntry is null || distributedEntry.Timestamp > memoryEntry.Timestamp))
 		if (distributedEntry is not null)
+		{
 			entry = distributedEntry;
+		}
 		else
+		{
 			entry = memoryEntry;
+		}
 
 		if (entry is not null)
 		{
@@ -274,6 +278,7 @@ public partial class FusionCache
 		value = default;
 		timestamp = default;
 		failSafeActivated = false;
+
 		return false;
 	}
 
@@ -407,7 +412,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", CacheName, InstanceId, operationId, key);
 
-		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, key, operationId, timeout, _logger, token);
+		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
 
 		if (lockObj is not null)
 		{
@@ -430,7 +435,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", CacheName, InstanceId, operationId, key);
 
-		var lockObj = _memoryLocker.AcquireLock(CacheName, InstanceId, key, operationId, timeout, _logger, token);
+		var lockObj = _memoryLocker.AcquireLock(CacheName, InstanceId, operationId, key, timeout, _logger, token);
 
 		if (lockObj is not null)
 		{
@@ -458,7 +463,7 @@ public partial class FusionCache
 
 		try
 		{
-			_memoryLocker.ReleaseLock(CacheName, InstanceId, key, operationId, lockObj, _logger);
+			_memoryLocker.ReleaseLock(CacheName, InstanceId, operationId, key, lockObj, _logger);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): MEMORY LOCK released", CacheName, InstanceId, operationId, key);
