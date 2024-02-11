@@ -55,6 +55,8 @@ public class ChaosBackplane
 		_innerIncomingMessageHandler = options.IncomingMessageHandler;
 
 		var innerOptions = new BackplaneSubscriptionOptions(
+			options.CacheName,
+			options.CacheInstanceId,
 			options.ChannelName,
 			OnConnect,
 			OnIncomingMessage
