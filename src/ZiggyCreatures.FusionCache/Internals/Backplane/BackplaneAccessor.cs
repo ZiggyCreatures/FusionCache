@@ -125,10 +125,12 @@ internal sealed partial class BackplaneAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before unsubscribing to backplane", _cache.CacheName, _cache.InstanceId);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before subscribing to backplane", _cache.CacheName, _cache.InstanceId);
 
 			_backplane.Subscribe(
 				new BackplaneSubscriptionOptions(
+					_cache.CacheName,
+					_cache.InstanceId,
 					_options.GetBackplaneChannelName(),
 					HandleConnect,
 					HandleIncomingMessage
@@ -136,7 +138,7 @@ internal sealed partial class BackplaneAccessor
 			);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after unsubscribing to backplane", _cache.CacheName, _cache.InstanceId);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after subscribing to backplane", _cache.CacheName, _cache.InstanceId);
 		}
 		catch (Exception exc)
 		{
