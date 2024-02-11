@@ -13,8 +13,10 @@
 
 </div>
 
-| 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](docs/Update_v0_24_0.md). |
-|:-------|
+> [!IMPORTANT]  
+> The [v1.0 preview](https://github.com/ZiggyCreatures/FusionCache/releases/tag/v1.0.0-preview1) is out!
+> Please try it and let me know if you spot anything, in time for the official `v1.0` release that will come soon, thanks!
+
 
 ### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
 
