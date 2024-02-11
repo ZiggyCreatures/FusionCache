@@ -17,9 +17,8 @@
 			- Added: incoherent cache names detection when using DI/builder
 			- Added: TryWithAutoSetup() in the builder now also does a TryWithRegisteredMemoryLocker()
 			- Changed: removed the cache instance id from the metrics tags, because high cardinality
-			- Changed (breaking): in the recently introduced IFusionCacheMemoryLocker, the key/operationId order has been swapped, to be 100% consistent with the rest of the codebase. Although technically breaking (and in a subtle way), this should be a minor thing since the interface existed since a week ago
-			- Update: package dependencies
 			- Changed: better logging in some parts (backplane + memory locker)
+			- Updated: package dependencies
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<!--<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>-->

@@ -13,8 +13,8 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Update: package dependencies
 			- Changed: better logging
+			- Updated: package dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

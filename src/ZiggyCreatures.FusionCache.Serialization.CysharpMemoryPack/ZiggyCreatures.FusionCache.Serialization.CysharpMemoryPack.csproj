@@ -13,7 +13,7 @@
 		<DocumentationFile>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Update: package dependencies
+			- Updated: package dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

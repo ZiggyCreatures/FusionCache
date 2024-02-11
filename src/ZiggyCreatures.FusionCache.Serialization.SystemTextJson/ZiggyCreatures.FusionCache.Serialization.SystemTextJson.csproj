@@ -13,7 +13,7 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			- Update: package dependencies
+			- Updated: package dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
 
