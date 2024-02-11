@@ -13,7 +13,7 @@
 
 </div>
 
-| 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](docs/Update_v0_24_0.md). |
+| 🙋‍♂️ Updating to `v1.0.0` ? please [read here](docs/Update_v1_0_0.md). |
 |:-------|
 
 ### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.

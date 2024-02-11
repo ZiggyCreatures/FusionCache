@@ -10,9 +10,6 @@ What follows is an example scenario on which we can reason about: we've built a 
 
 The hypothetical infrastructure involved is somewhat bad on purpose, and is used just to illustrate some points like why a cache is useful in general, what FusionCache in particular can do, and also to have some nice round numbers to play with.
 
-| 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](Update_v0_24_0.md). |
-|:-------|
-
 <br/>
 <br/>
 
