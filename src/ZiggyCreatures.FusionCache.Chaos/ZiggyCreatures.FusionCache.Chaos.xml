@@ -166,20 +166,20 @@
             <summary>
             Determines if an exception should be thrown.
             </summary>
-            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="throwProbability">The probability that an exception will be thrown.</param>
             <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeThrow(System.Single)">
             <summary>
-            Maybe throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            Maybe throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probability.
             </summary>
-            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="throwProbability">The probability that an exception will be thrown.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.GetRandomDelay(System.TimeSpan,System.TimeSpan)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>.
             </summary>
-            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="minDelay">The minimum amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
             <returns>The randomized delay.</returns>
         </member>
@@ -187,7 +187,7 @@
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
             </summary>
-            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="minDelay">The minimum amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
             <param name="token">The cancellation token.</param>
         </member>
@@ -195,7 +195,7 @@
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
             </summary>
-            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="minDelay">The minimum amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
             <param name="token">The cancellation token.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
@@ -203,21 +203,21 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeChaos(System.TimeSpan,System.TimeSpan,System.Single,System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
-            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probability.
             </summary>
-            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="minDelay">The minimum amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
-            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="throwProbability">The probability that an exception will be thrown.</param>
             <param name="token">The cancellation token.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.FusionCacheChaosUtils.MaybeChaosAsync(System.TimeSpan,System.TimeSpan,System.Single,System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
-            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probability.
             </summary>
-            <param name="minDelay">The minimun amount of delay.</param>
+            <param name="minDelay">The minimum amount of delay.</param>
             <param name="maxDelay">The maximum amount of delay.</param>
-            <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+            <param name="throwProbability">The probability that an exception will be thrown.</param>
             <param name="token">The cancellation token.</param>
             <returns>A <see cref="T:System.Threading.Tasks.Task"/> instance to await.</returns>
         </member>
@@ -249,7 +249,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.ChaosThrowProbability">
             <summary>
-            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
+            A <see cref="T:System.Single"/> value from 0.0 to 1.0 that represents the probability of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.SetAlwaysDelay(System.TimeSpan,System.TimeSpan)">
@@ -307,13 +307,13 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.MaybeChaos(System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
-            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probability.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.Internals.AbstractChaosComponent.MaybeChaosAsync(System.Threading.CancellationToken)">
             <summary>
             Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
-            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probabilty.
+            Then, maybe, throw a <see cref="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosException"/> based on the specified probability.
             </summary>
         </member>
     </members>
