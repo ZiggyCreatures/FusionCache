@@ -12,7 +12,6 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 namespace ZiggyCreatures.Caching.Fusion;
 
 public partial class FusionCache
-	: IFusionCache
 {
 	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
