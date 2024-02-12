@@ -53,8 +53,8 @@ public static class StackExchangeRedisBackplaneExtensions
 				if (options is null)
 					throw new InvalidOperationException($"Unable to find a valid {nameof(RedisBackplaneOptions)} instance for the current cache name '{builder.CacheName}'.");
 
-				if (setupOptionsAction is not null)
-					setupOptionsAction?.Invoke(options);
+				setupOptionsAction?.Invoke(options);
+
 				var logger = sp.GetService<ILogger<RedisBackplane>>();
 
 				return new RedisBackplane(options, logger);

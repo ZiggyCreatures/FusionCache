@@ -5,7 +5,6 @@ using StackExchange.Redis;
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
 public partial class RedisBackplane
-	: IFusionCacheBackplane
 {
 	private void EnsureConnection(CancellationToken token = default)
 	{
