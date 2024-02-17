@@ -44,20 +44,20 @@ public sealed class FusionCacheBackplaneEventsHub
 	{
 		Metrics.CounterBackplaneCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.backplane.circuit_breaker.closed", isClosed));
 
-		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, x => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
+		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnMessagePublished(string operationId, BackplaneMessage message)
 	{
 		Metrics.CounterBackplanePublish.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.backplane.message_action", message.Action.ToString()));
 
-		MessagePublished?.SafeExecute(operationId, message.CacheKey, _cache, x => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessagePublished), _logger, _errorsLogLevel, _syncExecution);
+		MessagePublished?.SafeExecute(operationId, message.CacheKey, _cache, new FusionCacheBackplaneMessageEventArgs(message), nameof(MessagePublished), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnMessageReceived(string operationId, BackplaneMessage message)
 	{
 		Metrics.CounterBackplaneReceive.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.backplane.message_action", message.Action.ToString()));
 
-		MessageReceived?.SafeExecute(operationId, message.CacheKey, _cache, x => new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);
+		MessageReceived?.SafeExecute(operationId, message.CacheKey, _cache, new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);
 	}
 }

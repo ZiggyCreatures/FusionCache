@@ -251,7 +251,7 @@ internal static class FusionCacheInternalUtils
 		return FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<string, TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
+	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, TEventArgs eventArgs, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
 	{
 		static void ExecuteInvocations(string? operationId, string? key, IFusionCache cache, string eventName, TEventArgs e, Delegate[] invocations, ILogger? logger, LogLevel errorLogLevel)
 		{
@@ -277,15 +277,13 @@ internal static class FusionCacheInternalUtils
 		if (logger is not null && logger.IsEnabled(logLevel) == false)
 			logger = null;
 
-		var e = eventArgsBuilder(key ?? "");
-
 		if (syncExecution)
 		{
-			ExecuteInvocations(operationId, key, cache, eventName, e, invocations, logger, logLevel);
+			ExecuteInvocations(operationId, key, cache, eventName, eventArgs, invocations, logger, logLevel);
 		}
 		else
 		{
-			Task.Run(() => ExecuteInvocations(operationId, key, cache, eventName, e, invocations, logger, logLevel));
+			Task.Run(() => ExecuteInvocations(operationId, key, cache, eventName, eventArgs, invocations, logger, logLevel));
 		}
 	}
 

@@ -44,21 +44,21 @@ public abstract class FusionCacheCommonEventsHub
 
 	internal virtual void OnHit(string operationId, string key, bool isStale)
 	{
-		Hit?.SafeExecute(operationId, key, _cache, x => new FusionCacheEntryHitEventArgs(x, isStale), nameof(Hit), _logger, _errorsLogLevel, _syncExecution);
+		Hit?.SafeExecute(operationId, key, _cache, new FusionCacheEntryHitEventArgs(key, isStale), nameof(Hit), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal virtual void OnMiss(string operationId, string key)
 	{
-		Miss?.SafeExecute(operationId, key, _cache, static x => new FusionCacheEntryEventArgs(x), nameof(Miss), _logger, _errorsLogLevel, _syncExecution);
+		Miss?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Miss), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal virtual void OnSet(string operationId, string key)
 	{
-		Set?.SafeExecute(operationId, key, _cache, static x => new FusionCacheEntryEventArgs(x), nameof(Set), _logger, _errorsLogLevel, _syncExecution);
+		Set?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Set), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal virtual void OnRemove(string operationId, string key)
 	{
-		Remove?.SafeExecute(operationId, key, _cache, static x => new FusionCacheEntryEventArgs(x), nameof(Remove), _logger, _errorsLogLevel, _syncExecution);
+		Remove?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Remove), _logger, _errorsLogLevel, _syncExecution);
 	}
 }
