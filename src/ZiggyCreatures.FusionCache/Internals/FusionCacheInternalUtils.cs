@@ -213,6 +213,14 @@ internal static class FusionCacheInternalUtils
 		return Enum.GetName(CacheItemPriorityType, priority);
 	}
 
+	public static string ToLogString(this long? value)
+	{
+		if (value.HasValue == false)
+			return "/";
+
+		return value.Value.ToString();
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string ToStringYN(this bool b)
 	{

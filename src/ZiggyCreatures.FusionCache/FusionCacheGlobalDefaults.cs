@@ -29,7 +29,7 @@ public static class FusionCacheGlobalDefaults
 	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.Size"/>.
 	/// </summary>
-	public static long EntryOptionsSize { get; set; } = 1;
+	public static long? EntryOptionsSize { get; set; } = null;
 
 	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.Priority"/>.
