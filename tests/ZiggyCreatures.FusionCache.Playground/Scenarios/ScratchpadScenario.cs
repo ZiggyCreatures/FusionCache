@@ -19,7 +19,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				DefaultEntryOptions = new FusionCacheEntryOptions
 				{
 					Duration = TimeSpan.FromMinutes(1),
-					Priority = CacheItemPriority.NeverRemove,
+					//Priority = CacheItemPriority.NeverRemove,
 
 					//IsFailSafeEnabled = true,
 					//FailSafeMaxDuration = TimeSpan.FromMinutes(10),
