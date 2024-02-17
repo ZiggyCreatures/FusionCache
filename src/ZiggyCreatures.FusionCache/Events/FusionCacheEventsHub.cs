@@ -9,7 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events;
 /// <summary>
 /// The events hub for high-level events for a FusionCache instance, as a whole.
 /// </summary>
-public class FusionCacheEventsHub
+public sealed class FusionCacheEventsHub
 	: FusionCacheCommonEventsHub
 {
 	/// <summary>
