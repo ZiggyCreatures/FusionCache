@@ -40,11 +40,13 @@ public partial class FusionCache
 	private DistributedCacheAccessor? _dca;
 	private BackplaneAccessor? _bpa;
 	private readonly object _backplaneLock = new object();
-	private AutoRecoveryService _autoRecovery;
+	private AutoRecoveryService? _autoRecovery;
+	private readonly object _autoRecoveryLock = new object();
 	private FusionCacheEventsHub _events;
-	private readonly List<IFusionCachePlugin> _plugins;
+	private List<IFusionCachePlugin>? _plugins;
+	private readonly object _pluginsLock = new object();
 
-	private readonly FusionCacheEntryOptions _tryUpdateOptions;
+	private FusionCacheEntryOptions? _tryUpdateOptions;
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -123,18 +125,9 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: instance created", CacheName, InstanceId);
 
-		// AUTO-RECOVERY
-		_autoRecovery = new AutoRecoveryService(this, _options, _logger);
-
-		// TRY UPDATE OPTIONS
-		_tryUpdateOptions = new FusionCacheEntryOptions()
-		{
-			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
-			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
-			AllowBackgroundDistributedCacheOperations = false,
-			ReThrowDistributedCacheExceptions = true,
-			ReThrowSerializationExceptions = true,
-		};
+		// MICRO OPTIMIZATION: WARM UP OBSERVABILITY STUFF
+		var tmp1 = Activities.Source;
+		var tmp2 = Metrics.Meter;
 	}
 
 	/// <inheritdoc/>
@@ -154,7 +147,36 @@ public partial class FusionCache
 
 	internal AutoRecoveryService AutoRecovery
 	{
-		get { return _autoRecovery; }
+		get
+		{
+			if (_autoRecovery is null)
+			{
+				lock (_autoRecoveryLock)
+				{
+					if (_autoRecovery is null)
+					{
+						_autoRecovery = new AutoRecoveryService(this, _options, _logger);
+					}
+				}
+			}
+
+			return _autoRecovery;
+		}
+	}
+
+	internal FusionCacheEntryOptions TryUpdateOptions
+	{
+		get
+		{
+			return _tryUpdateOptions ??= new FusionCacheEntryOptions()
+			{
+				DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
+				DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
+				AllowBackgroundDistributedCacheOperations = false,
+				ReThrowDistributedCacheExceptions = true,
+				ReThrowSerializationExceptions = true,
+			};
+		}
 	}
 
 	/// <inheritdoc/>
@@ -623,8 +645,10 @@ public partial class FusionCache
 			throw new ArgumentNullException(nameof(plugin));
 
 		// ADD THE PLUGIN
-		lock (_plugins)
+		lock (_pluginsLock)
 		{
+			_plugins ??= [];
+
 			if (_plugins.Contains(plugin))
 			{
 				if (_logger?.IsEnabled(_options.PluginsErrorsLogLevel) ?? false)
@@ -643,7 +667,7 @@ public partial class FusionCache
 		}
 		catch (Exception exc)
 		{
-			lock (_plugins)
+			lock (_pluginsLock)
 			{
 				_plugins.Remove(plugin);
 			}
@@ -664,8 +688,10 @@ public partial class FusionCache
 		if (plugin is null)
 			throw new ArgumentNullException(nameof(plugin));
 
-		lock (_plugins)
+		lock (_pluginsLock)
 		{
+			_plugins ??= [];
+
 			if (_plugins.Contains(plugin) == false)
 			{
 				if (_logger?.IsEnabled(_options.PluginsErrorsLogLevel) ?? false)
@@ -703,6 +729,9 @@ public partial class FusionCache
 
 	private void RemoveAllPlugins()
 	{
+		if (_plugins is null)
+			return;
+
 		foreach (var plugin in _plugins.ToArray())
 		{
 			RemovePlugin(plugin);
@@ -725,10 +754,10 @@ public partial class FusionCache
 				RemoveBackplane();
 				RemoveDistributedCache();
 
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-				_autoRecovery.Dispose();
+				_autoRecovery?.Dispose();
 				_autoRecovery = null;
 
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 				_memoryLocker.Dispose();
 				_memoryLocker = null;
 
@@ -817,7 +846,7 @@ public partial class FusionCache
 
 			try
 			{
-				(var distributedEntry, var isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, _tryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
+				(var distributedEntry, var isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, TryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
 
 				if (distributedEntry is null || isValid == false)
 				{

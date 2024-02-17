@@ -262,6 +262,9 @@ internal static class FusionCacheInternalUtils
 
 		var invocations = ev.GetInvocationList();
 
+		if (invocations is null || invocations.Length == 0)
+			return;
+
 		// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
 		if (logger is not null && logger.IsEnabled(logLevel) == false)
 			logger = null;

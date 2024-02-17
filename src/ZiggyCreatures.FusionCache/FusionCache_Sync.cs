@@ -710,7 +710,7 @@ public partial class FusionCache
 
 					if (dcaSuccess == false)
 					{
-						_autoRecovery.TryAddItem(operationId, key, action, timestamp, options);
+						AutoRecovery.TryAddItem(operationId, key, action, timestamp, options);
 						return;
 					}
 				}
@@ -740,7 +740,7 @@ public partial class FusionCache
 
 							if (bpaSuccess == false)
 							{
-								_autoRecovery.TryAddItem(operationId, key, action, timestamp, options);
+								AutoRecovery.TryAddItem(operationId, key, action, timestamp, options);
 							}
 						}
 					},
