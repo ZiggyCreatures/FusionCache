@@ -1637,18 +1637,6 @@
             <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipMemoryCache"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger,System.String,System.String)">
-            <summary>
-            Creates a new <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.
-            </summary>
-            <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToDistributedCacheEntryOptions(ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger,System.String,System.String)">
-            <summary>
-            Creates a new <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.
-            </summary>
-            <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance.</returns>
-        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duplicate(System.Nullable{System.TimeSpan})">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
@@ -3272,12 +3260,6 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.ToString">
             <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheInternalUtils.IsLogicallyExpired(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry)">
-            <summary>
-            Checks if the entry is logically expired.
-            </summary>
-            <returns>A <see cref="T:System.Boolean"/> indicating the logical expiration status.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry">
             <summary>

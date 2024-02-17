@@ -43,14 +43,27 @@ internal sealed class MemoryCacheAccessor
 			return;
 		}
 
-		var memoryOptions = options.ToMemoryCacheEntryOptions(_events, _options, _logger, operationId, key);
-
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Options} {Entry}", _options.CacheName, _options.InstanceId, operationId, key, memoryOptions.ToLogString(), entry.ToLogString());
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString());
 
-		entry.PhysicalExpiration = memoryOptions.AbsoluteExpiration!.Value;
+		var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key);
 
-		_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryOptions);
+		if (memoryEntryOptions is not null)
+		{
+			entry.PhysicalExpiration = memoryEntryOptions.AbsoluteExpiration!.Value;
+
+			_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryEntryOptions);
+		}
+		else if (absoluteExpiration is not null)
+		{
+			entry.PhysicalExpiration = absoluteExpiration.Value;
+
+			_cache.Set<IFusionCacheMemoryEntry>(key, entry, absoluteExpiration.Value);
+		}
+		else
+		{
+			throw new InvalidOperationException("No MemoryCacheEntryOptions or AbsoluteExpiration was determined: this should not be possible, WTH!?");
+		}
 
 		// EVENT
 		_events.OnSet(operationId, key);

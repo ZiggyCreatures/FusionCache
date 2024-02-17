@@ -608,25 +608,15 @@ public sealed class FusionCacheEntryOptions
 		return this;
 	}
 
-	/// <summary>
-	/// Creates a new <see cref="MemoryCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
-	/// </summary>
-	/// <returns>The newly created <see cref="MemoryCacheEntryOptions"/> instance.</returns>
-	internal MemoryCacheEntryOptions ToMemoryCacheEntryOptions(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key)
+	internal DateTimeOffset GetAbsoluteExpiration(out bool incoherentFailSafeMaxDuration)
 	{
-		var res = new MemoryCacheEntryOptions
-		{
-			Size = Size,
-			Priority = Priority
-		};
-
 		// PHYSICAL DURATION
 		TimeSpan physicalDuration;
-		bool incoherentFailSafeMaxDuration = false;
 
 		if (IsFailSafeEnabled == false)
 		{
 			physicalDuration = Duration;
+			incoherentFailSafeMaxDuration = false;
 		}
 		else
 		{
@@ -637,12 +627,39 @@ public sealed class FusionCacheEntryOptions
 			}
 			else
 			{
+				incoherentFailSafeMaxDuration = false;
 				physicalDuration = FailSafeMaxDuration;
 			}
 		}
 
 		// ABSOLUTE EXPIRATION
-		res.AbsoluteExpiration = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, true);
+		return FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, true);
+	}
+
+	internal (MemoryCacheEntryOptions? memoryEntryOptions, DateTimeOffset? absoluteExpiration) ToMemoryCacheEntryOptionsOrAbsoluteExpiration(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key)
+	{
+		var absoluteExpiration = GetAbsoluteExpiration(out var incoherentFailSafeMaxDuration);
+
+		// INCOHERENT DURATION
+		if (incoherentFailSafeMaxDuration)
+		{
+			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {FailSafeMaxDuration} was lower than the Duration {Duration} on {Options}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString());
+		}
+
+		if (Size == 1 && Priority == CacheItemPriority.Normal && events.HasEvictionSubscribers() == false)
+		{
+			return (null, absoluteExpiration);
+		}
+
+		var res = new MemoryCacheEntryOptions
+		{
+			Size = Size,
+			Priority = Priority
+		};
+
+		// ABSOLUTE EXPIRATION
+		res.AbsoluteExpiration = absoluteExpiration;
 
 		// EVENTS
 		if (events.HasEvictionSubscribers())
@@ -656,20 +673,9 @@ public sealed class FusionCacheEntryOptions
 			);
 		}
 
-		// INCOHERENT DURATION
-		if (incoherentFailSafeMaxDuration)
-		{
-			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {FailSafeMaxDuration} was lower than the Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString(), res.ToLogString());
-		}
-
-		return res;
+		return (res, null);
 	}
 
-	/// <summary>
-	/// Creates a new <see cref="DistributedCacheEntryOptions"/> instance based on this <see cref="FusionCacheEntryOptions"/> instance.
-	/// </summary>
-	/// <returns>The newly created <see cref="DistributedCacheEntryOptions"/> instance.</returns>
 	internal DistributedCacheEntryOptions ToDistributedCacheEntryOptions(FusionCacheOptions options, ILogger? logger, string operationId, string key)
 	{
 		var res = new DistributedCacheEntryOptions();
@@ -730,7 +736,7 @@ public sealed class FusionCacheEntryOptions
 
 	internal TimeSpan GetAppropriateFactoryTimeout(bool hasFallbackValue)
 	{
-		// SHORT CIRCUIT WHEN NO TIMEOUTS AT ALL
+		// EARLY RETURN: WHEN NO TIMEOUTS AT ALL
 		if (FactorySoftTimeout == Timeout.InfiniteTimeSpan && FactoryHardTimeout == Timeout.InfiniteTimeSpan)
 			return Timeout.InfiniteTimeSpan;
 
@@ -751,7 +757,7 @@ public sealed class FusionCacheEntryOptions
 
 	internal TimeSpan GetAppropriateDistributedCacheTimeout(bool hasFallbackValue)
 	{
-		// SHORT CIRCUIT WHEN NO TIMEOUTS AT ALL
+		// EARLY RETURN: WHEN NO TIMEOUTS AT ALL
 		if (DistributedCacheSoftTimeout == Timeout.InfiniteTimeSpan && DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan)
 			return Timeout.InfiniteTimeSpan;
 
