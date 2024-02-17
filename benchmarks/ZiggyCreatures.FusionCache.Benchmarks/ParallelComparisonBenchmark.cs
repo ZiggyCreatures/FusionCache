@@ -113,32 +113,32 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			}
 		}
 
-		[Benchmark]
-		public async Task FusionCacheProbabilistic()
-		{
-			for (int i = 0; i < Rounds; i++)
-			{
-				var tasks = new ConcurrentBag<Task>();
+		//[Benchmark]
+		//public async Task FusionCacheProbabilistic()
+		//{
+		//	for (int i = 0; i < Rounds; i++)
+		//	{
+		//		var tasks = new ConcurrentBag<Task>();
 
-				Parallel.ForEach(Keys, key =>
-				{
-					Parallel.For(0, Accessors, _ =>
-					{
-						var t = _FusionCacheProbabilistic.GetOrSetAsync<SamplePayload>(
-						   key,
-						   async ct =>
-						   {
-							   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							   return new SamplePayload();
-						   }
-					   );
-						tasks.Add(t.AsTask());
-					});
-				});
+		//		Parallel.ForEach(Keys, key =>
+		//		{
+		//			Parallel.For(0, Accessors, _ =>
+		//			{
+		//				var t = _FusionCacheProbabilistic.GetOrSetAsync<SamplePayload>(
+		//				   key,
+		//				   async ct =>
+		//				   {
+		//					   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+		//					   return new SamplePayload();
+		//				   }
+		//			   );
+		//				tasks.Add(t.AsTask());
+		//			});
+		//		});
 
-				await Task.WhenAll(tasks).ConfigureAwait(false);
-			}
-		}
+		//		await Task.WhenAll(tasks).ConfigureAwait(false);
+		//	}
+		//}
 
 		// NOTE: EXCLUDED BECAUSE IT DOES NOT SUPPORT CACHE STAMPEDE PREVENTION, SO IT WOULD NOT BE COMPARABLE
 		// [Benchmark]
