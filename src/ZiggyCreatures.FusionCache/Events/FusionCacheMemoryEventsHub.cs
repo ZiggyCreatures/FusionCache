@@ -47,14 +47,14 @@ public sealed class FusionCacheMemoryEventsHub
 	{
 		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.memory.evict_reason", reason.ToString()));
 
-		Eviction?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
+		Eviction?.SafeExecute(operationId, key, _cache, x => new FusionCacheEntryEvictionEventArgs(x, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnExpire(string operationId, string key)
 	{
 		Metrics.CounterMemoryExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		Expire?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
+		Expire?.SafeExecute(operationId, key, _cache, static x => new FusionCacheEntryEventArgs(x), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal override void OnHit(string operationId, string key, bool isStale)
