@@ -23,7 +23,7 @@ internal sealed class StandardMemoryLocker
 	/// Initializes a new instance of the <see cref="StandardMemoryLocker"/> class.
 	/// </summary>
 	/// <param name="size">The size of the pool used internally for the 1st level locking strategy.</param>
-	public StandardMemoryLocker(int size = 8_440)
+	public StandardMemoryLocker(int size = 210)
 	{
 		_lockCache = new MemoryCache(new MemoryCacheOptions());
 
