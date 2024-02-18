@@ -803,4 +803,72 @@ public class BackplaneTests
 			fusionCache.Set<int>("foo", 42);
 		});
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanIgnoreIncomingBackplaneNotificationsAsync(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var key = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId));
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId));
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options =>
+		{
+			options.IgnoreIncomingBackplaneNotifications = true;
+		});
+
+		await cache1.SetAsync(key, 1);
+		await cache2.SetAsync(key, 2);
+		await cache3.SetAsync(key, 3);
+
+		await Task.Delay(1_000);
+
+		await cache1.SetAsync(key, 4);
+
+		await Task.Delay(1_000);
+
+		var v1 = await cache1.GetOrSetAsync(key, async _ => 10, TimeSpan.FromMinutes(10));
+		var v2 = await cache2.GetOrSetAsync(key, async _ => 20, TimeSpan.FromMinutes(10));
+		var v3 = await cache3.GetOrSetAsync(key, async _ => 30, TimeSpan.FromMinutes(10));
+
+		Assert.Equal(4, v1);
+		Assert.Equal(4, v2);
+		Assert.Equal(3, v3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanIgnoreIncomingBackplaneNotifications(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var key = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId));
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId));
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options =>
+		{
+			options.IgnoreIncomingBackplaneNotifications = true;
+		});
+
+		cache1.Set(key, 1);
+		cache2.Set(key, 2);
+		cache3.Set(key, 3);
+
+		Thread.Sleep(1_000);
+
+		cache1.Set(key, 4);
+
+		Thread.Sleep(1_000);
+
+		var v1 = cache1.GetOrSet(key, _ => 10, TimeSpan.FromMinutes(10));
+		var v2 = cache2.GetOrSet(key, _ => 20, TimeSpan.FromMinutes(10));
+		var v3 = cache3.GetOrSet(key, _ => 30, TimeSpan.FromMinutes(10));
+
+		Assert.Equal(4, v1);
+		Assert.Equal(4, v2);
+		Assert.Equal(3, v3);
+	}
 }

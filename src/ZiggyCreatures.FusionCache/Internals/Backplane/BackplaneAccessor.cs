@@ -189,6 +189,9 @@ internal sealed partial class BackplaneAccessor
 
 	private void HandleIncomingMessage(BackplaneMessage message)
 	{
+		if (_options.IgnoreIncomingBackplaneNotifications)
+			return;
+
 		_ = Task.Run(async () =>
 		{
 			await HandleIncomingMessageAsync(message).ConfigureAwait(false);

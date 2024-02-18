@@ -1215,6 +1215,8 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
             <summary>
             Represents all the options available for a single <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> entry.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.#ctor(System.Nullable{System.TimeSpan})">
@@ -2336,31 +2338,43 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions">
             <summary>
             Represents all the options available for the entire <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultCacheName">
             <summary>
             The default value for <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/>.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatVersion">
             <summary>
             The wire format version identifier for the distributed cache wire format, used in the cache key processing.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatSeparator">
             <summary>
             The wire format version separator for the distributed cache wire format, used in the cache key processing.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneWireFormatVersion">
             <summary>
             The wire format version identifier for the backplane wire format, used in the channel name.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneWireFormatSeparator">
             <summary>
             The wire format version separator for the backplane wire format, used in the channel name.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.#ctor">
@@ -2373,6 +2387,8 @@
             The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
             <br/><br/>
             <strong>NOTE:</strong> if you try to set this to a null/whitespace value, that value will be ignored.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.InstanceId">
@@ -2391,6 +2407,8 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions">
             <summary>
             The default <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
             <exception cref="T:System.ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
         </member>
@@ -2415,11 +2433,15 @@
             A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
             <br/><br/>
             <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
             Specify the mode in which cache key will be changed for the distributed cache, for internal purposes (eg: to specify the wire format version).
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneCircuitBreakerDuration">
@@ -2432,6 +2454,15 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneChannelPrefix">
             <summary>
             The prefix to use in the backplane channel name: if not specified the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/> will be used.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IgnoreIncomingBackplaneNotifications">
+            <summary>
+            Ignores incoming backplane notifications, which normally is DANGEROUS.
+            <br/><br/>
+            <strong>WARNING:</strong> it is advised not to ignore backplane notifications in any normal circumstance unless you really know what you are doing.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
@@ -2627,6 +2658,8 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.Duplicate">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object by duplicating all the options of the current one.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
             <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.</returns>
         </member>

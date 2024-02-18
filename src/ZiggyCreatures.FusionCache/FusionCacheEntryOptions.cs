@@ -12,6 +12,8 @@ namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// Represents all the options available for a single <see cref="IFusionCache"/> entry.
+/// <br/><br/>
+/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 /// </summary>
 public sealed class FusionCacheEntryOptions
 {
