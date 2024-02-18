@@ -59,18 +59,26 @@ internal sealed class StandardMemoryLocker
 			using var entry = _lockCache.CreateEntry(key);
 			entry.Value = _semaphore;
 			entry.SlidingExpiration = _slidingExpiration;
-			entry.RegisterPostEvictionCallback((key, value, _, _) =>
-			{
-				try
+			entry.RegisterPostEvictionCallback(
+				static (key, value, _, state) =>
 				{
-					((SemaphoreSlim?)value)?.Dispose();
-				}
-				catch (Exception exc)
-				{
-					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-						logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
-				}
-			});
+					if (state is null)
+						return;
+
+					var (cacheName, cacheInstanceId, logger) = ((string, string, ILogger))state;
+
+					try
+					{
+						((SemaphoreSlim?)value)?.Dispose();
+					}
+					catch (Exception exc)
+					{
+						if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+							logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
+					}
+				},
+				(cacheName, cacheInstanceId, logger)
+			);
 
 			return (SemaphoreSlim)_semaphore;
 		}
