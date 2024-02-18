@@ -8,6 +8,12 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// </summary>
 internal interface IFusionCacheEntry
 {
+	// NOTE: GetValue<TValue>() AND SetValue<TValue(value) ARE NEEDED TO SUPPORT
+	// FLEXIBLE TYPE CONVERSIONS, MEANING THAT WE CAN SET, FOR EXAMPLE, A Person
+	// VALUE IN THE CACHE AS object AND THEN GET IT BACK AS A Person AGAIN.
+	// THIS WOULDN'T WORK WITHOUT THESE METHODS, BECAUSE CASTING AN INSTANCE OF
+	// IFusionCacheEntry<object> TO IFusionCacheEntry<Person> WOULD NOT WORK.
+
 	/// <summary>
 	/// Get the value inside the entry.
 	/// </summary>
