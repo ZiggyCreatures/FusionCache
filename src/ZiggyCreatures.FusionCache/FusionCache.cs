@@ -413,7 +413,10 @@ public partial class FusionCache
 						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 					}
 
-					await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, token).ConfigureAwait(false);
+					if (RequiresDistributedOperations(options))
+					{
+						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, token).ConfigureAwait(false);
+					}
 
 					// EVENT
 					_events.OnBackgroundFactorySuccess(operationId, key);

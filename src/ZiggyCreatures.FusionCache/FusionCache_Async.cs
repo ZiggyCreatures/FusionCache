@@ -231,21 +231,29 @@ public partial class FusionCache
 				ReleaseMemoryLock(operationId, key, memoryLockObj);
 		}
 
-		// EVENT
 		if (hasNewValue)
 		{
-			if (isStale == false)
-				await DistributedSetEntryAsync<TValue>(operationId, key, entry!, options, token).ConfigureAwait(false);
+			// DISTRIBUTED
+			if (entry is not null && isStale == false)
+			{
+				if (RequiresDistributedOperations(options))
+				{
+					await DistributedSetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+				}
+			}
 
+			// EVENT
 			_events.OnMiss(operationId, key);
 			_events.OnSet(operationId, key);
 		}
 		else if (entry is not null)
 		{
+			// EVENT
 			_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
 		}
 		else
 		{
+			// EVENT
 			_events.OnMiss(operationId, key);
 		}
 
@@ -639,7 +647,10 @@ public partial class FusionCache
 			mca.RemoveEntry(operationId, key, options);
 		}
 
-		await DistributedRemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		if (RequiresDistributedOperations(options))
+		{
+			await DistributedRemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
 
 		// EVENT
 		_events.OnRemove(operationId, key);
@@ -671,7 +682,10 @@ public partial class FusionCache
 			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 		}
 
-		await DistributedExpireEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		if (RequiresDistributedOperations(options))
+		{
+			await DistributedExpireEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
 
 		// EVENT
 		_events.OnExpire(operationId, key);

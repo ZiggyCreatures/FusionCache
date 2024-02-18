@@ -231,21 +231,29 @@ public partial class FusionCache
 				ReleaseMemoryLock(operationId, key, memoryLockObj);
 		}
 
-		// EVENT
 		if (hasNewValue)
 		{
-			if (isStale == false)
-				DistributedSetEntry<TValue>(operationId, key, entry!, options, token);
+			// DISTRIBUTED
+			if (entry is not null && isStale == false)
+			{
+				if (RequiresDistributedOperations(options))
+				{
+					DistributedSetEntry<TValue>(operationId, key, entry, options, token);
+				}
+			}
 
+			// EVENT
 			_events.OnMiss(operationId, key);
 			_events.OnSet(operationId, key);
 		}
 		else if (entry is not null)
 		{
+			// EVENT
 			_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
 		}
 		else
 		{
+			// EVENT
 			_events.OnMiss(operationId, key);
 		}
 
@@ -639,7 +647,10 @@ public partial class FusionCache
 			mca.RemoveEntry(operationId, key, options);
 		}
 
-		DistributedRemoveEntry(operationId, key, options, token);
+		if (RequiresDistributedOperations(options))
+		{
+			DistributedRemoveEntry(operationId, key, options, token);
+		}
 
 		// EVENT
 		_events.OnRemove(operationId, key);
@@ -671,7 +682,10 @@ public partial class FusionCache
 			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 		}
 
-		DistributedExpireEntry(operationId, key, options, token);
+		if (RequiresDistributedOperations(options))
+		{
+			DistributedExpireEntry(operationId, key, options, token);
+		}
 
 		// EVENT
 		_events.OnExpire(operationId, key);
