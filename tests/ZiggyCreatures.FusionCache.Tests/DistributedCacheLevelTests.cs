@@ -1189,6 +1189,84 @@ public class DistributedCacheLevelTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task EagerRefreshDoesNotBlockAsync(SerializerType serializerType)
+	{
+		var keyFoo = CreateRandomCacheKey("foo");
+
+		var duration = TimeSpan.FromSeconds(2);
+		var syntheticDelay = TimeSpan.FromSeconds(2);
+		var eagerRefreshThreshold = 0.2f;
+
+		var distributedCache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+		using var cache = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		cache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+		// EXECUTE FACTORY
+		var v1 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+
+		// USE CACHED VALUE
+		var v2 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+		await Task.Delay(eagerDuration);
+
+		// SET DELAY
+		chaosDistributedCache.SetAlwaysDelayExactly(syntheticDelay);
+
+		// EAGER REFRESH KICKS IN
+		var sw = Stopwatch.StartNew();
+		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		sw.Stop();
+
+		Assert.True(sw.Elapsed < syntheticDelay);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void EagerRefreshDoesNotBlock(SerializerType serializerType)
+	{
+		var keyFoo = CreateRandomCacheKey("foo");
+
+		var duration = TimeSpan.FromSeconds(2);
+		var syntheticDelay = TimeSpan.FromSeconds(2);
+		var eagerRefreshThreshold = 0.2f;
+
+		var distributedCache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+		using var cache = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		cache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+		// EXECUTE FACTORY
+		var v1 = cache.GetOrSet<long>(keyFoo, _ => DateTimeOffset.UtcNow.Ticks);
+
+		// USE CACHED VALUE
+		var v2 = cache.GetOrSet<long>(keyFoo, _ => DateTimeOffset.UtcNow.Ticks);
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+		Thread.Sleep(eagerDuration);
+
+		// SET DELAY
+		chaosDistributedCache.SetAlwaysDelayExactly(syntheticDelay);
+
+		// EAGER REFRESH KICKS IN
+		var sw = Stopwatch.StartNew();
+		var v3 = cache.GetOrSet<long>(keyFoo, _ => DateTimeOffset.UtcNow.Ticks);
+		sw.Stop();
+
+		Assert.True(sw.Elapsed < syntheticDelay);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanSkipMemoryCacheAsync(SerializerType serializerType)
 	{
 		var keyFoo = CreateRandomCacheKey("foo");

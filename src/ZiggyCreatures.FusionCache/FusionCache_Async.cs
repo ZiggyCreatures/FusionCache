@@ -265,66 +265,69 @@ public partial class FusionCache
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
 
-		// TRY WITH DISTRIBUTED CACHE (IF ANY)
-		try
+		_ = Task.Run(async () =>
 		{
-			var dca = GetCurrentDistributedAccessor(options);
-			if (dca.CanBeUsed(operationId, key))
+			// TRY WITH DISTRIBUTED CACHE (IF ANY)
+			try
 			{
-				FusionCacheDistributedEntry<TValue>? distributedEntry;
-				bool distributedEntryIsValid;
-
-				(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token).ConfigureAwait(false);
-				if (distributedEntryIsValid)
+				var dca = GetCurrentDistributedAccessor(options);
+				if (dca.CanBeUsed(operationId, key))
 				{
-					if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
+					FusionCacheDistributedEntry<TValue>? distributedEntry;
+					bool distributedEntryIsValid;
+
+					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token).ConfigureAwait(false);
+					if (distributedEntryIsValid)
 					{
-						try
+						if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
 						{
-							// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
-							var mca = GetCurrentMemoryAccessor(options);
-							if (mca is not null)
+							try
 							{
-								if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-									_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+								// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
+								var mca = GetCurrentMemoryAccessor(options);
+								if (mca is not null)
+								{
+									if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+										_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
 
-								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
+									mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
+								}
 							}
-						}
-						finally
-						{
-							// MEMORY LOCK
-							if (memoryLockObj is not null)
-								ReleaseMemoryLock(operationId, key, memoryLockObj);
-						}
+							finally
+							{
+								// MEMORY LOCK
+								if (memoryLockObj is not null)
+									ReleaseMemoryLock(operationId, key, memoryLockObj);
+							}
 
-						return;
-					}
-					else
-					{
-						if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-							_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is less recent than the current memory entry ({MemoryTimestamp}): ignoring it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+							return;
+						}
+						else
+						{
+							if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+								_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is less recent than the current memory entry ({MemoryTimestamp}): ignoring it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+						}
 					}
 				}
 			}
-		}
-		catch
-		{
-			// EMPTY
-		}
+			catch
+			{
+				// EMPTY
+			}
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
 
-		// ACTIVITY
-		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
-		activity?.SetTag("fusioncache.factory.eager_refresh", true);
+			// ACTIVITY
+			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+			activity?.SetTag("fusioncache.factory.eager_refresh", true);
 
-		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
+			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
-		var factoryTask = factory(ctx, token);
+			var factoryTask = factory(ctx, token);
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
+			CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
+		});
 	}
 
 	/// <inheritdoc/>
