@@ -60,6 +60,7 @@ In general this can be used as a set of options that will act as the *baseline*,
 | `DistributedCacheKeyModifierMode`           | `CacheKeyModifierMode`     | `Prefix` | Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version). |
 | `BackplaneCircuitBreakerDuration`           | `TimeSpan`                 | `none` | The duration of the circuit-breaker used when working with the backplane. |
 | `BackplaneChannelPrefix`                    | `string?`                  | `null` | The prefix to use in the backplane channel name: if not specified the `CacheName` will be used. |
+| `IgnoreIncomingBackplaneNotifications`      | `bool`                     | `false` | Ignores incoming backplane notifications, which normally is DANGEROUS. |
 | `EnableAutoRecovery`                        | `bool`                     | `true` | Enable auto-recovery for the backplane notifications to better handle transient errors without generating synchronization issues: notifications that failed to be sent out will be retried later on, when the backplane becomes responsive again. |
 | `AutoRecoveryMaxItems`                      | `int?`                     | `null` | The maximum number of items in the auto-recovery queue: this is usually not needed, but it may help reducing memory consumption in extreme scenarios. |
 | `AutoRecoveryDelay`                         | `TimeSpan`                 | `2s` | The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure. |
