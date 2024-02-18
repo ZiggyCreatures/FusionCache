@@ -50,11 +50,11 @@ Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) f
 
 Curious about what you can achieve from start to finish? There's a [👩‍🏫 Step By Step ](docs/StepByStep.md) guide.
 
-More into videos? The great Anna Hoffman has been so nice to listen to me mumble random stuff on [Data Exposed](https://learn.microsoft.com/en-us/shows/data-exposed/caching-made-easy-in-azure-sql-db-with-fusioncache-data-exposed).
+More into videos? The fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) have been kind enough to invite me on the show and listen to me mumbling random caching stuff.
 
 <div align="center">
 
-[![Data Exposed Talk](docs/images/talk-data-exposed.jpg)](https://www.youtube.com/watch?v=V2fCUoJgVAo)
+[![On .NET Talk](docs/images/talk-on-dotnet.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
 
 </div>
 
