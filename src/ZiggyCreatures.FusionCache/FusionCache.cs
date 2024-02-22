@@ -230,7 +230,7 @@ public partial class FusionCache
 		return options.SkipBackplaneNotifications ? null : _bpa;
 	}
 
-	private bool TryPickFailSafeFallbackValue<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions options, out MaybeValue<TValue?> value, out long? timestamp, out bool failSafeActivated)
+	private bool TryPickFailSafeFallbackValue<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, out MaybeValue<TValue?> value, out long? timestamp, out bool failSafeActivated)
 	{
 		// FAIL-SAFE NOT ENABLED
 		if (options.IsFailSafeEnabled == false)
@@ -304,7 +304,7 @@ public partial class FusionCache
 		return false;
 	}
 
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?>? factoryTask, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
 		if (factoryTask is null)
 		{
@@ -338,7 +338,7 @@ public partial class FusionCache
 		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity, token);
 	}
 
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue?> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity, CancellationToken token)
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity, CancellationToken token)
 	{
 		if (factoryTask.IsFaulted)
 		{
