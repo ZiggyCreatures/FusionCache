@@ -717,6 +717,8 @@ public class BackplaneTests
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 		chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
 
+		await Task.Delay(TimeSpan.FromMilliseconds(1_000));
+
 		var sw = Stopwatch.StartNew();
 		await fusionCache.SetAsync<int>("foo", 21, eo);
 		sw.Stop();
@@ -753,6 +755,8 @@ public class BackplaneTests
 
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 		chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
 
 		var sw = Stopwatch.StartNew();
 		fusionCache.Set<int>("foo", 21, eo);
