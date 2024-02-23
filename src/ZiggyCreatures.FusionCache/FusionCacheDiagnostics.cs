@@ -8,7 +8,7 @@
 		/// <summary>
 		/// The current version of FusionCache.
 		/// </summary>
-		public const string FusionCacheVersion = "1.0.0-preview1";
+		public const string FusionCacheVersion = "1.0.0-preview2";
 
 		/// <summary>
 		/// The activity source name for FusionCache.
