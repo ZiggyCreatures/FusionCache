@@ -347,7 +347,7 @@ internal sealed partial class BackplaneAccessor
 				return;
 			}
 
-			(var error, var isSame, var hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, cacheKey, _cache).ConfigureAwait(false);
+			var (error, isSame, hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, cacheKey, _cache).ConfigureAwait(false);
 
 			if (error == false)
 			{

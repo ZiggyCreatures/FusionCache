@@ -205,10 +205,10 @@ internal sealed class MemoryCacheAccessor
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue = false;
+	private bool _disposedValue = false;
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
@@ -221,7 +221,7 @@ internal sealed class MemoryCacheAccessor
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 			_cache = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 

@@ -54,8 +54,6 @@ public partial class FusionCache
 				{
 					// EXECUTE EAGER REFRESH
 					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj, token).ConfigureAwait(false);
-					// RESET MEMORY LOCK (WILL BE RELEASED BY THE EAGER REFRESH FACTORY)
-					memoryLockObj = null;
 				}
 			}
 
@@ -172,7 +170,7 @@ public partial class FusionCache
 
 						// UPDATE ADAPTIVE OPTIONS
 						var maybeNewOptions = ctx.GetOptions();
-						if (maybeNewOptions is not null && options != maybeNewOptions)
+						if (options != maybeNewOptions)
 						{
 							options = maybeNewOptions;
 
@@ -327,7 +325,7 @@ public partial class FusionCache
 			var factoryTask = factory(ctx, token);
 
 			CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
-		});
+		}, token);
 	}
 
 	/// <inheritdoc/>

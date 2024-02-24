@@ -54,8 +54,8 @@ public static class MemoryBackplaneExtensions
 				if (options is null)
 					throw new NullReferenceException($"Unable to find an instance of {nameof(MemoryBackplaneOptions)} for the cache named '{builder.CacheName}'.");
 
-				if (setupOptionsAction is not null)
-					setupOptionsAction?.Invoke(options);
+				setupOptionsAction?.Invoke(options);
+
 				var logger = sp.GetService<ILogger<MemoryBackplane>>();
 
 				return new MemoryBackplane(options, logger);

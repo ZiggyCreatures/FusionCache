@@ -77,10 +77,10 @@ internal sealed class ProbabilisticMemoryLocker
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue;
+	private bool _disposedValue;
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
@@ -96,7 +96,7 @@ internal sealed class ProbabilisticMemoryLocker
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 			_pool = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 

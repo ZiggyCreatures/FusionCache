@@ -50,6 +50,7 @@ public static class StackExchangeRedisBackplaneExtensions
 			.WithBackplane(sp =>
 			{
 				var options = sp.GetService<IOptionsMonitor<RedisBackplaneOptions>>()?.Get(builder.CacheName);
+
 				if (options is null)
 					throw new InvalidOperationException($"Unable to find a valid {nameof(RedisBackplaneOptions)} instance for the current cache name '{builder.CacheName}'.");
 

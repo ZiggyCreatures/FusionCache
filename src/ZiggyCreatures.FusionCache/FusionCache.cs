@@ -317,7 +317,7 @@ public partial class FusionCache
 		if (factoryTask.IsFaulted)
 		{
 			// ACTIVITY
-			activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
+			activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
 			activity?.Dispose();
 
 			return;
@@ -345,7 +345,7 @@ public partial class FusionCache
 			try
 			{
 				if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
 
 				// EVENT
 				_events.OnBackgroundFactoryError(operationId, key);
@@ -357,7 +357,7 @@ public partial class FusionCache
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				// ACTIVITY
-				activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
+				activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
 				activity?.Dispose();
 			}
 
@@ -375,10 +375,10 @@ public partial class FusionCache
 				if (antecedent.Status == TaskStatus.Faulted)
 				{
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
 
 					// ACTIVITY
-					activity?.SetStatus(ActivityStatusCode.Error, factoryTask?.Exception?.Message);
+					activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
 					activity?.Dispose();
 
 					// EVENT
@@ -394,7 +394,7 @@ public partial class FusionCache
 
 					// UPDATE ADAPTIVE OPTIONS
 					var maybeNewOptions = ctx.GetOptions();
-					if (maybeNewOptions is not null && options != maybeNewOptions)
+					if (options != maybeNewOptions)
 						options = maybeNewOptions;
 
 					options = options.Duplicate();
@@ -429,7 +429,7 @@ public partial class FusionCache
 				if (memoryLockObj is not null)
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 			}
-		});
+		}, token);
 	}
 
 	private async ValueTask<object?> AcquireMemoryLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
@@ -525,9 +525,6 @@ public partial class FusionCache
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal (allowFailSafe={AllowFailSafe}, timestampThreshold={TimestampThreshold})", CacheName, InstanceId, operationId, key, allowFailSafe, timestampThreshold);
-
-		if (_mca is null)
-			return false;
 
 		return _mca.ExpireEntry(operationId, key, allowFailSafe, timestampThreshold);
 	}
@@ -742,14 +739,14 @@ public partial class FusionCache
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue = false;
+	private bool _disposedValue = false;
 	/// <summary>
 	/// Release all resources managed by FusionCache.
 	/// </summary>
 	/// <param name="disposing">Indicates if the disposing is happening.</param>
 	protected virtual void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
@@ -771,7 +768,7 @@ public partial class FusionCache
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 			}
 
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 
@@ -849,7 +846,7 @@ public partial class FusionCache
 
 			try
 			{
-				(var distributedEntry, var isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, TryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
+				var (distributedEntry, isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, TryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
 
 				if (distributedEntry is null || isValid == false)
 				{

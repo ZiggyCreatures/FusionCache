@@ -16,39 +16,35 @@ public class FusionCacheSystemTextJsonSerializer
 	/// <param name="options">The optional <see cref="JsonSerializerOptions"/> object to use.</param>
 	public FusionCacheSystemTextJsonSerializer(JsonSerializerOptions? options = null)
 	{
-		Options = options;
+		_options = options;
 	}
 
-	JsonSerializerOptions? Options;
+	private readonly JsonSerializerOptions? _options;
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, Options);
+		return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, _options);
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		return JsonSerializer.Deserialize<T>(data, Options);
+		return JsonSerializer.Deserialize<T>(data, _options);
 	}
 
 	/// <inheritdoc />
 	public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
 	{
-		using (var stream = new MemoryStream())
-		{
-			await JsonSerializer.SerializeAsync<T?>(stream, obj, Options);
-			return stream.ToArray();
-		}
+		using var stream = new MemoryStream();
+		await JsonSerializer.SerializeAsync<T?>(stream, obj, _options);
+		return stream.ToArray();
 	}
 
 	/// <inheritdoc />
 	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
 	{
-		using (var stream = new MemoryStream(data))
-		{
-			return await JsonSerializer.DeserializeAsync<T>(stream, Options);
-		}
+		using var stream = new MemoryStream(data);
+		return await JsonSerializer.DeserializeAsync<T>(stream, _options);
 	}
 }

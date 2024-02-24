@@ -82,11 +82,11 @@ public class ChaosBackplane
 	/// <inheritdoc/>
 	public override void SetNeverThrow()
 	{
-		var _old = ChaosThrowProbability;
+		var old = ChaosThrowProbability;
 
 		base.SetNeverThrow();
 
-		if (_old != ChaosThrowProbability)
+		if (old != ChaosThrowProbability)
 			OnConnect(new BackplaneConnectionInfo(true));
 	}
 

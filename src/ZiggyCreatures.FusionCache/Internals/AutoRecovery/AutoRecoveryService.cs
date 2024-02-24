@@ -412,7 +412,7 @@ internal sealed class AutoRecoveryService
 				{
 					try
 					{
-						(var error, var isSame, var hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, item.CacheKey, _cache).ConfigureAwait(false);
+						var (error, isSame, hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, item.CacheKey, _cache).ConfigureAwait(false);
 
 						if (error)
 						{
@@ -642,10 +642,10 @@ internal sealed class AutoRecoveryService
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue;
+	private bool _disposedValue;
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
@@ -654,7 +654,7 @@ internal sealed class AutoRecoveryService
 				_cts = null;
 			}
 
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 
