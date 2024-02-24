@@ -29,7 +29,7 @@ public class RedisBackplaneOptions
 	public Func<Task<IConnectionMultiplexer>>? ConnectionMultiplexerFactory { get; set; }
 
 	/// <summary>
-	/// DEPRECATED: verify that at least one clients received the notifications after each publish.
+	/// DEPRECATED: verify that at least one client received the notifications after each publish.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please stop using this, it is now obsolete.")]

@@ -51,7 +51,7 @@
         </member>
         <member name="M:OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddFusionCacheInstrumentation(OpenTelemetry.Metrics.MeterProviderBuilder,System.Action{ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheMetricsInstrumentationOptions})">
             <summary>
-            Enables metrics instrumentation for FusionCache.
+            Enable metrics instrumentation for FusionCache.
             </summary>
             <param name="builder"><see cref="T:OpenTelemetry.Metrics.MeterProviderBuilder"/> being configured.</param>
             <param name="configure">Callback action for configuring the available options.</param>
@@ -64,7 +64,7 @@
         </member>
         <member name="M:OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddFusionCacheInstrumentation(OpenTelemetry.Trace.TracerProviderBuilder,System.Action{ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions})">
             <summary>
-            Enables traces instrumentation for FusionCache.
+            Enable traces instrumentation for FusionCache.
             </summary>
             <param name="builder"><see cref="T:OpenTelemetry.Trace.TracerProviderBuilder"/> being configured.</param>
             <param name="configure">Callback action for configuring the available options.</param>

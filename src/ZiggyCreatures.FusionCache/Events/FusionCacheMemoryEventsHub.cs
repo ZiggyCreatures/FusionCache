@@ -37,7 +37,7 @@ public sealed class FusionCacheMemoryEventsHub
 	/// <summary>
 	/// Check if the <see cref="Eviction"/> event has subscribers or not.
 	/// </summary>
-	/// <returns><see langword="true"/> if the <see cref="Eviction"/> event has subscribers, otherwhise <see langword="false"/>.</returns>
+	/// <returns><see langword="true"/> if the <see cref="Eviction"/> event has subscribers, otherwise <see langword="false"/>.</returns>
 	public bool HasEvictionSubscribers()
 	{
 		return Eviction is not null;

@@ -57,7 +57,7 @@ public sealed class FusionCacheEventsHub
 	public event EventHandler<FusionCacheEntryEventArgs>? FactoryError;
 
 	/// <summary>
-	/// The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponsing cache entry.
+	/// The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponding cache entry.
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? FactorySuccess;
 
@@ -67,7 +67,7 @@ public sealed class FusionCacheEventsHub
 	public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactoryError;
 
 	/// <summary>
-	/// The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponsing cache entry.
+	/// The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponding cache entry.
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactorySuccess;
 

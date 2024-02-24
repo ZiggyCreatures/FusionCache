@@ -198,7 +198,7 @@ public interface IFusionCache
 	void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Sets a secondary caching level, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+	/// Sets a secondary caching level, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and vice versa.
 	/// </summary>
 	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
 	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>

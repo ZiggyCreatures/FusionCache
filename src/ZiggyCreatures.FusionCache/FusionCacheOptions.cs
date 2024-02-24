@@ -314,7 +314,7 @@ public class FusionCacheOptions
 	public TimeSpan AutoRecoveryDelay { get; set; }
 
 	/// <summary>
-	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
+	/// Enable expiring a cache entry, only on the distributed cache (if any), when an auto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
@@ -404,7 +404,7 @@ public class FusionCacheOptions
 	public LogLevel BackplaneErrorsLogLevel { get; set; }
 
 	/// <summary>
-	/// Specify the <see cref="LogLevel"/> to use when logging informations about plugins.
+	/// Specify the <see cref="LogLevel"/> to use when logging info about plugins.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 	/// </summary>

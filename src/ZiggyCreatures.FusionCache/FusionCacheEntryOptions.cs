@@ -77,7 +77,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/>
 	/// This value is intended as a percentage of the <see cref="Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
 	/// <br/><br/>
-	/// For example by setting it to 0.8 (80%) with a <see cref="Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returing the (still valid) cached value to the caller.
+	/// For example by setting it to 0.8 (80%) with a <see cref="Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returning the (still valid) cached value to the caller.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 	/// </summary>
@@ -159,14 +159,14 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan FactorySoftTimeout { get; set; }
 
 	/// <summary>
-	/// The maximum execution time allowed for the factory in any case, even if there is not a stale value to fallback to.
+	/// The maximum execution time allowed for the factory in any case, even if there is not a stale value to fall back to.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 	/// </summary>
 	public TimeSpan FactoryHardTimeout { get; set; }
 
 	/// <summary>
-	/// It enables a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value.
+	/// Enable a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 	/// </summary>
@@ -200,7 +200,7 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan DistributedCacheSoftTimeout { get; set; }
 
 	/// <summary>
-	/// The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to.
+	/// The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fall back to.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 	/// </summary>
@@ -209,7 +209,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Even if the distributed cache is a secondary level, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
 	/// <br/>
-	/// This is to avoid rare edge cases like saving a value in the cache and immediately cheking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
+	/// This is to avoid rare edge cases like saving a value in the cache and immediately checking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
 	/// <br/>
 	/// Setting this flag to <see langword="true"/> will execute most of these operations in the background, resulting in a performance boost.
 	/// <br/><br/>
@@ -260,7 +260,7 @@ public sealed class FusionCacheEntryOptions
 	public bool SkipBackplaneNotifications { get; set; }
 
 	/// <summary>
-	/// By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
+	/// By default, every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
 	/// <br/>
 	/// Setting this flag to <see langword="false"/> will execute these operations in a blocking fashion, typically resulting in worse performance.
 	/// <br/><br/>
@@ -288,7 +288,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
 	/// <br/><br/>
-	/// There are situations though, like in a mobile app with a SQLite 2nd level, where the 2nd level is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd level, so we can skip that extra read for a perf boost (of course the write part will still be done).
+	/// There are situations though, like in a mobile app with a SQLite 2nd level, where the 2nd level is not really "distributed" but just "out of process" (to ease cold starts): in situations like this no one can have updated the 2nd level, so we can skip that extra read for a perf boost (of course the write part will still be done).
 	/// <br/><br/>
 	/// <strong>TL/DR:</strong> if your 2nd level is not "distributed" but only "out of process", setting this to <see langword="true"/> can give you a nice performance boost.
 	/// <br/><br/>

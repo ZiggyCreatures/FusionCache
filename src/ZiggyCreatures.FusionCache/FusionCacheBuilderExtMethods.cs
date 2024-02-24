@@ -576,7 +576,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="IFusionCacheSerializer"/> is found, an <see cref="InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behavior, use TryWithRegisteredDistributedCache().
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> normally if an <see cref="IDistributedCache"/> is found in the DI container, it will be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+	/// <strong>NOTE:</strong> normally if an <see cref="IDistributedCache"/> is found in the DI container, it will be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distributed one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
@@ -605,7 +605,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <br/>
 	/// One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distributed one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> if an <see cref="IDistributedCache"/> is found, a <see cref="IFusionCacheSerializer"/> would also be needed: when that is not the case, by default an <see cref="InvalidOperationException"/> will be thrown so to avoid surprises at runtime, like thinking that a distributed cache will be used when instead it will not. If you want to avoid this and just have a best-effort approach by ignoring a distributed cache when a serializer is missing, set the <paramref name="throwIfMissingSerializer"/> param to <see langword="false"/>.
 	/// <br/><br/>

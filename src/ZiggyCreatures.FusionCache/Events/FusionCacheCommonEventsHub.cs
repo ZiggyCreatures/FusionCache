@@ -5,7 +5,7 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
-/// A class with base events that are common to any cache level (general, memroy or distributed)
+/// A class with base events that are common to any cache level (general, memory or distributed)
 /// </summary>
 public abstract class FusionCacheCommonEventsHub
 	: FusionCacheAbstractEventsHub
