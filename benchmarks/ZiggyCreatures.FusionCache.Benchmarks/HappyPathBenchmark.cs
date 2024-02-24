@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Jobs;
 using FastCache;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,6 +13,8 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 	[RankColumn]
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
+	[ShortRunJob(RuntimeMoniker.Net80)]
+	[ShortRunJob(RuntimeMoniker.NativeAot80)]
 	[Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 	public class HappyPathBenchmark
 	{
