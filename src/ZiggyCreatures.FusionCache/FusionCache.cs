@@ -187,7 +187,7 @@ public partial class FusionCache
 		return res;
 	}
 
-	private void ValidateCacheKey(string key)
+	private static void ValidateCacheKey(string key)
 	{
 		if (key is null)
 			throw new ArgumentNullException(nameof(key));
