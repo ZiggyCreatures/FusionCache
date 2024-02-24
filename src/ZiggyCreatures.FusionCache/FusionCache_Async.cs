@@ -692,7 +692,7 @@ public partial class FusionCache
 		_events.OnExpire(operationId, key);
 	}
 
-	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, Task<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, Task<bool>> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
+	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, ValueTask<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, ValueTask<bool>> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
 		{
@@ -783,13 +783,13 @@ public partial class FusionCache
 			key,
 			FusionCacheAction.EntrySet,
 			entry.Timestamp,
-			async (dca, isBackground, ct) =>
+			(dca, isBackground, ct) =>
 			{
-				return await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, isBackground, ct).ConfigureAwait(false);
+				return dca!.SetEntryAsync<TValue>(operationId, key, entry, options, isBackground, ct);
 			},
-			async (bpa, isBackground, ct) =>
+			(bpa, isBackground, ct) =>
 			{
-				return await bpa.PublishSetAsync(operationId, key, entry.Timestamp, options, false, isBackground, ct).ConfigureAwait(false);
+				return bpa.PublishSetAsync(operationId, key, entry.Timestamp, options, false, isBackground, ct);
 			},
 			options,
 			token
@@ -803,13 +803,13 @@ public partial class FusionCache
 			key,
 			FusionCacheAction.EntryRemove,
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			async (dca, isBackground, ct) =>
+			(dca, isBackground, ct) =>
 			{
-				return await dca.RemoveEntryAsync(operationId, key, options, isBackground, ct).ConfigureAwait(false);
+				return dca.RemoveEntryAsync(operationId, key, options, isBackground, ct);
 			},
-			async (bpa, isBackground, ct) =>
+			(bpa, isBackground, ct) =>
 			{
-				return await bpa.PublishRemoveAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
+				return bpa.PublishRemoveAsync(operationId, key, null, options, false, isBackground, ct);
 			},
 			options,
 			token
@@ -823,13 +823,13 @@ public partial class FusionCache
 			key,
 			FusionCacheAction.EntryExpire,
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			async (dca, isBackground, ct) =>
+			(dca, isBackground, ct) =>
 			{
-				return await dca.RemoveEntryAsync(operationId, key, options, isBackground, ct).ConfigureAwait(false);
+				return dca.RemoveEntryAsync(operationId, key, options, isBackground, ct);
 			},
-			async (bpa, isBackground, ct) =>
+			(bpa, isBackground, ct) =>
 			{
-				return await bpa.PublishExpireAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
+				return bpa.PublishExpireAsync(operationId, key, null, options, false, isBackground, ct);
 			},
 			options,
 			token
