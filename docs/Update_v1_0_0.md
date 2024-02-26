@@ -10,10 +10,14 @@ If you are updating to `v1.0` from a previous version, in general everything sho
 
 But, in some niche and specific cases, you may have to look out for some minor details or deprecations.
 
+The 2 minor (but still technically breaking) changes are:
+- slightly changed the nullability annotations with generics for the return values in the `GetOrSet<T>` and `GetOrSetAsync<T>`
+- the `FusionCacheEntryOptions.Size` option went from being `long` to `long?`
+
 Historically there have been only 2 versions that needed some attention, so please read the update notes if you are updating from a previous version:
 
-- to update from a version before `v0.20.0`: [update notes](Update_v0_20_0.md)
-- to update from a version before `v0.24.0`: [update notes](Update_v0_24_0.md)
+- to update from a version before `v0.20.0` ([update notes](Update_v0_20_0.md))
+- to update from a version before `v0.24.0` ([update notes](Update_v0_24_0.md))
 
 Apart from these everything should be quite smooth.
 

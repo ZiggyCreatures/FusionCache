@@ -6,9 +6,9 @@
 
 # 🧩 Plugins
 
-FusionCache supports extensibility via plugins: it is possible for example to listen to [events](Events.md) and react in any way you want.
-
-In time, the most useful plugins will be listed directly in the homepage.
+| ⚡ TL;DR (quick version) |
+| -------- |
+| FusionCache supports extensibility via plugins: it is possible for example to listen to [events](Events.md) and react in any way you want. |
 
 
 ## How to create a plugin
@@ -17,7 +17,9 @@ Simply write a class that implements the [`IFusionCachePlugin`](https://github.c
 
 Of course it can also accept its own set of options, typically modelled via `IOptions<MyPluginType>` and friends.
 
-If you like there's a [:jigsaw: complete sample](PluginSample.md) available.
+If you like there's a [🧩 complete sample](PluginSample.md) available.
+
+In time, the most useful plugins will be listed directly in the homepage.
 
 
 ## How to use a plugin via DI
@@ -30,7 +32,7 @@ As explained in the [Builder](DependencyInjection.md) docs, we have 2 ways:
 The first approach looks like this:
 
 ```csharp
-services.AddSingleton<IFusionCachePlugin, MyPlugin>();
+services.AddTransient<IFusionCachePlugin, MyPlugin>();
 
 services.AddFusionCache()
   .WithAllRegisteredPlugins()
@@ -47,15 +49,7 @@ services.AddFusionCache()
 
 In both cases, when a FusionCache instance will be created by the DI container, the plugins will be added (and started) automatically.
 
-Of course you can also define your own custom ext method to be a better .NET citizen (see the full example below).
-
-```csharp
-services.AddSingleton<IFusionCachePlugin, MyPlugin>();
-
-services.AddFusionCache();
-```
-
-or with your own custom ext method (like `AddMyFusionCachePlugin`) and custom options:
+Of course to be a better .NET citizen you can also define your own custom ext method (like `AddMyFusionCachePlugin`) and custom options:
 
 ```csharp
 services.AddMyFusionCachePlugin(options => {
@@ -70,8 +64,8 @@ services.AddFusionCache()
 It goes without saying, but you can register multiple plugins, all responding to the same `IFusionCachePlugin` service, and they will all be picked up by FusionCache when needed:
 
 ```csharp
-services.AddSingleton<IFusionCachePlugin, MyFirstPlugin>();
-services.AddSingleton<IFusionCachePlugin, MySecondPlugin>();
+services.AddTransient<IFusionCachePlugin, MyFirstPlugin>();
+services.AddTransient<IFusionCachePlugin, MySecondPlugin>();
 
 services.AddFusionCache()
   .WithAllRegisteredPlugins()
@@ -81,8 +75,6 @@ services.AddFusionCache()
 
 ## How to use a plugin without DI
 Just create an instance of your plugin and pass it to the `cache.AddPlugin` method.
-
-**Example:**
 
 ```csharp
 var firstPlugin = new MyFirstPlugin();
@@ -94,7 +86,7 @@ cache.AddPlugin(firstPlugin);
 cache.AddPlugin(secondPlugin);
 ```
 
-:warning: Remember that, in case the `Start` method of your plugin throws and exception, an `InvalidOperationException` would also be thrown by the `AddPlugin` method itself (with the original exception as the inner one).
+Remember that, in case the `Start` method of your plugin throws and exception, an `InvalidOperationException` would also be thrown by the `AddPlugin` method itself (with the original exception as the inner one).
 
 Instead, in the DI way, this is already taken care of and no unhandled exception will be thrown.
 

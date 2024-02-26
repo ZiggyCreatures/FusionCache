@@ -6,6 +6,10 @@
 
 # 📜 Logging
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| By simply using the standard `ILogger<T>` abstraction in .NET, it's possible to enable granular, detailed and extensive logging while also configure some of the logging levels used by FusionCache. Full observability can be achieved via the [Open Telemetry](OpenTelemetry.md) support. |
+
 Sometimes things go bad, and when that happens we go into detective mode to try to figure out what is going on: at that moment any help investigating would be very helpful, and logging is key to that.
 
 FusionCache uses the standard `ILogger<T>` interface and a structured logging approach so it fits well in the .NET ecosystem allowing us to use any implementation we want, as long as it respects the [standard way](https://docs.microsoft.com/en-us/dotnet/core/extensions/logging) of logging in .NET, so we should feel at home working with it.

@@ -6,6 +6,10 @@
 
 # 🦅 Eager Refresh
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| It's possible to enable an early refresh of cache values that are not-yet-expired: simply specify a % of the duration after which a background, non blocking refresh will be automatically triggered. This can be used alongside [timeouts](Timeouts.md), to get the best of both worlds. |
+
 FusionCache already has advanced [timeouts](Timeouts.md) features, so that a slow factory cannot slow down our code while refreshing the data.
 
 A different approach we may take is to just start refreshing earlier (before expiration occurs) and in the background so not to slow down the normal flow.

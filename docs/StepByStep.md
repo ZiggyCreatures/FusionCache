@@ -239,7 +239,7 @@ And again, reducing the number of requests to the database (this time by a lot) 
 <br/>
 <br/>
 
-## 3) Fail-Safe
+## 3) Fail-Safe ([more](FailSafe.md))
 
 Looking at the colors in the graph above we can see we still have a big problem: when the database is down our service is also down (the **red** parts).
 
@@ -295,7 +295,7 @@ Plus `1` extra req for each product & node for each of the `3` min where the dat
 <br/>
 <br/>
 
-## 4) Factory Timeouts
+## 4) Factory Timeouts ([more](Timeouts.md))
 
 The situation is now way better than how it was initially, but here and there we are still **a little slow** becuase of **some latency spikes** when we go to the database.
 
@@ -338,7 +338,7 @@ The number of database requests in this case remains the same.
 <br/>
 <br/>
 
-## 5) Distributed cache
+## 5) Distributed cache ([more](CacheLevels.md))
 
 Now everything is great on every node, but each node goes to the database for the same data, **without sharing it** with the other nodes that probably already did the same, and that is a waste.
 
@@ -506,7 +506,7 @@ Let's say this gives us another `20%` of the original `39,000` so that (`30%` + 
 <br/>
 <br/>
 
-## 8) Backplane
+## 8) Backplane ([more](Backplane.md))
 
 Now that we are using a distributed cache we basically have a single version of each piece of data in a central place, right?
 
@@ -581,7 +581,7 @@ Let's say this gives us another `20%` of the original `39,000` so that (`50%` + 
 <br/>
 <br/>
 
-## 9) Logging
+## 9) Logging ([more](Logging.md))
 
 Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: [**logging**](Logging.md).
 
@@ -641,3 +641,34 @@ services.AddFusionCache()
 ### 🏆 Results
 
 This will **reduce the amount of logged data** a lot, consuming less bandwidth and storage (and spending less money) while giving us less background noise when troubleshooting a production issue.
+
+<br/>
+<br/>
+
+## 10) Open Telemetry ([more](OpenTelemetry.md))
+
+Logging is great, but nowadays we can do even more to have a clearer view of our production systems, and maybe react to what is happening to prevent problems: full observability with traces and metrics.
+
+FusionCache has native support for [Open Telemetry](OpenTelemetry.md): Jaeger, Prometheus, and any other compatible tool/service out there are supported.
+
+We just add it during setup:
+
+```csharp
+services.AddOpenTelemetry()
+  // SETUP TRACES
+  .WithTracing(tracing => tracing
+    .AddFusionCacheInstrumentation()
+    .AddConsoleExporter() // OR ANY ANOTHER EXPORTER
+  )
+  // SETUP METRICS
+  .WithMetrics(metrics => metrics
+    .AddFusionCacheInstrumentation()
+    .AddConsoleExporter() // OR ANY ANOTHER EXPORTER
+  );
+```
+
+With this, we'll be able to get a clear picture of what is going on in production, right away:
+
+![An example of the visibility obtainable by using OpenTelemetry, in this case thanks to the Honeycomb SAAS](images/opentelemetry-example.png)
+
+That's all, it just works 🥳

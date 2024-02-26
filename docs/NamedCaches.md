@@ -6,6 +6,10 @@
 
 # 📛 Named Caches
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| It's possible do register, configure and request multiple named caches: simply register each one and give them a different name (and configuration) and they'll all just work. |
+
 Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
 
 Thanks to the native [builder](DependencyInjection.md) support, it's very easy to configure different caches identified by different names.

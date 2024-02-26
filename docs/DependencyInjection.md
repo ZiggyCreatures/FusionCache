@@ -6,6 +6,10 @@
 
 # 🔃 Dependency Injection
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| FusionCache natively supports .NET dependency injection, along with a builder to allow for easy customization: all the features, options and components are supported, thanks to the fluent api and specific calls for each feature. |
+
 In .NET there's full support for [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
 
 This is a common way to handle creation, dependencies, scopes and disposal of resources that makes it easier and more flexible to work with any _service_ we may need.

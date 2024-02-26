@@ -6,6 +6,10 @@
 
 # 💣 Fail-Safe
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| By enabling fail-safe FusionCache can temporarily re-use an expired value in case of problems encountered while calling a factory for a refresh: this avoids problems to *bubble up* to the users, while automatically re-trying later to get a fresh version. |
+
 Using a cache in general - not necessarily FusionCache - is a good thing because it makes our systems **way faster**, even though it means using values that may be **a little bit stale**.
 
 That's ok in most situations, and is the tradeoff we accept to obtain better performance.

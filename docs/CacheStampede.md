@@ -6,6 +6,10 @@
 
 # 🛡️ Cache Stampede prevention
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| FusionCache automatically prevents multiple factories running at the same time for the same cache key, no need to do anything. |
+
 A [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede) is a typical failure you may encounter while using caching in a high load scenario, and basically it's what happens when a lot of requests comes in for the same data at the same time and there's no special handling of that.
 
 Imagine multiple requests coming in, all for the same data at the same moment. They would:

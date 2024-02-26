@@ -70,7 +70,7 @@ These are the **key features** of FusionCache:
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
 - [**🔂 Conditional Refresh**](docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
 - [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
-- [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
+- [**🔃 Dependency Injection + Builder**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
 - [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
@@ -105,7 +105,7 @@ Main packages:
 |--------------------------------|:---------------:|:---------:|
 | [ZiggyCreatures.FusionCache](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) <br/> The core package | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache) |
 | [ZiggyCreatures.FusionCache.OpenTelemetry](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.OpenTelemetry/) <br/> Adds native support for OpenTelemetry setup | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.OpenTelemetry.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.OpenTelemetry/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.OpenTelemetry) |
-| [ZiggyCreatures.FusionCache.Chaos](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) <br/> A package to add some controller chaos, for testing | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Chaos.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Chaos) |
+| [ZiggyCreatures.FusionCache.Chaos](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) <br/> A package to add some controlled chaos, for testing | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Chaos.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Chaos) |
 
 Serializers:
 
