@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>1.0.0-preview2</Version>
+		<Version>1.0.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache serializer based on Neuecc's MessagePack serializer</Description>

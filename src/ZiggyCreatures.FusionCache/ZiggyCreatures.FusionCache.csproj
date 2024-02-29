@@ -4,7 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
-		<Version>1.0.0-preview2</Version>
+		<Version>1.0.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<Description>FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.</Description>
@@ -13,23 +13,21 @@
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageReleaseNotes>
-			IN 1.0.0-preview2:
-			- Perf: zero cpu/allocations in Get happy path
-			- Perf: less cpu/allocations in Set happy path
-			- Perf: less cpu/allocations in when not using distributed components
-			- Perf: less cpu/allocations (via closures) when using events
-			- Perf: zero cpu/allocations at all when not using logging (no operation id generation)
+			- Perf: zero allocations/minimal cpu usage in Get happy path
+			- Perf: greatly reduced allocations/cpu usage in Set happy path
+			- Perf: less allocations/cpu usage when not using distributed components
+			- Perf: less allocations/cpu usage (via closures) when using events
+			- Perf: zero allocations at all when not using logging (no support structures init for operationId generation)
 			- Perf: the distributed cache check during eager refresh is now totally non blocking
-			- Added: new IgnoreIncomingBackplaneNotifications option
-			- Changed: FusionCacheEntryOptions.Size is now nullable (long?)
-			- Changed: better nullability annotations for generic types
-
-			IN: 1.0.0-preview1
 			- Perf: removed the small reflection usage that was there
+			- Added: new IgnoreIncomingBackplaneNotifications option
 			- Added: incoherent cache names detection when using DI/builder
 			- Added: TryWithAutoSetup() in the builder now also does a TryWithRegisteredMemoryLocker()
+			- Changed: FusionCacheEntryOptions.Size is now nullable (long?)
+			- Changed: better nullability annotations for generic types
 			- Changed: removed the cache instance id from the metrics tags, because high cardinality
 			- Changed: better logging in some parts (backplane + memory locker)
+			- Fix: fixed a couple of typos in xml comments
 			- Updated: package dependencies
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
