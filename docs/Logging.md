@@ -8,7 +8,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| By simply using the standard `ILogger<T>` abstraction in .NET, it's possible to enable granular, detailed and extensive logging while also configure some of the logging levels used by FusionCache. Full observability can be achieved via the [Open Telemetry](OpenTelemetry.md) support. |
+| By simply using the standard `ILogger<T>` abstraction in .NET, it's possible to enable granular, detailed and extensive logging while also configure some of the logging levels used by FusionCache. Full observability can be achieved via the [OpenTelemetry](OpenTelemetry.md) support. |
 
 Sometimes things go bad, and when that happens we go into detective mode to try to figure out what is going on: at that moment any help investigating would be very helpful, and logging is key to that.
 

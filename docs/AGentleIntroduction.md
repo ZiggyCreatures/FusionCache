@@ -13,7 +13,7 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep each node's memory cache perfectly synchronized, without any additional work.
 
-FusionCache also includes some advanced resiliency features like a [fail-safe](FailSafe.md) mechanism, [cache stampede](CacheStampede.md) prevention, fine grained [soft/hard timeouts](Timeouts.md) with background factory completion, [eager refresh](EagerRefresh.md), full observability via [logging](Logging.md) and [Open Telemetry](OpenTelemetry.md) and more (see below).
+FusionCache also includes some advanced resiliency features like a [fail-safe](FailSafe.md) mechanism, [cache stampede](CacheStampede.md) prevention, fine grained [soft/hard timeouts](Timeouts.md) with background factory completion, [eager refresh](EagerRefresh.md), full observability via [logging](Logging.md) and [OpenTelemetry](OpenTelemetry.md) and more (see below).
 
 
 <div style="text-align:center;">
@@ -187,9 +187,9 @@ In time, the most useful plugins will be listed directly in the homepage.
 Read more [**here**](Plugins.md).
 
 
-## 🔭 Open Telemetry ([more](OpenTelemetry.md))
+## 🔭 OpenTelemetry ([more](OpenTelemetry.md))
 
-Full observability support, thanks to [Open Telemetry](https://opentelemetry.io/) integration, means that we can have a clear and detailed view of what happens in our production systems.
+Full observability support, thanks to [OpenTelemetry](https://opentelemetry.io/) integration, means that we can have a clear and detailed view of what happens in our production systems.
 
 Detailed traces are available, with timings, durations, details, events and tags.
 

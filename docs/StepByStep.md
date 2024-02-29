@@ -645,11 +645,11 @@ This will **reduce the amount of logged data** a lot, consuming less bandwidth a
 <br/>
 <br/>
 
-## 10) Open Telemetry ([more](OpenTelemetry.md))
+## 10) OpenTelemetry ([more](OpenTelemetry.md))
 
 Logging is great, but nowadays we can do even more to have a clearer view of our production systems, and maybe react to what is happening to prevent problems: full observability with traces and metrics.
 
-FusionCache has native support for [Open Telemetry](OpenTelemetry.md): Jaeger, Prometheus, and any other compatible tool/service out there are supported.
+FusionCache has native support for [OpenTelemetry](OpenTelemetry.md): Jaeger, Prometheus, and any other compatible tool/service out there are supported.
 
 We just add it during setup:
 

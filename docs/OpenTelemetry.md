@@ -9,7 +9,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| Full observability of traces and metrics is done via native [Open Telemetry](OpenTelemetry.md) support: simply enable it at setup time and it will just work. In the same spirit, it's also possible to do extensive [logging](Logging.md). |
+| Full observability of traces and metrics is done via native [OpenTelemetry](OpenTelemetry.md) support: simply enable it at setup time and it will just work. In the same spirit, it's also possible to do extensive [logging](Logging.md). |
 
 Observability is a key feature of modern software systems that allows us to clearly see what is going on at any given time.
 
