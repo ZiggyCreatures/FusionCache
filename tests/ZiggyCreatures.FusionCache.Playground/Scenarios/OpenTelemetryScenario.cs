@@ -82,7 +82,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		public static async Task RunAsync()
 		{
-			Console.Title = "FusionCache - Open Telemetry";
+			Console.Title = "FusionCache - OpenTelemetry";
 
 			Console.OutputEncoding = Encoding.UTF8;
 
