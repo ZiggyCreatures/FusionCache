@@ -14,7 +14,7 @@
 </div>
 
 > [!IMPORTANT]  
-> The [v1.0 preview](https://github.com/ZiggyCreatures/FusionCache/releases/tag/v1.0.0-preview1) is out!
+> The [v1.0 preview2](https://github.com/ZiggyCreatures/FusionCache/releases/tag/v1.0.0-preview2) is out!
 > Please try it and let me know if you spot anything, in time for the official `v1.0` release that will come soon, thanks!
 
 
