@@ -133,9 +133,10 @@ FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
 
 ## 💼 Is it Production Ready :tm: ?
+
 Yes!
 
-Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
+FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests per day.
 
 Considering that the FusionCache packages have been downloaded more than **3 million times** (thanks everybody!) it may very well be used even more.
 
