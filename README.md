@@ -299,8 +299,6 @@ And if you really want to talk about money, please consider making  **❤ a dona
 
 Yes!
 
-FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests per day.
-
-Considering that the FusionCache packages have been downloaded more than **3 million times** (thanks everybody!) it may very well be used even more.
+FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests per day, or at least that is what I know directly: considering that the FusionCache packages have been downloaded more than **3 million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
