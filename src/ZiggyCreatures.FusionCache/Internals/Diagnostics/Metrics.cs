@@ -67,19 +67,19 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 			return counter;
 		}
 
-		public static KeyValuePair<string, object?>[] GetCommonTags(string name, string? instanceId, params KeyValuePair<string, object?>[] extraTags)
+		public static KeyValuePair<string, object?>[] GetCommonTags(string? cacheName, string? cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
 		{
 			return [
-				new KeyValuePair<string, object?>("fusioncache.cache.name", name),
-				new KeyValuePair<string, object?>("fusioncache.cache.instance_id", instanceId),
+				new KeyValuePair<string, object?>("fusioncache.cache.name", cacheName),
 				// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS, PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES
+				//new KeyValuePair<string, object?>("fusioncache.cache.instance_id", cacheInstanceId),
 				//new KeyValuePair<string, object?>("fusioncache.operation.key", key),
 				//new KeyValuePair<string, object?>("fusioncache.operation.operation_id", operationId),
 				.. extraTags ?? []
 			];
 		}
 
-		public static void AddWithCommonTags<T>(this Counter<T> counter, T delta, string cacheName, string cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
+		public static void AddWithCommonTags<T>(this Counter<T> counter, T delta, string? cacheName, string? cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
 			where T : struct
 		{
 			if (counter.Enabled == false)

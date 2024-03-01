@@ -6,6 +6,10 @@
 
 # 🧙‍♂️ Adaptive Caching
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| It's possible to change entry options in-flight, inside of a factory, to make them adapt specifically to the value being cached. Just use the factory signature with the context and the cancellation token. |
+
 Sometimes when you are caching a piece of data with the `GetOrSet` method you don't know upfront what the cache duration should be: this may happen because the cache duration depends on the object being cached itself.
 
 Some examples may be:

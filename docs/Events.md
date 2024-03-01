@@ -6,6 +6,10 @@
 
 # 📞 Events
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| It's possible to add handlers for FusionCache events, both at high-level meaning about the cache as a whole, and at low-level meaning about the inner components like the memory level, the distributed cache level, the backplane and so on. |
+
 FusionCache has a comprehensive set of events you can subscribe to, so you can be notified of core events when they happen.
 
 They cover both high-level things related to the FusionCache instance as a whole such as cache hits/misses, fail-safe activations or factory timeouts but also more lower level things related to each specific level (memory/distributed) such as evictions in the memory cache, serialization/deserialization errors or cache hits/misses, but specific for each specific level.

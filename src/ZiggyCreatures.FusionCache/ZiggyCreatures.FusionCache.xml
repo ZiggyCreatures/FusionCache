@@ -142,6 +142,26 @@
             <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
             <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.#ctor(System.String,System.String,System.String,System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneConnectionInfo},System.Action{ZiggyCreatures.Caching.Fusion.Backplane.BackplaneMessage})">
+            <summary>
+            Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions"/>.
+            </summary>
+            <param name="cacheName">The cache name.</param>
+            <param name="cacheInstanceId">The unique cache instance id.</param>
+            <param name="channelName">The channel name to be used.</param>
+            <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
+            <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.CacheName">
+            <summary>
+            The cache name.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.CacheInstanceId">
+            <summary>
+            The cache instance id.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.BackplaneSubscriptionOptions.ChannelName">
             <summary>
             The channel name to be used.
@@ -314,7 +334,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub">
             <summary>
-            A class with base events that are common to any cache level (general, memroy or distributed)
+            A class with base events that are common to any cache level (general, memory or distributed)
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Events.FusionCacheCommonEventsHub.#ctor(ZiggyCreatures.Caching.Fusion.IFusionCache,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger)">
@@ -474,7 +494,7 @@
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.FactorySuccess">
             <summary>
-            The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponsing cache entry.
+            The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponding cache entry.
             </summary>
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.BackgroundFactoryError">
@@ -484,7 +504,7 @@
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.BackgroundFactorySuccess">
             <summary>
-            The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponsing cache entry.
+            The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponding cache entry.
             </summary>
         </member>
         <member name="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheEventsHub.EagerRefresh">
@@ -524,7 +544,7 @@
             <summary>
             Check if the <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction"/> event has subscribers or not.
             </summary>
-            <returns><see langword="true"/> if the <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction"/> event has subscribers, otherwhise <see langword="false"/>.</returns>
+            <returns><see langword="true"/> if the <see cref="E:ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub.Eviction"/> event has subscribers, otherwise <see langword="false"/>.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCache">
             <summary>
@@ -921,7 +941,7 @@
             <br/><br/>
             <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is not found in the DI container, or if one is found but no <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> is found, an <see cref="T:System.InvalidOperationException"/> will be thrown. To avoid this and use a best-effort behavior, use TryWithRegisteredDistributedCache().
             <br/><br/>
-            <strong>NOTE:</strong> normally if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found in the DI container, it will be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+            <strong>NOTE:</strong> normally if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found in the DI container, it will be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distributed one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
             </summary>
@@ -937,7 +957,7 @@
             <br/>
             One way to avoid collisions is to specify a CacheKeyPrefix by using one of the WithCacheKeyPrefix() methods.
             <br/><br/>
-            <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distrbuted one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
+            <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, it can be used. In some scenarios though, like when using ASP.NET, one is automatically registered of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>: that is not a real distributed cache, but just a memory cache masquerading as a distributed one. Since using that would do nothing and is a waste of resources, by default that is ignored. If you want to use it instead, just set the <paramref name="ignoreMemoryDistributedCache"/> to <see langword="false"/>.
             <br/><br/>
             <strong>NOTE:</strong> if an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> is found, a <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> would also be needed: when that is not the case, by default an <see cref="T:System.InvalidOperationException"/> will be thrown so to avoid surprises at runtime, like thinking that a distributed cache will be used when instead it will not. If you want to avoid this and just have a best-effort approach by ignoring a distributed cache when a serializer is missing, set the <paramref name="throwIfMissingSerializer"/> param to <see langword="false"/>.
             <br/><br/>
@@ -1195,6 +1215,8 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
             <summary>
             Represents all the options available for a single <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> entry.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.#ctor(System.Nullable{System.TimeSpan})">
@@ -1224,7 +1246,7 @@
             <br/>
             This value is intended as a percentage of the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
             <br/><br/>
-            For example by setting it to 0.8 (80%) with a <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returing the (still valid) cached value to the caller.
+            For example by setting it to 0.8 (80%) with a <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returning the (still valid) cached value to the caller.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
             </summary>
@@ -1243,7 +1265,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Size">
             <summary>
-            The size of the cache entry, used as a value of <see cref="P:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions.Size"/> in the underlying memory cache.
+            The size of the cache entry, used as a value for the <see cref="P:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions.Size"/> property in the underlying memory cache.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md"/>
             </summary>
@@ -1292,14 +1314,14 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FactoryHardTimeout">
             <summary>
-            The maximum execution time allowed for the factory in any case, even if there is not a stale value to fallback to.
+            The maximum execution time allowed for the factory in any case, even if there is not a stale value to fall back to.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion">
             <summary>
-            It enables a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value.
+            Enable a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
             </summary>
@@ -1333,7 +1355,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheHardTimeout">
             <summary>
-            The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to.
+            The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fall back to.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
             </summary>
@@ -1342,7 +1364,7 @@
             <summary>
             Even if the distributed cache is a secondary level, by default every operation on it (get/set/remove/etc) is blocking: that is to say the FusionCache method call would not return until the inner distributed cache operation is completed.
             <br/>
-            This is to avoid rare edge cases like saving a value in the cache and immediately cheking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
+            This is to avoid rare edge cases like saving a value in the cache and immediately checking the underlying distributed cache directly, not finding the value (because it is still being saved): very very rare, but still.
             <br/>
             Setting this flag to <see langword="true"/> will execute most of these operations in the background, resulting in a performance boost.
             <br/><br/>
@@ -1387,7 +1409,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundBackplaneOperations">
             <summary>
-            By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
+            By default, every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed.
             <br/>
             Setting this flag to <see langword="false"/> will execute these operations in a blocking fashion, typically resulting in worse performance.
             <br/><br/>
@@ -1415,7 +1437,7 @@
             <summary>
             When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
             <br/><br/>
-            There are situations though, like in a mobile app with a SQLite 2nd level, where the 2nd level is not really "distributed" but just "out of process" (to ease cold starts): in situations like this noone can have updated the 2nd level, so we can skip that extra read for a perf boost (of course the write part will still be done).
+            There are situations though, like in a mobile app with a SQLite 2nd level, where the 2nd level is not really "distributed" but just "out of process" (to ease cold starts): in situations like this no one can have updated the 2nd level, so we can skip that extra read for a perf boost (of course the write part will still be done).
             <br/><br/>
             <strong>TL/DR:</strong> if your 2nd level is not "distributed" but only "out of process", setting this to <see langword="true"/> can give you a nice performance boost.
             <br/><br/>
@@ -1517,7 +1539,7 @@
             <param name="threshold">The amount to set: values &lt;= 0.0 or &gt;= 1.0 will be normalized to <see langword="null"/>, meaning "no eager refresh".</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSize(System.Int64)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSize(System.Nullable{System.Int64})">
             <summary>
             Set the size of the entry.
             </summary>
@@ -1616,18 +1638,6 @@
             </summary>
             <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipMemoryCache"/> property.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToMemoryCacheEntryOptions(ZiggyCreatures.Caching.Fusion.Events.FusionCacheMemoryEventsHub,ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger,System.String,System.String)">
-            <summary>
-            Creates a new <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.
-            </summary>
-            <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions"/> instance.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToDistributedCacheEntryOptions(ZiggyCreatures.Caching.Fusion.FusionCacheOptions,Microsoft.Extensions.Logging.ILogger,System.String,System.String)">
-            <summary>
-            Creates a new <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance based on this <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> instance.
-            </summary>
-            <returns>The newly created <see cref="T:Microsoft.Extensions.Caching.Distributed.DistributedCacheEntryOptions"/> instance.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duplicate(System.Nullable{System.TimeSpan})">
             <summary>
@@ -2328,31 +2338,43 @@
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions">
             <summary>
             Represents all the options available for the entire <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultCacheName">
             <summary>
             The default value for <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.CacheName"/>.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatVersion">
             <summary>
             The wire format version identifier for the distributed cache wire format, used in the cache key processing.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheWireFormatSeparator">
             <summary>
             The wire format version separator for the distributed cache wire format, used in the cache key processing.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneWireFormatVersion">
             <summary>
             The wire format version identifier for the backplane wire format, used in the channel name.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
         <member name="F:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneWireFormatSeparator">
             <summary>
             The wire format version separator for the backplane wire format, used in the channel name.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.#ctor">
@@ -2365,6 +2387,8 @@
             The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
             <br/><br/>
             <strong>NOTE:</strong> if you try to set this to a null/whitespace value, that value will be ignored.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.InstanceId">
@@ -2383,6 +2407,8 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DefaultEntryOptions">
             <summary>
             The default <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
             <exception cref="T:System.ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
         </member>
@@ -2407,11 +2433,15 @@
             A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
             <br/><br/>
             <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.DistributedCacheKeyModifierMode">
             <summary>
             Specify the mode in which cache key will be changed for the distributed cache, for internal purposes (eg: to specify the wire format version).
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneCircuitBreakerDuration">
@@ -2424,6 +2454,15 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.BackplaneChannelPrefix">
             <summary>
             The prefix to use in the backplane channel name: if not specified the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.CacheName"/> will be used.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IgnoreIncomingBackplaneNotifications">
+            <summary>
+            Ignores incoming backplane notifications, which normally is DANGEROUS.
+            <br/><br/>
+            <strong>WARNING:</strong> it is advised not to ignore backplane notifications in any normal circumstance unless you really know what you are doing.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
@@ -2507,14 +2546,16 @@
             <summary>
             The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
             <br/>
-            Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky).
+            Use <see cref="F:System.TimeSpan.Zero"/> to avoid any delay (risky, like very very risky).
+            <br/><br/>
+            <strong>NOTE:</strong> when used with a distributed cache that supports a delayed reconnection logic (like StackExchange.Redis), set this to a higher value than the one used by the distributed cache, to avoid sending backplane notifications when not all nodes are reconnected yet, therefore avoiding that some nodes will not receive all the notifications.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.EnableDistributedExpireOnBackplaneAutoRecovery">
             <summary>
-            Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
+            Enable expiring a cache entry, only on the distributed cache (if any), when an auto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
             </summary>
@@ -2602,7 +2643,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.PluginsInfoLogLevel">
             <summary>
-            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when logging informations about plugins.
+            Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when logging info about plugins.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
             </summary>
@@ -2617,6 +2658,8 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.Duplicate">
             <summary>
             Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object by duplicating all the options of the current one.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
             </summary>
             <returns>The newly created <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions"/> object.</returns>
         </member>
@@ -2833,7 +2876,7 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>
-            Sets a secondary caching level, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and viceversa.
+            Sets a secondary caching level, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and vice versa.
             </summary>
             <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
             <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
@@ -3159,7 +3202,7 @@
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> distributed level.
+            Represents a distributed entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>.
             </summary>
             <typeparam name="TValue">The type of the entry's value</typeparam>
         </member>
@@ -3193,26 +3236,6 @@
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.ToString">
             <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOptions(`0,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Int64)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/> instance from a value and some options.
-            </summary>
-            <param name="value">The value to be cached.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="timestamp">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.Timestamp"/> property.</param>
-            <returns>The newly created entry.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1.CreateFromOtherEntry(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from another entry and some options.
-            </summary>
-            <param name="entry">The source entry.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <returns>The newly created entry.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata">
             <summary>
@@ -3271,15 +3294,9 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.ToString">
             <inheritdoc/>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheInternalUtils.IsLogicallyExpired(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry)">
-            <summary>
-            Checks if the entry is logically expired.
-            </summary>
-            <returns>A <see cref="T:System.Boolean"/> indicating the logical expiration status.</returns>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry">
             <summary>
-            Represents an generic entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, which can be either a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> or a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/>.
+            Represents a generic entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>: it can be either a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry`1"/> or a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/>.
             </summary>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry.GetValue``1">
@@ -3306,58 +3323,15 @@
             The timestamp (in ticks) at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
             </summary>
         </member>
-        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry`1">
             <summary>
-            An entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> memory level.
+            Represents a memory entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, which can be either a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry`1"/> or a <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Distributed.FusionCacheDistributedEntry`1"/>.
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.#ctor(System.Object,ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata,System.Int64,System.Type)">
+        <member name="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.IFusionCacheMemoryEntry">
             <summary>
-            Creates a new instance.
+            Represents a memory entry in <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/>, but as a non-generic interface so it can be used from code that doesn't know the actual type of the value (eg: auto-recovery and other places).
             </summary>
-            <param name="value">The actual value.</param>
-            <param name="metadata">The metadata for the entry.</param>
-            <param name="timestamp">The original timestamp of the entry, see <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp"/>.</param>
-            <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Value">
-            <inheritdoc/>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Metadata">
-            <inheritdoc/>
-        </member>
-        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.GetValue``1">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.SetValue``1(``0)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.ToString">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOptions(System.Object,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.Int64},System.Type)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from a value and some options.
-            </summary>
-            <param name="value">The value to be cached.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <param name="isFromFailSafe">Indicates if the value comes from a fail-safe activation.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="timestamp">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.Timestamp"/> property.</param>
-            <param name="valueType">The type of the value in the cache entry (mainly used for serialization/deserialization).</param>
-            <returns>The newly created entry.</returns>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry.CreateFromOtherEntry``1(ZiggyCreatures.Caching.Fusion.Internals.IFusionCacheEntry,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions)">
-            <summary>
-            Creates a new <see cref="T:ZiggyCreatures.Caching.Fusion.Internals.Memory.FusionCacheMemoryEntry"/> instance from another entry and some options.
-            </summary>
-            <param name="entry">The source entry.</param>
-            <param name="options">The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object to configure the entry.</param>
-            <returns>The newly created entry.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Internals.RunUtils">
             <summary>
@@ -3521,7 +3495,7 @@
             <param name="timeout">The optional timeout for the lock acquisition.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
-            <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+            <returns>The acquired generic lock object, later released when the critical section is over.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
             <summary>
@@ -3871,7 +3845,7 @@
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
-            <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+            <returns>The acquired generic lock object, later released when the critical section is over.</returns>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.AcquireLock(System.String,System.String,System.String,System.String,System.TimeSpan,Microsoft.Extensions.Logging.ILogger)">
@@ -3883,7 +3857,7 @@
             <param name="key">The key for which to obtain a lock.</param>
             <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
             <param name="timeout">The optional timeout for the lock acquisition.</param>
-            <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+            <returns>The acquired generic lock object, later released when the critical section is over.</returns>
             <param name="logger">The <see cref="T:Microsoft.Extensions.Logging.ILogger"/> to use, if any.</param>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.Reactors.IFusionCacheReactor.ReleaseLock(System.String,System.String,System.String,System.String,System.Object,Microsoft.Extensions.Logging.ILogger)">
@@ -4001,7 +3975,9 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String)">
             <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Registers a named cache to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by registering a named cache in this way it's not possible to then change the CacheName in any other way, including usage of the WithOptions(...) method.
             <br/><br/>
             <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
             <br/><br/>
@@ -4013,7 +3989,9 @@
         </member>
         <member name="M:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions.AddFusionCache(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
-            Adds the standard implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            Registers the default cache (not a named cache) to the <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection" />.
+            <br/><br/>
+            <strong>NOTE: </strong> by registering the default cache it's not possible to then change the CacheName in any other way, including usage of the WithOptions(...) method. If you want to register a named cache please use the AddFusionCache("MyCache") method instead.
             <br/><br/>
             <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
             <br/><br/>

@@ -6,6 +6,10 @@
 
 # 🔀 Cache Levels: Primary and Secondary
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| To ease cold starts and/or help with horizontal scalability (multiple nodes with their own local memory cache) it's possible to setup a 2nd level. At setup time, simply pass any implementation of `IDistributedCache` and a serializer: the existing code does not need to change, it all just works. |
+
 There are 2 caching levels available, transparently handled by FusionCache for you:
 
 - **Primary (Memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
@@ -23,9 +27,17 @@ Basically it boils down to 2 possible ways:
 
 - **2️⃣ MEMORY + DISTRIBUTED:** if you also setup a 2nd level, FusionCache will automatically coordinate the 2 levels (`IMemoryCache` + `IDistributedCache`) gracefully handling all edge cases to get a smooth experience
 
-Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), [advanced timeouts](Timeouts.md) and so on.
+Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), advanced [timeouts](Timeouts.md) and so on.
 
 Finally, if needed you can also specify a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option, so that updates to the distributed cache can be picked up more frequently, in case you don't want to use a [backplane](Backplane.md) for some reason.
+
+## 📢 Backplane
+
+When using a distributed 2nd level, each local memory cache may become out of sync with the other nodes after a change: to solve this, it is suggested to also use a backplane.
+
+All the existing code will remain the same, it's just a 1 line change at setup time.
+
+Read [here](Backplane.md) for more.
 
 ## 🗃 Wire Format Versioning
 

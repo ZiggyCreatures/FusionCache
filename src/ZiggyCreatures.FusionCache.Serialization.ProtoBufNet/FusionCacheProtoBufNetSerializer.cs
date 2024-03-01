@@ -26,7 +26,7 @@ public class FusionCacheProtoBufNetSerializer
 		RegisterMetadataModel();
 	}
 
-	private static readonly ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>> _modelsCache = new ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>>();
+	private static readonly ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>> _modelsCache = [];
 	private static readonly Type _metadataType = typeof(FusionCacheEntryMetadata);
 	private static readonly Type _distributedEntryOpenGenericType = typeof(FusionCacheDistributedEntry<>);
 
@@ -38,7 +38,7 @@ public class FusionCacheProtoBufNetSerializer
 		{
 			lock (_modelsCache)
 			{
-				tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+				tmp = _modelsCache.GetOrAdd(_model, _ => []);
 			}
 		}
 
@@ -77,7 +77,7 @@ public class FusionCacheProtoBufNetSerializer
 		{
 			lock (_modelsCache)
 			{
-				tmp = _modelsCache.GetOrAdd(_model, _ => new HashSet<Type>());
+				tmp = _modelsCache.GetOrAdd(_model, _ => []);
 			}
 		}
 
@@ -112,31 +112,25 @@ public class FusionCacheProtoBufNetSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} before MaybeRegisterDistributedEntryModel");
 		MaybeRegisterDistributedEntryModel<T>();
-		//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} after MaybeRegisterDistributedEntryModel");
 
-		using (var stream = new MemoryStream())
-		{
-			//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} before Serialize");
-			_model.Serialize(stream, obj);
-			//Debug.WriteLine($"{DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)} before Serialize");
-			return stream.ToArray();
-		}
+		using var stream = new MemoryStream();
+
+		_model.Serialize(stream, obj);
+		return stream.ToArray();
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
 		if (data.Length == 0)
-			return default(T);
+			return default;
 
 		MaybeRegisterDistributedEntryModel<T>();
 
-		using (var stream = new MemoryStream(data))
-		{
-			return _model.Deserialize<T?>(stream);
-		}
+		using var stream = new MemoryStream(data);
+
+		return _model.Deserialize<T?>(stream);
 	}
 
 	/// <inheritdoc />

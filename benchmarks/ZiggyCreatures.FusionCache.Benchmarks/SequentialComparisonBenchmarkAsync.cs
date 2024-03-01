@@ -39,11 +39,16 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		private TimeSpan CacheDuration = TimeSpan.FromDays(10);
 		private IServiceProvider ServiceProvider = null!;
 
+		private FusionCache _FusionCache = null!;
+		private CacheStack _CacheTower = null!;
+		private IEasyCachingProvider _EasyCaching = null!;
+		private CachingService _LazyCache = null!;
+
 		[GlobalSetup]
 		public void Setup()
 		{
 			// SETUP KEYS
-			Keys = new List<string>();
+			Keys = [];
 			for (int i = 0; i < KeysCount; i++)
 			{
 				var key = Guid.NewGuid().ToString("N") + "-" + i.ToString();
@@ -54,70 +59,71 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			var services = new ServiceCollection();
 			services.AddEasyCaching(options => { options.UseInMemory("default"); });
 			ServiceProvider = services.BuildServiceProvider();
+
+			// SETUP CACHES
+			_FusionCache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
+			_CacheTower = new CacheStack(null, new CacheStackOptions(new[] { new MemoryCacheLayer() }) { Extensions = new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) } });
+			_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
+			_LazyCache = new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions())));
+			_LazyCache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
+		}
+
+		[GlobalCleanup]
+		public void Cleanup()
+		{
+			_FusionCache.Dispose();
+			_CacheTower.DisposeAsync().AsTask().Wait();
 		}
 
 		[Benchmark(Baseline = true)]
 		public async Task FusionCache()
 		{
-			using (var cache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }))
+			for (int i = 0; i < Rounds; i++)
 			{
-				for (int i = 0; i < Rounds; i++)
+				foreach (var key in Keys)
 				{
-					foreach (var key in Keys)
-					{
-						await cache.GetOrSetAsync<SamplePayload>(
-							key,
-							async ct =>
-							{
-								return new SamplePayload();
-							}
-						);
-					}
+					await _FusionCache.GetOrSetAsync<SamplePayload>(
+						key,
+						async ct =>
+						{
+							return new SamplePayload();
+						}
+					);
 				}
-
-				// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
 			}
+
+			// NO NEED TO CLEANUP, AUTOMATICALLY DONE WHEN DISPOSING
 		}
 
 		[Benchmark]
 		public async Task CacheTower()
 		{
-			await using (var cache = new CacheStack(null, new CacheStackOptions(new[] { new MemoryCacheLayer() }) { Extensions = new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) } }))
+			var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
+
+			for (int i = 0; i < Rounds; i++)
 			{
-				var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
-
-				for (int i = 0; i < Rounds; i++)
+				foreach (var key in Keys)
 				{
-					foreach (var key in Keys)
-					{
-						await cache.GetOrSetAsync<SamplePayload>(
-							key,
-							async (old) =>
-							{
-								return new SamplePayload();
-							},
-							cacheSettings
-						);
-					}
+					await _CacheTower.GetOrSetAsync<SamplePayload>(
+						key,
+						async (old) =>
+						{
+							return new SamplePayload();
+						},
+						cacheSettings
+					);
 				}
-
-				// CLEANUP
-				await cache.CleanupAsync();
-				await cache.FlushAsync();
 			}
 		}
 
 		[Benchmark]
 		public async Task EasyCaching()
 		{
-			var factory = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>();
-			var cache = factory.GetCachingProvider("default");
-
 			for (int i = 0; i < Rounds; i++)
 			{
 				foreach (var key in Keys)
 				{
-					await cache.GetAsync<SamplePayload>(
+					await _EasyCaching.GetAsync<SamplePayload>(
 						key,
 						async () =>
 						{
@@ -127,36 +133,23 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 					);
 				}
 			}
-
-			// CLEANUP
-			await cache.FlushAsync();
 		}
 
 		[Benchmark]
 		public async Task LazyCache()
 		{
-			using (var cache = new MemoryCache(new MemoryCacheOptions()))
+			for (int i = 0; i < Rounds; i++)
 			{
-				var appcache = new CachingService(new MemoryCacheProvider(cache));
-
-				appcache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
-
-				for (int i = 0; i < Rounds; i++)
+				foreach (var key in Keys)
 				{
-					foreach (var key in Keys)
-					{
-						await appcache.GetOrAddAsync<SamplePayload>(
-							key,
-							async () =>
-							{
-								return new SamplePayload();
-							}
-						);
-					}
+					await _LazyCache.GetOrAddAsync<SamplePayload>(
+						key,
+						async () =>
+						{
+							return new SamplePayload();
+						}
+					);
 				}
-
-				// CLEANUP
-				cache.Compact(1);
 			}
 		}
 	}

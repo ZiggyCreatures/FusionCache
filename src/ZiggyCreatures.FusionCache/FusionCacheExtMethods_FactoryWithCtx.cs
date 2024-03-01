@@ -19,7 +19,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static ValueTask<TValue?> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, MaybeValue<TValue?> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
+	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
 	{
 		return cache.GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -35,7 +35,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static TValue? GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue?> factory, MaybeValue<TValue?> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue, TimeSpan duration, CancellationToken token = default)
 	{
 		return cache.GetOrSet<TValue>(key, factory, failSafeDefaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -51,7 +51,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static ValueTask<TValue?> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, MaybeValue<TValue?> failSafeDefaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
 		return cache.GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -67,7 +67,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static TValue? GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue?> factory, MaybeValue<TValue?> failSafeDefaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
 		return cache.GetOrSet<TValue>(key, factory, failSafeDefaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -86,7 +86,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="IFusionCache.DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static ValueTask<TValue?> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
+	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
 	{
 		return cache.GetOrSetAsync<TValue>(key, factory, default, options, token);
 	}
@@ -101,7 +101,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="IFusionCache.DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static TValue? GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue?> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions? options, CancellationToken token = default)
 	{
 		return cache.GetOrSet<TValue>(key, factory, default, options, token);
 	}
@@ -116,7 +116,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static ValueTask<TValue?> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, TimeSpan duration, CancellationToken token = default)
+	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, TimeSpan duration, CancellationToken token = default)
 	{
 		return cache.GetOrSetAsync<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -131,7 +131,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static TValue? GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue?> factory, TimeSpan duration, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, TimeSpan duration, CancellationToken token = default)
 	{
 		return cache.GetOrSet<TValue>(key, factory, default, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -146,7 +146,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static ValueTask<TValue?> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
 		return cache.GetOrSetAsync<TValue>(key, factory, default, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
@@ -161,7 +161,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	public static TValue? GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue?> factory, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
 		return cache.GetOrSet<TValue>(key, factory, default, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}

@@ -14,53 +14,57 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 
 internal static class FusionCacheInternalUtils
 {
-	private static readonly char[] _chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV".ToCharArray();
-	private static long _lastId = DateTime.UtcNow.Ticks;
-	private static readonly ThreadLocal<char[]> _buffer = new ThreadLocal<char[]>(() => new char[13]);
+	internal static class GeneratorUtils
+	{
+		private static readonly char[] _chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV".ToCharArray();
+		private static long _lastId = DateTime.UtcNow.Ticks;
+		private static readonly ThreadLocal<char[]> _buffer = new ThreadLocal<char[]>(() => new char[13]);
+
+		private static string GenerateOperationId(long id)
+		{
+			// SEE: https://nimaara.com/2018/10/10/generating-ids-in-csharp.html
+
+			char[] buffer = _buffer.Value;
+
+			buffer[0] = _chars[(int)(id >> 60) & 31];
+			buffer[1] = _chars[(int)(id >> 55) & 31];
+			buffer[2] = _chars[(int)(id >> 50) & 31];
+			buffer[3] = _chars[(int)(id >> 45) & 31];
+			buffer[4] = _chars[(int)(id >> 40) & 31];
+			buffer[5] = _chars[(int)(id >> 35) & 31];
+			buffer[6] = _chars[(int)(id >> 30) & 31];
+			buffer[7] = _chars[(int)(id >> 25) & 31];
+			buffer[8] = _chars[(int)(id >> 20) & 31];
+			buffer[9] = _chars[(int)(id >> 15) & 31];
+			buffer[10] = _chars[(int)(id >> 10) & 31];
+			buffer[11] = _chars[(int)(id >> 5) & 31];
+			buffer[12] = _chars[(int)id & 31];
+
+			return new string(buffer, 0, buffer.Length);
+		}
+
+		public static string GenerateOperationId()
+		{
+			return GenerateOperationId(Interlocked.Increment(ref _lastId));
+		}
+	}
+
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static long GetCurrentTimestamp()
 	{
-		//return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 		return DateTimeOffset.UtcNow.UtcTicks;
 	}
 
-	private static string GenerateOperationId(long id)
-	{
-		// SEE: https://nimaara.com/2018/10/10/generating-ids-in-csharp.html
-
-		char[] buffer = _buffer.Value;
-
-		buffer[0] = _chars[(int)(id >> 60) & 31];
-		buffer[1] = _chars[(int)(id >> 55) & 31];
-		buffer[2] = _chars[(int)(id >> 50) & 31];
-		buffer[3] = _chars[(int)(id >> 45) & 31];
-		buffer[4] = _chars[(int)(id >> 40) & 31];
-		buffer[5] = _chars[(int)(id >> 35) & 31];
-		buffer[6] = _chars[(int)(id >> 30) & 31];
-		buffer[7] = _chars[(int)(id >> 25) & 31];
-		buffer[8] = _chars[(int)(id >> 20) & 31];
-		buffer[9] = _chars[(int)(id >> 15) & 31];
-		buffer[10] = _chars[(int)(id >> 10) & 31];
-		buffer[11] = _chars[(int)(id >> 5) & 31];
-		buffer[12] = _chars[(int)id & 31];
-
-		return new string(buffer, 0, buffer.Length);
-	}
-
-	public static string GenerateOperationId()
-	{
-		return GenerateOperationId(Interlocked.Increment(ref _lastId));
-	}
 
 	public static string MaybeGenerateOperationId(ILogger? logger)
 	{
 		if (logger is null)
 			return string.Empty;
 
-		return GenerateOperationId();
+		return GeneratorUtils.GenerateOperationId();
 	}
 
 	// SEE HERE: https://devblogs.microsoft.com/pfxteam/little-known-gems-atomic-conditional-removals-from-concurrentdictionary/
@@ -72,10 +76,6 @@ internal static class FusionCacheInternalUtils
 		return ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Remove(new KeyValuePair<TKey, TValue>(key, value));
 	}
 
-	/// <summary>
-	/// Checks if the entry is logically expired.
-	/// </summary>
-	/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
 	public static bool IsLogicallyExpired(this IFusionCacheEntry? entry)
 	{
 		if (entry?.Metadata is null)
@@ -213,6 +213,14 @@ internal static class FusionCacheInternalUtils
 		return Enum.GetName(CacheItemPriorityType, priority);
 	}
 
+	public static string ToLogString(this long? value)
+	{
+		if (value.HasValue == false)
+			return "/";
+
+		return value.Value.ToString();
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static string ToStringYN(this bool b)
 	{
@@ -227,23 +235,23 @@ internal static class FusionCacheInternalUtils
 
 	public static FusionCacheDistributedEntry<TValue> AsDistributedEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (entry is FusionCacheDistributedEntry<TValue>)
-			return (FusionCacheDistributedEntry<TValue>)entry;
+		if (entry is FusionCacheDistributedEntry<TValue> entry1)
+			return entry1;
 
 		// TODO: CHECK THIS AGAIN
 		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static FusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
+	public static IFusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (entry is FusionCacheMemoryEntry)
-			return (FusionCacheMemoryEntry)entry;
+		if (entry is IFusionCacheMemoryEntry entry1)
+			return entry1;
 
-		return FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(entry, options);
+		return FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, Func<TEventArgs> eventArgsBuilder, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
+	public static void SafeExecute<TEventArgs>(this EventHandler<TEventArgs> ev, string? operationId, string? key, IFusionCache cache, TEventArgs eventArgs, string eventName, ILogger? logger, LogLevel logLevel, bool syncExecution)
 	{
 		static void ExecuteInvocations(string? operationId, string? key, IFusionCache cache, string eventName, TEventArgs e, Delegate[] invocations, ILogger? logger, LogLevel errorLogLevel)
 		{
@@ -262,19 +270,20 @@ internal static class FusionCacheInternalUtils
 
 		var invocations = ev.GetInvocationList();
 
+		if (invocations is null || invocations.Length == 0)
+			return;
+
 		// WE ONLY TEST IF THE LOG LEVEL IS ENABLED ONCE: IN THAT CASE WE'LL USE THE LOGGER, OTHERWISE WE SET IT TO null TO AVOID CHECKING IT EVERY TIME INSIDE THE LOOP
 		if (logger is not null && logger.IsEnabled(logLevel) == false)
 			logger = null;
 
-		var e = eventArgsBuilder();
-
 		if (syncExecution)
 		{
-			ExecuteInvocations(operationId, key, cache, eventName, e, invocations, logger, logLevel);
+			ExecuteInvocations(operationId, key, cache, eventName, eventArgs, invocations, logger, logLevel);
 		}
 		else
 		{
-			Task.Run(() => ExecuteInvocations(operationId, key, cache, eventName, e, invocations, logger, logLevel));
+			Task.Run(() => ExecuteInvocations(operationId, key, cache, eventName, eventArgs, invocations, logger, logLevel));
 		}
 	}
 
@@ -293,13 +302,13 @@ internal static class FusionCacheInternalUtils
 
 	public static DateTimeOffset GetNormalizedAbsoluteExpiration(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
 	{
-		// SHORT CIRCUIT: COMMON CASE FOR WHEN USERS DO NOT WANT EXPIRATION
+		// EARLY RETURN: COMMON CASE FOR WHEN USERS DO NOT WANT EXPIRATION
 		if (duration == TimeSpanMaxValue)
 			return DateTimeOffsetMaxValue;
 
 		if (allowJittering && options.JitterMaxDuration > TimeSpan.Zero)
 		{
-			// SHORT CIRCUIT: WHEN THE VALUES ARE NOT THE LIMITS BUT ARE STRETCHED VERY NEAR THEM
+			// EARLY RETURN: WHEN THE VALUES ARE NOT THE LIMITS BUT ARE STRETCHED VERY NEAR THEM
 			if (duration > (TimeSpanMaxValue - options.JitterMaxDuration))
 				return DateTimeOffsetMaxValue;
 
@@ -307,7 +316,7 @@ internal static class FusionCacheInternalUtils
 			duration += TimeSpan.FromMilliseconds(options.GetJitterDurationMs());
 		}
 
-		// SHORT CIRCUIT: WHEN OVERFLOWING DateTimeOffset.MaxValue
+		// EARLY RETURN: WHEN OVERFLOWING DateTimeOffset.MaxValue
 		var now = DateTimeOffset.UtcNow;
 		if (duration > (DateTimeOffsetMaxValue - now))
 			return DateTimeOffsetMaxValue;

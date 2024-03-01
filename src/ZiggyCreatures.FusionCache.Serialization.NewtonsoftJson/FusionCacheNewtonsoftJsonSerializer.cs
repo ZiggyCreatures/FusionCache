@@ -16,23 +16,21 @@ public class FusionCacheNewtonsoftJsonSerializer
 	/// <param name="settings">The optional <see cref="JsonSerializerSettings"/> object to use.</param>
 	public FusionCacheNewtonsoftJsonSerializer(JsonSerializerSettings? settings = null)
 	{
-		Settings = settings;
+		_settings = settings;
 	}
 
-	private readonly JsonSerializerSettings? Settings;
+	private readonly JsonSerializerSettings? _settings;
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-#pragma warning disable CS8604 // Possible null reference argument.
-		return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, Settings));
-#pragma warning restore CS8604 // Possible null reference argument.
+		return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, _settings));
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data), Settings);
+		return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data), _settings);
 	}
 
 	/// <inheritdoc />

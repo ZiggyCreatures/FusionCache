@@ -23,7 +23,7 @@ public interface IFusionCacheReactor
 	/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 	/// <param name="timeout">The optional timeout for the lock acquisition.</param>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
-	/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+	/// <returns>The acquired generic lock object, later released when the critical section is over.</returns>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger, CancellationToken token);
 
@@ -35,7 +35,7 @@ public interface IFusionCacheReactor
 	/// <param name="key">The key for which to obtain a lock.</param>
 	/// <param name="operationId">The operation id which uniquely identifies a high-level cache operation.</param>
 	/// <param name="timeout">The optional timeout for the lock acquisition.</param>
-	/// <returns>The acquired genericlock object, later released when the critical section is over.</returns>
+	/// <returns>The acquired generic lock object, later released when the critical section is over.</returns>
 	/// <param name="logger">The <see cref="ILogger"/> to use, if any.</param>
 	object? AcquireLock(string cacheName, string cacheInstanceId, string key, string operationId, TimeSpan timeout, ILogger? logger);
 

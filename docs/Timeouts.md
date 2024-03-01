@@ -6,11 +6,15 @@
 
 # ⏱️ Timeouts
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| We can enable [fail-safe](FailSafe.md) and specify soft/hard timeouts to ease slow factories: in this way when FusionCache calls a factory, if the specified timeouts are hit, it will temporarily re-use the old value and allow the factory to complete in the background and the upate the cached value, getting the best of both worlds. This technique can be used alongside [eager refresh](EagerRefresh.md). |
+
 There are different types of timeouts available and it may be useful to know them:
 - Factory Timeouts
 - Distributed Cache Timeouts
 
-💡 For a complete example of how to use them and what results you can achieve there's the [👩‍🏫 Step By Step](StepByStep.md) guide.
+For a complete example of how to use them and what results you can achieve there's the [👩‍🏫 Step By Step](StepByStep.md) guide.
 ## Factory Timeouts
 
 Sometimes your data source (database, webservice, etc) is overloaded, the network is congested or something else bad is happening and the end result is things start to get **:snail: very slow** to get a fresh piece of data.

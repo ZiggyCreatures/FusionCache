@@ -12,14 +12,13 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 namespace ZiggyCreatures.Caching.Fusion;
 
 public partial class FusionCache
-	: IFusionCache
 {
-	private async ValueTask<FusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, bool isRealFactory, MaybeValue<TValue?> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		if (options is null)
 			options = _options.DefaultEntryOptions;
 
-		FusionCacheMemoryEntry? memoryEntry = null;
+		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
 
@@ -30,7 +29,7 @@ public partial class FusionCache
 			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
 		}
 
-		FusionCacheMemoryEntry? entry;
+		IFusionCacheMemoryEntry? entry;
 		bool isStale = false;
 		var hasNewValue = false;
 
@@ -45,7 +44,7 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): should eagerly refresh", CacheName, InstanceId, operationId, key);
 
 				// TRY TO GET THE MEMORY LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST ONE WILL ACTUALLY REFRESH THE ENTRY
-				memoryLockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, TimeSpan.Zero, _logger, token).ConfigureAwait(false);
+				memoryLockObj = await AcquireMemoryLockAsync(operationId, key, TimeSpan.Zero, token).ConfigureAwait(false);
 				if (memoryLockObj is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -55,8 +54,6 @@ public partial class FusionCache
 				{
 					// EXECUTE EAGER REFRESH
 					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj, token).ConfigureAwait(false);
-					// RESET MEMORY LOCK (WILL BE RELEASED BY THE EAGER REFRESH FACTORY)
-					memoryLockObj = null;
 				}
 			}
 
@@ -73,7 +70,7 @@ public partial class FusionCache
 		try
 		{
 			// MEMORY LOCK
-			memoryLockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, options.GetAppropriateMemoryLockTimeout(memoryEntry is not null), _logger, token).ConfigureAwait(false);
+			memoryLockObj = await AcquireMemoryLockAsync(operationId, key, options.GetAppropriateMemoryLockTimeout(memoryEntry is not null), token).ConfigureAwait(false);
 
 			if (memoryLockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
 			{
@@ -128,7 +125,7 @@ public partial class FusionCache
 			if (distributedEntryIsValid)
 			{
 				isStale = false;
-				entry = FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options);
+				entry = FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options);
 			}
 			else
 			{
@@ -142,7 +139,7 @@ public partial class FusionCache
 				}
 				else
 				{
-					Task<TValue?>? factoryTask = null;
+					Task<TValue>? factoryTask = null;
 
 					var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
 
@@ -173,7 +170,7 @@ public partial class FusionCache
 
 						// UPDATE ADAPTIVE OPTIONS
 						var maybeNewOptions = ctx.GetOptions();
-						if (maybeNewOptions is not null && options != maybeNewOptions)
+						if (options != maybeNewOptions)
 						{
 							options = maybeNewOptions;
 
@@ -213,7 +210,7 @@ public partial class FusionCache
 					}
 				}
 
-				entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp, typeof(TValue));
+				entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp);
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
@@ -221,7 +218,7 @@ public partial class FusionCache
 			{
 				if (mca is not null)
 				{
-					mca.SetEntry<TValue>(operationId, key, entry.AsMemoryEntry<TValue>(options), options);
+					mca.SetEntry<TValue>(operationId, key, entry, options);
 				}
 			}
 		}
@@ -232,96 +229,107 @@ public partial class FusionCache
 				ReleaseMemoryLock(operationId, key, memoryLockObj);
 		}
 
-		// EVENT
 		if (hasNewValue)
 		{
-			if (isStale == false)
-				await DistributedSetEntryAsync<TValue>(operationId, key, entry!, options, token).ConfigureAwait(false);
+			// DISTRIBUTED
+			if (entry is not null && isStale == false)
+			{
+				if (RequiresDistributedOperations(options))
+				{
+					await DistributedSetEntryAsync<TValue>(operationId, key, entry, options, token).ConfigureAwait(false);
+				}
+			}
 
+			// EVENT
 			_events.OnMiss(operationId, key);
 			_events.OnSet(operationId, key);
 		}
 		else if (entry is not null)
 		{
+			// EVENT
 			_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
 		}
 		else
 		{
+			// EVENT
 			_events.OnMiss(operationId, key);
 		}
 
 		return entry;
 	}
 
-	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, FusionCacheEntryOptions options, FusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
+	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
 	{
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
 
-		// TRY WITH DISTRIBUTED CACHE (IF ANY)
-		try
+		_ = Task.Run(async () =>
 		{
-			var dca = GetCurrentDistributedAccessor(options);
-			if (dca.CanBeUsed(operationId, key))
+			// TRY WITH DISTRIBUTED CACHE (IF ANY)
+			try
 			{
-				FusionCacheDistributedEntry<TValue>? distributedEntry;
-				bool distributedEntryIsValid;
-
-				(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token).ConfigureAwait(false);
-				if (distributedEntryIsValid)
+				var dca = GetCurrentDistributedAccessor(options);
+				if (dca.CanBeUsed(operationId, key))
 				{
-					if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
+					FusionCacheDistributedEntry<TValue>? distributedEntry;
+					bool distributedEntryIsValid;
+
+					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token).ConfigureAwait(false);
+					if (distributedEntryIsValid)
 					{
-						try
+						if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
 						{
-							// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
-							var mca = GetCurrentMemoryAccessor(options);
-							if (mca is not null)
+							try
 							{
-								if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-									_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+								// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
+								var mca = GetCurrentMemoryAccessor(options);
+								if (mca is not null)
+								{
+									if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+										_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
 
-								mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry.CreateFromOtherEntry<TValue>(distributedEntry!, options), options);
+									mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
+								}
 							}
-						}
-						finally
-						{
-							// MEMORY LOCK
-							if (memoryLockObj is not null)
-								ReleaseMemoryLock(operationId, key, memoryLockObj);
-						}
+							finally
+							{
+								// MEMORY LOCK
+								if (memoryLockObj is not null)
+									ReleaseMemoryLock(operationId, key, memoryLockObj);
+							}
 
-						return;
-					}
-					else
-					{
-						if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-							_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is less recent than the current memory entry ({MemoryTimestamp}): ignoring it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+							return;
+						}
+						else
+						{
+							if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+								_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is less recent than the current memory entry ({MemoryTimestamp}): ignoring it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+						}
 					}
 				}
 			}
-		}
-		catch
-		{
-			// EMPTY
-		}
+			catch
+			{
+				// EMPTY
+			}
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
 
-		// ACTIVITY
-		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
-		activity?.SetTag("fusioncache.factory.eager_refresh", true);
+			// ACTIVITY
+			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+			activity?.SetTag("fusioncache.factory.eager_refresh", true);
 
-		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
+			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
-		var factoryTask = factory(ctx, token);
+			var factoryTask = factory(ctx, token);
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
+			CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
+		}, token);
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<TValue?> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue?>> factory, MaybeValue<TValue?> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
@@ -358,7 +366,7 @@ public partial class FusionCache
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<TValue?> GetOrSetAsync<TValue>(string key, TValue? defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
@@ -398,7 +406,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		FusionCacheMemoryEntry? memoryEntry = null;
+		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 
 		var mca = GetCurrentMemoryAccessor(options);
@@ -597,7 +605,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry.CreateFromOptions(value, options, false, null, null, null, typeof(TValue));
+		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, false, null, null, null);
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)
@@ -640,7 +648,10 @@ public partial class FusionCache
 			mca.RemoveEntry(operationId, key, options);
 		}
 
-		await DistributedRemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		if (RequiresDistributedOperations(options))
+		{
+			await DistributedRemoveEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
 
 		// EVENT
 		_events.OnRemove(operationId, key);
@@ -672,13 +683,16 @@ public partial class FusionCache
 			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 		}
 
-		await DistributedExpireEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		if (RequiresDistributedOperations(options))
+		{
+			await DistributedExpireEntryAsync(operationId, key, options, token).ConfigureAwait(false);
+		}
 
 		// EVENT
 		_events.OnExpire(operationId, key);
 	}
 
-	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, Task<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, Task<bool>> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
+	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, ValueTask<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, ValueTask<bool>> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
 		{
@@ -711,7 +725,7 @@ public partial class FusionCache
 
 					if (dcaSuccess == false)
 					{
-						_autoRecovery.TryAddItem(operationId, key, action, timestamp, options);
+						AutoRecovery.TryAddItem(operationId, key, action, timestamp, options);
 						return;
 					}
 				}
@@ -741,7 +755,7 @@ public partial class FusionCache
 
 							if (bpaSuccess == false)
 							{
-								_autoRecovery.TryAddItem(operationId, key, action, timestamp, options);
+								AutoRecovery.TryAddItem(operationId, key, action, timestamp, options);
 							}
 						}
 					},
@@ -769,13 +783,13 @@ public partial class FusionCache
 			key,
 			FusionCacheAction.EntrySet,
 			entry.Timestamp,
-			async (dca, isBackground, ct) =>
+			(dca, isBackground, ct) =>
 			{
-				return await dca!.SetEntryAsync<TValue>(operationId, key, entry, options, isBackground, ct).ConfigureAwait(false);
+				return dca!.SetEntryAsync<TValue>(operationId, key, entry, options, isBackground, ct);
 			},
-			async (bpa, isBackground, ct) =>
+			(bpa, isBackground, ct) =>
 			{
-				return await bpa.PublishSetAsync(operationId, key, entry.Timestamp, options, false, isBackground, ct).ConfigureAwait(false);
+				return bpa.PublishSetAsync(operationId, key, entry.Timestamp, options, false, isBackground, ct);
 			},
 			options,
 			token
@@ -789,13 +803,13 @@ public partial class FusionCache
 			key,
 			FusionCacheAction.EntryRemove,
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			async (dca, isBackground, ct) =>
+			(dca, isBackground, ct) =>
 			{
-				return await dca.RemoveEntryAsync(operationId, key, options, isBackground, ct).ConfigureAwait(false);
+				return dca.RemoveEntryAsync(operationId, key, options, isBackground, ct);
 			},
-			async (bpa, isBackground, ct) =>
+			(bpa, isBackground, ct) =>
 			{
-				return await bpa.PublishRemoveAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
+				return bpa.PublishRemoveAsync(operationId, key, null, options, false, isBackground, ct);
 			},
 			options,
 			token
@@ -809,13 +823,13 @@ public partial class FusionCache
 			key,
 			FusionCacheAction.EntryExpire,
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			async (dca, isBackground, ct) =>
+			(dca, isBackground, ct) =>
 			{
-				return await dca.RemoveEntryAsync(operationId, key, options, isBackground, ct).ConfigureAwait(false);
+				return dca.RemoveEntryAsync(operationId, key, options, isBackground, ct);
 			},
-			async (bpa, isBackground, ct) =>
+			(bpa, isBackground, ct) =>
 			{
-				return await bpa.PublishExpireAsync(operationId, key, null, options, false, isBackground, ct).ConfigureAwait(false);
+				return bpa.PublishExpireAsync(operationId, key, null, options, false, isBackground, ct);
 			},
 			options,
 			token

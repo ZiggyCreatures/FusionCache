@@ -24,21 +24,21 @@ public class FusionCacheCysharpMemoryPackSerializer
 	/// <param name="options">The <see cref="MemoryPackSerializerOptions"/> to use, or <see langword="null"/></param>
 	public FusionCacheCysharpMemoryPackSerializer(MemoryPackSerializerOptions? options = null)
 	{
-		Options = options;
+		_options = options;
 	}
 
-	private readonly MemoryPackSerializerOptions? Options;
+	private readonly MemoryPackSerializerOptions? _options;
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		return MemoryPackSerializer.Serialize<T>(obj, Options);
+		return MemoryPackSerializer.Serialize<T>(obj, _options);
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		return MemoryPackSerializer.Deserialize<T?>(data, Options);
+		return MemoryPackSerializer.Deserialize<T?>(data, _options);
 	}
 
 	/// <inheritdoc />

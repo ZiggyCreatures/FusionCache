@@ -10,9 +10,9 @@ Let's say we want to create a [plugin](Plugins.md) that sends an email when a fa
 
 For this example we will use the awesome [MailKit](https://github.com/jstedfast/MailKit) and [MimeKit](https://github.com/jstedfast/MimeKit) libraries by the great [Jeffrey Stedfast](https://github.com/jstedfast) and the free [Ethereal](https://ethereal.email/) fake smtp service.
 
-| 🚨 IT'S JUST AN EXAMPLE |
-|:-------|
-| Please keep in mind this is just an example: **don't send emails this way in real world projects!** |
+> [!IMPORTANT]  
+> Please keep in mind this is just an example, and should not be taken as a best practice about what to do when reacting to a fail-safe activation: **don't send emails this way in real world projects!**
+
 
 ## Getting started
 

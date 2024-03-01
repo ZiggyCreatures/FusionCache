@@ -13,7 +13,7 @@ It uses a memory cache (any impl of the standard `IMemoryCache` interface) as th
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep each node's memory cache perfectly synchronized, without any additional work.
 
-FusionCache also includes some advanced resiliency features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache also includes some advanced resiliency features like a [fail-safe](FailSafe.md) mechanism, [cache stampede](CacheStampede.md) prevention, fine grained [soft/hard timeouts](Timeouts.md) with background factory completion, [eager refresh](EagerRefresh.md), full observability via [logging](Logging.md) and [OpenTelemetry](OpenTelemetry.md) and more (see below).
 
 
 <div style="text-align:center;">
@@ -34,7 +34,30 @@ FusionCache tries to feel like a native part of .NET by adhering to the naming c
 | **Options**             | `MemoryCacheOptions`      | `[Various]CacheOptions`        | `FusionCacheOptions`      |
 | **Entry Options**       | `MemoryCacheEntryOptions` | `DistributedCacheEntryOptions` | `FusionCacheEntryOptions` |
 
-Ever used one of those? We'll feel at home with FusionCache then.
+If we have ever used one of those, we'll feel at home with FusionCache.
+
+
+## 🚀 Factory ([more](CacheStampede.md))
+
+A factory is just a function that we specify when using the main `GetOrSet[Async]` method: basically it's the way we specify **how to get a value** when it's needed.
+
+Here's an example:
+
+```csharp
+var id = 42;
+
+var product = cache.GetOrSet<Product>(
+    $"product:{id}",
+    _ => GetProductFromDb(id), // THIS IS THE FACTORY
+    options => options.SetDuration(TimeSpan.FromMinutes(1))
+);
+```
+
+FusionCache will search for the value in the cache (*memory* and *distributed*, if available) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
+
+Special care has been put into ensuring that **only 1** factory per-key will be executed concurrently, to avoid what is known as [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede).
+
+Read more [**here**](CacheStampede.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
 
 ## 🔀 Cache Levels ([more](CacheLevels.md))
@@ -61,29 +84,6 @@ To avoid this and have everything always synchronized we can use a backplane, a 
 Read more [**here**](Backplane.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
 
-## 🚀 Factory ([more](CacheStampede.md))
-
-A factory is just a function that we specify when using the main `GetOrSet[Async]` method: basically it's the way we specify **how to get a value** when it's needed.
-
-Here's an example:
-
-```csharp
-var id = 42;
-
-var product = cache.GetOrSet<Product>(
-    $"product:{id}",
-    _ => GetProductFromDb(id), // THIS IS THE FACTORY
-    options => options.SetDuration(TimeSpan.FromMinutes(1))
-);
-```
-
-FusionCache will search for the value in the cache (*memory* and *distributed*, if available) and, if nothing is there, will call the factory to obtain the value: it then saves it into the cache with the specified options, and returns it to the caller, all transparently.
-
-Special care has been put into ensuring that **only 1** factory per-key will be executed concurrently, to avoid what is known as [Cache Stampede](https://en.wikipedia.org/wiki/Cache_stampede).
-
-Read more [**here**](CacheStampede.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
-
-
 ## 💣 Fail-Safe ([more](FailSafe.md))
 
 Sometimes things can go wrong, and calling a factory for an expired cache entry can lead to exceptions because the database or the network is temporarily down: normally in this case the exception will cause an error page in our website, a failure status code in our api or something like that.
@@ -100,12 +100,6 @@ Sometimes our data source (database, webservice, etc) is overloaded, the network
 Wouldn't it be nice if there could be a way to simply let FusionCache temporarily reuse an expired cache entry if the factory is taking too long?
 
 Enter **soft/hard timeouts**.
-
-We can specify a **soft timeout** to be used if there's an expired cache entry to use as a fallback.
-
-We can also specify a **hard timeout** to be used in any case, no matter what: in this case, if we also specified a `failSafeDefaultValue`, that will be used as a fallback, otherwise an exception will be thrown and we will have to handle it ourselves, because in some cases that would be more preferable than a very slow response.
-
-In both cases it is possible (and enabled *by default*, so we don't have to do anything) to let the timed-out factory keep running in the background, and update the cached value as soon as it finishes, so we get the best of both worlds: a **fast response** and **fresh data** as soon as possible.
 
 Read more [**here**](Timeouts.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
@@ -138,11 +132,11 @@ Read more [**here**](Options.md), or enjoy the complete [**step by step**](StepB
 At a high level there are 6 core methods:
 
 - `Set[Async]`
-- `Remove[Async]`
-- `TryGet[Async]`
-- `GetOrDefault[Async]`
 - `GetOrSet[Async]`
+- `GetOrDefault[Async]`
+- `TryGet[Async]`
 - `Expire[Async]`
+- `Remove[Async]`
 
 All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: we don't have to do anything extra for it to coordinate the 2 levels.
 
@@ -159,7 +153,7 @@ Everything is natively available for both the **sync** and **async** programming
 
 Any operation works seamlessly with any other, even if one is **sync** and the other is **async**: an example is multiple concurrent factory calls for the same cache key, some of them **sync** while others **async**, all coordinated together at the same time with no problems and a guarantee that only one will be executed at the same time.
 
-## 🔃 Dependency Injection ([more](DependencyInjection.md))
+## 🔃 Dependency Injection + Builder ([more](DependencyInjection.md))
 
 FusionCache fully supports [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
 
@@ -191,6 +185,15 @@ FusionCache supports extensibility via plugins: it is possible for example to li
 In time, the most useful plugins will be listed directly in the homepage.
 
 Read more [**here**](Plugins.md).
+
+
+## 🔭 OpenTelemetry ([more](OpenTelemetry.md))
+
+Full observability support, thanks to [OpenTelemetry](https://opentelemetry.io/) integration, means that we can have a clear and detailed view of what happens in our production systems.
+
+Detailed traces are available, with timings, durations, details, events and tags.
+
+We can also observe one of the various metrics available like cache hit/miss, method calls and so on.
 
 
 ## 📜 Logging ([more](Logging.md))

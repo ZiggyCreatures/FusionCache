@@ -51,7 +51,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis.RedisBackplaneOptions.VerifyReceivedClientsCountAfterPublish">
             <summary>
-            DEPRECATED: verify that at least one clients received the notifications after each publish.
+            DEPRECATED: verify that at least one client received the notifications after each publish.
             </summary>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.StackExchangeRedisBackplaneExtensions">

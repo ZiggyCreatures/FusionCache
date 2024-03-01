@@ -13,7 +13,7 @@ public class NullSerializer
 	/// <inheritdoc/>
 	public T? Deserialize<T>(byte[] data)
 	{
-		return default(T?);
+		return default;
 	}
 
 	/// <inheritdoc/>

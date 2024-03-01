@@ -9,7 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion.Events;
 /// <summary>
 /// The events hub for high-level events for a FusionCache instance, as a whole.
 /// </summary>
-public class FusionCacheEventsHub
+public sealed class FusionCacheEventsHub
 	: FusionCacheCommonEventsHub
 {
 	/// <summary>
@@ -57,7 +57,7 @@ public class FusionCacheEventsHub
 	public event EventHandler<FusionCacheEntryEventArgs>? FactoryError;
 
 	/// <summary>
-	/// The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponsing cache entry.
+	/// The event for when a non-background factory execution completes successfully, therefore automatically updating the corresponding cache entry.
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? FactorySuccess;
 
@@ -67,7 +67,7 @@ public class FusionCacheEventsHub
 	public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactoryError;
 
 	/// <summary>
-	/// The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponsing cache entry.
+	/// The event for when a factory background execution (a factory that hit a synthetic timeout and has been relegated to background execution) completes successfully, therefore automatically updating the corresponding cache entry.
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? BackgroundFactorySuccess;
 
@@ -85,56 +85,56 @@ public class FusionCacheEventsHub
 	{
 		Metrics.CounterFailSafeActivate.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		FailSafeActivate?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _errorsLogLevel, _syncExecution);
+		FailSafeActivate?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactorySyntheticTimeout(string operationId, string key)
 	{
 		Metrics.CounterFactorySyntheticTimeout.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		FactorySyntheticTimeout?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactorySyntheticTimeout), _logger, _errorsLogLevel, _syncExecution);
+		FactorySyntheticTimeout?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactorySyntheticTimeout), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactoryError(string operationId, string key)
 	{
 		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", false));
 
-		FactoryError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _errorsLogLevel, _syncExecution);
+		FactoryError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactorySuccess(string operationId, string key)
 	{
 		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", false));
 
-		FactorySuccess?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(FactorySuccess), _logger, _errorsLogLevel, _syncExecution);
+		FactorySuccess?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactoryError(string operationId, string key)
 	{
 		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", true));
 
-		BackgroundFactoryError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _errorsLogLevel, _syncExecution);
+		BackgroundFactoryError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactorySuccess(string operationId, string key)
 	{
 		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", true));
 
-		BackgroundFactorySuccess?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _errorsLogLevel, _syncExecution);
+		BackgroundFactorySuccess?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnEagerRefresh(string operationId, string key)
 	{
 		Metrics.CounterEagerRefresh.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		EagerRefresh?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(EagerRefresh), _logger, _errorsLogLevel, _syncExecution);
+		EagerRefresh?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(EagerRefresh), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnExpire(string operationId, string key)
 	{
 		Metrics.CounterExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		Expire?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
+		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal override void OnHit(string operationId, string key, bool isStale)

@@ -7,6 +7,10 @@
 
 # 📢 Backplane
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| In a multi-node scenario it's possible to use a backplane to allow FusionCache to communicate with the other nodes about changes in cached entries, all automatically. |
+
 If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary level (see [here](CacheLevels.md)).
 
 But even when using that, we may find that each memory cache on each node may not be in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.

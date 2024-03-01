@@ -112,7 +112,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		return value;
 	}
 
-	internal static FusionCacheFactoryExecutionContext<TValue> CreateFromEntries(FusionCacheEntryOptions options, FusionCacheDistributedEntry<TValue>? distributedEntry, FusionCacheMemoryEntry? memoryEntry)
+	internal static FusionCacheFactoryExecutionContext<TValue> CreateFromEntries(FusionCacheEntryOptions options, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry)
 	{
 		MaybeValue<TValue> staleValue;
 		string? etag;

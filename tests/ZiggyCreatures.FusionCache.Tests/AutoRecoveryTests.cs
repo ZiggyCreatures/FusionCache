@@ -34,23 +34,23 @@ public class AutoRecoveryTests
 		return res;
 	}
 
-	private static readonly string? RedisConnection = null;
-	//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
+	private static readonly bool UseRedis = false;
+	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
 
 	private static IDistributedCache CreateDistributedCache()
 	{
-		if (string.IsNullOrWhiteSpace(RedisConnection))
-			return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		if (UseRedis)
+			return new RedisCache(new RedisCacheOptions { Configuration = RedisConnection });
 
-		return new RedisCache(new RedisCacheOptions { Configuration = RedisConnection });
+		return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 	}
 
 	private IFusionCacheBackplane CreateBackplane(string connectionId)
 	{
-		if (string.IsNullOrWhiteSpace(RedisConnection))
-			return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
+		if (UseRedis)
+			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
 
-		return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
+		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
 	}
 
 	private ChaosBackplane CreateChaosBackplane(string connectionId)
@@ -725,10 +725,7 @@ public class AutoRecoveryTests
 		// GIVE IT SOME TIME
 		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA3 = await cacheA.GetOrDefaultAsync<int>("foo");
-
-		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
 		var vB3 = await cacheB.GetOrDefaultAsync<int>("foo");
 
 		Assert.Equal(10, vA3);
@@ -820,10 +817,7 @@ public class AutoRecoveryTests
 		// GIVE IT SOME TIME
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA3 = cacheA.GetOrDefault<int>("foo");
-
-		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
 		var vB3 = cacheB.GetOrDefault<int>("foo");
 
 		Assert.Equal(10, vA3);

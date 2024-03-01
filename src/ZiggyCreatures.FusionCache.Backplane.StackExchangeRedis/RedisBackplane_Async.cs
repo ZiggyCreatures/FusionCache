@@ -6,7 +6,6 @@ using StackExchange.Redis;
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
 public partial class RedisBackplane
-	: IFusionCacheBackplane
 {
 	private async ValueTask EnsureConnectionAsync(CancellationToken token = default)
 	{
@@ -27,7 +26,7 @@ public partial class RedisBackplane
 			}
 			else
 			{
-				_connection = ConnectionMultiplexer.Connect(GetConfigurationOptions());
+				_connection = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions());
 			}
 
 			if (_connection is not null)
@@ -52,7 +51,7 @@ public partial class RedisBackplane
 	{
 		await EnsureConnectionAsync(token).ConfigureAwait(false);
 
-		var value = GetRedisValueFromMessage(message, _logger);
+		var value = GetRedisValueFromMessage(message, _logger, _subscriptionOptions);
 
 		if (value.IsNull)
 			return;

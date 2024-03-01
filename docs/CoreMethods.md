@@ -9,11 +9,11 @@
 At a high level there are 6 core methods:
 
 - `Set[Async]`
-- `Remove[Async]`
-- `TryGet[Async]`
-- `GetOrDefault[Async]`
 - `GetOrSet[Async]`
+- `GetOrDefault[Async]`
+- `TryGet[Async]`
 - `Expire[Async]`
+- `Remove[Async]`
 
 All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: you don't have to do anything extra for it to coordinate the 2 levels.
 
@@ -28,7 +28,7 @@ If you are thinking *"which one should I use?"* please keep reading.
 
 It is used to **SET** a value in the cache for the specified key using the specified options. If something is already there, it will be overwritten.
 
-Examples:
+### Example
 
 ```csharp
 // DEFAULT OPTIONS
@@ -38,90 +38,6 @@ cache.Set("foo", 42);
 cache.Set("foo", 42, TimeSpan.FromSeconds(30));
 ```
 
-## Remove[Async]
-
-It is used to **REMOVE** a value from the cache for the specified key. If nothing is there, nothing will happen.
-
-Examples:
-
-```csharp
-cache.Set("foo", 42);
-
-// THIS WILL REMOVE THE CACHE ENTRY FOR "foo"
-cache.Remove("foo");
-
-// THIS WILL DO NOTHING
-cache.Remove("foo");
-```
-
-## TryGet[Async]
-
-It is used to **CHECK** if a value is in the cache for the specified key and, if so, to **GET** the value itself all at once.
-
-With this method **NOTHING IS SET** in the cache.
-
-You may be wondering what is the difference between this and the previous `GetOrDefault` method: think about what happens if you do a `cache.GetOrDefault<int>("foo")` and get back `0`. Does it mean that `0` was in the cache or that it was not, and the default value for `int` has been returned?
-
-If you don't care about this difference you can just use `GetOrDefault`, but if you really want to know if something was there you can call `TryGet` instead and avoid any confusion.
-
-The return value is of type `MaybeValue<T>` which is a type similar to the standard `Nullable<T>` but for both reference and value types (see below for more).
-
-Examples:
-
-```csharp
-var maybeFoo = cache.TryGet<int>("foo");
-
-if (maybeFoo.HasValue) {
-    // SUCCESS: THE VALUE WAS THERE
-
-    // GET THE VALUE
-    var result = maybeFoo.Value;
-} else {
-    // FAIL: THE VALUE WAS NOT THERE
-}
-
-// DOING THIS WITHOUT CHECKING MAY THROW AN InvalidOperationException IF THE VALUE WAS NOT THERE
-var result = maybeFoo.Value;
-
-// THIS WILL GET THE VALUE, IF IT WAS THERE, OR THE SPECIFIED DEFAULT VALUE OTHERWISE
-var result = maybeFoo.GetValueOrDefault(42);
-
-// THIS WILL GET THE VALUE, IF IT WAS THERE, OR THE DEFAULT VALUE OF int OTHERWISE
-var result = maybeFoo.GetValueOrDefault();
-
-// YOU CAN ALSO USE AN IMPLICIT CONVERSION BETWEEN MaybeValue<T> AND T
-// BUT REMEMBER, IF NO VALUE IS THERE IT THROWS AN InvalidOperationException
-int result = maybeFoo;
-```
-
-💡 It's not possible to use the classic method signature of `bool TryGet<TValue>(string key, out TValue value)` to set a value with an `out` parameter because .NET does not allow it on async methods (for good reasons) and I wanted to keep the same signature for every method in both sync/async versions.
-
-## GetOrDefault[Async]
-
-It is used to **GET** the value in the cache for the specified key and, if nothing is there, returns a **DEFAULT VALUE**.
-
-With this method **NOTHING IS SET** in the cache.
-
-It is useful if you want to use what's in the cache or some default value just for this call, but **you don't want to change the state** of the cache itself.
-
-Examples:
-
-```csharp
-// THIS WILL GET BACK 42
-foo = cache.GetOrDefault("foo", 42);
-
-// IF WE IMMEDIATELY CALL THIS, WE WILL GET BACK 21
-foo = cache.GetOrDefault("foo", 21);
-
-// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
-foo = cache.GetOrDefault<int>("foo");
-
-// ALSO USEFUL FOR USER PREFERENCES: WE CAN USE A DEFAULT VALUE WITHOUT SETTING ONE
-var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns", false);
-
-// AND SINCE false IS THE DEFAULT VALUE FOR THE TYPE bool WE CAN SIMPLY DO THIS
-var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns");
-```
 
 ## GetOrSet[Async]
 
@@ -152,7 +68,7 @@ If instead you have enabled **FAIL-SAFE**, then:
 
 Basically if you want to go the bulletproof way and be sure that, no matter what happens, you will always get a value back and never get an exception thrown in your face, you should call `GetOrSet` and specify either a **default value** or a **factory + fail-safe default value**.
 
-Examples:
+### Example
 
 ```csharp
 // THIS WILL GET FOO FROM THE CACHE OR, IF NOT THERE, SET THE VALUE 123 AND RETURN IT
@@ -205,6 +121,79 @@ var foo = cache.GetOrSet<int>(
 var foo = cache.GetOrSet<int>("foo", _ => GetFooFromDb(), 42);
 ```
 
+
+## GetOrDefault[Async]
+
+It is used to **GET** the value in the cache for the specified key and, if nothing is there, returns a **DEFAULT VALUE**.
+
+With this method **NOTHING IS SET** in the cache.
+
+It is useful if you want to use what's in the cache or some default value just for this call, but **you don't want to change the state** of the cache itself.
+
+### Example
+
+```csharp
+// THIS WILL GET BACK 42
+foo = cache.GetOrDefault("foo", 42);
+
+// IF WE IMMEDIATELY CALL THIS, WE WILL GET BACK 21
+foo = cache.GetOrDefault("foo", 21);
+
+// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
+foo = cache.GetOrDefault<int>("foo");
+
+// ALSO USEFUL FOR USER PREFERENCES: WE CAN USE A DEFAULT VALUE WITHOUT SETTING ONE
+var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns", false);
+
+// AND SINCE false IS THE DEFAULT VALUE FOR THE TYPE bool WE CAN SIMPLY DO THIS
+var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns");
+```
+
+
+## TryGet[Async]
+
+It is used to **CHECK** if a value is in the cache for the specified key and, if so, to **GET** the value itself all at once.
+
+With this method **NOTHING IS SET** in the cache.
+
+You may be wondering what is the difference between this and the previous `GetOrDefault` method: think about what happens if you do a `cache.GetOrDefault<int>("foo")` and get back `0`. Does it mean that `0` was in the cache or that it was not, and the default value for `int` has been returned?
+
+If you don't care about this difference you can just use `GetOrDefault`, but if you really want to know if something was there you can call `TryGet` instead and avoid any confusion.
+
+The return value is of type `MaybeValue<T>` which is a type similar to the standard `Nullable<T>` but for both reference and value types (see below for more).
+
+### Example
+
+```csharp
+var maybeFoo = cache.TryGet<int>("foo");
+
+if (maybeFoo.HasValue) {
+    // SUCCESS: THE VALUE WAS THERE
+
+    // GET THE VALUE
+    var result = maybeFoo.Value;
+} else {
+    // FAIL: THE VALUE WAS NOT THERE
+}
+
+// DOING THIS WITHOUT CHECKING MAY THROW AN InvalidOperationException IF THE VALUE WAS NOT THERE
+var result = maybeFoo.Value;
+
+// THIS WILL GET THE VALUE, IF IT WAS THERE, OR THE SPECIFIED DEFAULT VALUE OTHERWISE
+var result = maybeFoo.GetValueOrDefault(42);
+
+// THIS WILL GET THE VALUE, IF IT WAS THERE, OR THE DEFAULT VALUE OF int OTHERWISE
+var result = maybeFoo.GetValueOrDefault();
+
+// YOU CAN ALSO USE AN IMPLICIT CONVERSION BETWEEN MaybeValue<T> AND T
+// BUT REMEMBER, IF NO VALUE IS THERE IT THROWS AN InvalidOperationException
+int result = maybeFoo;
+```
+
+> [!NOTE]  
+> It's not possible to use the classic method signature of `bool TryGet<TValue>(string key, out TValue value)` to set a value with an `out` parameter because .NET does not allow it on async methods (for good reasons) and I wanted to keep the same signature for every method in both sync/async versions.
+
+
 ## Expire[Async]
 
 It is used to explicitly **EXPIRE** the value in the cache for the specified key.
@@ -215,7 +204,7 @@ But wait, what is the difference between `Expire()` and `Remove()`? With `Remove
 
 This method may be is useful in case we want to threat something as remove, but with the ability to say _"better than nothing"_ in the future, in case of problems (thanks to fail-safe).
 
-Examples:
+### Example
 
 ```csharp
 cache.Set("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
@@ -227,6 +216,23 @@ foo = cache.GetOrDefault<int>("foo");
 
 // THIS WILL GET BACK 42
 foo = cache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
+```
+
+
+## Remove[Async]
+
+It is used to **REMOVE** a value from the cache for the specified key. If nothing is there, nothing will happen.
+
+### Example
+
+```csharp
+cache.Set("foo", 42);
+
+// THIS WILL REMOVE THE CACHE ENTRY FOR "foo"
+cache.Remove("foo");
+
+// THIS WILL DO NOTHING
+cache.Remove("foo");
 ```
 
 ## ♻️ Common overloads

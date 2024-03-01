@@ -12,20 +12,6 @@ using ZiggyCreatures.Caching.Fusion.NullObjects;
 
 namespace FusionCacheTests;
 
-public static class SingleLevelTestsExtMethods
-{
-	public static FusionCacheEntryOptions SetFactoryTimeoutsMs(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
-	{
-		if (softTimeoutMs is not null)
-			options.FactorySoftTimeout = TimeSpan.FromMilliseconds(softTimeoutMs.Value);
-		if (hardTimeoutMs is not null)
-			options.FactoryHardTimeout = TimeSpan.FromMilliseconds(hardTimeoutMs.Value);
-		if (keepTimedOutFactoryResult is not null)
-			options.AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
-		return options;
-	}
-}
-
 public class MemoryLevelTests
 	: AbstractTests
 {

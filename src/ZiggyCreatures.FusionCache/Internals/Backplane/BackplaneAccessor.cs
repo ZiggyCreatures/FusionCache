@@ -107,18 +107,6 @@ internal sealed partial class BackplaneAccessor
 			return false;
 		}
 
-		//// CHECK: EMPTY SOURCE ID
-		//if (string.IsNullOrEmpty(message.SourceId))
-		//{
-		//	//// AUTO-ASSIGN LOCAL SOURCE ID
-		//	//message.SourceId = _cache.InstanceId;
-
-		//	if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-		//		_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot send a backplane message" + isAutoRecovery.ToString(" (auto-recovery)") + " with a null/empty SourceId", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey);
-
-		//	return false;
-		//}
-
 		// CHECK: WRONG SOURCE ID
 		if (message.SourceId != _cache.InstanceId)
 		{
@@ -137,10 +125,12 @@ internal sealed partial class BackplaneAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before unsubscribing to backplane", _cache.CacheName, _cache.InstanceId);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] before subscribing to backplane", _cache.CacheName, _cache.InstanceId);
 
 			_backplane.Subscribe(
 				new BackplaneSubscriptionOptions(
+					_cache.CacheName,
+					_cache.InstanceId,
 					_options.GetBackplaneChannelName(),
 					HandleConnect,
 					HandleIncomingMessage
@@ -148,7 +138,7 @@ internal sealed partial class BackplaneAccessor
 			);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after unsubscribing to backplane", _cache.CacheName, _cache.InstanceId);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after subscribing to backplane", _cache.CacheName, _cache.InstanceId);
 		}
 		catch (Exception exc)
 		{
@@ -199,6 +189,9 @@ internal sealed partial class BackplaneAccessor
 
 	private void HandleIncomingMessage(BackplaneMessage message)
 	{
+		if (_options.IgnoreIncomingBackplaneNotifications)
+			return;
+
 		_ = Task.Run(async () =>
 		{
 			await HandleIncomingMessageAsync(message).ConfigureAwait(false);
@@ -354,7 +347,7 @@ internal sealed partial class BackplaneAccessor
 				return;
 			}
 
-			(var error, var isSame, var hasUpdated) = await _cache.TryUpdateMemoryEntryFromDistributedEntryUntypedAsync(operationId, cacheKey, memoryEntry).ConfigureAwait(false);
+			var (error, isSame, hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, cacheKey, _cache).ConfigureAwait(false);
 
 			if (error == false)
 			{
@@ -374,7 +367,6 @@ internal sealed partial class BackplaneAccessor
 			}
 		}
 
-		//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
 	}
 }

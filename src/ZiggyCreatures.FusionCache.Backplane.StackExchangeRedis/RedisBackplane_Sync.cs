@@ -5,7 +5,6 @@ using StackExchange.Redis;
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
 public partial class RedisBackplane
-	: IFusionCacheBackplane
 {
 	private void EnsureConnection(CancellationToken token = default)
 	{
@@ -51,7 +50,7 @@ public partial class RedisBackplane
 	{
 		EnsureConnection(token);
 
-		var value = GetRedisValueFromMessage(message, _logger);
+		var value = GetRedisValueFromMessage(message, _logger, _subscriptionOptions);
 
 		if (value.IsNull)
 			return;

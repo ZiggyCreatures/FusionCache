@@ -42,21 +42,21 @@ public sealed class FusionCacheDistributedEventsHub
 	{
 		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.distributed.circuit_breaker.closed", isClosed));
 
-		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, () => new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
+		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnSerializationError(string? operationId, string? key)
 	{
 		Metrics.CounterSerializationError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		SerializationError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(SerializationError), _logger, _errorsLogLevel, _syncExecution);
+		SerializationError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(SerializationError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnDeserializationError(string? operationId, string? key)
 	{
 		Metrics.CounterDeserializationError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		DeserializationError?.SafeExecute(operationId, key, _cache, () => new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
+		DeserializationError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal override void OnHit(string operationId, string key, bool isStale)

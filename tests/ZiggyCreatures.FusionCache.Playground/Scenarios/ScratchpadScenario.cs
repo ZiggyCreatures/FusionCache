@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 {
@@ -19,7 +18,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 				DefaultEntryOptions = new FusionCacheEntryOptions
 				{
 					Duration = TimeSpan.FromMinutes(1),
-					Priority = CacheItemPriority.NeverRemove,
+					//Priority = CacheItemPriority.NeverRemove,
 
 					//IsFailSafeEnabled = true,
 					//FailSafeMaxDuration = TimeSpan.FromMinutes(10),
@@ -37,9 +36,13 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			const string Key = "test key";
 			const string Value = "test value";
 
-			cache.Set(Key, Value);
+			//cache.Set(Key, Value);
 
-			var foo = cache.TryGet<string?>(Key).GetValueOrDefault(null);
+			//var foo = cache.TryGet<string?>(Key).GetValueOrDefault(null);
+
+			var foo = cache.GetOrSet(Key, _ => Value);
+
+			cache.Remove(Key);
 		}
 	}
 }

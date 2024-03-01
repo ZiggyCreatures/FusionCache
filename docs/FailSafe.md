@@ -6,6 +6,10 @@
 
 # 💣 Fail-Safe
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| By enabling fail-safe FusionCache can temporarily re-use an expired value in case of problems encountered while calling a factory for a refresh: this avoids problems to *bubble up* to the users, while automatically re-trying later to get a fresh version. |
+
 Using a cache in general - not necessarily FusionCache - is a good thing because it makes our systems **way faster**, even though it means using values that may be **a little bit stale**.
 
 That's ok in most situations, and is the tradeoff we accept to obtain better performance.
@@ -16,25 +20,27 @@ Sometimes though when the entry **expires** and we go get an updated value from 
 
 In these cases what happens is your service will be down or super slow, like this:
 
-![Without Fail Safe](images/stepbystep-01-memorycache.png)
+![Situation Without Fail Safe](images/stepbystep-01-memorycache.png)
 
-Typically in these situations we would be out of luck because the expired value **is already gone for good**, even though we would have preferred to use it for a little bit longer (after all, we are using a cache because we are ok with using slightly stale data, that's the whole point), instead of having to most probably surface the error to our users.
+Typically in these situations we would be out of luck because the expired value **is already gone for good**, even though we would have preferred to use it for a little bit longer, instead of having to most probably surface the error to our users. After all, we are using a cache because we are ok with using slightly stale data, that's the whole point.
 
 Wouldn't it be nice to have a way to keep using a stale value for a little longer?
 
 This is exactly what the **Fail-Safe** mechanism does.
 
-It allows us to specify for how long each entry should be kept around after it expired in case of problems (that is, when the factory throws an exception) while at the same time let them *logically* expire at the right time, all while letting us re-use them in case of an unexpected problem that would normally result in the factory exception bubbling up to our calling code.
+It allows us to specify for how long each cache entry should be "kept around" after it expires, so that in case of problems (that is, when the factory throws an exception) we can re-use it that instead of having a factory exception bubble up to our calling code, all while at the same time let them *logically* expire at the right time.
 
-To do that we have to simply set 3 things on a `FusionCacheEntryOptions` object:
+To do that we simply have to enable it by using the `IsFailSafeEnabled` option on the `FusionCacheEntryOptions`.
 
-- `IsFailSafeEnabled`: enable or disable the mechanism
-- `FailSafeMaxDuration`: how long a value should be kept around, even after its *logical* expiration
-- `FailSafeThrottleDuration`: how long an expired value (used because of a fail-safe *activation*) should be temporarily considered as non expired, to avoid going to check the database for every consecutive request of an expired value
+Also, if we want, we can also set two additional options to have more control:
+- `FailSafeThrottleDuration`: how long an expired value (used because of a fail-safe *activation*) should be temporarily considered as non-expired, to avoid going to check the database for every consecutive request
+- `FailSafeMaxDuration`: how long a value should be kept around at most, after its *logical* expiration
+
+**ℹ️ NOTE:** we can control if we want to allow fail-safe on GET operations (`GetOrSet`/`TryGet`/`GetOrDefault`), but **only** if fail-safe was also enabled when saving via a SET method (`Set`/`GetOrSet`): we can SET with fail-safe and later GET without using it, but we cannot GET with fail-safe if the previous SET call did not have it enabled.
 
 The end result (also adding some [timeouts](Timeouts.md)) would be something like this:
 
-![With Fail Safe](images/stepbystep-04-factorytimeouts.png)
+![Situation With Fail Safe](images/stepbystep-04-factorytimeouts.png)
 
 Isn't it great?
 

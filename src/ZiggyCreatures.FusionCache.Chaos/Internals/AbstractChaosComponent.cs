@@ -43,7 +43,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 		public TimeSpan ChaosMinDelay { get; set; }
 
 		/// <summary>
-		/// A <see cref="float"/> value from 0.0 to 1.0 that represents the probabilty of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
+		/// A <see cref="float"/> value from 0.0 to 1.0 that represents the probability of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.
 		/// </summary>
 		public float ChaosThrowProbability { get; set; }
 
@@ -158,7 +158,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 
 		/// <summary>
 		/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
-		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
+		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
 		/// </summary>
 		protected void MaybeChaos(CancellationToken token = default)
 		{
@@ -167,7 +167,7 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos.Internals
 
 		/// <summary>
 		/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
-		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
+		/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
 		/// </summary>
 		protected async Task MaybeChaosAsync(CancellationToken token = default)
 		{

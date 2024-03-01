@@ -13,10 +13,8 @@
 
 </div>
 
-> [!IMPORTANT]  
-> The [v1.0 preview2](https://github.com/ZiggyCreatures/FusionCache/releases/tag/v1.0.0-preview2) is out!
-> Please try it and let me know if you spot anything, in time for the official `v1.0` release that will come soon, thanks!
-
+| 🙋‍♂️ Updating to `v1.0.0` ? please [read here](docs/Update_v1_0_0.md). |
+|:-------|
 
 ### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
 
@@ -63,20 +61,20 @@ More into videos? The fine folks at [On .NET](https://learn.microsoft.com/en-us/
 ## ✔ Features
 These are the **key features** of FusionCache:
 
-- [**🛡️ Cache Stampede prevention**](docs/CacheStampede.md): automatic protection from the Cache Stampede problem
-- [**🔀 Optional 2nd level**](docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
+- [**🛡️ Cache Stampede**](docs/CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🔀 2nd level**](docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
 - [**💣 Fail-Safe**](docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
-- [**⏱ Soft/Hard timeouts**](docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
+- [**⏱ Soft/Hard Timeouts**](docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
 - [**📢 Backplane**](docs/Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
 - [**↩️ Auto-Recovery**](docs/AutoRecovery.md): automatic handling of transient issues with retries and sync logic
 - [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
 - [**🔂 Conditional Refresh**](docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
 - [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
-- [**🔃 Dependency Injection**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
+- [**🔃 Dependency Injection + Builder**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
 - [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
-- [**💫 Natively sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
+- [**💫 Fully sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
 - [**📞 Events**](docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
 - [**🧩 Plugins**](docs/Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
 
@@ -107,7 +105,7 @@ Main packages:
 |--------------------------------|:---------------:|:---------:|
 | [ZiggyCreatures.FusionCache](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) <br/> The core package | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache) |
 | [ZiggyCreatures.FusionCache.OpenTelemetry](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.OpenTelemetry/) <br/> Adds native support for OpenTelemetry setup | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.OpenTelemetry.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.OpenTelemetry/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.OpenTelemetry) |
-| [ZiggyCreatures.FusionCache.Chaos](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) <br/> A package to add some controller chaos, for testing | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Chaos.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Chaos) |
+| [ZiggyCreatures.FusionCache.Chaos](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) <br/> A package to add some controlled chaos, for testing | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Chaos.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Chaos/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Chaos) |
 
 Serializers:
 
@@ -298,9 +296,10 @@ If you find FusionCache useful just [**✉ drop me a line**](https://twitter.com
 And if you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
 
 ## 💼 Is it Production Ready :tm: ?
+
 Yes!
 
-Even though the current version is `0.X` for an excess of caution, FusionCache is already used **in production** on multiple **real world projects** happily handling millions of requests per day, or at least these are the projects I'm aware of.
+FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests per day.
 
 Considering that the FusionCache packages have been downloaded more than **3 million times** (thanks everybody!) it may very well be used even more.
 

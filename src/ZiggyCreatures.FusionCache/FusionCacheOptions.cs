@@ -7,6 +7,8 @@ namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// Represents all the options available for the entire <see cref="IFusionCache"/> instance.
+/// <br/><br/>
+/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 /// </summary>
 public class FusionCacheOptions
 	: IOptions<FusionCacheOptions>
@@ -16,26 +18,36 @@ public class FusionCacheOptions
 
 	/// <summary>
 	/// The default value for <see cref="IFusionCache.CacheName"/>.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
 	/// </summary>
 	public const string DefaultCacheName = "FusionCache";
 
 	/// <summary>
 	/// The wire format version identifier for the distributed cache wire format, used in the cache key processing.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public const string DistributedCacheWireFormatVersion = "v0";
 
 	/// <summary>
 	/// The wire format version separator for the distributed cache wire format, used in the cache key processing.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public const string DistributedCacheWireFormatSeparator = ":";
 
 	/// <summary>
 	/// The wire format version identifier for the backplane wire format, used in the channel name.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public const string BackplaneWireFormatVersion = "v0";
 
 	/// <summary>
 	/// The wire format version separator for the backplane wire format, used in the channel name.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public const string BackplaneWireFormatSeparator = ":";
 
@@ -79,6 +91,8 @@ public class FusionCacheOptions
 	/// The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association.
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> if you try to set this to a null/whitespace value, that value will be ignored.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
 	/// </summary>
 	public string CacheName
 	{
@@ -113,6 +127,8 @@ public class FusionCacheOptions
 
 	/// <summary>
 	/// The default <see cref="FusionCacheEntryOptions"/> to use when none will be specified, and as the starting point when duplicating one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
 	/// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
 	public FusionCacheEntryOptions DefaultEntryOptions
@@ -147,11 +163,15 @@ public class FusionCacheOptions
 	/// A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
 	/// <br/><br/>
 	/// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
 	/// </summary>
 	public string? CacheKeyPrefix { get; set; }
 
 	/// <summary>
 	/// Specify the mode in which cache key will be changed for the distributed cache, for internal purposes (eg: to specify the wire format version).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public CacheKeyModifierMode DistributedCacheKeyModifierMode { get; set; }
 
@@ -168,6 +188,15 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public string? BackplaneChannelPrefix { get; set; }
+
+	/// <summary>
+	/// Ignores incoming backplane notifications, which normally is DANGEROUS.
+	/// <br/><br/>
+	/// <strong>WARNING:</strong> it is advised not to ignore backplane notifications in any normal circumstance unless you really know what you are doing.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// </summary>
+	public bool IgnoreIncomingBackplaneNotifications { get; set; }
 
 	/// <summary>
 	/// DEPRECATED: please use EnableAutoRecovery.
@@ -276,14 +305,16 @@ public class FusionCacheOptions
 	/// <summary>
 	/// The amount of time to wait before actually processing the auto-recovery queue, to better handle backpressure.
 	/// <br/>
-	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky).
+	/// Use <see cref="TimeSpan.Zero"/> to avoid any delay (risky, like very very risky).
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> when used with a distributed cache that supports a delayed reconnection logic (like StackExchange.Redis), set this to a higher value than the one used by the distributed cache, to avoid sending backplane notifications when not all nodes are reconnected yet, therefore avoiding that some nodes will not receive all the notifications.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	public TimeSpan AutoRecoveryDelay { get; set; }
 
 	/// <summary>
-	/// Enable expiring a cache entry, only on the distributed cache (if any), when anauto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
+	/// Enable expiring a cache entry, only on the distributed cache (if any), when an auto-recovery message is being published on the backplane, to ensure that the value in the distributed cache will not be stale.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
@@ -373,7 +404,7 @@ public class FusionCacheOptions
 	public LogLevel BackplaneErrorsLogLevel { get; set; }
 
 	/// <summary>
-	/// Specify the <see cref="LogLevel"/> to use when logging informations about plugins.
+	/// Specify the <see cref="LogLevel"/> to use when logging info about plugins.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 	/// </summary>
@@ -391,19 +422,10 @@ public class FusionCacheOptions
 		get { return this; }
 	}
 
-	///// <summary>
-	///// Set the <see cref="CacheKeyPrefix"/> to the <see cref="CacheName"/>, and a ":" separator.
-	///// </summary>
-	///// <returns>The <see cref="FusionCacheOptions"/> so that additional calls can be chained.</returns>
-	//public FusionCacheOptions SetCacheNameAsCacheKeyPrefix()
-	//{
-	//	CacheKeyPrefix = $"{CacheName}:";
-
-	//	return this;
-	//}
-
 	/// <summary>
 	/// Creates a new <see cref="FusionCacheOptions"/> object by duplicating all the options of the current one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
 	/// <returns>The newly created <see cref="FusionCacheOptions"/> object.</returns>
 	public FusionCacheOptions Duplicate()
@@ -423,6 +445,7 @@ public class FusionCacheOptions
 			AutoRecoveryMaxRetryCount = AutoRecoveryMaxRetryCount,
 
 			BackplaneChannelPrefix = BackplaneChannelPrefix,
+			IgnoreIncomingBackplaneNotifications = IgnoreIncomingBackplaneNotifications,
 			BackplaneCircuitBreakerDuration = BackplaneCircuitBreakerDuration,
 
 			DistributedCacheKeyModifierMode = DistributedCacheKeyModifierMode,

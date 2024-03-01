@@ -88,8 +88,6 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddFusionCacheProvider();
 
-		//services.AddSingleton<IFusionCache>(cache);
-
 		if (cache.CacheName == FusionCacheOptions.DefaultCacheName)
 		{
 			services.TryAddSingleton<IFusionCache>(cache);
@@ -103,7 +101,9 @@ public static class FusionCacheServiceCollectionExtensions
 	}
 
 	/// <summary>
-	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	/// Registers a named cache to the <see cref="IServiceCollection" />.
+	/// <br/><br/>
+	/// <strong>NOTE: </strong> by registering a named cache in this way it's not possible to then change the CacheName in any other way, including usage of the WithOptions(...) method.
 	/// <br/><br/>
 	/// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
 	/// <br/><br/>
@@ -150,7 +150,9 @@ public static class FusionCacheServiceCollectionExtensions
 	}
 
 	/// <summary>
-	/// Adds the standard implementation of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	/// Registers the default cache (not a named cache) to the <see cref="IServiceCollection" />.
+	/// <br/><br/>
+	/// <strong>NOTE: </strong> by registering the default cache it's not possible to then change the CacheName in any other way, including usage of the WithOptions(...) method. If you want to register a named cache please use the AddFusionCache("MyCache") method instead.
 	/// <br/><br/>
 	/// <strong>NOTE: </strong> by using this method, no default logic is applied: to automatically use all the available registered components please call the WithAutoSetup() method.
 	/// <br/><br/>

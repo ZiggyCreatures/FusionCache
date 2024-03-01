@@ -6,6 +6,10 @@
 
 # 🔂 Conditional Refresh
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| Inside a factory it's possible to use a stale value + the ETag or LastModified info to use HTTP Conditional Request or a similar approach: in case the data is not changed it's possible to tell FusionCache to re-use the stale value as new, or if it's changed the new value + ETag/LastModified info. |
+
 Sometimes the payload to receive from the so called single source of truth (eg: the database, a remote service, etc) can be quite big, and in those situations it is a waste to get and process it (eg: deserializing) each and every time even when the data has not changed.
 
 Ideally there should be a way to keep track of the "version" of the cached data and, when requesting for a refresh, be able to handle for data that is not changed, so to keep the "stale" data which, in such a case, would not actually be stale.

@@ -10,7 +10,7 @@ namespace OpenTelemetry.Trace
 	public static class TracerProviderBuilderExtensions
 	{
 		/// <summary>
-		/// Enables traces instrumentation for FusionCache.
+		/// Enable traces instrumentation for FusionCache.
 		/// </summary>
 		/// <param name="builder"><see cref="TracerProviderBuilder"/> being configured.</param>
 		/// <param name="configure">Callback action for configuring the available options.</param>

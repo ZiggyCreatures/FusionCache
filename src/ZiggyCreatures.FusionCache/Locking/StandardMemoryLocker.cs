@@ -23,7 +23,7 @@ internal sealed class StandardMemoryLocker
 	/// Initializes a new instance of the <see cref="StandardMemoryLocker"/> class.
 	/// </summary>
 	/// <param name="size">The size of the pool used internally for the 1st level locking strategy.</param>
-	public StandardMemoryLocker(int size = 8_440)
+	public StandardMemoryLocker(int size = 210)
 	{
 		_lockCache = new MemoryCache(new MemoryCacheOptions());
 
@@ -59,18 +59,26 @@ internal sealed class StandardMemoryLocker
 			using var entry = _lockCache.CreateEntry(key);
 			entry.Value = _semaphore;
 			entry.SlidingExpiration = _slidingExpiration;
-			entry.RegisterPostEvictionCallback((key, value, _, _) =>
-			{
-				try
+			entry.RegisterPostEvictionCallback(
+				static (key, value, _, state) =>
 				{
-					((SemaphoreSlim?)value)?.Dispose();
-				}
-				catch (Exception exc)
-				{
-					if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-						logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
-				}
-			});
+					if (state is null)
+						return;
+
+					var (cacheName, cacheInstanceId, logger) = ((string, string, ILogger))state;
+
+					try
+					{
+						((SemaphoreSlim?)value)?.Dispose();
+					}
+					catch (Exception exc)
+					{
+						if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+							logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
+					}
+				},
+				(cacheName, cacheInstanceId, logger)
+			);
 
 			return (SemaphoreSlim)_semaphore;
 		}
@@ -81,23 +89,7 @@ internal sealed class StandardMemoryLocker
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
 		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
-
-		if (acquired)
-		{
-			// LOCK ACQUIRED
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, cacheInstanceId, operationId, key);
-		}
-		else
-		{
-			// LOCK TIMEOUT
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", cacheName, cacheInstanceId, operationId, key);
-		}
 
 		return acquired ? semaphore : null;
 	}
@@ -107,23 +99,7 @@ internal sealed class StandardMemoryLocker
 	{
 		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
 
-		if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-			logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", cacheName, cacheInstanceId, operationId, key);
-
 		var acquired = semaphore.Wait(timeout, token);
-
-		if (acquired)
-		{
-			// LOCK ACQUIRED
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", cacheName, cacheInstanceId, operationId, key);
-		}
-		else
-		{
-			// LOCK TIMEOUT
-			if (logger?.IsEnabled(LogLevel.Trace) ?? false)
-				logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", cacheName, cacheInstanceId, operationId, key);
-		}
 
 		return acquired ? semaphore : null;
 	}
@@ -146,10 +122,10 @@ internal sealed class StandardMemoryLocker
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue;
+	private bool _disposedValue;
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
@@ -160,7 +136,7 @@ internal sealed class StandardMemoryLocker
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 			_lockCache = null;
 #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 

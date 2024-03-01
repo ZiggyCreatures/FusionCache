@@ -13,7 +13,7 @@ public static class FusionCacheChaosUtils
 	/// <summary>
 	/// Determines if an exception should be thrown.
 	/// </summary>
-	/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+	/// <param name="throwProbability">The probability that an exception will be thrown.</param>
 	/// <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
 	public static bool ShouldThrow(float throwProbability)
 	{
@@ -27,9 +27,9 @@ public static class FusionCacheChaosUtils
 	}
 
 	/// <summary>
-	/// Maybe throw a <see cref="ChaosException"/> based on the specified probabilty.
+	/// Maybe throw a <see cref="ChaosException"/> based on the specified probability.
 	/// </summary>
-	/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+	/// <param name="throwProbability">The probability that an exception will be thrown.</param>
 	public static void MaybeThrow(float throwProbability)
 	{
 		if (ShouldThrow(throwProbability))
@@ -39,7 +39,7 @@ public static class FusionCacheChaosUtils
 	/// <summary>
 	/// Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>.
 	/// </summary>
-	/// <param name="minDelay">The minimun amount of delay.</param>
+	/// <param name="minDelay">The minimum amount of delay.</param>
 	/// <param name="maxDelay">The maximum amount of delay.</param>
 	/// <returns>The randomized delay.</returns>
 	public static TimeSpan GetRandomDelay(TimeSpan minDelay, TimeSpan maxDelay)
@@ -56,7 +56,7 @@ public static class FusionCacheChaosUtils
 	/// <summary>
 	/// Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
 	/// </summary>
-	/// <param name="minDelay">The minimun amount of delay.</param>
+	/// <param name="minDelay">The minimum amount of delay.</param>
 	/// <param name="maxDelay">The maximum amount of delay.</param>
 	/// <param name="token">The cancellation token.</param>
 	public static void MaybeDelay(TimeSpan minDelay, TimeSpan maxDelay, CancellationToken token = default)
@@ -70,7 +70,7 @@ public static class FusionCacheChaosUtils
 	/// <summary>
 	/// Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
 	/// </summary>
-	/// <param name="minDelay">The minimun amount of delay.</param>
+	/// <param name="minDelay">The minimum amount of delay.</param>
 	/// <param name="maxDelay">The maximum amount of delay.</param>
 	/// <param name="token">The cancellation token.</param>
 	/// <returns>A <see cref="Task"/> instance to await.</returns>
@@ -84,11 +84,11 @@ public static class FusionCacheChaosUtils
 
 	/// <summary>
 	/// Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
-	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
+	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
 	/// </summary>
-	/// <param name="minDelay">The minimun amount of delay.</param>
+	/// <param name="minDelay">The minimum amount of delay.</param>
 	/// <param name="maxDelay">The maximum amount of delay.</param>
-	/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+	/// <param name="throwProbability">The probability that an exception will be thrown.</param>
 	/// <param name="token">The cancellation token.</param>
 	public static void MaybeChaos(TimeSpan minDelay, TimeSpan maxDelay, float throwProbability, CancellationToken token = default)
 	{
@@ -98,11 +98,11 @@ public static class FusionCacheChaosUtils
 
 	/// <summary>
 	/// Randomize an actual delay with a value between <paramref name="minDelay"/> and <paramref name="maxDelay"/>, and waits for it.
-	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probabilty.
+	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
 	/// </summary>
-	/// <param name="minDelay">The minimun amount of delay.</param>
+	/// <param name="minDelay">The minimum amount of delay.</param>
 	/// <param name="maxDelay">The maximum amount of delay.</param>
-	/// <param name="throwProbability">The probabilty that an exception will be thrown.</param>
+	/// <param name="throwProbability">The probability that an exception will be thrown.</param>
 	/// <param name="token">The cancellation token.</param>
 	/// <returns>A <see cref="Task"/> instance to await.</returns>
 	public static async Task MaybeChaosAsync(TimeSpan minDelay, TimeSpan maxDelay, float throwProbability, CancellationToken token = default)

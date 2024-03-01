@@ -13,8 +13,8 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 	[RankColumn]
 	[MemoryDiagnoser]
 	[Config(typeof(Config))]
-	[ShortRunJob(RuntimeMoniker.Net60)]
 	[ShortRunJob(RuntimeMoniker.Net80)]
+	[ShortRunJob(RuntimeMoniker.NativeAot80)]
 	[Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 	public class HappyPathBenchmark
 	{

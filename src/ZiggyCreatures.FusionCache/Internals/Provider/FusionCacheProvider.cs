@@ -42,7 +42,7 @@ internal sealed class FusionCacheProvider
 		throw new InvalidOperationException(
 			cacheName == FusionCacheOptions.DefaultCacheName
 			? "No default cache has been registered"
-			: $"No cache has been registered with name ({cacheName})"
+			: $"No cache has been registered with name ({cacheName}): make sure you registered it with the AddFusionCache(\"{cacheName}\") method."
 		);
 	}
 }

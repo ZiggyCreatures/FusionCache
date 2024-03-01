@@ -35,6 +35,7 @@ internal sealed class AutoRecoveryService
 
 		_delay = _options.AutoRecoveryDelay;
 		// NOTE: THIS IS PRAGMATIC, SO TO AVOID CHECKING AN int? EVERY TIME, AND int.MaxValue IS HIGH ENOUGH THAT IT WON'T MATTER
+		// ALSO, AFTER THE CACHE ENTRY Duration is PASSED, THE ENTRY WILL BE REMOVED ANYWAY, SO NO ACTUAL WASTE OF RESOURCES
 		_maxItems = _options.AutoRecoveryMaxItems ?? int.MaxValue;
 		_maxRetryCount = _options.AutoRecoveryMaxRetryCount ?? int.MaxValue;
 
@@ -315,21 +316,13 @@ internal sealed class AutoRecoveryService
 
 				try
 				{
-					switch (item.Action)
+					success = item.Action switch
 					{
-						case FusionCacheAction.EntrySet:
-							success = await TryProcessItemSetAsync(operationId, item, token).ConfigureAwait(false);
-							break;
-						case FusionCacheAction.EntryRemove:
-							success = await TryProcessItemRemoveAsync(operationId, item, token).ConfigureAwait(false);
-							break;
-						case FusionCacheAction.EntryExpire:
-							success = await TryProcessItemExpireAsync(operationId, item, token).ConfigureAwait(false);
-							break;
-						default:
-							success = true;
-							break;
-					}
+						FusionCacheAction.EntrySet => await TryProcessItemSetAsync(operationId, item, token).ConfigureAwait(false),
+						FusionCacheAction.EntryRemove => await TryProcessItemRemoveAsync(operationId, item, token).ConfigureAwait(false),
+						FusionCacheAction.EntryExpire => await TryProcessItemExpireAsync(operationId, item, token).ConfigureAwait(false),
+						_ => true,
+					};
 				}
 				catch (Exception exc)
 				{
@@ -419,7 +412,7 @@ internal sealed class AutoRecoveryService
 				{
 					try
 					{
-						(var error, var isSame, var hasUpdated) = await _cache.TryUpdateMemoryEntryFromDistributedEntryUntypedAsync(operationId, item.CacheKey, memoryEntry).ConfigureAwait(false);
+						var (error, isSame, hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, item.CacheKey, _cache).ConfigureAwait(false);
 
 						if (error)
 						{
@@ -440,7 +433,7 @@ internal sealed class AutoRecoveryService
 							// IF THE MEMORY ENTRY IS ALSO NOT THE SAME AS THE DISTRIBUTED ENTRY, IT MEANS THAT THE DISTRIBUTED ENTRY
 							// IS EITHER OLDER OR IT'S NOT THERE AT ALL -> WE SET IT TO THE CURRENT ONE
 
-							var dcaSuccess = await dca.SetEntryUntypedAsync(operationId, item.CacheKey, memoryEntry, item.Options, true, token).ConfigureAwait(false);
+							var dcaSuccess = await memoryEntry.SetDistributedEntryAsync(operationId, item.CacheKey, dca, item.Options, true, token).ConfigureAwait(false);
 							if (dcaSuccess == false)
 							{
 								// STOP PROCESSING THE QUEUE
@@ -649,10 +642,10 @@ internal sealed class AutoRecoveryService
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue;
+	private bool _disposedValue;
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
@@ -661,7 +654,7 @@ internal sealed class AutoRecoveryService
 				_cts = null;
 			}
 
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 

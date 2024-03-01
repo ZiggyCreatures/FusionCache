@@ -10,7 +10,7 @@ namespace OpenTelemetry.Metrics
 	public static class MeterProviderBuilderExtensions
 	{
 		/// <summary>
-		/// Enables metrics instrumentation for FusionCache.
+		/// Enable metrics instrumentation for FusionCache.
 		/// </summary>
 		/// <param name="builder"><see cref="MeterProviderBuilder"/> being configured.</param>
 		/// <param name="configure">Callback action for configuring the available options.</param>

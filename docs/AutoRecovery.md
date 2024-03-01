@@ -6,6 +6,10 @@
 
 # ↩️ Auto-Recovery
 
+| ⚡ TL;DR (quick version) |
+| -------- |
+| In case of transient problems with the distributed components (distributed cache or backplane), FusionCache will try to fix these issues automatically, without having to do anything. |
+
 Both the [distributed cache](CacheLevels.md) and the [backplane](Backplane.md) are, as the names suggest, distributed components.
 
 This means that, as we know from the [Fallacies Of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing), something may go wrong while we are using them, even if only in a transient way.

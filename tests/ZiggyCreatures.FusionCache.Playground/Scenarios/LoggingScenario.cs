@@ -41,8 +41,8 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 		private static readonly bool UseDistributedCache = false;
 		private static readonly bool UseBackplane = false;
 		private static readonly bool UseLogger = true;
-		private static readonly string? RedisConnection = null;
-		//private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=False";
+		//private static readonly string? RedisConnection = null;
+		private static readonly string? RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=500";
 
 		private static void SetupSerilogLogger(IServiceCollection services, LogEventLevel minLevel = LogEventLevel.Verbose)
 		{

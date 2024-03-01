@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
@@ -64,6 +65,17 @@ public static class TestsUtils
 	public static TimeSpan PlusASecond(this TimeSpan ts)
 	{
 		return ts + TimeSpan.FromSeconds(1);
+	}
+
+	public static FusionCacheEntryOptions SetFactoryTimeoutsMs(this FusionCacheEntryOptions options, int? softTimeoutMs = null, int? hardTimeoutMs = null, bool? keepTimedOutFactoryResult = null)
+	{
+		if (softTimeoutMs is not null)
+			options.FactorySoftTimeout = TimeSpan.FromMilliseconds(softTimeoutMs.Value);
+		if (hardTimeoutMs is not null)
+			options.FactoryHardTimeout = TimeSpan.FromMilliseconds(hardTimeoutMs.Value);
+		if (keepTimedOutFactoryResult is not null)
+			options.AllowTimedOutFactoryBackgroundCompletion = keepTimedOutFactoryResult.Value;
+		return options;
 	}
 }
 

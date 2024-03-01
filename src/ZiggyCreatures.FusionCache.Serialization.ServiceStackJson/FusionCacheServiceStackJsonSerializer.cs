@@ -21,20 +21,19 @@ public class FusionCacheServiceStackJsonSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		using (var stream = new MemoryStream())
-		{
-			JsonSerializer.SerializeToStream<T?>(obj, stream);
-			return stream.ToArray();
-		}
+		using var stream = new MemoryStream();
+
+		JsonSerializer.SerializeToStream<T?>(obj, stream);
+
+		return stream.ToArray();
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		using (var stream = new MemoryStream(data))
-		{
-			return JsonSerializer.DeserializeFromStream<T?>(stream);
-		}
+		using var stream = new MemoryStream(data);
+
+		return JsonSerializer.DeserializeFromStream<T?>(stream);
 	}
 
 	/// <inheritdoc />
