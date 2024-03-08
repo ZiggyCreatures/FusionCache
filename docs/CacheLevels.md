@@ -10,26 +10,55 @@
 | -------- |
 | To ease cold starts and/or help with horizontal scalability (multiple nodes with their own local memory cache) it's possible to setup a 2nd level. At setup time, simply pass any implementation of `IDistributedCache` and a serializer: the existing code does not need to change, it all just works. |
 
-There are 2 caching levels available, transparently handled by FusionCache for you:
+When our apps restarts and we are using only the 1st level (memory), the cache will need to be repopulated from scratch since the cached values are stored only in the memory space of the apps themselves.
 
-- **Primary (Memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
-- **Secondary (Distributed)**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **sharing data with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
+<div align="center">
 
-Everything is handled transparently for you.
+![Cold Start](images/cold-start.png)
 
-Any implementation of the standard `IDistributedCache` interface will work (see below).
+</div>
 
-On top of this you also need to specify a *serializer* to use, by providing an implementation of the `IFusionCacheSerializer` interface: you can create your own or pick one of the existing ones, which natively support formats like Json, MessagePack and Protobuf (see below).
+This problem is known as **cold start** and it can generate a lot of requests to our database.
 
-Basically it boils down to 2 possible ways:
+When our services need to handle more and more requests we can scale vertically, meaning we can make our servers bigger. This approach though can only go so far, and after a while what we need is to scale horizontally, meaning we'll add more nodes to split the traffic among.
 
-- **1️⃣ MEMORY ONLY:** if you don't setup a 2nd level, FusionCache will act as a **normal memory cache** (`IMemoryCache`)
+<div align="center">
 
-- **2️⃣ MEMORY + DISTRIBUTED:** if you also setup a 2nd level, FusionCache will automatically coordinate the 2 levels (`IMemoryCache` + `IDistributedCache`) gracefully handling all edge cases to get a smooth experience
+![Cold Start](images/horizontal-scalability.png)
+
+</div>
+
+But, when scaling horizontally and using only  the 1st level (memory), each memory cache in each node needs to be populated indipendently, by asking the same data to the database, again generating more requests to the database.
+
+As we can see both of these issues will generate more database pressure: this is something we need to handle accordingly.
+
+Luckily, FusionCache can help us.
+
+
+## 🔀 2nd Level
+
+FusionCache allows us to have 2 caching levels, transparently handled by FusionCache for us:
+
+- **1️⃣ Primary (Memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
+- **2️⃣ Secondary (Distributed)**: is an *optional* distributed cache and it serves the purpose of **easing a cold start** or **sharing data with other nodes**
+
+Everything required to have the 2 levels communicate between them is handled transparently for us.
+
+Since the 2nd level is distributed, and we know from the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) that stuff can bo bad, all the issues that may happend there can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation.
+
+Any implementation of the standard `IDistributedCache` interface will work (see below for a list of the available ones), so we can pick Redis, Memcached or any technology we like.
+
+Because a distributed cache talks in binary data (meaning `byte[]`) we also need to specify a *serializer*: since .NET does not have a generic interface representing a binary serializer, FusionCache defined one named `IFusionCacheSerializer`. We simply provide an implementation of that by picking one of the existing ones, which natively support formats like Json, MessagePack and Protobuf (see below) or create our own.
+
+In the end this basically it boils down to 2 possible ways:
+
+- **MEMORY ONLY (L1):** FusionCache will act as a normal memory cache
+- **MEMORY + DISTRIBUTED (L1+L2):** if we also setup a 2nd level, FusionCache will automatically coordinate the 2 levels gracefully handling all edge cases to get a smooth experience
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), advanced [timeouts](Timeouts.md) and so on.
 
-Finally, if needed you can also specify a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option, so that updates to the distributed cache can be picked up more frequently, in case you don't want to use a [backplane](Backplane.md) for some reason.
+Finally, if needed, we can also use a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option: in this way updates to the distributed cache can be picked up more frequently, in case we don't want to use a [backplane](Backplane.md) for some reason.
+
 
 ## 📢 Backplane
 
@@ -38,6 +67,7 @@ When using a distributed 2nd level, each local memory cache may become out of sy
 All the existing code will remain the same, it's just a 1 line change at setup time.
 
 Read [here](Backplane.md) for more.
+
 
 ## 🗃 Wire Format Versioning
 
@@ -73,7 +103,9 @@ Yes, totally, and there's a [dedicated page](DiskCache.md) to learn more.
 
 ## ↩️ Auto-Recovery
 
-Since the distributed cache is a distributed component (just like the backplane), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature: you can read more on the related [docs page](AutoRecovery.md).
+Since the distributed cache is a distributed component (just like the backplane), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature.
+
+We can readm more on the related [docs page](AutoRecovery.md).
 
 ## 📦 Packages
 
