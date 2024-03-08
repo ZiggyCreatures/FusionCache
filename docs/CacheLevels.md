@@ -12,13 +12,13 @@
 
 When our apps restarts and we are using only the 1st level (memory), the cache will need to be repopulated from scratch since the cached values are stored only in the memory space of the apps themselves.
 
+This problem is known as **cold start** and it can generate a lot of requests to our database.
+
 <div align="center">
 
 ![Cold Start](images/cold-start.png)
 
 </div>
-
-This problem is known as **cold start** and it can generate a lot of requests to our database.
 
 When our services need to handle more and more requests we can scale vertically, meaning we can make our servers bigger. This approach though can only go so far, and after a while what we need is to scale horizontally, meaning we'll add more nodes to split the traffic among.
 
