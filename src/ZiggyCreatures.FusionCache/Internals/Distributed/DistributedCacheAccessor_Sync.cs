@@ -181,6 +181,8 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
 
+			_events.OnMiss(operationId, key);
+
 			return (null, false);
 		}
 
