@@ -64,7 +64,7 @@ public class FusionCacheOptions
 		EnableAutoRecovery = true;
 		AutoRecoveryMaxItems = null;
 		AutoRecoveryMaxRetryCount = null;
-		AutoRecoveryDelay = TimeSpan.FromMilliseconds(2_000);
+		AutoRecoveryDelay = TimeSpan.FromMilliseconds(5_000);
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
