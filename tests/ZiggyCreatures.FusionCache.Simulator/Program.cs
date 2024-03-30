@@ -145,7 +145,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 						{
 							ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(clusterIdx, nodeIdx)
 						},
-						serviceProvider.GetService<ILogger<RedisBackplane>>()
+						SimulatorOptions.EnableFusionCacheLogging ? serviceProvider.GetService<ILogger<RedisBackplane>>() : null
 					);
 				default:
 					return new MemoryBackplane(
@@ -153,7 +153,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 						{
 							ConnectionId = $"connection-{clusterIdx}"
 						},
-						serviceProvider.GetService<ILogger<MemoryBackplane>>()
+						SimulatorOptions.EnableFusionCacheLogging ? serviceProvider.GetService<ILogger<MemoryBackplane>>() : null
 					);
 			}
 		}
