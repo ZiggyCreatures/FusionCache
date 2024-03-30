@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
+using FASTERCache;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -128,6 +129,10 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					{
 						ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(clusterIdx, -1)
 					});
+				case DistributedCacheType.FASTER:
+					var directory = Path.Combine(Path.GetTempPath(), $"FusionCacheSimulator_{clusterIdx}");
+					Debug.WriteLine($"DIRECTORY: {directory}");
+					return new FASTERCacheBuilder(directory).CreateDistributedCache();
 				default:
 					return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 			}
