@@ -61,6 +61,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 		public static readonly string BackplaneRedisConnection = RedisConnection;
 		public static readonly TimeSpan? ChaosBackplaneSyntheticDelay = null; //TimeSpan.FromMilliseconds(500);
 
+		// AUTO-RECOVERY
+		public static readonly bool EnableAutoRecovery = true;
+		public static readonly TimeSpan? AutoRecoveryDelay = null;
+		public static readonly TimeSpan AutoRecoveryDefaultDelay = new FusionCacheOptions().AutoRecoveryDelay;
+
 		// OTHERS
 		public static readonly TimeSpan RefreshDelay = TimeSpan.FromMilliseconds(500);
 		public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
@@ -283,7 +288,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			DateTimeOffset? physicalExpiration = null;
 			try
 			{
-				physicalExpiration = (DateTimeOffset?)entry.GetType().GetProperty("LogicalExpiration")?.GetValue(entry);
+				physicalExpiration = (DateTimeOffset?)entry.GetType().GetProperty("PhysicalExpiration")?.GetValue(entry);
 			}
 			catch (Exception exc)
 			{
@@ -294,11 +299,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 			if (logicalExpiration is not null && physicalExpiration is not null)
 				return logicalExpiration.Value < physicalExpiration.Value ? logicalExpiration : physicalExpiration;
 
-			// USE THE PHYSICAL
+			// USE THE LOGICAL
 			if (logicalExpiration is not null)
 				return logicalExpiration;
 
-			// USE THE LOGICAL
+			// USE THE PHYSICAL
 			if (physicalExpiration is not null)
 				return physicalExpiration;
 
@@ -333,8 +338,11 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 					{
 						CacheName = cacheName,
 						DefaultEntryOptions = new FusionCacheEntryOptions(SimulatorOptions.CacheDuration),
-						AutoRecoveryDelay = TimeSpan.FromSeconds(3),
+						EnableAutoRecovery = SimulatorOptions.EnableAutoRecovery
 					};
+					if (SimulatorOptions.AutoRecoveryDelay is not null)
+						options.AutoRecoveryDelay = SimulatorOptions.AutoRecoveryDelay.Value;
+
 					options.SetInstanceId(cacheInstanceId);
 
 					var deo = options.DefaultEntryOptions;
@@ -706,13 +714,37 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				AnsiConsole.MarkupLine($"- [deepskyblue1]SIZE          :[/] {SimulatorOptions.NodesPerClusterCount} NODES x {SimulatorOptions.ClustersCount} CLUSTERS ({SimulatorOptions.NodesPerClusterCount * SimulatorOptions.ClustersCount} TOTAL NODES)");
 				AnsiConsole.MarkupLine($"- [deepskyblue1]CACHE DURATION:[/] {SimulatorOptions.CacheDuration}");
 
+				// AUTO-RECOVERY
+				AnsiConsole.Markup("- [deepskyblue1]AUTO-RECOVERY :[/] ");
+				if (SimulatorOptions.EnableAutoRecovery)
+				{
+					AnsiConsole.Markup($"[{Color_DarkGreen} on {Color_MidGreen}] ON [/]");
+					if (SimulatorOptions.AutoRecoveryDelay.HasValue)
+					{
+						AnsiConsole.Markup($" - DELAY: {SimulatorOptions.AutoRecoveryDelay}");
+					}
+					else
+					{
+						AnsiConsole.Markup($" - DELAY: {SimulatorOptions.AutoRecoveryDefaultDelay} (default)");
+					}
+				}
+				else
+				{
+					AnsiConsole.MarkupLine($"[{Color_DarkRed} on {Color_MidRed}] OFF [/]");
+				}
+				AnsiConsole.WriteLine();
+
+				// DATABASE
 				AnsiConsole.Markup("- [deepskyblue1]DATABASE      :[/] ");
+
+				// MEMORY CACHE
 				AnsiConsole.Markup($"Memory ");
 				if (DatabaseEnabled)
 					AnsiConsole.MarkupLine($"[{Color_DarkGreen} on {Color_MidGreen}] ON [/]");
 				else
 					AnsiConsole.MarkupLine($"[{Color_DarkRed} on {Color_MidRed}] OFF [/]");
 
+				// DISTRIBUTED CACHE
 				AnsiConsole.Markup("- [deepskyblue1]DIST. CACHE   :[/] ");
 				if (SimulatorOptions.DistributedCacheType == DistributedCacheType.None)
 				{
@@ -727,6 +759,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 						AnsiConsole.MarkupLine($"[{Color_DarkRed} on {Color_MidRed}] OFF [/]");
 				}
 
+				// BACKPLANE
 				AnsiConsole.Markup("- [deepskyblue1]BACKPLANE     :[/] ");
 				if (SimulatorOptions.BackplaneType == BackplaneType.None)
 				{
