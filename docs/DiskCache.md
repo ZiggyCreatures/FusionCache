@@ -49,7 +49,7 @@ Ok so SQLite is the best, how can we use it as the 2nd level?
 
 ## 👩‍🏫 Ok but how?
 
-Luckily someone in the community created an implementation of `IDistributedCache` based on SQLite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/AspSqliteCache)).
+Luckily someone in the community created an implementation of `IDistributedCache` based on SQLite, and released it as the [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) Nuget package (GitHub repo [here](https://github.com/neosmart/SqliteCache)).
 
 The package:
 - supports both the sync and async models natively, meaning it's not doing async-over-sync or vice versa, but a real double impl (like FusionCache does) which is very nice and will use the underlying system resources best
@@ -90,4 +90,4 @@ services.AddFusionCache()
 ;
 ```
 
-If you like what you are seeing, remember to give that [repo](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) a star ⭐ and share it!
+If you like what you are seeing, remember to give that [repo](https://github.com/neosmart/SqliteCache) a star ⭐ and share it!
