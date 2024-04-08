@@ -35,10 +35,10 @@ namespace ZiggyCreatures.Caching.Fusion.Chaos
 		}
 
 		/// <inheritdoc/>
-		public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+		public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
 			MaybeChaos(token);
-			return await _innerMemoryLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
+			return _innerMemoryLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
 		}
 
 		/// <inheritdoc/>
