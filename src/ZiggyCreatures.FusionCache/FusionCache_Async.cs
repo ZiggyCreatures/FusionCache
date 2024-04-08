@@ -216,10 +216,7 @@ public partial class FusionCache
 			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
 			if (entry is not null)
 			{
-				if (mca is not null)
-				{
-					mca.SetEntry<TValue>(operationId, key, entry, options);
-				}
+				mca?.SetEntry<TValue>(operationId, key, entry, options);
 			}
 		}
 		finally
@@ -461,10 +458,7 @@ public partial class FusionCache
 			memoryEntry = distributedEntry!.AsMemoryEntry<TValue>(options);
 
 			// SAVING THE DATA IN THE MEMORY CACHE
-			if (mca is not null)
-			{
-				mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
-			}
+			mca?.SetEntry<TValue>(operationId, key, memoryEntry, options);
 
 			// EVENT
 			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false);
@@ -485,10 +479,7 @@ public partial class FusionCache
 				memoryEntry = distributedEntry.AsMemoryEntry<TValue>(options);
 
 				// SAVING THE DATA IN THE MEMORY CACHE
-				if (mca is not null)
-				{
-					mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
-				}
+				mca?.SetEntry<TValue>(operationId, key, memoryEntry, options);
 
 				// EVENT
 				_events.OnHit(operationId, key, true);
@@ -608,10 +599,7 @@ public partial class FusionCache
 		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, false, null, null, null);
 
 		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
-		{
-			mca.SetEntry<TValue>(operationId, key, entry, options);
-		}
+		mca?.SetEntry<TValue>(operationId, key, entry, options);
 
 		if (RequiresDistributedOperations(options))
 		{
@@ -643,10 +631,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Remove, CacheName, InstanceId, key, operationId);
 
 		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
-		{
-			mca.RemoveEntry(operationId, key, options);
-		}
+		mca?.RemoveEntry(operationId, key, options);
 
 		if (RequiresDistributedOperations(options))
 		{
@@ -678,10 +663,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Expire, CacheName, InstanceId, key, operationId);
 
 		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
-		{
-			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
-		}
+		mca?.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 
 		if (RequiresDistributedOperations(options))
 		{

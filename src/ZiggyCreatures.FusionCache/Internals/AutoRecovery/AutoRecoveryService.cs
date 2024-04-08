@@ -158,10 +158,7 @@ internal sealed class AutoRecoveryService
 
 	internal bool TryRemoveItem(string? operationId, AutoRecoveryItem item)
 	{
-		if (item is null)
-			return false;
-
-		if (item.CacheKey is null)
+		if (item?.CacheKey is null)
 			return false;
 
 		if (_queue.TryRemove(item.CacheKey, item))
@@ -403,48 +400,45 @@ internal sealed class AutoRecoveryService
 			// TRY TO GET THE MEMORY CACHE
 			var mca = _cache.GetCurrentMemoryAccessor(item.Options);
 
-			if (mca is not null)
+			// TRY TO GET THE MEMORY ENTRY
+			var memoryEntry = mca?.GetEntryOrNull(operationId, item.CacheKey);
+
+			if (memoryEntry != null)
 			{
-				// TRY TO GET THE MEMORY ENTRY
-				var memoryEntry = mca.GetEntryOrNull(operationId, item.CacheKey);
-
-				if (memoryEntry is not null)
+				try
 				{
-					try
-					{
-						var (error, isSame, hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, item.CacheKey, _cache).ConfigureAwait(false);
+					var (error, isSame, hasUpdated) = await memoryEntry.TryUpdateMemoryEntryFromDistributedEntryAsync(operationId, item.CacheKey, _cache).ConfigureAwait(false);
 
-						if (error)
+					if (error)
+					{
+						// STOP PROCESSING THE QUEUE
+						return false;
+					}
+
+					if (hasUpdated)
+					{
+						// IF THE MEMORY ENTRY HAS BEEN UPDATED FROM THE DISTRIBUTED ENTRY, IT MEANS THAT THE DISTRIBUTED ENTRY
+						// IS NEWER THAN THE MEMORY ENTRY, BECAUSE IT HAS BEEN UPDATED SINCE WE SET IT LOCALLY AND NOW IT'S
+						// NEWER -> STOP HERE, ALL IS GOOD
+						return true;
+					}
+
+					if (isSame == false)
+					{
+						// IF THE MEMORY ENTRY IS ALSO NOT THE SAME AS THE DISTRIBUTED ENTRY, IT MEANS THAT THE DISTRIBUTED ENTRY
+						// IS EITHER OLDER OR IT'S NOT THERE AT ALL -> WE SET IT TO THE CURRENT ONE
+
+						var dcaSuccess = await memoryEntry.SetDistributedEntryAsync(operationId, item.CacheKey, dca, item.Options, true, token).ConfigureAwait(false);
+						if (dcaSuccess == false)
 						{
 							// STOP PROCESSING THE QUEUE
 							return false;
 						}
-
-						if (hasUpdated)
-						{
-							// IF THE MEMORY ENTRY HAS BEEN UPDATED FROM THE DISTRIBUTED ENTRY, IT MEANS THAT THE DISTRIBUTED ENTRY
-							// IS NEWER THAN THE MEMORY ENTRY, BECAUSE IT HAS BEEN UPDATED SINCE WE SET IT LOCALLY AND NOW IT'S
-							// NEWER -> STOP HERE, ALL IS GOOD
-							return true;
-						}
-
-						if (isSame == false)
-						{
-							// IF THE MEMORY ENTRY IS ALSO NOT THE SAME AS THE DISTRIBUTED ENTRY, IT MEANS THAT THE DISTRIBUTED ENTRY
-							// IS EITHER OLDER OR IT'S NOT THERE AT ALL -> WE SET IT TO THE CURRENT ONE
-
-							var dcaSuccess = await memoryEntry.SetDistributedEntryAsync(operationId, item.CacheKey, dca, item.Options, true, token).ConfigureAwait(false);
-							if (dcaSuccess == false)
-							{
-								// STOP PROCESSING THE QUEUE
-								return false;
-							}
-						}
 					}
-					catch
-					{
-						return false;
-					}
+				}
+				catch
+				{
+					return false;
 				}
 			}
 		}

@@ -408,10 +408,7 @@ public partial class FusionCache
 					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
 
 					var mca = GetCurrentMemoryAccessor(options);
-					if (mca is not null)
-					{
-						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
-					}
+					mca?.SetEntry<TValue>(operationId, key, lateEntry, options);
 
 					if (RequiresDistributedOperations(options))
 					{

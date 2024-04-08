@@ -304,10 +304,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Simulator
 				return logicalExpiration;
 
 			// USE THE PHYSICAL
-			if (physicalExpiration is not null)
-				return physicalExpiration;
-
-			return null;
+			return physicalExpiration;
 		}
 
 		private static void SetupClusters(IServiceProvider serviceProvider, ILogger<FusionCache>? logger)

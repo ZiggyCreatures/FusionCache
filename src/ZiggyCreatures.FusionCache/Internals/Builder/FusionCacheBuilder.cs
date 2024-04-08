@@ -126,10 +126,7 @@ internal sealed class FusionCacheBuilder
 			options.DefaultEntryOptions = DefaultEntryOptions;
 		}
 
-		if (SetupDefaultEntryOptionsAction is not null)
-		{
-			SetupDefaultEntryOptionsAction?.Invoke(options.DefaultEntryOptions);
-		}
+		SetupDefaultEntryOptionsAction?.Invoke(options.DefaultEntryOptions);
 
 		// CHECK INCOHERENT CACHE NAMES
 		if (options.CacheName != CacheName)
