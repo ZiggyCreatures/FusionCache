@@ -85,7 +85,7 @@ public class SerializerTypesClassData : IEnumerable<object[]>
 	{
 		foreach (var x in Enum.GetValues<SerializerType>())
 		{
-			yield return new object[] { x };
+			yield return [x];
 		}
 	}
 
