@@ -25,12 +25,12 @@ public class NullSerializer
 	/// <inheritdoc/>
 	public byte[] Serialize<T>(T? obj)
 	{
-		return Array.Empty<byte>();
+		return [];
 	}
 
 	/// <inheritdoc/>
 	public ValueTask<byte[]> SerializeAsync<T>(T? obj)
 	{
-		return new ValueTask<byte[]>(Array.Empty<byte>());
+		return new ValueTask<byte[]>([]);
 	}
 }
