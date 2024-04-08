@@ -99,10 +99,7 @@ internal sealed class FusionCacheBuilder
 			}
 		}
 
-		if (options is null)
-		{
-			options = Options;
-		}
+		options ??= Options;
 
 		if (options is null)
 		{

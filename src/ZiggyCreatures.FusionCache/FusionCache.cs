@@ -153,10 +153,7 @@ public partial class FusionCache
 			{
 				lock (_autoRecoveryLock)
 				{
-					if (_autoRecovery is null)
-					{
-						_autoRecovery = new AutoRecoveryService(this, _options, _logger);
-					}
+					_autoRecovery ??= new AutoRecoveryService(this, _options, _logger);
 				}
 			}
 
