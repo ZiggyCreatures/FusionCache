@@ -69,6 +69,7 @@ internal static class FusionCacheInternalUtils
 
 	// SEE HERE: https://devblogs.microsoft.com/pfxteam/little-known-gems-atomic-conditional-removals-from-concurrentdictionary/
 	public static bool TryRemove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+		where TKey : notnull
 	{
 		if (dictionary is null)
 			throw new ArgumentNullException(nameof(dictionary));
