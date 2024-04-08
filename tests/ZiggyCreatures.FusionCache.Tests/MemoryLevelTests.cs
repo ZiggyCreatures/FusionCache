@@ -1007,22 +1007,22 @@ public class MemoryLevelTests
 
 		using var cache = new FusionCache(new FusionCacheOptions());
 		// TOT REQ + 1 / FULL RESP + 1
-		var v1 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+		var v1 = await cache.GetOrSetAsync<int>("foo", (ctx, _) => FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 		// CACHED -> NO INCR
-		var v2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+		var v2 = await cache.GetOrSetAsync<int>("foo", (ctx, _) => FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 		// LET THE CACHE EXPIRE
 		await Task.Delay(duration.PlusALittleBit());
 
 		// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
-		var v3 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+		var v3 = await cache.GetOrSetAsync<int>("foo", (ctx, _) => FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 		// LET THE CACHE EXPIRE
 		await Task.Delay(duration.PlusALittleBit());
 
 		// TOT REQ + 1 / COND REQ + 1 / NOT MOD RESP + 1
-		var v4 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+		var v4 = await cache.GetOrSetAsync<int>("foo", (ctx, _) => FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 		// SET VALUE -> CHANGE LAST MODIFIED
 		endpoint.SetValue(42);
@@ -1031,7 +1031,7 @@ public class MemoryLevelTests
 		await Task.Delay(duration.PlusALittleBit());
 
 		// TOT REQ + 1 / COND REQ + 1 / FULL RESP + 1
-		var v5 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => await FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
+		var v5 = await cache.GetOrSetAsync<int>("foo", (ctx, _) => FakeGetAsync(ctx, endpoint), opt => opt.SetDuration(duration).SetFailSafe(true));
 
 		Assert.Equal(4, endpoint.TotalRequestsCount);
 		Assert.Equal(3, endpoint.ConditionalRequestsCount);

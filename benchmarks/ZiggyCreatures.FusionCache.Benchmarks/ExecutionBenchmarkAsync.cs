@@ -34,7 +34,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		public async Task WithTimeout()
 		{
 			await RunUtils.RunAsyncActionAdvancedAsync(
-				async _ => await ExecutorAsync(),
+				_ => ExecutorAsync(),
 				TimeSpan.FromSeconds(2),
 				false,
 				true
@@ -45,7 +45,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		public async Task WithTimeout2()
 		{
 			await RunUtils.RunAsyncActionAdvancedAsync(
-				async _ => await ExecutorAsync(),
+				_ => ExecutorAsync(),
 				TimeSpan.FromSeconds(2),
 				true,
 				true
@@ -56,7 +56,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		public async Task WithoutTimeout()
 		{
 			await RunUtils.RunAsyncActionAdvancedAsync(
-				async _ => await ExecutorAsync(),
+				_ => ExecutorAsync(),
 				Timeout.InfiniteTimeSpan,
 				true,
 				true
