@@ -264,7 +264,7 @@ internal sealed class AutoRecoveryService
 			return false;
 
 		// ACQUIRE THE LOCK
-		if (_lock.Wait(0) == false)
+		if (await _lock.WaitAsync(0, token) == false)
 		{
 			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY -> PROCESSING IS ALREADY ONGOING, SO WE JUST RETURN
 			return false;
