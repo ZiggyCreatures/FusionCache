@@ -1245,7 +1245,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task CanHandleEagerRefreshCancellationAsync()
+	public async Task CanHandleEagerRefreshNoCancellationAsync()
 	{
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
@@ -1271,6 +1271,7 @@ public class MemoryLevelTests
 		var eagerRefreshIsStarted = false;
 		var eagerRefreshIsEnded = false;
 		using var cts = new CancellationTokenSource();
+		long v3EagerResult = 0;
 		var v3 = await cache.GetOrSetAsync<long>(
 			"foo",
 			async ct =>
@@ -1283,7 +1284,7 @@ public class MemoryLevelTests
 
 				eagerRefreshIsEnded = true;
 
-				return DateTimeOffset.UtcNow.Ticks;
+				return v3EagerResult = DateTimeOffset.UtcNow.Ticks;
 			},
 			token: cts.Token
 		);
@@ -1299,22 +1300,29 @@ public class MemoryLevelTests
 
 		// GET THE REFRESHED VALUE
 		var sw = Stopwatch.StartNew();
-		var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, options =>
-		{
-			options.LockTimeout = lockTimeout;
-		});
+		var v4SupposedlyNot = DateTimeOffset.UtcNow.Ticks;
+		var v4 = await cache.GetOrSetAsync<long>(
+			"foo",
+			async _ => v4SupposedlyNot,
+			options =>
+			{
+				options.LockTimeout = lockTimeout;
+			}
+		);
 		sw.Stop();
 
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
 		Assert.True(eagerRefreshIsStarted);
-		Assert.False(eagerRefreshIsEnded);
+		Assert.True(eagerRefreshIsEnded);
 		Assert.True(sw.Elapsed < lockTimeout);
 		Assert.True(v4 > v3);
+		Assert.True(v4 == v3EagerResult);
+		Assert.False(v4 == v4SupposedlyNot);
 	}
 
 	[Fact]
-	public void CanHandleEagerRefreshCancellation()
+	public void CanHandleEagerRefreshNoCancellation()
 	{
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
@@ -1340,6 +1348,7 @@ public class MemoryLevelTests
 		var eagerRefreshIsStarted = false;
 		var eagerRefreshIsEnded = false;
 		using var cts = new CancellationTokenSource();
+		long v3EagerResult = 0;
 		var v3 = cache.GetOrSet<long>(
 			"foo",
 			ct =>
@@ -1352,7 +1361,7 @@ public class MemoryLevelTests
 
 				eagerRefreshIsEnded = true;
 
-				return DateTimeOffset.UtcNow.Ticks;
+				return v3EagerResult = DateTimeOffset.UtcNow.Ticks;
 			},
 			token: cts.Token
 		);
@@ -1368,18 +1377,25 @@ public class MemoryLevelTests
 
 		// GET THE REFRESHED VALUE
 		var sw = Stopwatch.StartNew();
-		var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, options =>
-		{
-			options.LockTimeout = lockTimeout;
-		});
+		var v4SupposedlyNot = DateTimeOffset.UtcNow.Ticks;
+		var v4 = cache.GetOrSet<long>(
+			"foo",
+			_ => v4SupposedlyNot,
+			options =>
+			{
+				options.LockTimeout = lockTimeout;
+			}
+		);
 		sw.Stop();
 
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
 		Assert.True(eagerRefreshIsStarted);
-		Assert.False(eagerRefreshIsEnded);
+		Assert.True(eagerRefreshIsEnded);
 		Assert.True(sw.Elapsed < lockTimeout);
 		Assert.True(v4 > v3);
+		Assert.True(v4 == v3EagerResult);
+		Assert.False(v4 == v4SupposedlyNot);
 	}
 
 	[Fact]
