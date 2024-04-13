@@ -62,7 +62,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 
 			// SETUP CACHES
 			_FusionCache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
-			_CacheTower = new CacheStack(null, new CacheStackOptions(new[] { new MemoryCacheLayer() }) { Extensions = new[] { new AutoCleanupExtension(TimeSpan.FromMinutes(5)) } });
+			_CacheTower = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))]});
 			_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
 			_LazyCache = new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions())));
 			_LazyCache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
