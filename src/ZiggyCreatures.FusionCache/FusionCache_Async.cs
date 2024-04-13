@@ -53,7 +53,7 @@ public partial class FusionCache
 				else
 				{
 					// EXECUTE EAGER REFRESH
-					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj, token).ConfigureAwait(false);
+					await ExecuteEagerRefreshAsync<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj).ConfigureAwait(false);
 				}
 			}
 
@@ -197,7 +197,7 @@ public partial class FusionCache
 					{
 						ProcessFactoryError(operationId, key, exc);
 
-						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory, token);
+						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
 
 						if (TryPickFailSafeFallbackValue(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options, out var maybeFallbackValue, out timestamp, out isStale))
 						{
@@ -258,7 +258,7 @@ public partial class FusionCache
 		return entry;
 	}
 
-	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
+	private async Task ExecuteEagerRefreshAsync<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj)
 	{
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
@@ -274,7 +274,7 @@ public partial class FusionCache
 					FusionCacheDistributedEntry<TValue>? distributedEntry;
 					bool distributedEntryIsValid;
 
-					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, token).ConfigureAwait(false);
+					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
 					if (distributedEntryIsValid)
 					{
 						if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
@@ -322,10 +322,10 @@ public partial class FusionCache
 
 			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
-			var factoryTask = factory(ctx, token);
+			var factoryTask = factory(ctx, default);
 
-			CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity, token);
-		}, token);
+			CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity);
+		});
 	}
 
 	/// <inheritdoc/>
