@@ -244,9 +244,9 @@ internal static class FusionCacheInternalUtils
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static IFusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
+	public static FusionCacheMemoryEntry<TValue> AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (entry is IFusionCacheMemoryEntry entry1)
+		if (entry is FusionCacheMemoryEntry<TValue> entry1)
 			return entry1;
 
 		return FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(entry, options);
