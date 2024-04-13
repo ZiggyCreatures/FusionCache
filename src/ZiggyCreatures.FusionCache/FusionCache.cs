@@ -304,7 +304,7 @@ public partial class FusionCache
 		return false;
 	}
 
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, Activity? activity)
 	{
 		if (factoryTask is null)
 		{
@@ -332,13 +332,11 @@ public partial class FusionCache
 			return;
 		}
 
-		token.ThrowIfCancellationRequested();
-
 		activity?.AddEvent(new ActivityEvent(Activities.EventNames.FactoryBackgroundMove));
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity, token);
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity);
 	}
 
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity, CancellationToken token)
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity)
 	{
 		if (factoryTask.IsFaulted)
 		{
@@ -415,7 +413,7 @@ public partial class FusionCache
 
 					if (RequiresDistributedOperations(options))
 					{
-						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, token).ConfigureAwait(false);
+						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, default).ConfigureAwait(false);
 					}
 
 					// EVENT
@@ -429,7 +427,7 @@ public partial class FusionCache
 				if (memoryLockObj is not null)
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 			}
-		}, token);
+		});
 	}
 
 	private async ValueTask<object?> AcquireMemoryLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
