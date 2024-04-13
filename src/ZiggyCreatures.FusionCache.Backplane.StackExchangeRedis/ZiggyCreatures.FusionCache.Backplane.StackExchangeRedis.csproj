@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net6.0</TargetFrameworks>
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<Version>1.0.0</Version>
@@ -28,6 +28,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="StackExchange.Redis" Version="2.7.27" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 
