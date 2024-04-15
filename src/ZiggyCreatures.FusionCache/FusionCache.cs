@@ -126,8 +126,8 @@ public partial class FusionCache
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: instance created", CacheName, InstanceId);
 
 		// MICRO OPTIMIZATION: WARM UP OBSERVABILITY STUFF
-		var tmp1 = Activities.Source;
-		var tmp2 = Metrics.Meter;
+		_ = Activities.Source;
+		_ = Metrics.Meter;
 	}
 
 	/// <inheritdoc/>
