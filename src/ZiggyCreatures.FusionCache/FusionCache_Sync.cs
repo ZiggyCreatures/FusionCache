@@ -474,7 +474,7 @@ public partial class FusionCache
 
 		if (options.IsFailSafeEnabled)
 		{
-			// FAIL-SAFE IS ENABLE -> CAN USE STALE ENTRY
+			// FAIL-SAFE IS ENABLED -> CAN USE STALE ENTRY
 
 			// IF DISTRIBUTED ENTRY IS THERE -> USE IT
 			if (distributedEntry is not null)
