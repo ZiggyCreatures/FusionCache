@@ -392,15 +392,20 @@ public partial class FusionCache
 
 					// UPDATE ADAPTIVE OPTIONS
 					var maybeNewOptions = ctx.GetOptions();
-					if (options != maybeNewOptions)
+					if (ReferenceEquals(options, maybeNewOptions) == false)
+					{
 						options = maybeNewOptions;
+					}
+					else
+					{
+						options = options.Duplicate();
+					}
 
-					options = options.Duplicate();
 					options.AllowBackgroundDistributedCacheOperations = false;
-					options.ReThrowDistributedCacheExceptions = false;
 					options.AllowBackgroundBackplaneOperations = false;
-					options.ReThrowBackplaneExceptions = false;
+					options.ReThrowDistributedCacheExceptions = false;
 					options.ReThrowSerializationExceptions = false;
+					options.ReThrowBackplaneExceptions = false;
 
 					// ADAPTIVE CACHING UPDATE
 					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
