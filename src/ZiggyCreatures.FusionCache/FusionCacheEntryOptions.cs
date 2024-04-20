@@ -685,7 +685,7 @@ public sealed class FusionCacheEntryOptions
 		// PHYSICAL DURATION
 		TimeSpan physicalDuration;
 		TimeSpan durationToUse;
-		TimeSpan failSafeMaxDurationToUse = DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration;
+		TimeSpan failSafeMaxDurationToUse = TimeSpan.MaxValue;
 		bool incoherentFailSafeMaxDuration = false;
 
 		durationToUse = DistributedCacheDuration ?? Duration;
@@ -696,6 +696,7 @@ public sealed class FusionCacheEntryOptions
 		}
 		else
 		{
+			failSafeMaxDurationToUse = DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration;
 			if (failSafeMaxDurationToUse < durationToUse)
 			{
 				incoherentFailSafeMaxDuration = true;
