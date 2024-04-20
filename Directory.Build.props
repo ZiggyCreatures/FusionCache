@@ -19,6 +19,10 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		-->
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<PackageIcon>logo-128x128.png</PackageIcon>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<ItemGroup>
