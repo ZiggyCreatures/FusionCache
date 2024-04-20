@@ -29,10 +29,6 @@ public partial class FusionCache
 			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
 		}
 
-		IFusionCacheMemoryEntry? entry;
-		bool isStale = false;
-		var hasNewValue = false;
-
 		if (memoryEntryIsValid)
 		{
 			// VALID CACHE ENTRY
@@ -53,7 +49,7 @@ public partial class FusionCache
 				else
 				{
 					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefresh<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj);
+					ExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, factory, options, memoryEntry, memoryLockObj);
 				}
 			}
 
@@ -66,6 +62,10 @@ public partial class FusionCache
 
 			return memoryEntry;
 		}
+
+		IFusionCacheMemoryEntry? entry;
+		bool isStale = false;
+		var hasNewValue = false;
 
 		try
 		{
@@ -118,10 +118,6 @@ public partial class FusionCache
 				}
 			}
 
-			DateTimeOffset? lastModified = null;
-			string? etag = null;
-			long? timestamp = null;
-
 			if (distributedEntryIsValid)
 			{
 				isStale = false;
@@ -130,12 +126,12 @@ public partial class FusionCache
 			else
 			{
 				// FACTORY
-				TValue? value;
-
 				if (isRealFactory == false)
 				{
-					value = factory(null!, token);
+					var value = factory(null!, token);
 					hasNewValue = true;
+
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, null, null, null);
 				}
 				else
 				{
@@ -155,6 +151,7 @@ public partial class FusionCache
 					{
 						token.ThrowIfCancellationRequested();
 
+						TValue? value;
 						if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 						{
 							value = factory(ctx, CancellationToken.None);
@@ -170,7 +167,7 @@ public partial class FusionCache
 
 						// UPDATE ADAPTIVE OPTIONS
 						var maybeNewOptions = ctx.GetOptions();
-						if (options != maybeNewOptions)
+						if (ReferenceEquals(options, maybeNewOptions) == false)
 						{
 							options = maybeNewOptions;
 
@@ -178,9 +175,7 @@ public partial class FusionCache
 							mca = GetCurrentMemoryAccessor(options);
 						}
 
-						// UPDATE LASTMODIFIED/ETAG
-						lastModified = ctx.LastModified;
-						etag = ctx.ETag;
+						entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
 
 						// EVENTS
 						_events.OnFactorySuccess(operationId, key);
@@ -199,26 +194,24 @@ public partial class FusionCache
 
 						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
 
-						if (TryPickFailSafeFallbackValue(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options, out var maybeFallbackValue, out timestamp, out isStale))
-						{
-							value = maybeFallbackValue.Value;
-						}
-						else
+						entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
+
+						if (entry is null)
 						{
 							throw;
 						}
+
+						isStale = true;
 					}
 				}
-
-				entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, lastModified, etag, timestamp);
 			}
 
-			// SAVING THE DATA IN THE MEMORY CACHE (EVEN IF IT IS FROM FAIL-SAFE)
+			// SAVING THE DATA IN THE MEMORY CACHE
 			if (entry is not null)
 			{
 				if (mca is not null)
 				{
-					mca.SetEntry<TValue>(operationId, key, entry, options);
+					mca.SetEntry<TValue>(operationId, key, entry, options, ReferenceEquals(memoryEntry, entry));
 				}
 			}
 		}
@@ -258,12 +251,12 @@ public partial class FusionCache
 		return entry;
 	}
 
-	private void ExecuteEagerRefresh<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj)
+	private void ExecuteEagerRefreshWithSyncFactory<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj)
 	{
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
 
-		Task.Run(() =>
+		_ = Task.Run(() =>
 		{
 			// TRY WITH DISTRIBUTED CACHE (IF ANY)
 			try
