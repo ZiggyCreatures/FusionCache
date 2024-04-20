@@ -15,8 +15,7 @@ public partial class FusionCache
 {
 	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
 	{
-		if (options is null)
-			options = _options.DefaultEntryOptions;
+		options ??= _options.DefaultEntryOptions;
 
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
@@ -394,8 +393,7 @@ public partial class FusionCache
 
 	private IFusionCacheEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions? options, CancellationToken token)
 	{
-		if (options is null)
-			options = _options.DefaultEntryOptions;
+		options ??= _options.DefaultEntryOptions;
 
 		token.ThrowIfCancellationRequested();
 
@@ -586,8 +584,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		if (options is null)
-			options = _options.DefaultEntryOptions;
+		options ??= _options.DefaultEntryOptions;
 
 		var operationId = MaybeGenerateOperationId();
 
@@ -624,8 +621,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		if (options is null)
-			options = _options.DefaultEntryOptions;
+		options ??= _options.DefaultEntryOptions;
 
 		var operationId = MaybeGenerateOperationId();
 
@@ -659,8 +655,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		if (options is null)
-			options = _options.DefaultEntryOptions;
+		options ??= _options.DefaultEntryOptions;
 
 		var operationId = MaybeGenerateOperationId();
 
