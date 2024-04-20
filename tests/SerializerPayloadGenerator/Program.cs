@@ -38,7 +38,7 @@ static void TestSamples<T>(IFusionCacheSerializer[] serializers)
 		Console.WriteLine("SAMPLES:");
 		foreach (var file in files)
 		{
-			var payloadVersion = Regex.Match(file, @"\w+__v(\d+_\d+_\d+)_\d+\.bin").Groups[1]?.Value?.Replace('_', '.');
+			var payloadVersion = Regex.Match(file, @"\w+__v(\d+_\d+_\d+)_\d+\.bin").Groups[1].Value.Replace('_', '.');
 
 			var payload = File.ReadAllBytes(file);
 			Console.Write($"- FROM v{payloadVersion}: ");

@@ -37,7 +37,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 		protected override void OnEventWritten(EventWrittenEventArgs eventData)
 		{
-			_logger.LogWarning("WARN: Message = {Message}, Payload = {Payload}", eventData.Message, eventData.Payload?.Select(p => p?.ToString())?.ToArray()!);
+			_logger.LogWarning("WARN: Message = {Message}, Payload = {Payload}", eventData.Message, eventData.Payload?.Select(p => p?.ToString()).ToArray()!);
 		}
 	}
 

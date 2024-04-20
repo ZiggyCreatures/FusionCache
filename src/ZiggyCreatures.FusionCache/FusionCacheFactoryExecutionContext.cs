@@ -5,7 +5,13 @@ using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
-/// Models the execution context passed to a FusionCache factory. Right now it just contains the options so they can be modified based of the factory execution (see adaptive caching), but in the future this may contain more.
+/// Models the execution context passed to a FusionCache factory.
+/// <br/>
+/// It contains various things, like entry options modifiable during factory execution (see Adaptive Caching), LastModified/Etag (see Conditional Refresh) and some useful methods.
+/// <br/><br/>
+/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AdaptiveCaching.md"/>
+/// <br/>
+/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 /// </summary>
 public class FusionCacheFactoryExecutionContext<TValue>
 {
@@ -23,7 +29,9 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	}
 
 	/// <summary>
-	/// The options currently used, and that can be modified or changed completely.
+	/// The options currently used: they can be modified to achieve Adaptive Caching.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AdaptiveCaching.md"/>
 	/// </summary>
 	public FusionCacheEntryOptions Options
 	{
@@ -52,11 +60,15 @@ public class FusionCacheFactoryExecutionContext<TValue>
 
 	/// <summary>
 	/// The stale value, maybe.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	public MaybeValue<TValue> StaleValue { get; }
 
 	/// <summary>
 	/// Indicates if there is a cached stale value.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	public bool HasStaleValue
 	{
@@ -65,11 +77,15 @@ public class FusionCacheFactoryExecutionContext<TValue>
 
 	/// <summary>
 	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	public string? ETag { get; set; }
 
 	/// <summary>
 	/// Indicates if there is an ETag value for the cached value.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	public bool HasETag
 	{
@@ -78,11 +94,15 @@ public class FusionCacheFactoryExecutionContext<TValue>
 
 	/// <summary>
 	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	public DateTimeOffset? LastModified { get; set; }
 
 	/// <summary>
 	/// Indicates if there is a LastModified value for the cached value.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	public bool HasLastModified
 	{
@@ -91,6 +111,8 @@ public class FusionCacheFactoryExecutionContext<TValue>
 
 	/// <summary>
 	/// For when the value is not modified, so that the stale value can be automatically returned.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	/// <returns>The stale value, for when it is not changed.</returns>
 	public TValue NotModified()
@@ -100,6 +122,8 @@ public class FusionCacheFactoryExecutionContext<TValue>
 
 	/// <summary>
 	/// For when the value is modified, so that the new value can be returned and cached, along with the ETag and/or the LastModified values.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>
 	/// <param name="value">The new value.</param>
 	/// <param name="etag">The new value for the <see cref="ETag"/> property.</param>

@@ -239,7 +239,7 @@ public class SerializationTests
 
 		foreach (var file in files)
 		{
-			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1]?.Value?.Replace('_', '.');
+			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
 
 			var payload = File.ReadAllBytes(file);
 			var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
@@ -267,7 +267,7 @@ public class SerializationTests
 
 		foreach (var file in files)
 		{
-			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1]?.Value?.Replace('_', '.');
+			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
 
 			var payload = File.ReadAllBytes(file);
 			var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);

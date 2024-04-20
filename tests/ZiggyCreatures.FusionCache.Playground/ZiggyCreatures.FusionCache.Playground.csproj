@@ -3,8 +3,6 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFramework>net8.0</TargetFramework>
-		<LangVersion>latest</LangVersion>
-		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Playground</RootNamespace>
 		<UserSecretsId>1f4e47b6-6dd9-49b0-af63-058750249662</UserSecretsId>

@@ -102,14 +102,14 @@ internal sealed class FusionCacheBuilder
 		if (options is null)
 		{
 			options = Options;
-		}
 
-		if (options is null)
-		{
-			options = new FusionCacheOptions()
+			if (options is null)
 			{
-				CacheName = CacheName
-			};
+				options = new FusionCacheOptions()
+				{
+					CacheName = CacheName
+				};
+			}
 		}
 
 		SetupOptionsAction?.Invoke(options);
