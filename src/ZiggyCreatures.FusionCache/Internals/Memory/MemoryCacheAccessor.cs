@@ -31,7 +31,7 @@ internal sealed class MemoryCacheAccessor
 	private readonly ILogger? _logger;
 	private readonly FusionCacheMemoryEventsHub _events;
 
-	public void SetEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
+	public void SetEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions options, bool skipPhysicalSet = false)
 	{
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemorySet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
@@ -46,23 +46,26 @@ internal sealed class MemoryCacheAccessor
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString());
 
-		var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key);
-
-		if (memoryEntryOptions is not null)
+		if (skipPhysicalSet == false)
 		{
-			entry.PhysicalExpiration = memoryEntryOptions.AbsoluteExpiration!.Value;
+			var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key);
 
-			_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryEntryOptions);
-		}
-		else if (absoluteExpiration is not null)
-		{
-			entry.PhysicalExpiration = absoluteExpiration.Value;
+			if (memoryEntryOptions is not null)
+			{
+				entry.PhysicalExpiration = memoryEntryOptions.AbsoluteExpiration!.Value;
 
-			_cache.Set<IFusionCacheMemoryEntry>(key, entry, absoluteExpiration.Value);
-		}
-		else
-		{
-			throw new InvalidOperationException("No MemoryCacheEntryOptions or AbsoluteExpiration was determined: this should not be possible, WTH!?");
+				_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryEntryOptions);
+			}
+			else if (absoluteExpiration is not null)
+			{
+				entry.PhysicalExpiration = absoluteExpiration.Value;
+
+				_cache.Set<IFusionCacheMemoryEntry>(key, entry, absoluteExpiration.Value);
+			}
+			else
+			{
+				throw new InvalidOperationException("No MemoryCacheEntryOptions or AbsoluteExpiration was determined: this should not be possible, WTH!?");
+			}
 		}
 
 		// EVENT

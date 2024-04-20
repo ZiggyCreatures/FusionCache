@@ -1416,4 +1416,96 @@ public class DistributedCacheLevelTests
 		Assert.Equal(21, foo1);
 		Assert.Equal(42, foo2);
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task FailSafeMaxDurationIsRespectedAsync(SerializerType serializerType)
+	{
+		var keyFoo = CreateRandomCacheKey("foo");
+
+		var duration = TimeSpan.FromSeconds(2);
+		var throttleDuration = TimeSpan.FromSeconds(1);
+		var maxDuration = TimeSpan.FromSeconds(5);
+		var exceptionMessage = "Sloths are cool";
+
+		var options = CreateFusionCacheOptions();
+		options.DefaultEntryOptions.Duration = duration;
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+		options.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		var distributedCache = CreateDistributedCache();
+		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
+		fusionCache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		await fusionCache.SetAsync<int>(keyFoo, 21);
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+
+		var didThrow = false;
+		var sw = Stopwatch.StartNew();
+
+		try
+		{
+			do
+			{
+				await Task.Delay(throttleDuration.PlusALittleBit());
+				await fusionCache.GetOrSetAsync<int>(keyFoo, async _ => throw new Exception(exceptionMessage));
+			} while (sw.Elapsed < maxDuration + throttleDuration);
+		}
+		catch (Exception exc) when (exc.Message == exceptionMessage)
+		{
+			didThrow = true;
+		}
+		TestOutput.WriteLine($"-- END AT {DateTime.UtcNow}");
+		sw.Stop();
+
+		Assert.True(didThrow);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void FailSafeMaxDurationIsRespected(SerializerType serializerType)
+	{
+		var keyFoo = CreateRandomCacheKey("foo");
+
+		var duration = TimeSpan.FromSeconds(2);
+		var throttleDuration = TimeSpan.FromSeconds(1);
+		var maxDuration = TimeSpan.FromSeconds(5);
+		var exceptionMessage = "Sloths are cool";
+
+		var options = CreateFusionCacheOptions();
+		options.DefaultEntryOptions.Duration = duration;
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+		options.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		var distributedCache = CreateDistributedCache();
+		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
+		fusionCache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		fusionCache.Set<int>(keyFoo, 21);
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+
+		var didThrow = false;
+		var sw = Stopwatch.StartNew();
+
+		try
+		{
+			do
+			{
+				Thread.Sleep(throttleDuration.PlusALittleBit());
+				fusionCache.GetOrSet<int>(keyFoo, _ => throw new Exception(exceptionMessage));
+			} while (sw.Elapsed < maxDuration + throttleDuration);
+		}
+		catch (Exception exc) when (exc.Message == exceptionMessage)
+		{
+			didThrow = true;
+		}
+		TestOutput.WriteLine($"-- END AT {DateTime.UtcNow}");
+		sw.Stop();
+
+		Assert.True(didThrow);
+	}
 }
