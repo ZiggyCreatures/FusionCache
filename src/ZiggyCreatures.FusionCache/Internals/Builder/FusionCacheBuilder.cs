@@ -99,14 +99,17 @@ internal sealed class FusionCacheBuilder
 			}
 		}
 
-		options ??= Options;
-
 		if (options is null)
 		{
-			options = new FusionCacheOptions()
+			options = Options;
+
+			if (options is null)
 			{
-				CacheName = CacheName
-			};
+				options = new FusionCacheOptions()
+				{
+					CacheName = CacheName
+				};
+			}
 		}
 
 		SetupOptionsAction?.Invoke(options);
