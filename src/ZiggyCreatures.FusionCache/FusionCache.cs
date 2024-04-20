@@ -126,8 +126,8 @@ public partial class FusionCache
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: instance created", CacheName, InstanceId);
 
 		// MICRO OPTIMIZATION: WARM UP OBSERVABILITY STUFF
-		var tmp1 = Activities.Source;
-		var tmp2 = Metrics.Meter;
+		_ = Activities.Source;
+		_ = Metrics.Meter;
 	}
 
 	/// <inheritdoc/>
@@ -227,7 +227,7 @@ public partial class FusionCache
 		return options.SkipBackplaneNotifications ? null : _bpa;
 	}
 
-	private bool TryPickFailSafeFallbackValue<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, out MaybeValue<TValue?> value, out long? timestamp, out bool failSafeActivated)
+	private IFusionCacheMemoryEntry? TryActivateFailSafe<TValue>(string operationId, string key, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options)
 	{
 		// FAIL-SAFE NOT ENABLED
 		if (options.IsFailSafeEnabled == false)
@@ -235,73 +235,65 @@ public partial class FusionCache
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE not enabled", CacheName, InstanceId, operationId, key);
 
-			value = default;
-			timestamp = default;
-			failSafeActivated = false;
-			return false;
+			return null;
 		}
 
 		// FAIL-SAFE ENABLED
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to activate FAIL-SAFE", CacheName, InstanceId, operationId, key);
 
-		// TRY TO PICK A FALLBACK ENTRY
-		IFusionCacheEntry? entry;
-		//if (distributedEntry is not null && (memoryEntry is null || distributedEntry.Timestamp > memoryEntry.Timestamp))
-		if (distributedEntry is not null)
+		IFusionCacheMemoryEntry? entry = null;
+
+		if (distributedEntry is not null && (memoryEntry is null || distributedEntry.Timestamp > memoryEntry.Timestamp))
 		{
-			entry = distributedEntry;
+			// TRY WITH DISTRIBUTED CACHE ENTRY
+			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", CacheName, InstanceId, operationId, key);
+
+			//entry = FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry, options);
+			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(distributedEntry.GetValue<TValue>(), options, true, distributedEntry.Metadata?.LastModified, distributedEntry.Metadata?.ETag, distributedEntry.Timestamp);
 		}
-		else
+		else if (memoryEntry is not null && memoryEntry.Metadata is not null)
 		{
+			// TRY WITH MEMORY CACHE ENTRY
+			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", CacheName, InstanceId, operationId, key);
+
+			var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(options.FailSafeThrottleDuration, options, true);
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(true, options.EagerRefreshThreshold, exp);
+
+			_logger?.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): SHIFTING A MEMORY ENTRY FROM {OldExp} TO {NewExp} ({Diff} DIFF)", CacheName, InstanceId, operationId, key, memoryEntry.Metadata.LogicalExpiration, exp, exp - memoryEntry.Metadata.LogicalExpiration);
+
+			memoryEntry.Metadata.IsFromFailSafe = true;
+			memoryEntry.Metadata.LogicalExpiration = exp;
+			memoryEntry.Metadata.EagerExpiration = eagerExp;
 			entry = memoryEntry;
+		}
+		else if (failSafeDefaultValue.HasValue)
+		{
+			// TRY WITH FAIL-SAFE DEFAULT VALUE
+			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
+				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from fail-safe default value)", CacheName, InstanceId, operationId, key);
+
+			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(failSafeDefaultValue.Value, options, true, null, null, null);
 		}
 
 		if (entry is not null)
 		{
-			// ACTIVATE FAIL-SAFE
-			value = entry.GetValue<TValue>();
-			timestamp = entry.Timestamp;
-			failSafeActivated = true;
-
-			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from " + (entry is IFusionCacheMemoryEntry ? "memory" : "distributed") + ")", CacheName, InstanceId, operationId, key);
-
 			// EVENT
 			_events.OnFailSafeActivate(operationId, key);
 
-			return true;
-		}
-
-		// TRY WITH THE FAIL-SAFE DEFAULT VALUE
-		if (failSafeDefaultValue.HasValue)
-		{
-			// ACTIVATE FAIL-SAFE
-			value = failSafeDefaultValue.Value;
-			timestamp = null;
-			failSafeActivated = true;
-
-			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
-				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from fail-safe default value)", CacheName, InstanceId, operationId, key);
-
-			// EVENT
-			_events.OnFailSafeActivate(operationId, key);
-
-			return true;
+			return entry;
 		}
 
 		// UNABLE TO ACTIVATE FAIL-SAFE
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed)", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): unable to activate FAIL-SAFE (no entries in memory or distributed, nor fail-safe default value)", CacheName, InstanceId, operationId, key);
 
-		value = default;
-		timestamp = default;
-		failSafeActivated = false;
-
-		return false;
+		return null;
 	}
 
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, Activity? activity)
 	{
 		if (factoryTask is null)
 		{
@@ -329,13 +321,11 @@ public partial class FusionCache
 			return;
 		}
 
-		token.ThrowIfCancellationRequested();
-
 		activity?.AddEvent(new ActivityEvent(Activities.EventNames.FactoryBackgroundMove));
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity, token);
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity);
 	}
 
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity, CancellationToken token)
+	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity)
 	{
 		if (factoryTask.IsFaulted)
 		{
@@ -391,15 +381,20 @@ public partial class FusionCache
 
 					// UPDATE ADAPTIVE OPTIONS
 					var maybeNewOptions = ctx.GetOptions();
-					if (options != maybeNewOptions)
+					if (ReferenceEquals(options, maybeNewOptions) == false)
+					{
 						options = maybeNewOptions;
+					}
+					else
+					{
+						options = options.Duplicate();
+					}
 
-					options = options.Duplicate();
 					options.AllowBackgroundDistributedCacheOperations = false;
-					options.ReThrowDistributedCacheExceptions = false;
 					options.AllowBackgroundBackplaneOperations = false;
-					options.ReThrowBackplaneExceptions = false;
+					options.ReThrowDistributedCacheExceptions = false;
 					options.ReThrowSerializationExceptions = false;
+					options.ReThrowBackplaneExceptions = false;
 
 					// ADAPTIVE CACHING UPDATE
 					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
@@ -412,7 +407,7 @@ public partial class FusionCache
 
 					if (RequiresDistributedOperations(options))
 					{
-						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, token).ConfigureAwait(false);
+						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, default).ConfigureAwait(false);
 					}
 
 					// EVENT
@@ -426,7 +421,7 @@ public partial class FusionCache
 				if (memoryLockObj is not null)
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 			}
-		}, token);
+		});
 	}
 
 	private async ValueTask<object?> AcquireMemoryLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)

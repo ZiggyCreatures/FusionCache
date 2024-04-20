@@ -69,6 +69,7 @@ internal static class FusionCacheInternalUtils
 
 	// SEE HERE: https://devblogs.microsoft.com/pfxteam/little-known-gems-atomic-conditional-removals-from-concurrentdictionary/
 	public static bool TryRemove<TKey, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+		where TKey : notnull
 	{
 		if (dictionary is null)
 			throw new ArgumentNullException(nameof(dictionary));
@@ -243,9 +244,9 @@ internal static class FusionCacheInternalUtils
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
-	public static IFusionCacheMemoryEntry AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
+	public static FusionCacheMemoryEntry<TValue> AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (entry is IFusionCacheMemoryEntry entry1)
+		if (entry is FusionCacheMemoryEntry<TValue> entry1)
 			return entry1;
 
 		return FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(entry, options);

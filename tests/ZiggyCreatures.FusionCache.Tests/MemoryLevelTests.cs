@@ -1245,6 +1245,160 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
+	public async Task CanHandleEagerRefreshNoCancellationAsync()
+	{
+		var duration = TimeSpan.FromSeconds(2);
+		var lockTimeout = TimeSpan.FromSeconds(10);
+		var eagerRefreshThreshold = 0.1f;
+		var eagerRefreshDelay = TimeSpan.FromSeconds(5);
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+		// EXECUTE FACTORY
+		var v1 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+		// USE CACHED VALUE
+		var v2 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+		await Task.Delay(eagerDuration);
+
+		// EAGER REFRESH KICKS IN
+		var eagerRefreshIsStarted = false;
+		var eagerRefreshIsEnded = false;
+		using var cts = new CancellationTokenSource();
+		long v3EagerResult = 0;
+		var v3 = await cache.GetOrSetAsync<long>(
+			"foo",
+			async ct =>
+			{
+				eagerRefreshIsStarted = true;
+
+				await Task.Delay(eagerRefreshDelay);
+
+				ct.ThrowIfCancellationRequested();
+
+				eagerRefreshIsEnded = true;
+
+				return v3EagerResult = DateTimeOffset.UtcNow.Ticks;
+			},
+			token: cts.Token
+		);
+
+		// ALLOW EAGER REFRESH TO START
+		await Task.Delay(TimeSpan.FromMilliseconds(50));
+
+		// CANCEL
+		cts.Cancel();
+
+		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+		await Task.Delay(eagerRefreshDelay.PlusALittleBit());
+
+		// GET THE REFRESHED VALUE
+		var sw = Stopwatch.StartNew();
+		var v4SupposedlyNot = DateTimeOffset.UtcNow.Ticks;
+		var v4 = await cache.GetOrSetAsync<long>(
+			"foo",
+			async _ => v4SupposedlyNot,
+			options =>
+			{
+				options.LockTimeout = lockTimeout;
+			}
+		);
+		sw.Stop();
+
+		Assert.Equal(v1, v2);
+		Assert.Equal(v2, v3);
+		Assert.True(eagerRefreshIsStarted);
+		Assert.True(eagerRefreshIsEnded);
+		Assert.True(sw.Elapsed < lockTimeout);
+		Assert.True(v4 > v3);
+		Assert.True(v4 == v3EagerResult);
+		Assert.False(v4 == v4SupposedlyNot);
+	}
+
+	[Fact]
+	public void CanHandleEagerRefreshNoCancellation()
+	{
+		var duration = TimeSpan.FromSeconds(2);
+		var lockTimeout = TimeSpan.FromSeconds(10);
+		var eagerRefreshThreshold = 0.1f;
+		var eagerRefreshDelay = TimeSpan.FromSeconds(5);
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+		// EXECUTE FACTORY
+		var v1 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+		// USE CACHED VALUE
+		var v2 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+		Thread.Sleep(eagerDuration);
+
+		// EAGER REFRESH KICKS IN
+		var eagerRefreshIsStarted = false;
+		var eagerRefreshIsEnded = false;
+		using var cts = new CancellationTokenSource();
+		long v3EagerResult = 0;
+		var v3 = cache.GetOrSet<long>(
+			"foo",
+			ct =>
+			{
+				eagerRefreshIsStarted = true;
+
+				Thread.Sleep(eagerRefreshDelay);
+
+				ct.ThrowIfCancellationRequested();
+
+				eagerRefreshIsEnded = true;
+
+				return v3EagerResult = DateTimeOffset.UtcNow.Ticks;
+			},
+			token: cts.Token
+		);
+
+		// ALLOW EAGER REFRESH TO START
+		Thread.Sleep(TimeSpan.FromMilliseconds(50));
+
+		// CANCEL
+		cts.Cancel();
+
+		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+		Thread.Sleep(eagerRefreshDelay.PlusALittleBit());
+
+		// GET THE REFRESHED VALUE
+		var sw = Stopwatch.StartNew();
+		var v4SupposedlyNot = DateTimeOffset.UtcNow.Ticks;
+		var v4 = cache.GetOrSet<long>(
+			"foo",
+			_ => v4SupposedlyNot,
+			options =>
+			{
+				options.LockTimeout = lockTimeout;
+			}
+		);
+		sw.Stop();
+
+		Assert.Equal(v1, v2);
+		Assert.Equal(v2, v3);
+		Assert.True(eagerRefreshIsStarted);
+		Assert.True(eagerRefreshIsEnded);
+		Assert.True(sw.Elapsed < lockTimeout);
+		Assert.True(v4 > v3);
+		Assert.True(v4 == v3EagerResult);
+		Assert.False(v4 == v4SupposedlyNot);
+	}
+
+	[Fact]
 	public async Task NormalFactoryExecutionWaitsForInFlightEagerRefreshAsync()
 	{
 		var duration = TimeSpan.FromSeconds(2);
@@ -1519,5 +1673,136 @@ public class MemoryLevelTests
 		{
 			_ = await cache.GetOrSetAsync<int>("qux", async _ => throw new UnreachableException("Sloths"));
 		});
+	}
+
+	[Fact]
+	public void CanUseNullFusionCache()
+	{
+		using var cache = new NullFusionCache(new FusionCacheOptions()
+		{
+			CacheName = "SlothsAreCool42",
+			DefaultEntryOptions = new FusionCacheEntryOptions()
+			{
+				IsFailSafeEnabled = true,
+				Duration = TimeSpan.FromMinutes(123)
+			}
+		});
+
+		cache.Set<int>("foo", 42);
+
+		var maybeFoo1 = cache.TryGet<int>("foo");
+
+		cache.Remove("foo");
+
+		var maybeBar1 = cache.TryGet<int>("bar");
+
+		cache.Expire("qux");
+
+		var qux1 = cache.GetOrSet("qux", _ => 1);
+		var qux2 = cache.GetOrSet("qux", _ => 2);
+		var qux3 = cache.GetOrSet("qux", _ => 3);
+		var qux4 = cache.GetOrDefault("qux", 4);
+
+		Assert.Equal("SlothsAreCool42", cache.CacheName);
+		Assert.False(string.IsNullOrWhiteSpace(cache.InstanceId));
+
+		Assert.False(cache.HasDistributedCache);
+		Assert.False(cache.HasBackplane);
+
+		Assert.True(cache.DefaultEntryOptions.IsFailSafeEnabled);
+		Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
+
+		Assert.False(maybeFoo1.HasValue);
+		Assert.False(maybeBar1.HasValue);
+
+		Assert.Equal(1, qux1);
+		Assert.Equal(2, qux2);
+		Assert.Equal(3, qux3);
+		Assert.Equal(4, qux4);
+
+		Assert.Throws<UnreachableException>(() =>
+		{
+			_ = cache.GetOrSet<int>("qux", _ => throw new UnreachableException("Sloths"));
+		});
+	}
+
+	[Fact]
+	public async Task FailSafeMaxDurationIsRespectedAsync()
+	{
+		var duration = TimeSpan.FromSeconds(2);
+		var throttleDuration = TimeSpan.FromSeconds(1);
+		var maxDuration = TimeSpan.FromSeconds(5);
+		var exceptionMessage = "Sloths are cool";
+
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = duration;
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+		options.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+
+		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
+
+		await fusionCache.SetAsync<int>("foo", 21);
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+
+		var didThrow = false;
+		var sw = Stopwatch.StartNew();
+
+		try
+		{
+			do
+			{
+				await Task.Delay(throttleDuration.PlusALittleBit());
+				await fusionCache.GetOrSetAsync<int>("foo", async _ => throw new Exception(exceptionMessage));
+			} while (sw.Elapsed < maxDuration + throttleDuration);
+		}
+		catch (Exception exc) when (exc.Message == exceptionMessage)
+		{
+			didThrow = true;
+		}
+		TestOutput.WriteLine($"-- END AT {DateTime.UtcNow}");
+		sw.Stop();
+
+		Assert.True(didThrow);
+	}
+
+	[Fact]
+	public void FailSafeMaxDurationIsRespected()
+	{
+		var duration = TimeSpan.FromSeconds(2);
+		var throttleDuration = TimeSpan.FromSeconds(1);
+		var maxDuration = TimeSpan.FromSeconds(5);
+		var exceptionMessage = "Sloths are cool";
+
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = duration;
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+		options.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+
+		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
+
+		fusionCache.Set<int>("foo", 21);
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+
+		var didThrow = false;
+		var sw = Stopwatch.StartNew();
+
+		try
+		{
+			do
+			{
+				Thread.Sleep(throttleDuration.PlusALittleBit());
+				fusionCache.GetOrSet<int>("foo", _ => throw new Exception(exceptionMessage));
+			} while (sw.Elapsed < maxDuration + throttleDuration);
+		}
+		catch (Exception exc) when (exc.Message == exceptionMessage)
+		{
+			didThrow = true;
+		}
+		TestOutput.WriteLine($"-- END AT {DateTime.UtcNow}");
+		sw.Stop();
+
+		Assert.True(didThrow);
 	}
 }
