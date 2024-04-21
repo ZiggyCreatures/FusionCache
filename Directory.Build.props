@@ -23,6 +23,7 @@
 		<Nullable>enable</Nullable>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 	</PropertyGroup>
 
 	<ItemGroup>
