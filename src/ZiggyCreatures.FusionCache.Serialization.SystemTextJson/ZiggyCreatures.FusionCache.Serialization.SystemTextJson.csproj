@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net6.0</TargetFrameworks>
 		<Version>1.0.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</PackageId>
 		<Description>FusionCache serializer based on System.Text.Json</Description>
@@ -22,7 +22,7 @@
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="System.Text.Json" Version="8.0.2" />
 	</ItemGroup>
 

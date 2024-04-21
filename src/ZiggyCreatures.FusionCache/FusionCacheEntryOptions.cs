@@ -685,22 +685,25 @@ public sealed class FusionCacheEntryOptions
 		// PHYSICAL DURATION
 		TimeSpan physicalDuration;
 		TimeSpan durationToUse;
-		TimeSpan failSafeMaxDurationToUse;
-		bool incoherentFailSafeMaxDuration = false;
 
 		durationToUse = DistributedCacheDuration ?? Duration;
 
 		if (IsFailSafeEnabled == false)
 		{
+			// FAIL-SAFE DISABLED
 			physicalDuration = durationToUse;
 		}
 		else
 		{
-			failSafeMaxDurationToUse = DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration;
+			// FAIL-SAFE ENABLED
+			var failSafeMaxDurationToUse = DistributedCacheFailSafeMaxDuration ?? FailSafeMaxDuration;
 			if (failSafeMaxDurationToUse < durationToUse)
 			{
-				incoherentFailSafeMaxDuration = true;
+				// INCOHERENT DURATION
 				physicalDuration = durationToUse;
+
+				if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
+					logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {FailSafeMaxDuration} was lower than the DistributedCacheDuration/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
 			}
 			else
 			{
@@ -709,13 +712,6 @@ public sealed class FusionCacheEntryOptions
 		}
 
 		res.AbsoluteExpiration = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, false);
-
-		// INCOHERENT DURATION
-		if (incoherentFailSafeMaxDuration)
-		{
-			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DistributedCacheFailSafeMaxDuration/FailSafeMaxDuration {FailSafeMaxDuration} was lower than the DistributedCacheDuration/Duration {Duration} on {Options} {MemoryOptions}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, failSafeMaxDurationToUse.ToLogString(), durationToUse.ToLogString(), this.ToLogString(), res.ToLogString());
-		}
 
 		return res;
 	}
