@@ -21,7 +21,7 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects
 		/// <inheritdoc/>
 		public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 		{
-			return new ValueTask<object?>(null);
+			return new ValueTask<object?>((object?)null);
 		}
 
 		/// <inheritdoc/>
