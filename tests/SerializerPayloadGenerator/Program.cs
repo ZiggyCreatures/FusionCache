@@ -19,8 +19,16 @@ var serializers = new IFusionCacheSerializer[] {
 	new FusionCacheServiceStackJsonSerializer()
 };
 
-//GenerateSamples(serializers, CreateEntry());
-TestSamples<FusionCacheDistributedEntry<string>>(serializers);
+var generateSamples = false;
+
+if (generateSamples)
+{
+	GenerateSamples(serializers, CreateEntry());
+}
+else
+{
+	TestSamples<FusionCacheDistributedEntry<string>>(serializers);
+}
 
 static void TestSamples<T>(IFusionCacheSerializer[] serializers)
 {
