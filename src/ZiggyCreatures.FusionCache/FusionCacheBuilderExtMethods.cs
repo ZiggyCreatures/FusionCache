@@ -912,8 +912,11 @@ public static partial class FusionCacheBuilderExtMethods
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
 
-		if ((plugins?.Length ?? 0) > 0)
-			builder.Plugins.AddRange(plugins);
+		if (plugins is not null)
+		{
+			if (plugins.Length > 0)
+				builder.Plugins.AddRange(plugins);
+		}
 
 		return builder;
 	}
