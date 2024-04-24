@@ -8,18 +8,27 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack" Version="0.26.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack" Version="0.26.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson" Version="0.26.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="0.26.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="0.26.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="0.26.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack" Version="1.0.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack" Version="1.0.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson" Version="1.0.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="1.0.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="1.0.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="Samples\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Remove="Samples\fusioncachecysharpmemorypackserializer__v1_0_0_0.bin" />
+	  <Content Remove="Samples\fusioncacheneueccmessagepackserializer__v1_0_0_0.bin" />
+	  <Content Remove="Samples\fusioncachenewtonsoftjsonserializer__v1_0_0_0.bin" />
+	  <Content Remove="Samples\fusioncacheprotobufnetserializer__v1_0_0_0.bin" />
+	  <Content Remove="Samples\fusioncacheservicestackjsonserializer__v1_0_0_0.bin" />
+	  <Content Remove="Samples\fusioncachesystemtextjsonserializer__v1_0_0_0.bin" />
 	</ItemGroup>
 
 </Project>
