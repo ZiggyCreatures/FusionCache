@@ -97,6 +97,10 @@ public static class FusionCacheServiceCollectionExtensions
 			services.AddSingleton<LazyNamedCache>(new LazyNamedCache(cache.CacheName, cache));
 		}
 
+#if NET8_0_OR_GREATER
+		services.AddKeyedSingleton<IFusionCache>(cache.CacheName, cache);
+#endif
+
 		return services;
 	}
 
@@ -137,6 +141,13 @@ public static class FusionCacheServiceCollectionExtensions
 			{
 				return builder.Build(serviceProvider);
 			});
+
+#if NET8_0_OR_GREATER
+			services.AddKeyedSingleton<IFusionCache>(cacheName, static (serviceProvider, _) =>
+			{
+				return serviceProvider.GetRequiredService<IFusionCache>();
+			});
+#endif
 		}
 		else
 		{
@@ -144,6 +155,12 @@ public static class FusionCacheServiceCollectionExtensions
 			{
 				return new LazyNamedCache(builder.CacheName, () => builder.Build(serviceProvider));
 			});
+#if NET8_0_OR_GREATER
+			services.AddKeyedSingleton<IFusionCache>(cacheName, static (serviceProvider, key) =>
+			{
+				return serviceProvider.GetRequiredService<IFusionCacheProvider>().GetCache(key!.ToString());
+			});
+#endif
 		}
 
 		return builder;

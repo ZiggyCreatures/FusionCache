@@ -970,4 +970,102 @@ public class DependencyInjectionTests
 			Assert.Null(GetLogger(cache));
 		}
 	}
+
+	[Fact]
+	public void CanUseKeyedServices()
+	{
+#if NET8_0_OR_GREATER
+		var services = new ServiceCollection();
+
+		//IKeyedServiceProvider x;
+		//IServiceProviderIsKeyedService y;
+		//services is ISupportKeyedService;
+
+		services.AddDistributedMemoryCache();
+		services.AddFusionCacheNewtonsoftJsonSerializer();
+
+		// FOO: 10 MIN DURATION + FAIL-SAFE
+		services.Configure<FusionCacheOptions>("FooCache", opt =>
+		{
+			opt.BackplaneChannelPrefix = "AAA";
+		});
+
+		services.AddFusionCache("FooCache")
+			.WithDefaultEntryOptions(opt => opt
+				.SetDuration(TimeSpan.FromMinutes(10))
+				.SetFailSafe(true)
+			)
+		;
+
+		// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
+		services.AddFusionCache("BarCache")
+			.WithOptions(opt =>
+			{
+				opt.BackplaneChannelPrefix = "BBB";
+			})
+			.WithDefaultEntryOptions(opt => opt
+				.SetDuration(TimeSpan.FromSeconds(42))
+				.SetFactoryTimeouts(TimeSpan.FromSeconds(3))
+			)
+			.WithRegisteredDistributedCache(false)
+		;
+
+		// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE (POST-SETUP)
+		services.AddFusionCache("BazCache")
+			.WithOptions(opt =>
+			{
+				opt.BackplaneChannelPrefix = "CCC";
+			})
+			.WithDefaultEntryOptions(opt => opt
+				.SetDuration(TimeSpan.FromHours(3))
+				.SetFailSafe(true)
+			)
+			.WithPostSetup((sp, c) =>
+			{
+				c.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+			})
+		;
+
+		// QUX (CUSTOM INSTANCE): 1 SEC DURATION + 123 DAYS DIST DURATION
+		var quxCacheOriginal = new FusionCache(new FusionCacheOptions()
+		{
+			CacheName = "QuxCache",
+			DefaultEntryOptions = new FusionCacheEntryOptions()
+				.SetDuration(TimeSpan.FromSeconds(1))
+				.SetDistributedCacheDuration(TimeSpan.FromDays(123))
+		});
+		services.AddFusionCache(quxCacheOriginal);
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var fooCache = cacheProvider.GetCache("FooCache");
+		var fooCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("FooCache");
+
+		var barCache = cacheProvider.GetCache("BarCache");
+		var barCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("BarCache");
+
+		var bazCache = cacheProvider.GetCache("BazCache");
+		var bazCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("BazCache");
+
+		var quxCache = cacheProvider.GetCache("QuxCache");
+		var quxCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("QuxCache");
+
+		Assert.NotNull(fooCache);
+		Assert.Equal(fooCache, fooCache2);
+
+		Assert.NotNull(barCache);
+		Assert.Equal(barCache, barCache2);
+
+		Assert.NotNull(bazCache);
+		Assert.Equal(bazCache, bazCache2);
+
+		Assert.NotNull(quxCache);
+		Assert.Equal(quxCacheOriginal, quxCache);
+		Assert.Equal(quxCache, quxCache2);
+#else
+		Assert.True(true);
+#endif
+	}
 }
