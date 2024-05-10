@@ -974,12 +974,7 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseKeyedServices()
 	{
-#if NET8_0_OR_GREATER
 		var services = new ServiceCollection();
-
-		//IKeyedServiceProvider x;
-		//IServiceProviderIsKeyedService y;
-		//services is ISupportKeyedService;
 
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheNewtonsoftJsonSerializer();
@@ -991,6 +986,7 @@ public class DependencyInjectionTests
 		});
 
 		services.AddFusionCache("FooCache")
+			.AsKeyedService()
 			.WithDefaultEntryOptions(opt => opt
 				.SetDuration(TimeSpan.FromMinutes(10))
 				.SetFailSafe(true)
@@ -999,6 +995,7 @@ public class DependencyInjectionTests
 
 		// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
 		services.AddFusionCache("BarCache")
+			.AsKeyedService()
 			.WithOptions(opt =>
 			{
 				opt.BackplaneChannelPrefix = "BBB";
@@ -1012,6 +1009,7 @@ public class DependencyInjectionTests
 
 		// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE (POST-SETUP)
 		services.AddFusionCache("BazCache")
+			.AsKeyedService()
 			.WithOptions(opt =>
 			{
 				opt.BackplaneChannelPrefix = "CCC";
@@ -1034,7 +1032,7 @@ public class DependencyInjectionTests
 				.SetDuration(TimeSpan.FromSeconds(1))
 				.SetDistributedCacheDuration(TimeSpan.FromDays(123))
 		});
-		services.AddFusionCache(quxCacheOriginal);
+		services.AddFusionCache(quxCacheOriginal, true);
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -1064,8 +1062,5 @@ public class DependencyInjectionTests
 		Assert.NotNull(quxCache);
 		Assert.Equal(quxCacheOriginal, quxCache);
 		Assert.Equal(quxCache, quxCache2);
-#else
-		Assert.True(true);
-#endif
 	}
 }
