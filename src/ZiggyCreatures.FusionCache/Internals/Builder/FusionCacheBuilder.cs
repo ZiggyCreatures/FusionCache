@@ -16,9 +16,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder;
 internal sealed class FusionCacheBuilder
 	: IFusionCacheBuilder
 {
-	public FusionCacheBuilder(string cacheName)
+	public FusionCacheBuilder(string cacheName, IServiceCollection services)
 	{
 		CacheName = cacheName;
+		Services = services;
 
 		UseRegisteredLogger = true;
 
@@ -35,6 +36,8 @@ internal sealed class FusionCacheBuilder
 	}
 
 	public string CacheName { get; }
+
+	public IServiceCollection Services { get; }
 
 	public bool UseRegisteredLogger { get; set; }
 	public ILogger<FusionCache>? Logger { get; set; }

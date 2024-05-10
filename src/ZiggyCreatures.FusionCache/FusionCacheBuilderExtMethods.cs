@@ -1,8 +1,10 @@
 ﻿using System;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -1007,6 +1009,36 @@ public static partial class FusionCacheBuilderExtMethods
 		;
 
 		builder.ThrowIfMissingLogger = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices("name")] attribute usage.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+	/// </summary>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder)
+	{
+		if ((builder is FusionCacheBuilder concreteBuilder))
+		{
+			concreteBuilder.Services.AddKeyedSingleton<IFusionCache>(concreteBuilder.CacheName, static (serviceProvider, key) =>
+			{
+				if (key!.ToString() == FusionCacheOptions.DefaultCacheName)
+				{
+					return serviceProvider.GetRequiredService<IFusionCache>();
+				}
+
+				return serviceProvider.GetRequiredService<IFusionCacheProvider>().GetCache(key!.ToString());
+			});
+		}
+		else
+		{
+			throw new InvalidOperationException("This builder does not support adding keyed services.");
+		}
 
 		return builder;
 	}
