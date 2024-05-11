@@ -9,6 +9,7 @@
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.xml</DocumentationFile>
 		<PackageReleaseNotes>
+			- Perf: better perf thanks to RecyclableMemoryStreamManager
 			- Updated: package dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>

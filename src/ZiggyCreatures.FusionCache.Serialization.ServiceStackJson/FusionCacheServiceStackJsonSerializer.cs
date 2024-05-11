@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ServiceStack.Text;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
@@ -10,6 +9,8 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 public class FusionCacheServiceStackJsonSerializer
 	: IFusionCacheSerializer
 {
+	private static readonly RecyclableMemoryStreamManager _manager = new RecyclableMemoryStreamManager();
+
 	static FusionCacheServiceStackJsonSerializer()
 	{
 		JsConfig.Init(new Config
@@ -21,7 +22,7 @@ public class FusionCacheServiceStackJsonSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		using var stream = new MemoryStream();
+		using var stream = _manager.GetStream();
 
 		JsonSerializer.SerializeToStream<T?>(obj, stream);
 
@@ -31,7 +32,7 @@ public class FusionCacheServiceStackJsonSerializer
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		using var stream = new MemoryStream(data);
+		using var stream = _manager.GetStream(data);
 
 		return JsonSerializer.DeserializeFromStream<T?>(stream);
 	}
@@ -43,8 +44,10 @@ public class FusionCacheServiceStackJsonSerializer
 	}
 
 	/// <inheritdoc />
-	public ValueTask<T?> DeserializeAsync<T>(byte[] data)
+	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
 	{
-		return new ValueTask<T?>(Deserialize<T>(data));
+		using var stream = _manager.GetStream(data);
+
+		return await JsonSerializer.DeserializeFromStreamAsync<T?>(stream);
 	}
 }
