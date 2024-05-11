@@ -9,6 +9,7 @@
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.xml</DocumentationFile>
 		<PackageReleaseNotes>
+			- Perf: better perf thanks to RecyclableMemoryStreamManager
 			- Updated: package dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
@@ -24,6 +25,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.0" />
 	</ItemGroup>
 
 </Project>
