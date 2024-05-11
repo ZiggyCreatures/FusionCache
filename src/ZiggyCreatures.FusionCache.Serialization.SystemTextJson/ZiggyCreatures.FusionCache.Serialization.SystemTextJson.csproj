@@ -9,6 +9,7 @@
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 		<PackageReleaseNotes>
+			- Perf: better perf thanks to RecyclableMemoryStreamManager
 			- Updated: package dependencies
 		</PackageReleaseNotes>
 	</PropertyGroup>
@@ -23,6 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.0" />
 		<PackageReference Include="System.Text.Json" Version="8.0.2" />
 	</ItemGroup>
 
