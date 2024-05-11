@@ -24,7 +24,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="StackExchange.Redis" Version="2.7.27" />
-		<PackageReference Include="System.Memory" Version="4.5.5" />
 	</ItemGroup>
 
 </Project>
