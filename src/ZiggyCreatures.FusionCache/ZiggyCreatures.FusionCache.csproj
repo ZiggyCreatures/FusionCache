@@ -16,7 +16,7 @@
 			- Perf: some minor memory/cpu optimizations
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
-		<!--<PackageValidationBaselineVersion>0.20.0</PackageValidationBaselineVersion>-->
+		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
