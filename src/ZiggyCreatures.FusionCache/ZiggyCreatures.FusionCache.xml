@@ -2797,6 +2797,11 @@
             If enabled, and re-throwing of exceptions is also enabled (see <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowSerializationExceptions"/>, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowDistributedCacheExceptions"/> or  <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ReThrowBackplaneExceptions"/>), it will re-throw the original exception as-is instead of wrapping it into one of the available specific exceptions (<see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/>, <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> or <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/>).
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.PreferSyncSerialization">
+            <summary>
+            Specify that, even when calling async code, the sync version of the serialization methods should be preferred.
+            </summary>
+        </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheOptions.IncoherentOptionsNormalizationLogLevel">
             <summary>
             Specify the <see cref="T:Microsoft.Extensions.Logging.LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.

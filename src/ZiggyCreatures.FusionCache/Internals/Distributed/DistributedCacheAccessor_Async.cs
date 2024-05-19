@@ -75,7 +75,14 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString());
 
-			data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
+			if (_options.PreferSyncSerialization)
+			{
+				data = _serializer.Serialize(distributedEntry);
+			}
+			else
+			{
+				data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
+			}
 		}
 		catch (Exception exc)
 		{
@@ -190,7 +197,16 @@ internal partial class DistributedCacheAccessor
 		// DESERIALIZATION
 		try
 		{
-			var entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data).ConfigureAwait(false);
+			FusionCacheDistributedEntry<TValue>? entry;
+			if (_options.PreferSyncSerialization)
+			{
+				entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data);
+			}
+			else
+			{
+				entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data).ConfigureAwait(false);
+			}
+
 			var isValid = false;
 			if (entry is null)
 			{
