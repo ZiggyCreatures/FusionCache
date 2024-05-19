@@ -17,6 +17,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.ServiceStackJson\ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
