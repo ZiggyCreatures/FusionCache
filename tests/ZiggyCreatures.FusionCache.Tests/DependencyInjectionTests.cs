@@ -1190,4 +1190,23 @@ public class DependencyInjectionTests
 			Assert.Contains(plugin, plugins!);
 		}
 	}
+
+	[Fact]
+	public void CanUseNamedCachesWithoutDefaultCache()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache("Foo");
+		services.AddFusionCache("Bar");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var fooCache = cacheProvider.GetCache("Foo");
+		var barCache = cacheProvider.GetCache("Bar");
+
+		Assert.NotNull(fooCache);
+		Assert.NotNull(barCache);
+	}
 }
