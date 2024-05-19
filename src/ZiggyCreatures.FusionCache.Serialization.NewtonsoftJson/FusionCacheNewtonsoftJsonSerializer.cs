@@ -10,8 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 public class FusionCacheNewtonsoftJsonSerializer
 	: IFusionCacheSerializer
 {
-	private static Encoding _encoding = Encoding.UTF8;
-
 	/// <summary>
 	/// Create a new instance of a <see cref="FusionCacheNewtonsoftJsonSerializer"/> object.
 	/// </summary>
@@ -26,13 +24,13 @@ public class FusionCacheNewtonsoftJsonSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		return _encoding.GetBytes(JsonConvert.SerializeObject(obj, _settings));
+		return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj, _settings));
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		return JsonConvert.DeserializeObject<T>(_encoding.GetString(data), _settings);
+		return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(data), _settings);
 	}
 
 	/// <inheritdoc />
