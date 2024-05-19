@@ -23,6 +23,12 @@ public class ListLogger<T>
 		_minLogLevel = minLogLevel;
 	}
 
+	public ListLogger()
+		: this(LogLevel.Trace)
+	{
+		// EMPTY
+	}
+
 	public IDisposable BeginScope<TState>(TState state)
 		where TState : notnull
 	{

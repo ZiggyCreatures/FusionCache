@@ -16,9 +16,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder;
 internal sealed class FusionCacheBuilder
 	: IFusionCacheBuilder
 {
-	public FusionCacheBuilder(string cacheName)
+	public FusionCacheBuilder(string cacheName, IServiceCollection services)
 	{
 		CacheName = cacheName;
+		Services = services;
 
 		UseRegisteredLogger = true;
 
@@ -36,17 +37,22 @@ internal sealed class FusionCacheBuilder
 
 	public string CacheName { get; }
 
+	public IServiceCollection Services { get; }
+
 	public bool UseRegisteredLogger { get; set; }
+	public string? LoggerKeyedServiceName { get; set; }
 	public ILogger<FusionCache>? Logger { get; set; }
 	public Func<IServiceProvider, ILogger<FusionCache>>? LoggerFactory { get; set; }
 	public bool ThrowIfMissingLogger { get; set; }
 
 	public bool UseRegisteredMemoryCache { get; set; }
+	public string? MemoryCacheKeyedServiceName { get; set; }
 	public IMemoryCache? MemoryCache { get; set; }
 	public Func<IServiceProvider, IMemoryCache>? MemoryCacheFactory { get; set; }
 	public bool ThrowIfMissingMemoryCache { get; set; }
 
 	public bool UseRegisteredMemoryLocker { get; set; }
+	public string? MemoryLockerKeyedServiceName { get; set; }
 	public IFusionCacheMemoryLocker? MemoryLocker { get; set; }
 	public Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
 	public bool ThrowIfMissingMemoryLocker { get; set; }
@@ -61,22 +67,26 @@ internal sealed class FusionCacheBuilder
 	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 	public bool UseRegisteredSerializer { get; set; }
+	public string? SerializerKeyedServiceName { get; set; }
 	public IFusionCacheSerializer? Serializer { get; set; }
 	public Func<IServiceProvider, IFusionCacheSerializer>? SerializerFactory { get; set; }
 	public bool ThrowIfMissingSerializer { get; set; }
 
 	public bool UseRegisteredDistributedCache { get; set; }
+	public string? DistributedCacheKeyedServiceName { get; set; }
 	public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
 	public IDistributedCache? DistributedCache { get; set; }
 	public Func<IServiceProvider, IDistributedCache>? DistributedCacheFactory { get; set; }
 	public bool ThrowIfMissingDistributedCache { get; set; }
 
 	public bool UseRegisteredBackplane { get; set; }
+	public string? BackplaneKeyedServiceName { get; set; }
 	public IFusionCacheBackplane? Backplane { get; set; }
 	public Func<IServiceProvider, IFusionCacheBackplane>? BackplaneFactory { get; set; }
 	public bool ThrowIfMissingBackplane { get; set; }
 
 	public bool UseAllRegisteredPlugins { get; set; }
+	public string? PluginsKeyedServiceName { get; set; }
 	public List<IFusionCachePlugin> Plugins { get; }
 	public List<Func<IServiceProvider, IFusionCachePlugin>> PluginsFactories { get; }
 
@@ -145,7 +155,14 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredLogger)
 		{
-			logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			if (string.IsNullOrWhiteSpace(LoggerKeyedServiceName))
+			{
+				logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			}
+			else
+			{
+				logger = serviceProvider.GetKeyedService<ILogger<FusionCache>>(LoggerKeyedServiceName);
+			}
 		}
 		else if (LoggerFactory is not null)
 		{
@@ -166,7 +183,14 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredMemoryCache)
 		{
-			memoryCache = serviceProvider.GetService<IMemoryCache>();
+			if (string.IsNullOrWhiteSpace(LoggerKeyedServiceName))
+			{
+				memoryCache = serviceProvider.GetService<IMemoryCache>();
+			}
+			else
+			{
+				memoryCache = serviceProvider.GetKeyedService<IMemoryCache>(MemoryCacheKeyedServiceName);
+			}
 		}
 		else if (MemoryCacheFactory is not null)
 		{
@@ -187,7 +211,14 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredMemoryLocker)
 		{
-			memoryLocker = serviceProvider.GetService<IFusionCacheMemoryLocker>();
+			if (string.IsNullOrWhiteSpace(MemoryLockerKeyedServiceName))
+			{
+				memoryLocker = serviceProvider.GetService<IFusionCacheMemoryLocker>();
+			}
+			else
+			{
+				memoryLocker = serviceProvider.GetKeyedService<IFusionCacheMemoryLocker>(MemoryLockerKeyedServiceName);
+			}
 		}
 		else if (MemoryLockerFactory is not null)
 		{
@@ -210,7 +241,15 @@ internal sealed class FusionCacheBuilder
 		IDistributedCache? distributedCache;
 		if (UseRegisteredDistributedCache)
 		{
-			distributedCache = serviceProvider.GetService<IDistributedCache>();
+			if (string.IsNullOrWhiteSpace(DistributedCacheKeyedServiceName))
+			{
+				distributedCache = serviceProvider.GetService<IDistributedCache>();
+			}
+			else
+			{
+				distributedCache = serviceProvider.GetKeyedService<IDistributedCache>(DistributedCacheKeyedServiceName);
+			}
+
 			if (IgnoreRegisteredMemoryDistributedCache && distributedCache is MemoryDistributedCache)
 			{
 				distributedCache = null;
@@ -235,7 +274,14 @@ internal sealed class FusionCacheBuilder
 			IFusionCacheSerializer? serializer;
 			if (UseRegisteredSerializer)
 			{
-				serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+				if (string.IsNullOrWhiteSpace(SerializerKeyedServiceName))
+				{
+					serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+				}
+				else
+				{
+					serializer = serviceProvider.GetKeyedService<IFusionCacheSerializer>(SerializerKeyedServiceName);
+				}
 			}
 			else if (SerializerFactory is not null)
 			{
@@ -266,7 +312,14 @@ internal sealed class FusionCacheBuilder
 		IFusionCacheBackplane? backplane;
 		if (UseRegisteredBackplane)
 		{
-			backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+			if (string.IsNullOrWhiteSpace(BackplaneKeyedServiceName))
+			{
+				backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+			}
+			else
+			{
+				backplane = serviceProvider.GetKeyedService<IFusionCacheBackplane>(BackplaneKeyedServiceName);
+			}
 		}
 		else if (BackplaneFactory is not null)
 		{
@@ -293,6 +346,11 @@ internal sealed class FusionCacheBuilder
 		if (UseAllRegisteredPlugins)
 		{
 			plugins.AddRange(serviceProvider.GetServices<IFusionCachePlugin>());
+		}
+
+		if (string.IsNullOrWhiteSpace(PluginsKeyedServiceName) == false)
+		{
+			plugins.AddRange(serviceProvider.GetKeyedServices<IFusionCachePlugin>(PluginsKeyedServiceName));
 		}
 
 		if (Plugins?.Any() == true)
