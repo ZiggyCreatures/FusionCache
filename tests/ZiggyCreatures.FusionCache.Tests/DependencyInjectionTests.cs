@@ -990,12 +990,10 @@ public class DependencyInjectionTests
 			.WithoutLogger()
 		;
 
-		using (var serviceProvider = services.BuildServiceProvider())
-		{
-			var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		using var serviceProvider = services.BuildServiceProvider();
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-			Assert.Null(GetLogger(cache));
-		}
+		Assert.Null(GetLogger(cache));
 	}
 
 	[Fact]

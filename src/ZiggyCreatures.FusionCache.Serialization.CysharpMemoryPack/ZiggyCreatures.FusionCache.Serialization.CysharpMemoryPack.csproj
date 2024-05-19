@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
-		<Version>1.1.0</Version>
+		<Version>1.2.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack</PackageId>
 		<Description>FusionCache serializer based on Cysharp's MemoryPack serializer</Description>
 		<PackageTags>memorypack;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
@@ -11,6 +11,7 @@
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>
+		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

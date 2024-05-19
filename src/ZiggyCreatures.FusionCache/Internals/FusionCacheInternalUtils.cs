@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -198,20 +199,15 @@ internal static class FusionCacheInternalUtils
 
 	public static string ToLogString(this CacheItemPriority priority)
 	{
-		switch (priority)
+		return priority switch
 		{
-			case CacheItemPriority.Low:
-				return "L";
-			case CacheItemPriority.Normal:
-				return "N";
-			case CacheItemPriority.High:
-				return "H";
-			case CacheItemPriority.NeverRemove:
-				return "NR";
-		}
-
-		// FALLBACK
-		return Enum.GetName(CacheItemPriorityType, priority);
+			CacheItemPriority.Low => "L",
+			CacheItemPriority.Normal => "N",
+			CacheItemPriority.High => "H",
+			CacheItemPriority.NeverRemove => "NR",
+			// FALLBACK
+			_ => Enum.GetName(CacheItemPriorityType, priority),
+		};
 	}
 
 	public static string ToLogString(this long? value)
@@ -256,7 +252,7 @@ internal static class FusionCacheInternalUtils
 	{
 		static void ExecuteInvocations(string? operationId, string? key, IFusionCache cache, string eventName, TEventArgs e, Delegate[] invocations, ILogger? logger, LogLevel errorLogLevel)
 		{
-			foreach (EventHandler<TEventArgs> invocation in invocations)
+			foreach (EventHandler<TEventArgs> invocation in invocations.Cast<EventHandler<TEventArgs>>())
 			{
 				try
 				{

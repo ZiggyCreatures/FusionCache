@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>1.1.0</Version>
+		<Version>1.2.0-preview1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.Memory</PackageId>
 		<Description>FusionCache in memory backplane, used for testing</Description>
 		<PackageTags>backplane;memory;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
@@ -11,6 +11,7 @@
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>
+		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>
