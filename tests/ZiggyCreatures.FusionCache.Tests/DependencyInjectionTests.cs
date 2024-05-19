@@ -15,10 +15,12 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
+using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionCacheTests;
@@ -36,8 +38,28 @@ public class DependencyInjectionTests
 		return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;
 	}
 
+	static IFusionCacheMemoryLocker? GetMemoryLocker(IFusionCache cache)
+	{
+		return typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as IFusionCacheMemoryLocker;
+	}
+
+	static IMemoryCache? GetMemoryCache(IFusionCache cache)
+	{
+		var _mca = typeof(FusionCache).GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache);
+		return _mca!.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(_mca) as IMemoryCache;
+	}
+
+	static IFusionCacheSerializer? GetSerializer(IFusionCache cache)
+	{
+		var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
+		if (dca is null)
+			return null;
+
+		return typeof(DistributedCacheAccessor).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as IFusionCacheSerializer;
+	}
+
 	static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
-			where TDistributedCache : class, IDistributedCache
+		where TDistributedCache : class, IDistributedCache
 	{
 		var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
 		if (dca is null)
@@ -63,6 +85,11 @@ public class DependencyInjectionTests
 			return null;
 
 		return typeof(RedisBackplane).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as RedisBackplaneOptions; ;
+	}
+
+	static IFusionCachePlugin[]? GetPlugins(IFusionCache cache)
+	{
+		return (typeof(FusionCache).GetField("_plugins", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as List<IFusionCachePlugin>)?.ToArray();
 	}
 
 	[Fact]
@@ -972,7 +999,7 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
-	public void CanUseKeyedServices()
+	public void CanActAsKeyedService()
 	{
 		var services = new ServiceCollection();
 
@@ -1062,5 +1089,105 @@ public class DependencyInjectionTests
 		Assert.NotNull(quxCache);
 		Assert.Equal(quxCacheOriginal, quxCache);
 		Assert.Equal(quxCache, quxCache2);
+	}
+
+	[Fact]
+	public void CanConsumeKeyedServices()
+	{
+		var services = new ServiceCollection();
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredLogger = new ListLogger<FusionCache>();
+		services.AddKeyedSingleton<ILogger<FusionCache>>("FooLogger", registeredLogger);
+
+		var registeredMemoryCache = new ChaosMemoryCache(new MemoryCache(new MemoryCacheOptions()));
+		services.AddKeyedSingleton<IMemoryCache>("FooMemoryCache", registeredMemoryCache);
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredSerializer = new ChaosSerializer(new FusionCacheSystemTextJsonSerializer());
+		services.AddKeyedSingleton<IFusionCacheSerializer>("FooSerializer", registeredSerializer);
+
+		var registeredDistributedCache = new ChaosDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
+		services.AddKeyedSingleton<IDistributedCache>("FooDistributedCache", registeredDistributedCache);
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredMemoryLocker = new ChaosMemoryLocker(new StandardMemoryLocker());
+		services.AddKeyedSingleton<IFusionCacheMemoryLocker>("FooMemoryLocker", registeredMemoryLocker);
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredBackplane = new ChaosBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+		services.AddKeyedSingleton<IFusionCacheBackplane>("FooBackplane", registeredBackplane);
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		IFusionCachePlugin[] registeredKeyedPlugins = [
+			new SimplePlugin("KP1"),
+			new SimplePlugin("KP2"),
+			new SimplePlugin("KP3")
+		];
+		foreach (var plugin in registeredKeyedPlugins)
+		{
+			services.AddKeyedSingleton<IFusionCachePlugin>("FooPlugins", plugin);
+		}
+		IFusionCachePlugin[] registeredNonKeyedPlugins = [
+			new SimplePlugin("NKP1"),
+			new SimplePlugin("NKP2"),
+			new SimplePlugin("NKP3")
+		];
+		foreach (var plugin in registeredNonKeyedPlugins)
+		{
+			services.AddSingleton<IFusionCachePlugin>(plugin);
+		}
+
+		services.AddFusionCache()
+			.WithRegisteredKeyedLogger("FooLogger")
+			.WithRegisteredKeyedMemoryCache("FooMemoryCache")
+			.WithRegisteredKeyedSerializer("FooSerializer")
+			.WithRegisteredKeyedDistributedCache("FooDistributedCache")
+			.WithRegisteredKeyedMemoryLocker("FooMemoryLocker")
+			.WithRegisteredKeyedBackplane("FooBackplane")
+			.WithAllRegisteredPlugins()
+			.WithAllRegisteredKeyedPlugins("FooPlugins");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var logger = GetLogger(cache);
+		var memoryCache = GetMemoryCache(cache);
+		var serializer = GetSerializer(cache);
+		var distributedCache = GetDistributedCache<IDistributedCache>(cache);
+		var memoryLocker = GetMemoryLocker(cache);
+		var backplane = GetBackplane<IFusionCacheBackplane>(cache);
+		var plugins = GetPlugins(cache);
+
+		Assert.NotNull(cache);
+
+		Assert.NotNull(logger);
+		Assert.Equal(registeredLogger, logger);
+
+		Assert.NotNull(memoryCache);
+		Assert.Equal(registeredMemoryCache, memoryCache);
+
+		Assert.NotNull(serializer);
+		Assert.Equal(registeredSerializer, serializer);
+
+		Assert.NotNull(distributedCache);
+		Assert.Equal(registeredDistributedCache, distributedCache);
+
+		Assert.NotNull(memoryLocker);
+		Assert.Equal(registeredMemoryLocker, memoryLocker);
+
+		Assert.NotNull(backplane);
+		Assert.Equal(registeredBackplane, backplane);
+
+		foreach (var plugin in registeredKeyedPlugins)
+		{
+			Assert.Contains(plugin, plugins!);
+		}
+
+		foreach (var plugin in registeredNonKeyedPlugins)
+		{
+			Assert.Contains(plugin, plugins!);
+		}
 	}
 }
