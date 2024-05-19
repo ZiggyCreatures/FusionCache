@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.IO;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
@@ -10,8 +10,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 public class FusionCacheSystemTextJsonSerializer
 	: IFusionCacheSerializer
 {
-	private static readonly RecyclableMemoryStreamManager _manager = new RecyclableMemoryStreamManager();
-
 	/// <summary>
 	/// Create a new instance of a <see cref="FusionCacheSystemTextJsonSerializer"/> object.
 	/// </summary>
@@ -38,7 +36,7 @@ public class FusionCacheSystemTextJsonSerializer
 	/// <inheritdoc />
 	public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
 	{
-		using var stream = _manager.GetStream();
+		using var stream = new MemoryStream();
 		await JsonSerializer.SerializeAsync<T?>(stream, obj, _options);
 		return stream.ToArray();
 	}
@@ -46,7 +44,7 @@ public class FusionCacheSystemTextJsonSerializer
 	/// <inheritdoc />
 	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
 	{
-		using var stream = _manager.GetStream(data);
+		using var stream = new MemoryStream(data);
 		return await JsonSerializer.DeserializeAsync<T>(stream, _options);
 	}
 }
