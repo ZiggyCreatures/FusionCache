@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
@@ -1507,5 +1506,24 @@ public class DistributedCacheLevelTests
 		sw.Stop();
 
 		Assert.True(didThrow);
+	}
+
+	[Fact]
+	public async Task CanPreferSyncSerialization()
+	{
+		var keyFoo = CreateRandomCacheKey("foo");
+
+		var options = CreateFusionCacheOptions();
+		options.PreferSyncSerialization = true;
+
+		var distributedCache = CreateDistributedCache();
+		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
+		fusionCache.SetupDistributedCache(distributedCache, new SyncOnlySerializer());
+
+		await fusionCache.SetAsync<int>(keyFoo, 21);
+		var v1 = await fusionCache.TryGetAsync<int>(keyFoo);
+
+		Assert.True(v1.HasValue);
+		Assert.Equal(21, v1.Value);
 	}
 }
