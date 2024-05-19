@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
-using Microsoft.IO;
 using ProtoBuf.Meta;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -27,7 +26,6 @@ public class FusionCacheProtoBufNetSerializer
 		RegisterMetadataModel();
 	}
 
-	private static readonly RecyclableMemoryStreamManager _manager = new RecyclableMemoryStreamManager();
 	private static readonly ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>> _modelsCache = [];
 	private static readonly Type _metadataType = typeof(FusionCacheEntryMetadata);
 	private static readonly Type _distributedEntryOpenGenericType = typeof(FusionCacheDistributedEntry<>);
@@ -116,9 +114,9 @@ public class FusionCacheProtoBufNetSerializer
 	{
 		MaybeRegisterDistributedEntryModel<T>();
 
-		using var stream = _manager.GetStream();
+		using var stream = new MemoryStream();
 
-		_model.Serialize((IBufferWriter<byte>)stream, obj);
+		_model.Serialize(stream, obj);
 		return stream.ToArray();
 	}
 
@@ -130,7 +128,9 @@ public class FusionCacheProtoBufNetSerializer
 
 		MaybeRegisterDistributedEntryModel<T>();
 
-		return _model.Deserialize<T?>(data.AsSpan());
+		using var stream = new MemoryStream(data);
+
+		return _model.Deserialize<T?>(stream);
 	}
 
 	/// <inheritdoc />
