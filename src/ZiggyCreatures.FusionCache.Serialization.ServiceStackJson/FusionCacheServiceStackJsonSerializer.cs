@@ -22,9 +22,7 @@ public class FusionCacheServiceStackJsonSerializer
 	public byte[] Serialize<T>(T? obj)
 	{
 		using var stream = new MemoryStream();
-
 		JsonSerializer.SerializeToStream<T?>(obj, stream);
-
 		return stream.ToArray();
 	}
 
@@ -32,7 +30,6 @@ public class FusionCacheServiceStackJsonSerializer
 	public T? Deserialize<T>(byte[] data)
 	{
 		using var stream = new MemoryStream(data);
-
 		return JsonSerializer.DeserializeFromStream<T?>(stream);
 	}
 
