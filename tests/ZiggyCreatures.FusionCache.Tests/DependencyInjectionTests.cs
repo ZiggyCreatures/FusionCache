@@ -1011,7 +1011,7 @@ public class DependencyInjectionTests
 		});
 
 		services.AddFusionCache("FooCache")
-			.AsKeyedService()
+			.AsKeyedServiceByCacheName()
 			.WithDefaultEntryOptions(opt => opt
 				.SetDuration(TimeSpan.FromMinutes(10))
 				.SetFailSafe(true)
@@ -1020,7 +1020,7 @@ public class DependencyInjectionTests
 
 		// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
 		services.AddFusionCache("BarCache")
-			.AsKeyedService()
+			.AsKeyedServiceByCacheName()
 			.WithOptions(opt =>
 			{
 				opt.BackplaneChannelPrefix = "BBB";
@@ -1033,8 +1033,9 @@ public class DependencyInjectionTests
 		;
 
 		// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE (POST-SETUP)
+		var bazServiceKey = new SimpleServiceKey(123);
 		services.AddFusionCache("BazCache")
-			.AsKeyedService()
+			.AsKeyedService(bazServiceKey)
 			.WithOptions(opt =>
 			{
 				opt.BackplaneChannelPrefix = "CCC";
@@ -1070,7 +1071,9 @@ public class DependencyInjectionTests
 		var barCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("BarCache");
 
 		var bazCache = cacheProvider.GetCache("BazCache");
-		var bazCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("BazCache");
+		var bazCache1 = serviceProvider.GetKeyedService<IFusionCache>("BazCache");
+		var bazCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>(bazServiceKey);
+		var bazCache3 = serviceProvider.GetRequiredKeyedService<IFusionCache>(new SimpleServiceKey(123));
 
 		var quxCache = cacheProvider.GetCache("QuxCache");
 		var quxCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("QuxCache");
@@ -1082,7 +1085,9 @@ public class DependencyInjectionTests
 		Assert.Equal(barCache, barCache2);
 
 		Assert.NotNull(bazCache);
+		Assert.Null(bazCache1);
 		Assert.Equal(bazCache, bazCache2);
+		Assert.Equal(bazCache, bazCache3);
 
 		Assert.NotNull(quxCache);
 		Assert.Equal(quxCacheOriginal, quxCache);
@@ -1187,6 +1192,7 @@ public class DependencyInjectionTests
 		{
 			Assert.Contains(plugin, plugins!);
 		}
+		Assert.Equal(registeredKeyedPlugins.Length + registeredNonKeyedPlugins.Length, plugins!.Count());
 	}
 
 	[Fact]

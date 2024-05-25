@@ -771,7 +771,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> keyed service registered in the DI container and use it, and throws if it cannot find one.
             <br/><br/>
@@ -780,7 +780,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
@@ -792,7 +792,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> keyed service registered in the DI container.
             <br/><br/>
@@ -801,7 +801,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.FusionCache})">
@@ -846,7 +846,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> keyed service registered in the DI container and use it, and throws if it cannot find one.
             <br/><br/>
@@ -861,7 +861,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
@@ -877,7 +877,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> keyed service registered in the DI container.
             <br/><br/>
@@ -890,7 +890,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,Microsoft.Extensions.Caching.Memory.IMemoryCache)">
@@ -935,7 +935,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             The builder will look for an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> keyed service registered in the DI container and use it, and throws if it cannot find one.
             <br/><br/>
@@ -946,7 +946,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
@@ -958,7 +958,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> keyed service registered in the DI container.
             <br/><br/>
@@ -969,7 +969,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker)">
@@ -1005,7 +1005,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> keyed service registered in the DI container.
             <br/><br/>
@@ -1014,7 +1014,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
@@ -1055,7 +1055,7 @@
             <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedDistributedCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedDistributedCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object,System.Boolean)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> keyed service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container and use them, and throws if it cannot find them.
             <br/><br/>
@@ -1072,7 +1072,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
@@ -1095,7 +1095,7 @@
             <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> has not been provided: this is useful to avoid thinking of having a usable distributed cache when, in reality, that is not the case since a serializer is needed for it to work and none has been found.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedDistributedCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String,System.Boolean,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedDistributedCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object,System.Boolean,System.Boolean)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> keyed service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container.
             <br/><br/>
@@ -1112,7 +1112,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
             <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> has not been provided: this is useful to avoid thinking of having a usable distributed cache when, in reality, that is not the case since a serializer is needed for it to work and none has been found.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
@@ -1159,7 +1159,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             The builder will look for an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> keyed service registered in the DI container and use it, and throws if it cannot find one.
             <br/><br/>
@@ -1170,7 +1170,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
@@ -1182,7 +1182,7 @@
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.String)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.TryWithRegisteredKeyedBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
             <summary>
             Indicates if the builder should try find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> keyed service registered in the DI container.
             <br/><br/>
@@ -1191,7 +1191,7 @@
             <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
             </summary>
             <param name="builder">The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder" /> to act upon.</param>
-            <param name="key">The keyed service key to use.</param>
+            <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
@@ -1336,7 +1336,17 @@
             <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.AsKeyedService(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.AsKeyedService(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Object)">
+            <summary>
+            Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices("name")] attribute usage.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+            </summary>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.AsKeyedServiceByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices("name")] attribute usage.
             <br/><br/>

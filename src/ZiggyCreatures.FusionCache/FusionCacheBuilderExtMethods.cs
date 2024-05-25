@@ -185,15 +185,15 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedLogger(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder WithRegisteredKeyedLogger(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
 		b.WithRegisteredLogger();
-		b.LoggerKeyedServiceName = key;
+		b.LoggerServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -224,14 +224,14 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredKeyedLogger(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder TryWithRegisteredKeyedLogger(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
 
-		builder.WithRegisteredKeyedLogger(key);
+		builder.WithRegisteredKeyedLogger(serviceKey);
 		builder.ThrowIfMissingLogger = false;
 
 		return builder;
@@ -347,15 +347,15 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedMemoryCache(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder WithRegisteredKeyedMemoryCache(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
 		b.WithRegisteredMemoryCache();
-		b.MemoryCacheKeyedServiceName = key;
+		b.MemoryCacheServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -394,14 +394,14 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredKeyedMemoryCache(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder TryWithRegisteredKeyedMemoryCache(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
 
-		builder.WithRegisteredKeyedMemoryCache(key);
+		builder.WithRegisteredKeyedMemoryCache(serviceKey);
 		builder.ThrowIfMissingMemoryCache = false;
 
 		return builder;
@@ -513,15 +513,15 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedMemoryLocker(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder WithRegisteredKeyedMemoryLocker(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
 		b.WithRegisteredMemoryLocker();
-		b.MemoryLockerKeyedServiceName = key;
+		b.MemoryLockerServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -554,14 +554,14 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredKeyedMemoryLocker(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder TryWithRegisteredKeyedMemoryLocker(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
 
-		builder.WithRegisteredKeyedMemoryLocker(key);
+		builder.WithRegisteredKeyedMemoryLocker(serviceKey);
 		builder.ThrowIfMissingMemoryLocker = false;
 
 		return builder;
@@ -673,15 +673,15 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedSerializer(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder WithRegisteredKeyedSerializer(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
 		b.WithRegisteredSerializer();
-		b.SerializerKeyedServiceName = key;
+		b.SerializerServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -785,16 +785,16 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedDistributedCache(this IFusionCacheBuilder builder, string key, bool ignoreMemoryDistributedCache = true)
+	public static IFusionCacheBuilder WithRegisteredKeyedDistributedCache(this IFusionCacheBuilder builder, object? serviceKey, bool ignoreMemoryDistributedCache = true)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
 		b.WithRegisteredDistributedCache();
-		b.DistributedCacheKeyedServiceName = key;
+		b.DistributedCacheServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -844,16 +844,16 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
 	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid thinking of having a usable distributed cache when, in reality, that is not the case since a serializer is needed for it to work and none has been found.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredKeyedDistributedCache(this IFusionCacheBuilder builder, string key, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
+	public static IFusionCacheBuilder TryWithRegisteredKeyedDistributedCache(this IFusionCacheBuilder builder, object? serviceKey, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
 
-		builder.WithRegisteredKeyedDistributedCache(key, ignoreMemoryDistributedCache);
+		builder.WithRegisteredKeyedDistributedCache(serviceKey, ignoreMemoryDistributedCache);
 		builder.ThrowIfMissingDistributedCache = false;
 		builder.ThrowIfMissingSerializer = throwIfMissingSerializer;
 
@@ -976,15 +976,15 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedBackplane(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder WithRegisteredKeyedBackplane(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
 		b.WithRegisteredBackplane();
-		b.BackplaneKeyedServiceName = key;
+		b.BackplaneServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -1015,9 +1015,9 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="key">The keyed service key to use.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredKeyedBackplane(this IFusionCacheBuilder builder, string key)
+	public static IFusionCacheBuilder TryWithRegisteredKeyedBackplane(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
@@ -1132,7 +1132,7 @@ public static partial class FusionCacheBuilderExtMethods
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
-		b.PluginsKeyedServiceName = key;
+		b.PluginsServiceKey = key;
 
 		return builder;
 	}
@@ -1168,7 +1168,7 @@ public static partial class FusionCacheBuilderExtMethods
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
-		b.PluginsKeyedServiceName = null;
+		b.PluginsServiceKey = null;
 
 		return builder;
 	}
@@ -1335,21 +1335,34 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		if ((builder is FusionCacheBuilder b) == false)
 			throw new InvalidOperationException("This builder does not support keyed services.");
 
-		b.Services.AddKeyedSingleton<IFusionCache>(b.CacheName, static (serviceProvider, key) =>
+		b.Services.AddKeyedSingleton<IFusionCache>(serviceKey, (serviceProvider, key) =>
 		{
-			if (key!.ToString() == FusionCacheOptions.DefaultCacheName)
+			if (key is string stringKey && stringKey == FusionCacheOptions.DefaultCacheName)
 			{
 				return serviceProvider.GetRequiredService<IFusionCache>();
 			}
 
-			return serviceProvider.GetRequiredService<IFusionCacheProvider>().GetCache(key!.ToString());
+			return serviceProvider.GetRequiredService<IFusionCacheProvider>().GetCache(builder.CacheName);
 		});
 
 		return builder;
+	}
+
+	/// <summary>
+	/// Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices("name")] attribute usage.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+	/// </summary>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder AsKeyedServiceByCacheName(this IFusionCacheBuilder builder)
+	{
+		return builder.AsKeyedService(builder.CacheName);
 	}
 }
