@@ -40,7 +40,7 @@ static void TestSamples<T>(IFusionCacheSerializer[] serializers)
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("samples\\", filePrefix + "*.bin");
+		var files = Directory.GetFiles("Samples", filePrefix + "*.bin");
 
 		Console.WriteLine($"SERIALIZER: {serializer.GetType().Name} v{version ?? "?"}");
 		Console.WriteLine("SAMPLES:");
