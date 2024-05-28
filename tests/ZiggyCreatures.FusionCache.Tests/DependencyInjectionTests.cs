@@ -508,7 +508,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var fooCache = cacheProvider.GetCache("FooCache");
 		var barCache = cacheProvider.GetCache("BarCache");
@@ -574,7 +574,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var fooCache = cacheProvider.GetCache("FooCache");
 		var barCache = cacheProvider.GetCache("BarCache");
@@ -613,7 +613,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var cache = cacheProvider.GetDefaultCache();
 
@@ -645,7 +645,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var cache = cacheProvider.GetDefaultCache();
 
@@ -663,7 +663,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		Assert.Null(cacheProvider.GetCacheOrNull("BarCache"));
 	}
@@ -678,7 +678,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		Assert.Equal(cacheProvider.GetDefaultCache(), serviceProvider.GetService<IFusionCache>());
 	}
@@ -693,7 +693,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		Assert.Throws<InvalidOperationException>(() =>
 		{
@@ -728,7 +728,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		Assert.Throws<InvalidOperationException>(() =>
 		{
@@ -753,7 +753,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var defaultCache1 = cacheProvider.GetDefaultCache();
 		var defaultCache2 = cacheProvider.GetDefaultCache();
@@ -787,7 +787,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var defaultCache = cacheProvider.GetDefaultCache();
 		var fooCache = cacheProvider.GetCache("FooCache");
@@ -826,7 +826,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var defaultCache = cacheProvider.GetDefaultCache();
 		var fooCache = cacheProvider.GetCache("FooCache");
@@ -865,7 +865,7 @@ public class DependencyInjectionTests
 
 		using var serviceProvider = services.BuildServiceProvider();
 
-		var cacheProvider = serviceProvider.GetService<IFusionCacheProvider>()!;
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
 
 		var defaultCache = cacheProvider.GetDefaultCache();
 		var fooCache = cacheProvider.GetCache("FooCache");
