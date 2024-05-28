@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
@@ -7,7 +7,6 @@
 		<Description>FusionCache serializer based on Cysharp's MemoryPack serializer</Description>
 		<PackageTags>memorypack;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

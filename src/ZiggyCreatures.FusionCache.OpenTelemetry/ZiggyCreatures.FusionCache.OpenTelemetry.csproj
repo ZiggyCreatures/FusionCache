@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -7,7 +7,6 @@
 		<Description>Add native OpenTelemetry support to FusionCache.</Description>
 		<PackageTags>telemetry;observability;opentelemetry;open-telemetry;chaos;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.FusionCache.OpenTelemetry</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.OpenTelemetry.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

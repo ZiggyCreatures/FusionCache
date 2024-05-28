@@ -31,6 +31,10 @@
 		<IsSrcProject>$(ReadmePath.Contains('src'))</IsSrcProject>
 	</PropertyGroup>
 
+	<PropertyGroup Condition="$(IsSrcProject)">
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	</PropertyGroup>
+
 	<ItemGroup Condition="$(IsSrcProject)">
 		<None Include="$(LogoPath)" Pack="true" PackagePath="\" LinkBase="artwork" />
 		<None Include="$(ReadmePath)" Pack="true" PackagePath="\" />

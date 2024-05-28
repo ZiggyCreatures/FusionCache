@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -7,7 +7,6 @@
 		<Description>FusionCache serializer based on protobuf-net</Description>
 		<PackageTags>protobuf;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

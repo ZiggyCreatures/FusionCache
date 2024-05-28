@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -7,7 +7,6 @@
 		<Description>FusionCache serializer based on Neuecc's MessagePack serializer</Description>
 		<PackageTags>messagepack;msgpack;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>
