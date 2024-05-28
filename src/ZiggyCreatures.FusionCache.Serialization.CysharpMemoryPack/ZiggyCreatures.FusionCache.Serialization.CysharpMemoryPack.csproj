@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
@@ -13,11 +13,6 @@
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.10.0" />

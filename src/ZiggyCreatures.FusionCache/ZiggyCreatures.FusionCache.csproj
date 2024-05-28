@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -15,11 +15,6 @@
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />

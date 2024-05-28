@@ -25,6 +25,17 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<LogoPath>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory), 'artwork', $(PackageIcon)))</LogoPath>
+		<ReadmePath>$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), 'docs', $(PackageReadmeFile)))</ReadmePath>
+		<IsSrcProject>$(ReadmePath.Contains('src'))</IsSrcProject>
+	</PropertyGroup>
+
+	<ItemGroup Condition="$(IsSrcProject)">
+		<None Include="$(LogoPath)" Pack="true" PackagePath="\" LinkBase="artwork" />
+		<None Include="$(ReadmePath)" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
 			<PrivateAssets>all</PrivateAssets>

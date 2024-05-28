@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
@@ -13,11 +13,6 @@
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
