@@ -757,6 +757,7 @@ public class DependencyInjectionTests
 
 		var defaultCache1 = cacheProvider.GetDefaultCache();
 		var defaultCache2 = cacheProvider.GetDefaultCache();
+		var defaultCache3 = serviceProvider.GetRequiredService<IFusionCache>();
 
 		var fooCache1 = cacheProvider.GetCache("Foo");
 		var fooCache2 = cacheProvider.GetCache("Foo");
@@ -765,6 +766,7 @@ public class DependencyInjectionTests
 		var barCache2 = cacheProvider.GetCache("Bar");
 
 		Assert.Same(defaultCache1, defaultCache2);
+		Assert.Same(defaultCache2, defaultCache3);
 		Assert.Same(fooCache1, fooCache2);
 		Assert.Same(barCache1, barCache2);
 	}
