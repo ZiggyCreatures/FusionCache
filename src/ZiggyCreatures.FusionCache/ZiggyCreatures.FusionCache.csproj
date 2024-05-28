@@ -11,8 +11,7 @@
 			- Add: full support for DI keyed services
 			- Add: new PreferSyncSerialization option
 		</PackageReleaseNotes>
-		<EnablePackageValidation>true</EnablePackageValidation>
-		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

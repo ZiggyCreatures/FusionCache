@@ -11,7 +11,7 @@
 			- Add: new ChaosMemoryCache component
 			- Updated: package dependencies
 		</PackageReleaseNotes>
-		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

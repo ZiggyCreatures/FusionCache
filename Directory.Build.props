@@ -33,6 +33,7 @@
 
 	<PropertyGroup Condition="$(IsSrcProject)">
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EnablePackageValidation>true</EnablePackageValidation>
 	</PropertyGroup>
 
 	<ItemGroup Condition="$(IsSrcProject)">
