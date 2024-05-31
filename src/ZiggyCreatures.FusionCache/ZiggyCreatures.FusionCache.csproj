@@ -7,19 +7,12 @@
 		<Description>FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.</Description>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Add: full support for DI keyed services
 			- Add: new PreferSyncSerialization option
 		</PackageReleaseNotes>
-		<EnablePackageValidation>true</EnablePackageValidation>
-		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />

@@ -7,17 +7,11 @@
 		<Description>FusionCache serializer based on System.Text.Json</Description>
 		<PackageTags>json;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>
-		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />

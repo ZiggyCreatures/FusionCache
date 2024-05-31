@@ -7,17 +7,11 @@
 		<Description>FusionCache serializer based on Neuecc's MessagePack serializer</Description>
 		<PackageTags>messagepack;msgpack;caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>
-		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
-		<None Include="docs\README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="MessagePack" Version="2.5.140" />
