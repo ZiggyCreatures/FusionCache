@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
@@ -229,8 +230,16 @@ internal sealed partial class BackplaneAccessor
 		}
 
 		// ACTIVITY
+
+		// TEMP SWAP THE CURRENT ACTIVITY TO HAVE THE NEW ONE AS ROOT
+		var previous = Activity.Current;
+		Activity.Current = null;
+
 		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
 		activity?.SetTag("fusioncache.backplane.message_action", message.Action.ToString());
+
+		// REVERT THE PREVIOUS CURRENT ACTIVITY
+		Activity.Current = previous;
 
 		// EVENT
 		_events.OnMessageReceived(operationId, message);
