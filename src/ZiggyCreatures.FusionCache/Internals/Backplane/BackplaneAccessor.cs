@@ -237,6 +237,7 @@ internal sealed partial class BackplaneAccessor
 
 		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
 		activity?.SetTag("fusioncache.backplane.message_action", message.Action.ToString());
+		activity?.SetTag("fusioncache.backplane.message_source_id", message.SourceId);
 
 		// REVERT THE PREVIOUS CURRENT ACTIVITY
 		Activity.Current = previous;
@@ -250,6 +251,10 @@ internal sealed partial class BackplaneAccessor
 			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
 				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] an invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstantTimestamp})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action, message.Timestamp);
 
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, Activities.EventNames.BackplaneIncomingMessageInvalid);
+			activity?.Dispose();
+
 			return;
 		}
 
@@ -260,6 +265,10 @@ internal sealed partial class BackplaneAccessor
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been ignored since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+				// ACTIVITY
+				activity?.SetStatus(ActivityStatusCode.Error, Activities.EventNames.BackplaneIncomingMessageConflicts);
+				activity?.Dispose();
 
 				return;
 			}
@@ -293,6 +302,11 @@ internal sealed partial class BackplaneAccessor
 				// HANDLE UNKNOWN: DO NOTHING
 				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
 					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] an backplane notification has been received from remote cache {RemoteCacheInstanceId} for an unknown action {Action}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action);
+
+				// ACTIVITY
+				activity?.SetStatus(ActivityStatusCode.Error, Activities.EventNames.BackplaneIncomingMessageUnknownAction);
+				activity?.Dispose();
+
 				break;
 		}
 	}

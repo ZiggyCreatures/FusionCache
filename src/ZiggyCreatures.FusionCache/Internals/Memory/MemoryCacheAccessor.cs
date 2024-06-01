@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -30,6 +31,14 @@ internal sealed class MemoryCacheAccessor
 	private readonly FusionCacheOptions _options;
 	private readonly ILogger? _logger;
 	private readonly FusionCacheMemoryEventsHub _events;
+
+	public void UpdateEntryFromDistributedEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry<TValue> memoryEntry, FusionCacheDistributedEntry<TValue> distributedEntry)
+	{
+		// ACTIVITY
+		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemorySet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
+
+		memoryEntry.UpdateFromDistributedEntry(distributedEntry);
+	}
 
 	public void SetEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions options, bool skipPhysicalSet = false)
 	{
