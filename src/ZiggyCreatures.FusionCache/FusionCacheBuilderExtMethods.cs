@@ -777,6 +777,55 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredSerializer(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.WithRegisteredSerializer();
+		builder.ThrowIfMissingSerializer = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container (with the CacheName as the serviceKey).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredKeyedSerializer(this IFusionCacheBuilder builder, object? serviceKey)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.WithRegisteredKeyedSerializer(serviceKey);
+		builder.ThrowIfMissingSerializer = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheSerializer"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredKeyedSerializer(this IFusionCacheBuilder builder)
+	{
+		return builder.TryWithRegisteredKeyedSerializer(builder.CacheName);
+	}
+
+	/// <summary>
 	/// Specify a custom <see cref="IFusionCacheSerializer"/> instance to be used.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
@@ -1542,7 +1591,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder AsKeyedServiceByCacheName(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder)
 	{
 		return builder.AsKeyedService(builder.CacheName);
 	}
