@@ -1558,7 +1558,7 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
-	/// Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices("name")] attribute usage.
+	/// Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices] attribute usage.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// <br/><br/>
@@ -1584,7 +1584,7 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
-	/// Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices("name")] attribute usage.
+	/// Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices] attribute usage.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// <br/><br/>
