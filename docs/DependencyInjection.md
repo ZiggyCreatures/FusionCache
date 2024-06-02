@@ -119,8 +119,10 @@ For example for the memory cache we can tell FusionCache:
 
 - `WithRegisteredMemoryCache()`: USE the one registered in the DI container. If not there, an EXCEPTION will be thrown
 - `TryWithRegisteredMemoryCache()`: TRY TO USE the one registered in the DI container. If not there, no problem
-- `WithRegisteredKeyedMemoryCache(object? serviceKey)`: USE the one registered in the DI container with the specified SERVICE KEY (or the `CacheName` if not specified). If not there, an EXCEPTION will be thrown
-- `TryWithRegisteredKeyedMemoryCache(object? serviceKey)`: TRY TO USE the one registered in the DI container with the specified SERVICE KEY (or the `CacheName` if not specified). If not there, no problem
+- `WithRegisteredKeyedMemoryCache(object? serviceKey)`: USE the one registered in the DI container with the specified SERVICE KEY. If not there, an EXCEPTION will be thrown
+- `TryWithRegisteredKeyedMemoryCache(object? serviceKey)`: TRY TO USE the one registered in the DI container with the specified SERVICE KEY. If not there, no problem
+- `WithRegisteredKeyedMemoryCacheByCacheName()`: USE the one registered in the DI container with the CacheName as the SERVICE KEY. If not there, an EXCEPTION will be thrown
+- `TryWithRegisteredKeyedMemoryCacheByCacheName()`: TRY TO USE the one registered in the DI container with the CacheName as the SERVICE KEY. If not there, no problem
 - `WithMemoryCache(IMemoryCache memoryCache)`: USE an instance that we provide DIRECTLY
 - `WithMemoryCache(Func<IServiceProvider, IMemoryCache> factory)`: USE an instance built via a FACTORY that we provide
 
@@ -130,6 +132,8 @@ The same is available for other components, like the backplane for example:
 - `TryWithRegisteredBackplane()`
 - `WithRegisteredKeyedBackplane(object? serviceKey)`
 - `TryWithRegisteredKeyedBackplane(object? serviceKey)`
+- `WithRegisteredKeyedBackplaneByCacheName()`
+- `TryWithRegisteredKeyedBackplaneByCacheName()`
 - `WithBackplane(IFusionCacheBackplane backplane)`
 - `WithBackplane(Func<IServiceProvider, IFusionCacheBackplane> factory)`
 
