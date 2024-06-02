@@ -239,13 +239,13 @@ Since .NET 8 though we now have native support for multiple services of the same
 
 So, can the two approaches work together? Oh yeah, totally.
 
-The idea is that, when registering a FusionCache instance, we simply add `.AsKeyedService()`, and that's it: that cache will be available _both_ via named caches and via keyed services.
+The idea is that, when registering a FusionCache instance, we simply add `.AsKeyedServiceByCacheName()`, and that's it: that cache will be available _both_ via named caches and via keyed services.
 
 As an example, at startup we simply do this:
 
 ```csharp
 services.AddFusionCache("MyCache")
-    .AsKeyedService();
+    .AsKeyedServiceByCacheName();
 ```
 
 and later, to resolve it, we either use `IFusionCacheProvider`:
