@@ -1060,6 +1060,9 @@ public class DependencyInjectionTests
 		});
 		services.AddFusionCache(quxCacheOriginal, true);
 
+		// USE [FromKeyedService] ATTRIBUTE
+		services.AddSingleton<SimpleServiceWithKeyedDependency>();
+
 		using var serviceProvider = services.BuildServiceProvider();
 
 		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
@@ -1078,6 +1081,8 @@ public class DependencyInjectionTests
 		var quxCache = cacheProvider.GetCache("QuxCache");
 		var quxCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("QuxCache");
 
+		var simpleService = serviceProvider.GetRequiredService<SimpleServiceWithKeyedDependency>();
+
 		Assert.NotNull(fooCache);
 		Assert.Equal(fooCache, fooCache2);
 
@@ -1092,6 +1097,9 @@ public class DependencyInjectionTests
 		Assert.NotNull(quxCache);
 		Assert.Equal(quxCacheOriginal, quxCache);
 		Assert.Equal(quxCache, quxCache2);
+
+		Assert.NotNull(simpleService);
+		Assert.NotNull(simpleService);
 	}
 
 	[Fact]
