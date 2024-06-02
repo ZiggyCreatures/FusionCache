@@ -1011,7 +1011,7 @@ public class DependencyInjectionTests
 		});
 
 		services.AddFusionCache("FooCache")
-			.AsKeyedService()
+			.AsKeyedServiceByCacheName()
 			.WithDefaultEntryOptions(opt => opt
 				.SetDuration(TimeSpan.FromMinutes(10))
 				.SetFailSafe(true)
@@ -1020,7 +1020,7 @@ public class DependencyInjectionTests
 
 		// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
 		services.AddFusionCache("BarCache")
-			.AsKeyedService()
+			.AsKeyedServiceByCacheName()
 			.WithOptions(opt =>
 			{
 				opt.BackplaneChannelPrefix = "BBB";
