@@ -1033,8 +1033,9 @@ public class DependencyInjectionTests
 		;
 
 		// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE (POST-SETUP)
+		var bazServiceKey = new SimpleServiceKey(123);
 		services.AddFusionCache("BazCache")
-			.AsKeyedService()
+			.AsKeyedService(bazServiceKey)
 			.WithOptions(opt =>
 			{
 				opt.BackplaneChannelPrefix = "CCC";
@@ -1070,7 +1071,9 @@ public class DependencyInjectionTests
 		var barCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("BarCache");
 
 		var bazCache = cacheProvider.GetCache("BazCache");
-		var bazCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("BazCache");
+		var bazCache1 = serviceProvider.GetKeyedService<IFusionCache>("BazCache");
+		var bazCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>(bazServiceKey);
+		var bazCache3 = serviceProvider.GetRequiredKeyedService<IFusionCache>(new SimpleServiceKey(123));
 
 		var quxCache = cacheProvider.GetCache("QuxCache");
 		var quxCache2 = serviceProvider.GetRequiredKeyedService<IFusionCache>("QuxCache");
@@ -1082,7 +1085,9 @@ public class DependencyInjectionTests
 		Assert.Equal(barCache, barCache2);
 
 		Assert.NotNull(bazCache);
+		Assert.Null(bazCache1);
 		Assert.Equal(bazCache, bazCache2);
+		Assert.Equal(bazCache, bazCache3);
 
 		Assert.NotNull(quxCache);
 		Assert.Equal(quxCacheOriginal, quxCache);
@@ -1090,7 +1095,180 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
-	public void CanConsumeKeyedServices()
+	public void CanUseKeyedLogger()
+	{
+		var services = new ServiceCollection();
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredLogger = new ListLogger<FusionCache>();
+		services.AddKeyedSingleton<ILogger<FusionCache>>("FooLogger", registeredLogger);
+
+		services.AddFusionCache()
+			.TryWithRegisteredKeyedLogger("FooLogger");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var logger = GetLogger(cache);
+
+		Assert.NotNull(cache);
+
+		Assert.NotNull(logger);
+		Assert.Equal(registeredLogger, logger);
+	}
+
+	[Fact]
+	public void CanUseKeyedMemoryCache()
+	{
+		var services = new ServiceCollection();
+
+		var registeredMemoryCache = new ChaosMemoryCache(new MemoryCache(new MemoryCacheOptions()));
+		services.AddKeyedSingleton<IMemoryCache>("FooMemoryCache", registeredMemoryCache);
+
+		services.AddFusionCache()
+			.TryWithRegisteredKeyedMemoryCache("FooMemoryCache");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var memoryCache = GetMemoryCache(cache);
+
+		Assert.NotNull(cache);
+
+		Assert.NotNull(memoryCache);
+		Assert.Equal(registeredMemoryCache, memoryCache);
+	}
+
+	[Fact]
+	public void CanUseKeyedDistributedCache()
+	{
+		var services = new ServiceCollection();
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredSerializer = new ChaosSerializer(new FusionCacheSystemTextJsonSerializer());
+		services.AddKeyedSingleton<IFusionCacheSerializer>("FooSerializer", registeredSerializer);
+
+		var registeredDistributedCache = new ChaosDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
+		services.AddKeyedSingleton<IDistributedCache>("FooDistributedCache", registeredDistributedCache);
+
+		services.AddFusionCache()
+			.WithRegisteredKeyedSerializer("FooSerializer")
+			.TryWithRegisteredKeyedDistributedCache("FooDistributedCache");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var serializer = GetSerializer(cache);
+		var distributedCache = GetDistributedCache<IDistributedCache>(cache);
+
+		Assert.NotNull(cache);
+
+		Assert.NotNull(serializer);
+		Assert.Equal(registeredSerializer, serializer);
+	}
+
+	[Fact]
+	public void CanUseKeyedMemoryLocker()
+	{
+		var services = new ServiceCollection();
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredMemoryLocker = new ChaosMemoryLocker(new StandardMemoryLocker());
+		services.AddKeyedSingleton<IFusionCacheMemoryLocker>("FooMemoryLocker", registeredMemoryLocker);
+
+		services.AddFusionCache()
+			.TryWithRegisteredKeyedMemoryLocker("FooMemoryLocker");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var memoryLocker = GetMemoryLocker(cache);
+
+		Assert.NotNull(cache);
+
+		Assert.NotNull(memoryLocker);
+		Assert.Equal(registeredMemoryLocker, memoryLocker);
+	}
+
+	[Fact]
+	public void CanUseKeyedBackplane()
+	{
+		var services = new ServiceCollection();
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		var registeredBackplane = new ChaosBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
+		services.AddKeyedSingleton<IFusionCacheBackplane>("FooBackplane", registeredBackplane);
+
+		services.AddFusionCache()
+			.TryWithRegisteredKeyedBackplane("FooBackplane");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var backplane = GetBackplane<IFusionCacheBackplane>(cache);
+
+		Assert.NotNull(cache);
+
+		Assert.NotNull(backplane);
+		Assert.Equal(registeredBackplane, backplane);
+	}
+
+	[Fact]
+	public void CanUseKeyedPlugins()
+	{
+		var services = new ServiceCollection();
+
+		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
+		IFusionCachePlugin[] registeredKeyedPlugins = [
+			new SimplePlugin("KP1"),
+			new SimplePlugin("KP2"),
+			new SimplePlugin("KP3")
+		];
+		foreach (var plugin in registeredKeyedPlugins)
+		{
+			services.AddKeyedSingleton<IFusionCachePlugin>("FooPlugins", plugin);
+		}
+		IFusionCachePlugin[] registeredNonKeyedPlugins = [
+			new SimplePlugin("NKP1"),
+			new SimplePlugin("NKP2"),
+			new SimplePlugin("NKP3")
+		];
+		foreach (var plugin in registeredNonKeyedPlugins)
+		{
+			services.AddSingleton<IFusionCachePlugin>(plugin);
+		}
+
+		services.AddFusionCache()
+			.WithAllRegisteredPlugins()
+			.WithAllRegisteredKeyedPlugins("FooPlugins");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var plugins = GetPlugins(cache);
+
+		Assert.NotNull(cache);
+
+		foreach (var plugin in registeredKeyedPlugins)
+		{
+			Assert.Contains(plugin, plugins!);
+		}
+
+		foreach (var plugin in registeredNonKeyedPlugins)
+		{
+			Assert.Contains(plugin, plugins!);
+		}
+		Assert.Equal(registeredKeyedPlugins.Length + registeredNonKeyedPlugins.Length, plugins!.Count());
+	}
+
+	[Fact]
+	public void CanUseKeyedServices()
 	{
 		var services = new ServiceCollection();
 
@@ -1137,12 +1315,12 @@ public class DependencyInjectionTests
 		}
 
 		services.AddFusionCache()
-			.WithRegisteredKeyedLogger("FooLogger")
-			.WithRegisteredKeyedMemoryCache("FooMemoryCache")
-			.WithRegisteredKeyedSerializer("FooSerializer")
-			.WithRegisteredKeyedDistributedCache("FooDistributedCache")
-			.WithRegisteredKeyedMemoryLocker("FooMemoryLocker")
-			.WithRegisteredKeyedBackplane("FooBackplane")
+			.TryWithRegisteredKeyedLogger("FooLogger")
+			.TryWithRegisteredKeyedMemoryCache("FooMemoryCache")
+			.TryWithRegisteredKeyedSerializer("FooSerializer")
+			.TryWithRegisteredKeyedDistributedCache("FooDistributedCache")
+			.TryWithRegisteredKeyedMemoryLocker("FooMemoryLocker")
+			.TryWithRegisteredKeyedBackplane("FooBackplane")
 			.WithAllRegisteredPlugins()
 			.WithAllRegisteredKeyedPlugins("FooPlugins");
 
@@ -1187,6 +1365,7 @@ public class DependencyInjectionTests
 		{
 			Assert.Contains(plugin, plugins!);
 		}
+		Assert.Equal(registeredKeyedPlugins.Length + registeredNonKeyedPlugins.Length, plugins!.Count());
 	}
 
 	[Fact]

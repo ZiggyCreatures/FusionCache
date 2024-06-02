@@ -9,8 +9,10 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReleaseNotes>
-			- Add: full support for DI keyed services
+			- Add: full support for DI keyed services, both registration and resolution
 			- Add: new PreferSyncSerialization option
+			- Change: disable backplane traces by default
+			- Change: backplane traces (observability) are now root
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>

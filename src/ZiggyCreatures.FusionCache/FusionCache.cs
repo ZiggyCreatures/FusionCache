@@ -874,7 +874,9 @@ public partial class FusionCache
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): updating memory entry from distributed entry", CacheName, InstanceId, operationId, cacheKey);
 
-				memoryEntry.UpdateFromDistributedEntry(distributedEntry);
+
+				_mca.UpdateEntryFromDistributedEntry(operationId, cacheKey, memoryEntry, distributedEntry);
+				//memoryEntry.UpdateFromDistributedEntry(distributedEntry);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, cacheKey);
