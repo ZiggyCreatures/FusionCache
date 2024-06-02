@@ -207,7 +207,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedLogger(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder WithRegisteredKeyedLoggerByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.WithRegisteredKeyedLogger(builder.CacheName);
 	}
@@ -403,7 +403,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedMemoryCache(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder WithRegisteredKeyedMemoryCacheByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.WithRegisteredKeyedMemoryCache(builder.CacheName);
 	}
@@ -603,7 +603,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedMemoryLocker(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder WithRegisteredKeyedMemoryLockerByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.WithRegisteredKeyedMemoryLocker(builder.CacheName);
 	}
@@ -771,7 +771,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedSerializer(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder WithRegisteredKeyedSerializerByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.WithRegisteredKeyedSerializer(builder.CacheName);
 	}
@@ -956,7 +956,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedDistributedCache(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true)
+	public static IFusionCacheBuilder WithRegisteredKeyedDistributedCacheByCacheName(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true)
 	{
 		return builder.WithRegisteredKeyedDistributedCache(builder.CacheName, ignoreMemoryDistributedCache);
 	}
@@ -1186,7 +1186,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithRegisteredKeyedBackplane(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder WithRegisteredKeyedBackplaneByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.WithRegisteredKeyedBackplane(builder.CacheName);
 	}
@@ -1591,7 +1591,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder AsKeyedServiceByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.AsKeyedService(builder.CacheName);
 	}

@@ -783,7 +783,7 @@
             <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedLogger(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedLoggerByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Logging.ILogger`1"/> keyed service registered in the DI container (with the CacheName as the serviceKey) and use it, and throws if it cannot find one.
             <br/><br/>
@@ -886,7 +886,7 @@
             <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryCacheByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> keyed service registered in the DI container (with the CacheName as the serviceKey) and use it, and throws if it cannot find one.
             <br/><br/>
@@ -1003,7 +1003,7 @@
             <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryLocker(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedMemoryLockerByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             The builder will look for an <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> keyed service registered in the DI container (with the CacheName as the serviceKey) and use it, and throws if it cannot find one.
             <br/><br/>
@@ -1097,7 +1097,7 @@
             <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedSerializer(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedSerializerByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             Indicates if the builder should try to find and use an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> keyed service registered in the DI container (with the CacheName as the serviceKey).
             <br/><br/>
@@ -1195,7 +1195,7 @@
             <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="T:Microsoft.Extensions.Caching.Distributed.MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedDistributedCache(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Boolean)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedDistributedCacheByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder,System.Boolean)">
             <summary>
             The builder will look for an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> keyed service (and a corresponding <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) registered in the DI container (with the CacheName as the serviceKey) and use them, and throws if it cannot find them.
             <br/><br/>
@@ -1333,7 +1333,7 @@
             <param name="serviceKey">The keyed service key to use.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedBackplane(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.WithRegisteredKeyedBackplaneByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             The builder will look for an <see cref="T:ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane"/> keyed service registered in the DI container (with the CacheName as the serviceKey) and use it, and throws if it cannot find one.
             <br/><br/>
@@ -1541,7 +1541,7 @@
             </summary>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.AsKeyedService(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods.AsKeyedServiceByCacheName(ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder)">
             <summary>
             Register this FusionCache instance also as a keyed service, so that it can be retrieved with the [FromKeyedServices] attribute usage.
             <br/><br/>
