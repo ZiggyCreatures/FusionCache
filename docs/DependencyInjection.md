@@ -8,7 +8,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| FusionCache natively supports .NET dependency injection, along with a builder to allow for easy customization: all the features, options and components are supported, thanks to the fluent api and specific calls for each feature. |
+| FusionCache natively supports .NET dependency injection including keyed services, along with a builder to allow for easy customization: all the features, options and components are supported, thanks to a rich fluent API. |
 
 In .NET there's full support for [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
 
@@ -58,7 +58,7 @@ public class MyController : Controller
 
 In this way the `cache` param will be automatically populated by the DI framework.
 
-By simply calling `services.AddFusionCache()` we will have FusionCache configured with the default options and using only a memory cache (1st level) and nothing else: no distributed cache (2nd level), no backplane nor any plugin.
+By simply calling `services.AddFusionCache()` we will have FusionCache configured with the default options and using only a memory cache (L1) and nothing else: no distributed cache (L2), no backplane nor any plugin.
 
 But usually we want to do more, right? Maybe add a distributed cache or configure some options.
 
@@ -117,8 +117,10 @@ FusionCache has a _unified_ approach, and everything is (hopefully) very uniform
 
 For example for the memory cache we can tell FusionCache:
 
-- `WithRegisteredMemoryCache()`: USE the one REGISTERED in the DI container (if not there, an exception will be thrown)
-- `TryWithRegisteredMemoryCache()`: TRY TO USE the one REGISTERED in the DI container (if not there, no problem)
+- `WithRegisteredMemoryCache()`: USE the one registered in the DI container. If not there, an EXCEPTION will be thrown
+- `TryWithRegisteredMemoryCache()`: TRY TO USE the one registered in the DI container. If not there, no problem
+- `WithRegisteredKeyedMemoryCache(object? serviceKey)`: USE the one registered in the DI container with the specified SERVICE KEY (or the `CacheName` if not specified). If not there, an EXCEPTION will be thrown
+- `TryWithRegisteredKeyedMemoryCache(object? serviceKey)`: TRY TO USE the one registered in the DI container with the specified SERVICE KEY (or the `CacheName` if not specified). If not there, no problem
 - `WithMemoryCache(IMemoryCache memoryCache)`: USE an instance that we provide DIRECTLY
 - `WithMemoryCache(Func<IServiceProvider, IMemoryCache> factory)`: USE an instance built via a FACTORY that we provide
 
@@ -126,6 +128,8 @@ The same is available for other components, like the backplane for example:
 
 - `WithRegisteredBackplane()`
 - `TryWithRegisteredBackplane()`
+- `WithRegisteredKeyedBackplane(object? serviceKey)`
+- `TryWithRegisteredKeyedBackplane(object? serviceKey)`
 - `WithBackplane(IFusionCacheBackplane backplane)`
 - `WithBackplane(Func<IServiceProvider, IFusionCacheBackplane> factory)`
 
@@ -133,11 +137,13 @@ and so on.
 
 This approach is currently available for these components:
 - logger
+- memory locker
 - memory cache
 - distributed cache + serializer
 - backplane
+- plugins (slightly different, see below)
 
-Of course you can mix these approach for the different components for example by using the registered logger, a specific memory cache via an instance, a backplane via a factory and so on.
+Of course we can mix these approach for the different components for example by using the registered logger, a specific memory cache via an instance, a backplane via a factory and so on.
 
 ### ⚙️ Distributed cache configuration
 
@@ -151,8 +157,9 @@ Because of this, in these methods there are some extra params like:
 
 Everything is the same, but since we can have multiple plugins some methods works in a "plural" way: for example we have `WithAllRegisteredPlugins()` which will use all of the registered `IFusionCachePlugin` services, not just one.
 
-Also, we can call `WithPlugin(...)` multiple times and add multiple plugins to the same FusionCache instance.
+There's also the _keyed_ version via `WithAllRegisteredKeyedPlugins(object? serviceKey)`, which act as we can imagine: same as above but by a specified service key (or by `CacheName` if not specified).
 
+Also, we can call `WithPlugin(...)` multiple times and add multiple plugins to the same FusionCache instance.
 
 ### ⚙️ Post Setup
 
@@ -162,7 +169,7 @@ To do that we have at our disposal a `WithPostSetup(Action<IServiceProvider, IFu
 
 ### ⚙️ Auto-setup
 
-It's probably not that frequent, but let's say you would like FusionCache to try and look into the DI container and basically use everything it can. Found a backplane? Use it. Found a valid distributed cache + a valid serializer? Use them. Any plugin found? Yep, use them all.
+It's probably not that frequent, but let's say we would like FusionCache to try and look into the DI container and basically use everything it can. Found a backplane? Use it. Found a valid distributed cache + a valid serializer? Use them. Any plugin found? Yep, use them all.
 
 In this way we don't have a lot of control about what has been done so we may have surprises at runtime, but if this is what we want then we can use the `TryWithAutoSetup()` method: as the name implies, it will _try_ to _automatically_ do a _setup_ of what it can find.
 
@@ -216,8 +223,60 @@ services.AddFusionCache()
 
 As previously stated, by default nothing is done automagically: the only exceptions to this rule - because of how these specific components work - are the logger, the options and the serializer. The serializer by the way will only be used if it's needed (eg: when also using a distributed cache).
 
-### 💪 It's our choice
-
 All in all, we may prefer flexibility in what we register and then use what is registered, or we may prefer to directly specify what we want to use.
 
 FusionCache supports both approaches, and let us choose what we prefer.
+
+## 🔑 Keyed Services
+
+FusionCache natively supports multiple [Named Caches](NamedCaches.md) thanks to the `IFusionCacheProvider` interface: require it via DI and we can ask for a particular cache with the specified name via `provider.GetCache(name)`.
+
+Since .NET 8 though we now have native support for multiple services of the same type, identified by different keys, thanks to the addition of so called [keyed services](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services).
+
+So, can the two approaches work together? Oh yeah, totally.
+
+The idea is that, when registering a FusionCache instance, we simply add `.AsKeyedService()`, and that's it: that cache will be available _both_ via named caches and via keyed services.
+
+As an example, at startup we simply do this:
+
+```csharp
+services.AddFusionCache("MyCache")
+    .AsKeyedService();
+```
+
+and later, to resolve it, we either use `IFusionCacheProvider`:
+
+```csharp
+app.MapGet("/foo", (IFusionCacheProvider cacheProvider) => {
+    var cache = cacheProvider.GetCache("MyCache");
+    cache.Set("cache-key", 42);
+});
+```
+
+or just mark a constructor param or web action param of type `IFusionCache` with the `FromKeyedServices` attribute:
+
+```csharp
+app.MapGet("/foo", ([FromKeyedServices("MyCache")] IFusionCache) => {
+    cache.Set("cache-key", 42);
+});
+```
+
+Nice, eh?
+
+We can even specify a different service key by using `AsKeyedService(myServiceKey)`, where the key can be either of type `string` or anything else really, since the Keyed Services approach in .NET supports that.
+
+So, the next question is which one to choose?
+
+The `[FromKeyedServices("MyCache")]` approach is declarative and quicker, but the `IFusionCacheProvider` approach is programmatic and more powerful, since we can add logic to the selection of the cache name, while allowing us to use both the `GetCache(name)` or `GetCacheOrNull(name)` approach, adding a fallback logic or whatever we can think of.
+
+Basically it's up to us, and as always we can mix and match the two approaches in different scenarios, freely.
+
+But _registering_ FusionCache as a keyed service is one half of the story: the other half is how to _consume_ keyed services as FusionCache components.
+
+Can we do that too? Yep!
+
+When registering a FusionCache instance via the builder we always had the ability to say, for example, `WithRegisteredBackplane()` and FusionCache will look for a service of type `IFusionCacheBackplane` right? Cool now it's also possible to say `WithRegisteredKeyedBackplane(object? serviceKey)` to pick the service of type `IFusionCacheBackplane` registered with the specified `serviceKey` or even just say `WithRegisteredKeyedBackplane()` to do the same but using the `CacheName` as the service key.
+
+This is available for all the building blocks: logger, memory cache, memory locker, distributed cache, serializer, backplane and plugins.
+
+Nice.
