@@ -359,7 +359,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task CancelingAnOperationActuallyCancelsItAsync()
+	public async Task CanCancelAnOperationAsync()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
@@ -383,7 +383,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public void CancelingAnOperationActuallyCancelsIt()
+	public void CanCancelAnOperation()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
