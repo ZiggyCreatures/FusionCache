@@ -447,6 +447,33 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
+	public void CanRegisterMultipleDefaultCaches()
+	{
+		// NOTE: EVEN THOUGH IT'S POSSIBLE TO REGISTER MULTIPLE DEFAULT CACHES, IT'S NOT RECOMMENDED,
+		// AND IT'S NOT POSSIBLE TO USE THEM IN A MEANINGFUL WAY, AS THE LAST ONE REGISTERED WILL BE THE ONE USED.
+		// THIS FOLLOWS THE STANDARD BEHAVIOR OF MICROSOFT'S DI CONTAINER.
+
+		var services = new ServiceCollection();
+
+		services.AddFusionCache();
+		services.AddFusionCache();
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var cache1 = cacheProvider.GetDefaultCache();
+		var cache2 = cacheProvider.GetDefaultCache();
+		var cache3 = serviceProvider.GetRequiredService<IFusionCache>();
+
+		Assert.NotNull(cache1);
+		Assert.NotNull(cache2);
+		Assert.NotNull(cache3);
+		Assert.Equal(cache1, cache2);
+		Assert.Equal(cache2, cache3);
+	}
+
+	[Fact]
 	public void CanUseMultipleNamedCachesAndConfigureThem()
 	{
 		var services = new ServiceCollection();
@@ -717,6 +744,15 @@ public class DependencyInjectionTests
 		var maybeBarCache = cacheProvider.GetCacheOrNull("Bar");
 
 		Assert.Null(maybeBarCache);
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			// NO DEFAULT CACHE REGISTERED -> THROWS
+			_ = cacheProvider.GetDefaultCache();
+		});
+
+		// NO DEFAULT CACHE REGISTERED -> RETURNS NULL
+		var defaultCache = cacheProvider.GetDefaultCacheOrNull();
 	}
 
 	[Fact]
