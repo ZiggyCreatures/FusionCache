@@ -364,8 +364,8 @@ public class MemoryLevelTests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
 		var sw = Stopwatch.StartNew();
-		var outerCancelDelayMs = 500;
-		var factoryDelayMs = 2_000;
+		var outerCancelDelayMs = 200;
+		var factoryDelayMs = 5_000;
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
 		{
 			var cts = new CancellationTokenSource(outerCancelDelayMs);
@@ -388,8 +388,8 @@ public class MemoryLevelTests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
 		var sw = Stopwatch.StartNew();
-		var outerCancelDelayMs = 500;
-		var factoryDelayMs = 2_000;
+		var outerCancelDelayMs = 200;
+		var factoryDelayMs = 5_000;
 		Assert.ThrowsAny<OperationCanceledException>(() =>
 		{
 			var cts = new CancellationTokenSource(outerCancelDelayMs);

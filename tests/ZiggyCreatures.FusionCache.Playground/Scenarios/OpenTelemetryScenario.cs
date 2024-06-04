@@ -5,6 +5,7 @@ using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Honeycomb.OpenTelemetry;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -165,7 +166,7 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 
 			//app.Run();
 
-			var cachesCount = 1;
+			var cachesCount = 3;
 			var caches = new List<IFusionCache>();
 			IFusionCache fusionCache;
 
@@ -206,6 +207,9 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 					},
 				};
 
+				// WARNING: THIS IS JUST FOR TESTING PURPOSES, DON'T DO THIS IN PRODUCTION
+				options.SetInstanceId($"CACHE-OTLP-{i}");
+
 				var cache = new FusionCache(options);
 
 				// DISTRIBUTED CACHE
@@ -231,6 +235,32 @@ namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
 			}
 
 			fusionCache = caches[0];
+
+			//for (int i = 0; i < 10; i++)
+			//{
+			//	var x = i;
+			//	await fusionCache.GetOrSetAsync<long>($"foo-{i}", async _ => { await Task.Delay(Random.Shared.Next(200)); return x; });
+			//}
+
+			//await Task.Delay(1_000);
+
+			//for (int i = 0; i < 10; i++)
+			//{
+			//	var x = i;
+			//	await caches[i % 2].SetAsync<long>($"foo-{i}", DateTime.UtcNow.Ticks);
+			//}
+
+			//await Task.Delay(1_000);
+
+			//for (int i = 0; i < 10; i++)
+			//{
+			//	var x = i;
+			//	await caches[1 - (i % 2)].SetAsync<long>($"foo-{i}", DateTime.UtcNow.Ticks);
+			//}
+			//return;
+
+
+
 
 			using (var activity = Source.StartActivity("Top-Level Action (GetOrDefault)"))
 			{

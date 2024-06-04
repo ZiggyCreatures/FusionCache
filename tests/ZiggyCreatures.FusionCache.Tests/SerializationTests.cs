@@ -233,7 +233,7 @@ public class SerializationTests
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
+		var files = Directory.GetFiles("Samples", filePrefix + "*.bin");
 
 		TestOutput.WriteLine($"Found {files.Length} samples for {serializer.GetType().Name}");
 
@@ -261,7 +261,7 @@ public class SerializationTests
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Samples\\", filePrefix + "*.bin");
+		var files = Directory.GetFiles("Samples", filePrefix + "*.bin");
 
 		TestOutput.WriteLine($"Found {files.Length} samples for {serializer.GetType().Name}");
 

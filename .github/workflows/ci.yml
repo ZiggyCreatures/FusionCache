@@ -1,6 +1,7 @@
 name: Build and test
 on:
   pull_request:
+  workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
 jobs:
@@ -9,9 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Set up .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
     - run: dotnet --info
     - name: Build solution and run all tests
-      run: ./build.sh
+      run: dotnet test --verbosity normal

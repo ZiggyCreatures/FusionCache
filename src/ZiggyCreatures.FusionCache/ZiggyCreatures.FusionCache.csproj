@@ -2,15 +2,18 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>1.2.0-preview1</Version>
+		<Version>1.2.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.</Description>
 		<PackageTags>caching;cache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReleaseNotes>
-			- Add: full support for DI keyed services
+			- Add: full support for DI keyed services, both registration and resolution
 			- Add: new PreferSyncSerialization option
+			- Change: backplane traces (observability) are now root
+			- Change: backplane traces now have more tags, events and a better status in case of errors, for better investigations
+			- Change: disable backplane traces by default
 		</PackageReleaseNotes>
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
