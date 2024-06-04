@@ -7,26 +7,43 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider;
 internal sealed class FusionCacheProvider
 	: IFusionCacheProvider
 {
-	private readonly Dictionary<string, Lazy<IFusionCache>> _caches;
+	private readonly Dictionary<string, LazyNamedCache?> _caches;
 
 	public FusionCacheProvider(IEnumerable<IFusionCache> defaultCaches, IEnumerable<LazyNamedCache> lazyNamedCaches)
 	{
-		_caches = new Dictionary<string, Lazy<IFusionCache>>();
+		_caches = [];
 		foreach (var group in lazyNamedCaches.GroupBy(g => g.CacheName))
 		{
-			_caches.Add(group.Key, new Lazy<IFusionCache>(() => group.Count() == 1 ? group.First().Cache : throw new InvalidOperationException($"Multiple FusionCache registrations have been found with the provided name ({group.Key})")));
+			if (group.Count() == 1)
+			{
+				// ONLY 1 CACHE -> ADD IT
+				_caches[group.Key] = group.First();
+			}
+			else
+			{
+				// MORE THAN 1 CACHE -> ADD NULL
+				// NOTE: THIS WILL SIGNAL THAT THERE WERE MULTIPLE ONES AND, SINCE
+				// THEY WILL NOT BE ACCESSIBLE ANYWAY, WILL SAVE SOME MEMORY
+				_caches[group.Key] = null;
+			}
 		}
 
 		var defaultCache = defaultCaches.LastOrDefault();
-		if (defaultCache != null)
+		if (defaultCache is not null)
 		{
-			_caches.Add(FusionCacheOptions.DefaultCacheName, new Lazy<IFusionCache>(() => defaultCache));
+			_caches[defaultCache.CacheName] = new LazyNamedCache(defaultCache.CacheName, defaultCache);
 		}
 	}
 
 	public IFusionCache? GetCacheOrNull(string cacheName)
 	{
-		return _caches.TryGetValue(cacheName, out var cache) ? cache.Value : null;
+		if (_caches.TryGetValue(cacheName, out var item) == false)
+			return null;
+
+		if (item is null)
+			throw new InvalidOperationException($"Multiple FusionCache registrations have been found with the provided name ({cacheName})");
+
+		return item.Cache;
 	}
 
 	public IFusionCache GetCache(string cacheName)
