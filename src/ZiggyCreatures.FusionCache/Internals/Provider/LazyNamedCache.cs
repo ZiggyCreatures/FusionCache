@@ -48,15 +48,16 @@ internal sealed class LazyNamedCache : IDisposable
 			if (_cache is not null)
 				return _cache;
 
-			if (_cacheFactory is not null)
+			lock (_mutex)
 			{
-				lock (_mutex)
-				{
-					return _cache = _cacheFactory();
-				}
-			}
+				if (_cache is not null)
+					return _cache;
 
-			throw new InvalidOperationException("This should not be possible");
+				if (_cacheFactory is null)
+					throw new InvalidOperationException("No cache and no cache factory specified: this should not be possible.");
+
+				return _cache = _cacheFactory();
+			}
 		}
 	}
 
