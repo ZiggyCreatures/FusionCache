@@ -59,7 +59,7 @@ public class RunUtilsTests
 	}
 
 	[Fact]
-	public async Task CancelingAsyncFuncActuallyCancelsItAsync()
+	public async Task CanCancelAnAsyncFuncAsync()
 	{
 		int res = -1;
 		var factoryTerminated = false;
@@ -77,7 +77,7 @@ public class RunUtilsTests
 	}
 
 	[Fact]
-	public void CancelingAsyncFuncActuallyCancelsIt()
+	public void CanCancelAnAsyncFunc()
 	{
 		int res = -1;
 		var factoryTerminated = false;
@@ -94,7 +94,7 @@ public class RunUtilsTests
 	}
 
 	[Fact]
-	public void CancelingSyncFuncActuallyCancelsIt()
+	public void CanCancelASyncFunc()
 	{
 		int res = -1;
 		var factoryTerminated = false;
