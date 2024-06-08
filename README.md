@@ -73,6 +73,7 @@ These are the **key features** of FusionCache:
 - [**🔃 Dependency Injection + Builder**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
 - [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
+- [**🚀 Background Distributed Operations**](docs/BackgroundDistributedOperations.md): distributed operations can easily be executed in the background, safely, for better performance
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 - [**💫 Fully sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
 - [**📞 Events**](docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)

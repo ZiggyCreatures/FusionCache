@@ -216,6 +216,8 @@ public sealed class FusionCacheEntryOptions
 	/// <strong>TL/DR:</strong> set this flag to <see langword="true"/> for a perf boost, but watch out for rare side effects.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/BackgroundDistributedOperations.md"/>
 	/// </summary>
 	public bool AllowBackgroundDistributedCacheOperations { get; set; }
 
@@ -267,6 +269,8 @@ public sealed class FusionCacheEntryOptions
 	/// <strong>TL/DR:</strong> if you want to wait for backplane operations to complete, set this flag to <see langword="false"/>.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/BackgroundDistributedOperations.md"/>
 	/// </summary>
 	public bool AllowBackgroundBackplaneOperations { get; set; }
 

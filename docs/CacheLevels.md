@@ -57,8 +57,9 @@ In the end this basically it boils down to 2 possible ways:
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), advanced [timeouts](Timeouts.md) and so on.
 
-Finally, if needed, we can also use a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option: in this way updates to the distributed cache can be picked up more frequently, in case we don't want to use a [backplane](Backplane.md) for some reason.
+Also, if needed, we can use a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option: in this way updates to the distributed cache can be picked up more frequently, in case we don't want to use a [backplane](Backplane.md) for some reason.
 
+Finally we can even execute the distributed cache operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
 ## 📢 Backplane
 
@@ -105,7 +106,7 @@ Yes, totally, and there's a [dedicated page](DiskCache.md) to learn more.
 
 Since the distributed cache is a distributed component (just like the backplane), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature.
 
-We can readm more on the related [docs page](AutoRecovery.md).
+We can read more on the related [docs page](AutoRecovery.md).
 
 ## 📦 Packages
 

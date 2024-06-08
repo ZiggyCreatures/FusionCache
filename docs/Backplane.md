@@ -41,6 +41,7 @@ As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N
 
 As we can see we didn't have to do anything more than usual: everything else is done automatically for us.
 
+Finally we can even execute the backplane operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
 ## 📩 Notifications: then what?
 
