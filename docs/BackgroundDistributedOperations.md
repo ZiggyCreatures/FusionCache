@@ -10,7 +10,7 @@
 | -------- |
 | FusionCache can execute most distributed operations in the background, to avoid having to wait for them to finish, and thanks to Auto-Recovery, any transient error will be automatically managed for us. |
 
-When we scale horizontally we go multi-node, and then we go multi-none we have to introduce distributed components, and when we talk about distributed components we are talking about the **distributed cache** and the **backplane**.
+When we scale horizontally we go multi-node, and when we go multi-node we have to introduce distributed components, and when we talk about distributed components we are talking about the **distributed cache** and the **backplane**.
 
 These components can help us scale our infrastructure horizontally, by distributing the load on multiple nodes instead of scaling vertically by buying more powerful servers.
 
