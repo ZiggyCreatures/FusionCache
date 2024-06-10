@@ -400,7 +400,7 @@ public partial class FusionCache
 					options.ReThrowBackplaneExceptions = false;
 
 					// ADAPTIVE CACHING UPDATE
-					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.Result, options, false, ctx.LastModified, ctx.ETag, null);
+					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.GetAwaiter().GetResult(), options, false, ctx.LastModified, ctx.ETag, null);
 
 					var mca = GetCurrentMemoryAccessor(options);
 					if (mca is not null)
