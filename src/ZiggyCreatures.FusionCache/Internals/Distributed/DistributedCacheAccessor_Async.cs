@@ -155,8 +155,8 @@ internal partial class DistributedCacheAccessor
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
-			data = await RunUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
-				async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
+			data = await RunUtils.RunAsyncFuncWithTimeoutAsync(
+				ct => _cache.GetAsync(MaybeProcessCacheKey(key), ct),
 				timeout.Value,
 				true,
 				token: token
@@ -271,15 +271,15 @@ internal partial class DistributedCacheAccessor
 		return (null, false);
 	}
 
-	public async ValueTask<bool> RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
+	public ValueTask<bool> RemoveEntryAsync(string operationId, string key, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
 	{
 		if (IsCurrentlyUsable(operationId, key) == false)
-			return false;
+			return new ValueTask<bool>(false);
 
 		// ACTIVITY
 		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedRemove, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
-		return await ExecuteOperationAsync(
+		return ExecuteOperationAsync(
 			operationId,
 			key,
 			async ct =>
@@ -292,6 +292,6 @@ internal partial class DistributedCacheAccessor
 			"removing entry from distributed" + isBackground.ToString(" (background)"),
 			options,
 			token
-		).ConfigureAwait(false);
+		);
 	}
 }
