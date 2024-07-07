@@ -16,7 +16,7 @@
 | 🙋‍♂️ Updating to `v1.0.0` ? please [read here](docs/Update_v1_0_0.md). |
 |:-------|
 
-### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
+### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
@@ -26,7 +26,7 @@ It was born after years of dealing with all sorts of different types of caches: 
 
 </div>
 
-It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
+Being a hybrid cache means that it can work both as a normal memory cache (L1) or, optionally, as a multi-level cache (L1+L2) where the 2nd level can be any implementation of the standard `IDistributedCache` interface. This will get us better better scalability, better performance and more resiliency in a multi-node scenario or even just to ease cold starts (initial empty cache, maybe after a restart).
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep all the memory caches involved perfectly synchronized, without any additional work.
 
@@ -50,11 +50,17 @@ Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) f
 
 Curious about what you can achieve from start to finish? There's a [👩‍🏫 Step By Step ](docs/StepByStep.md) guide.
 
-More into videos? The fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) have been kind enough to invite me on the show and listen to me mumbling random caching stuff.
+## 📺 Media
+
+More into videos?
+
+I've been lucky enough to be invited on some shows and podcasts here and there: you can find them in the [Media](docs/Media.md) section.
+
+A good example is when the fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) invited me on the show to allow me to mumbling random caching stuff.
 
 <div align="center">
 
-[![On .NET Talk](docs/images/talk-on-dotnet.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+[![On .NET Talk](docs/images/talks/on-dotnet-small.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
 
 </div>
 

@@ -7,7 +7,7 @@
 
 # 🦄 A Gentle Introduction
 
-FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
+FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and, optionally, a distributed cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
 
