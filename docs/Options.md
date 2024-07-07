@@ -89,7 +89,7 @@ If we want to have defaults but also pass a direct instance, we would need to du
 
 ## Adaptive Caching?
 
-What happens when using [Adaptive Caching](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AdaptiveCaching.md)?
+What happens when using [Adaptive Caching](AdaptiveCaching.md)?
 
 First thing to know: nothing will break!
 
