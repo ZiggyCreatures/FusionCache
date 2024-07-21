@@ -8,36 +8,18 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack" Version="1.1.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack" Version="1.1.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson" Version="1.1.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="1.1.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="1.1.0" />
-		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="1.1.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack" Version="1.2.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack" Version="1.2.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson" Version="1.2.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="1.2.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="1.2.0" />
+		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="1.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<Content Include="Samples\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Content Remove="Samples\fusioncachecysharpmemorypackserializer__v1_0_0_0.bin" />
-	  <Content Remove="Samples\fusioncacheneueccmessagepackserializer__v1_0_0_0.bin" />
-	  <Content Remove="Samples\fusioncachenewtonsoftjsonserializer__v1_0_0_0.bin" />
-	  <Content Remove="Samples\fusioncacheprotobufnetserializer__v1_0_0_0.bin" />
-	  <Content Remove="Samples\fusioncacheservicestackjsonserializer__v1_0_0_0.bin" />
-	  <Content Remove="Samples\fusioncachesystemtextjsonserializer__v1_0_0_0.bin" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="Samples\fusioncachecysharpmemorypackserializer__v1_1_0_0.bin" />
-	  <None Remove="Samples\fusioncacheneueccmessagepackserializer__v1_1_0_0.bin" />
-	  <None Remove="Samples\fusioncachenewtonsoftjsonserializer__v1_1_0_0.bin" />
-	  <None Remove="Samples\fusioncacheprotobufnetserializer__v1_1_0_0.bin" />
-	  <None Remove="Samples\fusioncacheservicestackjsonserializer__v1_1_0_0.bin" />
-	  <None Remove="Samples\fusioncachesystemtextjsonserializer__v1_1_0_0.bin" />
 	</ItemGroup>
 
 </Project>
