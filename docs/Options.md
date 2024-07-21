@@ -6,12 +6,10 @@
 
 # 🎚 Options
 
-Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite our needs, and maybe save some memory allocations, too.
-
 > [!TIP]
 > All these informations are fully available via IntelliSense, auto-suggest or similar technologies, thanks to the embedded code comments.
 
-## 2 Kinds
+Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite our needs, and maybe save some memory allocations, too.
 
 In FusionCache, just like in `IMemoryCache` and `IDistributedCache`, there are 2 kinds of options: `FusionCacheOptions` and `FusionCacheEntryOptions`.
 
@@ -29,11 +27,11 @@ These 2 kinds of options serve different purposes:
 - `FusionCacheOptions`: options related to an entire cache, configurable once at setup time
 - `FusionCacheEntryOptions`: options related to each specific cache entry, configurable at every method call
 
-## FusionCacheOptions
+## Per-cache options (`FusionCacheOptions`)
 
 When configuring the entire cache (a `FusionCache` instance) it's possible to setup some cache-wide options, using the `FusionCacheOptions` type: with this we can configure things like [Auto-Recovery](AutoRecovery.md), the cache key prefix, custom logging levels to use and more.
 
-## FusionCacheEntryOptions
+## Per-entry options (`FusionCacheEntryOptions`)
 
 Almost every core method like `GetOrSet`, `Set`, `Remove`, etc accepts a `FusionCacheEntryOptions` object that describes how to behave.
 
@@ -45,7 +43,7 @@ Whether we specify them or not, they are there for every call (this is important
 
 ## DefaultEntryOptions
 
-The most important option is the `DefaultEntryOptions` which is a `FusionCacheEntryOptions` object to be used as a default:
+A fundamental option in the `FusionCacheOptions` class is the `DefaultEntryOptions`, which is a `FusionCacheEntryOptions` object to be used as a default:
 
 ```csharp
 var options = new FusionCacheOptions() {
@@ -121,17 +119,22 @@ This allows us to have total control and flexibility, all without wasting resour
 
 ## Recap
 
-So, to recap:
-- we have "global" `DefaultEntryOptions`
-- we can specify different ones directly when calling a method, and they'll be used as-is
-- we can specify a lambda to start from the `DefaultEntryOptions` (automatically duplicated) and then change something
-- we can specify nothing, and the `DefaultEntryOptions` will be used as-is
-- with Adaptive Caching we can:
-  - change some specific things on the passed options
-  - change the entry options object completely
-- in case we need it, we can call `Duplicate()` to get a copy of an existing entry options object, ready to be modified without altering the original one
+So, to recap, every cache has their own "global" options of type `FusionCacheOptions`, and one of these options is the `DefaultEntryOptions` (of type `FusionCacheEntryOptions`) that serves as a default for every entry/method call we'll make.
 
-## FusionCacheOptions
+Then, each time we call a method like `Set`, `Get`, `GetOrSet`, etc we can:
+- specify different ones directly: by passing an instance of `FusionCacheEntryOptions` they'll be used as-is, no inheritance from defaults or anything
+- specify a lambda: this will duplicate the `DefaultEntryOptions` and apply the changes we specified via the lambda
+- specify nothing: the `DefaultEntryOptions` will be used, as-is, with no change
+- when using Adaptive Caching we can be sure the original/outer options will not be changed, while still being able to act on `ctx.Options` to:
+  - change one or more options there (eg: `ctx.Options.Duration = TimeSpan.FromSeconds(5)`)
+  - change the `ctx.Options` entirely (eg: `ctx.Options = myNewOptions`)
+- in case we need it, we can always call `myEntryOptions.Duplicate()` to get a copy of an existing entry options object, ready to be modified without altering the original one
+
+## Detailed View
+
+All these informations are fully available via IntelliSense, auto-suggest or similar technologies, thanks to the embedded code comments.
+
+### FusionCacheOptions
 
 | Name | Type | Default | Description |
 | ---: | :---: | :---: | :--- |
@@ -162,7 +165,7 @@ So, to recap:
 | `PluginsInfoLogLevel`                       | `LogLevel`                | `Information` | Used when logging informations about a plugin. |
 | `PluginsErrorsLogLevel`                     | `LogLevel`                | `Error` | Used when logging an error while working with a plugin. |
 
-## FusionCacheEntryOptions
+### FusionCacheEntryOptions
 
 | **ℹ LEGEND** |
 |:----------------|
