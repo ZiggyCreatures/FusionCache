@@ -16,7 +16,7 @@
 | 🙋‍♂️ Updating to `v1.0.0` ? please [read here](docs/Update_v1_0_0.md). |
 |:-------|
 
-### FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
+### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
@@ -26,7 +26,7 @@ It was born after years of dealing with all sorts of different types of caches: 
 
 </div>
 
-It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
+Being a hybrid cache means that it can work both as a normal memory cache (L1) or, optionally, as a multi-level cache (L1+L2) where the 2nd level can be any implementation of the standard `IDistributedCache` interface. This will get us better better scalability, better performance and more resiliency in a multi-node scenario or even just to ease cold starts (initial empty cache, maybe after a restart).
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep all the memory caches involved perfectly synchronized, without any additional work.
 
@@ -50,11 +50,17 @@ Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) f
 
 Curious about what you can achieve from start to finish? There's a [👩‍🏫 Step By Step ](docs/StepByStep.md) guide.
 
-More into videos? The fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) have been kind enough to invite me on the show and listen to me mumbling random caching stuff.
+## 📺 Media
+
+More into videos?
+
+I've been lucky enough to be invited on some shows and podcasts here and there: you can find them in the [Media](docs/Media.md) section.
+
+A good example is when the fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) invited me on the show to allow me to mumbling random caching stuff.
 
 <div align="center">
 
-[![On .NET Talk](docs/images/talk-on-dotnet.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+[![On .NET Talk](docs/images/talks/on-dotnet-small.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
 
 </div>
 
@@ -292,16 +298,20 @@ Nothing to do here.
 
 After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
 
-If you find FusionCache useful just [**✉ drop me a line**](https://twitter.com/jodydonetti), I would be interested in knowing how you're using it.
-
-And if you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
+If you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
 
 ## 💼 Is it Production Ready :tm: ?
 
 Yes!
 
-FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests.
+FusionCache is being used **in production** on **real world projects** for years, happily handling millions and millions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **4 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **5 million times** (thanks everybody!) it may very well be used even more.
 
-And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
+Oh, and it is being used in products by Microsoft itself, like [Data API Builder]()!
+
+## 😍 Are you using it?
+
+If you find FusionCache useful please [let me know](https://github.com/ZiggyCreatures/FusionCache/discussions/new?category=show-and-tell&title=I%27m%20using%20FusionCache!&body=%23%23%20Scenario%0ADescribe%20how%20you%20are%20using%20FusionCache:%20commercial%20product,%20oss%20project,%20monolith,%20microservice,%20web,%20mobile%20app,%20CLI,%20etc%0A%0A%23%23%20Liked%0AWhat%20you%20liked,%20features,%20docs%20or%20anything%0A%0A%23%23%20Unliked/Missing%0AThings%20you%20didn%27t%20like%20or%20felt%20was%20missing%0A%0A%23%23%20Closing%20Thoughts%0AAny%20closing%20thoughts), I'm  really interested!
+
+This is the only way for me to know how it is helping people.

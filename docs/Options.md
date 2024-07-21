@@ -6,29 +6,54 @@
 
 # 🎚 Options
 
-Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite your needs, and maybe save some memory allocations, too.
+> [!TIP]
+> All these informations are fully available via IntelliSense, auto-suggest or similar technologies, thanks to the embedded code comments.
 
-| **💡 NOTE** |
-|:----------------|
-| all these informations are fully available via IntelliSense, auto-suggest or similar technologies, thanks to the embedded code comments. |
+Even if FusionCache typically *just works* by default, it may be important to fine tune the available options to better suite our needs, and maybe save some memory allocations, too.
 
+In FusionCache, just like in `IMemoryCache` and `IDistributedCache`, there are 2 kinds of options: `FusionCacheOptions` and `FusionCacheEntryOptions`.
 
-## FusionCacheOptions
+If we think about `IMemoryCache` and `IDistributedCache`, we can see a common theme in the naming:
 
-When creating the entire cache it is possible to setup some cache-wide options, using the `FusionCacheOptions` type: with that you can configure things like the cache name, custom logging levels to use and more.
+|                     | Options              | Entry Options             |
+| :---                | ---:                 | ---:                      |
+| `IMemoryCache`      | `MemoryCacheOptions` | `MemoryCacheEntryOptions` |
+| `IDistributedCache` | `[Various]CacheOptions` (eg: `RedisCacheOptions`) | `DistributedCacheEntryOptions` |
+| `FusionCache`       | `FusionCacheOptions` | `FusionCacheEntryOptions` |
 
-The most important one is the `DefaultEntryOptions` which is a `FusionCacheEntryOptions` object (see below) used as a default:
+In this way we should feel at home when using FusionCache.
+
+These 2 kinds of options serve different purposes:
+- `FusionCacheOptions`: options related to an entire cache, configurable once at setup time
+- `FusionCacheEntryOptions`: options related to each specific cache entry, configurable at every method call
+
+## Per-cache options (`FusionCacheOptions`)
+
+When configuring the entire cache (a `FusionCache` instance) it's possible to setup some cache-wide options, using the `FusionCacheOptions` type: with this we can configure things like [Auto-Recovery](AutoRecovery.md), the cache key prefix, custom logging levels to use and more.
+
+## Per-entry options (`FusionCacheEntryOptions`)
+
+Almost every core method like `GetOrSet`, `Set`, `Remove`, etc accepts a `FusionCacheEntryOptions` object that describes how to behave.
+
+Things like fail-safe settings, soft/hard timeouts and more can be specified in this way: this lets us have **granular** control over each operation we perform.
+
+In case we need to explicitly duplicate some entry options, there's a `Duplicate()` method on the `FusionCacheEntryOptions` object that, well, duplicate it to a new one (and, spoiler, it's the one used internally by FusionCache when using the lambda `opt => opt` etc).
+
+Whether we specify them or not, they are there for every call (this is important).
+
+## DefaultEntryOptions
+
+A fundamental option in the `FusionCacheOptions` class is the `DefaultEntryOptions`, which is a `FusionCacheEntryOptions` object to be used as a default:
 
 ```csharp
-var cache = new FusionCache(new FusionCacheOptions() {
-    // DEFAULT ENTRY OPTIONS
+var options = new FusionCacheOptions() {
     DefaultEntryOptions = new FusionCacheEntryOptions {
         Duration = TimeSpan.FromMinutes(1),
         IsFailSafeEnabled = true,
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30)
     }
-});
+};
 ```
 
 This will be used when none is given for a specific method call:
@@ -49,7 +74,67 @@ cache.Set<int>(
 );
 ```
 
-In general this can be used as a set of options that will act as the *baseline*, while being able to granularly change everything you want **for each call**.
+In general this can be used as a set of options that will act as the *baseline*, while being able to granularly change everything we want **for each call**.
+
+Basically, when calling each method we can specify them in different ways:
+- nothing: by not passing anything, the above mentioned `DefaultEntryOptions` will be used, as-is
+- direct instance: by directly passing a `FusionCacheEntryOptions` instance, that will be used, as-is (no inherited defaults)
+- lambda: by passing a lambda, you can easily "start from" the `DefaultEntryOptions` which will be duplicated for you by FusionCache and then make some changes, tyically via a fluent api (eg: `opt.SetDuration(...).SetFailSafe(...)` etc)
+
+It's important to understand that the `DefaultEntryOptions` will act as "defaults" **ONLY** when not passing anything or when using the lambda: if we directly pass a `FusionCacheEntryOptions` instance, that instance will be used as-is, without any more changes.
+
+If we want to have defaults but also pass a direct instance, we would need to duplicate the `DefaultEntryOptions` manually, make some changes, and then store the result somewhere and pass that: of course though, every change made to the `DefaultEntryOptions` after that would not be reflected to the already-duplicated entry options.
+
+## Adaptive Caching?
+
+What happens when using [Adaptive Caching](AdaptiveCaching.md)?
+
+First thing to know: nothing will break!
+
+By normally calling `GetOrSet`, some entry options will be used anyway by one onf the above ways (eg: if we don't pass anything the `DefaultEntryOptions` will be used, etc): these options are the ones we'll find inside the `FusionCacheFactoryExecutionContext` object in the `Options` property.
+
+Now, when inside of the factory we can either change some properties on the `FusionCacheFactoryExecutionContext.Options` property like this:
+
+```csharp
+// INSIDE THE FACTORY
+ctx.Options.Duration = TimeSpan.FromSeconds(10);
+```
+
+or even completely overwrite it, like this:
+
+```csharp
+// INSIDE THE FACTORY
+ctx.Options = new FusionCacheEntryOptions() {
+  // ...
+};
+```
+
+But hold on: we may be wondering what happens when we change some options inside the factory. Are we inadvertently modifying the entry options passed in the outer method call? And if we don't pass anything, are we modifying the global `DefaultEntryOptions`?
+
+The answer is no, everything is taken care of, since FusionCache will protect us from this problems by automatically duplicating the entry options behind the scenes to avoid changing a shared options object.
+
+Also, it will do this both automatically (no manual intervention needed) and in an optimized way, meaning it will do that only when we are actually trying to modify something that was not marked as being "modifiable", and not for every single call.
+
+This allows us to have total control and flexibility, all without wasting resources.
+
+## Recap
+
+So, to recap, every cache has their own "global" options of type `FusionCacheOptions`, and one of these options is the `DefaultEntryOptions` (of type `FusionCacheEntryOptions`) that serves as a default for every entry/method call we'll make.
+
+Then, each time we call a method like `Set`, `Get`, `GetOrSet`, etc we can:
+- specify different ones directly: by passing an instance of `FusionCacheEntryOptions` they'll be used as-is, no inheritance from defaults or anything
+- specify a lambda: this will duplicate the `DefaultEntryOptions` and apply the changes we specified via the lambda
+- specify nothing: the `DefaultEntryOptions` will be used, as-is, with no change
+- when using Adaptive Caching we can be sure the original/outer options will not be changed, while still being able to act on `ctx.Options` to:
+  - change one or more options there (eg: `ctx.Options.Duration = TimeSpan.FromSeconds(5)`)
+  - change the `ctx.Options` entirely (eg: `ctx.Options = myNewOptions`)
+- in case we need it, we can always call `myEntryOptions.Duplicate()` to get a copy of an existing entry options object, ready to be modified without altering the original one
+
+## Detailed View
+
+All these informations are fully available via IntelliSense, auto-suggest or similar technologies, thanks to the embedded code comments.
+
+### FusionCacheOptions
 
 | Name | Type | Default | Description |
 | ---: | :---: | :---: | :--- |
@@ -80,14 +165,7 @@ In general this can be used as a set of options that will act as the *baseline*,
 | `PluginsInfoLogLevel`                       | `LogLevel`                | `Information` | Used when logging informations about a plugin. |
 | `PluginsErrorsLogLevel`                     | `LogLevel`                | `Error` | Used when logging an error while working with a plugin. |
 
-
-## FusionCacheEntryOptions
-
-Almost every core method (like GetOrSet/Set/Remove/etc, see below) accepts a `FusionCacheEntryOptions` object that describes how to behave.
-
-Things like fail-safe settings, soft/hard timeouts and more can be specified in this way: this lets you have granular control over each operation you perform.
-
-For a better **developer experience** and to **consume less memory** (higher performance + lower infrastructure costs) it is possible to define a cache-wide `DefaultEntryOptions` (see above) and avoid passing one every time.
+### FusionCacheEntryOptions
 
 | **ℹ LEGEND** |
 |:----------------|
@@ -95,14 +173,14 @@ For a better **developer experience** and to **consume less memory** (higher per
 
 | Name | Type | Default | Description |
 | ---: | :---: | :---: | :--- |
-| `LockTimeout` | `TimeSpan` | `none` | To guarantee only one factory is called per each cache key, a lock mechanism is used: this value specifies a timeout after which the factory may be called nonetheless, ignoring the *single call* optimization. Usually it is not necessary, but to avoid any potential deadlock that may *theoretically* happen you can set a value. |
+| `LockTimeout` | `TimeSpan` | `none` | To guarantee only one factory is called per each cache key, a lock mechanism is used: this value specifies a timeout after which the factory may be called nonetheless, ignoring the *single call* optimization. Usually it is not necessary, but to avoid any potential deadlock that may *theoretically* happen we can set a value. |
 | 🧙‍♂️ `Duration` | `TimeSpan` | `30 sec` | The logical duration of the cache entry. This value will be used as the *actual* duration in the cache, but only if *fail-safe* is disabled. If *fail-safe* is instead enabled, the duration in the cache will be `FailSafeMaxDuration`, but this value will still be used to see if the entry is expired, to try to execute the factory to get a new value. |
 | 🧙‍♂️ `JitterMaxDuration` | `TimeSpan` | `none` | If set to a value greater than zero it will be used as the maximum value for an additional, randomized duration of a cache entry's normal `Duration`. This is useful to prevent variations of the <a href="https://en.wikipedia.org/wiki/Cache_stampede">Cache Stampede problem</a> in a multi-node scenario. |
 | 🧙‍♂️ `Size` | `long?` | `null` | This is only used to set the `MemoryCacheEntryOptions.Size` property when saving an entry in the underlying memory cache. |
 | 🧙‍♂️ `Priority` | `CacheItemPriority` | `Normal` | This is only used to set the `MemoryCacheEntryOptions.Priority` property when saving an entry in the underlying memory cache. |
 | `IsFailSafeEnabled` | `bool` | `false` | If fail-safe is enabled a cached entry will be available even after the logical expiration as a fallback, in case of problems while calling the factory to get a new value. |
 | 🧙‍♂️ `FailSafeMaxDuration` | `TimeSpan` | `1 day` | When fail-safe is enabled, this is the amount of time a cached entry will be available, even as a fallback. |
-| 🧙‍♂️ `FailSafeThrottleDuration` | `TimeSpan` | `30 sec` | When the fail-safe mechanism is actually activated in case of problems while calling the factory, this is the (usually small) new duration for a cache entry used as a fallback. This is done to avoid repeatedly calling the factory in case of an expired entry, and basically prevents <a href="https://en.wikipedia.org/wiki/Denial-of-service_attack">DOS</a>-ing yourself. |
+| 🧙‍♂️ `FailSafeThrottleDuration` | `TimeSpan` | `30 sec` | When the fail-safe mechanism is actually activated in case of problems while calling the factory, this is the (usually small) new duration for a cache entry used as a fallback. This is done to avoid repeatedly calling the factory in case of an expired entry, and basically prevents <a href="https://en.wikipedia.org/wiki/Denial-of-service_attack">DOS</a>-ing ourrselves. |
 | `FactorySoftTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for the factory, applied only if fail-safe is enabled and there is a fallback value to return. |
 | `FactoryHardTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for the factory in any case, even if there is not a stale value to fallback to. |
 | `AllowTimedOutFactoryBackgroundCompletion` | `bool` | `true` | It enables a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value. |
@@ -111,11 +189,11 @@ For a better **developer experience** and to **consume less memory** (higher per
 | 🧙‍♂️ `DistributedCacheSoftTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for each operation on the distributed cache when is not problematic to simply timeout. |
 | 🧙‍♂️ `DistributedCacheHardTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to. |
 | 🧙‍♂️ `AllowBackgroundDistributedCacheOperations` | `bool` | `false` | Normally operations on the distributed cache are executed in a blocking fashion: setting this flag to true let them run in the background in a kind of fire-and-forget way. This will give a perf boost, but watch out for rare side effects. |
-| 🧙‍♂️ `ReThrowDistributedCacheExceptions` | `bool` | `false` | Set this to true to allow the bubble up of distributed cache exceptions (default is `false`). Please note that, even if set to true, in some cases you would also need `AllowBackgroundDistributedCacheOperations` set to false and no timeout (neither soft nor hard) specified. |
+| 🧙‍♂️ `ReThrowDistributedCacheExceptions` | `bool` | `false` | Set this to true to allow the bubble up of distributed cache exceptions (default is `false`). Please note that, even if set to true, in some cases we would also need `AllowBackgroundDistributedCacheOperations` set to false and no timeout (neither soft nor hard) specified. |
 | 🧙 `ReThrowSerializationExceptions`    | `bool` | `true` | Set this to false to disable the bubble up of serialization exceptions (default is `true`). |
 | 🧙‍♂️ `SkipBackplaneNotifications` | `bool` | `false` | Skip sending backplane notifications after some operations, like a SET (via a Set/GetOrSet call) or a REMOVE (via a Remove call). |
 | 🧙‍♂️ `AllowBackgroundBackplaneOperations` | `bool` | `true` | By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed. Setting this flag to `false` will execute these operations in a blocking fashion, typically resulting in worse performance. |
-| 🧙‍♂️ `ReThrowBackplaneExceptions` | `bool` | `false` | Set this to true to allow the bubble up of backplane exceptions (default is `false`). Please note that, even if set to true, in some cases you would also need `AllowBackgroundBackplaneOperations` set to false. |
+| 🧙‍♂️ `ReThrowBackplaneExceptions` | `bool` | `false` | Set this to true to allow the bubble up of backplane exceptions (default is `false`). Please note that, even if set to true, in some cases we would also need `AllowBackgroundBackplaneOperations` set to false. |
 | 🧙‍♂️ `EagerRefreshThreshold` | `float?` | `null` | The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration). |
 | 🧙‍♂️ `SkipDistributedCache` | `bool` | `false` | Skip the usage of the distributed cache, if any. |
 | 🧙‍♂️ `SkipDistributedCacheReadWhenStale` | `bool` | `false` | When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it. |
