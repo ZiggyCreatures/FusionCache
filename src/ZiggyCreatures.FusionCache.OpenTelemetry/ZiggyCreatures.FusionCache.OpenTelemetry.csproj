@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="OpenTelemetry.Api" Version="1.7.0" />
+		<PackageReference Include="OpenTelemetry.Api" Version="1.9.0" />
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
