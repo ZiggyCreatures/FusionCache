@@ -4,7 +4,7 @@
 
 </div>
 
-# 🛡️ Cache Stampede prevention
+# 🛡️ Cache Stampede protection
 
 | ⚡ TL;DR (quick version) |
 | -------- |

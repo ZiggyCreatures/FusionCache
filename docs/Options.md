@@ -15,11 +15,11 @@ In FusionCache, just like in `IMemoryCache` and `IDistributedCache`, there are 2
 
 If we think about `IMemoryCache` and `IDistributedCache`, we can see a common theme in the naming:
 
-|                     | Options              | Entry Options             |
-| :---                | ---:                 | ---:                      |
-| `IMemoryCache`      | `MemoryCacheOptions` | `MemoryCacheEntryOptions` |
+|                     | per-cache options                                 | per-entry options              |
+| :---                | ---:                                              | ---:                           |
+| `IMemoryCache`      | `MemoryCacheOptions`                              | `MemoryCacheEntryOptions`      |
 | `IDistributedCache` | `[Various]CacheOptions` (eg: `RedisCacheOptions`) | `DistributedCacheEntryOptions` |
-| `FusionCache`       | `FusionCacheOptions` | `FusionCacheEntryOptions` |
+| `FusionCache`       | `FusionCacheOptions`                              | `FusionCacheEntryOptions`      |
 
 In this way we should feel at home when using FusionCache.
 
