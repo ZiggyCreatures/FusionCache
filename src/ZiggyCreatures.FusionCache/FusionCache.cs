@@ -904,4 +904,17 @@ public partial class FusionCache
 			return (true, false, false);
 		}
 	}
+
+	private void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options, ref DistributedCacheAccessor? dca, ref MemoryCacheAccessor? mca)
+	{
+		// UPDATE ADAPTIVE OPTIONS
+		var maybeNewOptions = ctx.GetOptions();
+		if (ReferenceEquals(options, maybeNewOptions) == false)
+		{
+			options = maybeNewOptions;
+
+			dca = GetCurrentDistributedAccessor(options);
+			mca = GetCurrentMemoryAccessor(options);
+		}
+	}
 }
