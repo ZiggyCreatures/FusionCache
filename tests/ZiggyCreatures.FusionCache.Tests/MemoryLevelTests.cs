@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using CacheManager.Core;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -815,6 +816,84 @@ public class MemoryLevelTests
 		Assert.Equal(1, foo3.Value);
 		Assert.Equal(4, foo4);
 	}
+
+
+	[Fact]
+	public async Task AdaptiveCachingCanWorkOnExceptionAsync()
+	{
+		var options = new FusionCacheOptions();
+
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(5);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+
+		var cache = new FusionCache(options);
+		var key = "foo";
+
+		cache.GetOrSet(key, "bar");
+
+		// LOGICALLY EXPIRE THE KEY SO THE FAIL-SAFE LOGIC TRIGGERS
+		cache.Expire(key);
+
+		await Assert.ThrowsAsync<Exception>(async () =>
+		{
+			await cache.GetOrSetAsync<string>(key, async (ctx, ct) =>
+			{
+				try
+				{
+					throw new Exception("Factory failed");
+				}
+				finally
+				{
+					// DISABLE FAIL SAFE
+					ctx.Options.SetFailSafe(false);
+				}
+			});
+		});
+
+		await cache.GetOrSetAsync<string>(key, async (ctx, ct) =>
+		{
+			throw new Exception("Factory failed");
+		});
+	}
+
+	[Fact]
+	public void AdaptiveCachingCanWorkOnException()
+	{
+		var options = new FusionCacheOptions();
+
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(5);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+
+		var cache = new FusionCache(options);
+		var key = "foo";
+
+		cache.GetOrSet(key, "bar");
+
+		// LOGICALLY EXPIRE THE KEY SO THE FAIL-SAFE LOGIC TRIGGERS
+		cache.Expire(key);
+
+		Assert.Throws<Exception>(() =>
+		{
+			cache.GetOrSet<string>(key, (ctx, ct) =>
+			{
+				try
+				{
+					throw new Exception("Factory failed");
+				}
+				finally
+				{
+					// DISABLE FAIL SAFE
+					ctx.Options.SetFailSafe(false);
+				}
+			});
+		});
+
+		cache.GetOrSet<string>(key, (ctx, ct) =>
+		{
+			throw new Exception("Factory failed");
+		});
+	}
+
 
 	[Fact]
 	public async Task FailSafeMaxDurationNormalizationOccursAsync()
