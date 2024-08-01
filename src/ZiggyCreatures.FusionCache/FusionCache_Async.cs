@@ -164,15 +164,7 @@ public partial class FusionCache
 
 						hasNewValue = true;
 
-						// UPDATE ADAPTIVE OPTIONS
-						var maybeNewOptions = ctx.GetOptions();
-						if (ReferenceEquals(options, maybeNewOptions) == false)
-						{
-							options = maybeNewOptions;
-
-							dca = GetCurrentDistributedAccessor(options);
-							mca = GetCurrentMemoryAccessor(options);
-						}
+						UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
 
 						entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
 
@@ -189,6 +181,8 @@ public partial class FusionCache
 					}
 					catch (Exception exc)
 					{
+						UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+
 						ProcessFactoryError(operationId, key, exc);
 
 						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
