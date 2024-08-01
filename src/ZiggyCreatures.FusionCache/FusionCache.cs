@@ -913,7 +913,6 @@ public partial class FusionCache
 		{
 			options = maybeNewOptions;
 
-			// i'm not sure why we were updating these values before - they are not used after adaptive options are updated
 			dca = GetCurrentDistributedAccessor(options);
 			mca = GetCurrentMemoryAccessor(options);
 		}
