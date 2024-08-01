@@ -904,4 +904,18 @@ public partial class FusionCache
 			return (true, false, false);
 		}
 	}
+
+	private void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options, ref DistributedCacheAccessor? dca, ref MemoryCacheAccessor? mca)
+	{
+		// UPDATE ADAPTIVE OPTIONS
+		var maybeNewOptions = ctx.GetOptions();
+		if (ReferenceEquals(options, maybeNewOptions) == false)
+		{
+			options = maybeNewOptions;
+
+			// i'm not sure why we were updating these values before - they are not used after adaptive options are updated
+			dca = GetCurrentDistributedAccessor(options);
+			mca = GetCurrentMemoryAccessor(options);
+		}
+	}
 }
