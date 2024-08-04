@@ -74,7 +74,38 @@ From now on everything will repeat in the same way, without throwing exceptions,
 1) the factory completes successfully again: in this case the cache will be updated with the new value + a duration of `5` min (`Duration`)
 2) a total `2` hours is passed (`FailSafeMaxDuration`): the value is actually deleted from the cache, like, **for real**
 
-:bulb: Setting a `FailSafeMaxDuration` is useful to avoid using a stale value for too long: you can set this for as long as you want, even a month or a year.
+> [!TIP]
+> Setting a `FailSafeMaxDuration` is useful to avoid using a stale value for too long: you can set this for as long as you want, even a month or a year.
 
-## A Beautiful Movie
+## 💥 Even Without Exceptions
+
+The natural way to trigger fail-safe is of course by an exception being thrown during a factory execution.
+
+This makes sense, since the whole point of fail-safe is to protect us when an error occurs while executing a factory execution, and an error usually means exceptions.
+
+There may be other ways to signal an error though, for example when working with the Result Pattern or similar approaches, in which throwing an exception is not strictly necessary.
+
+By simply calling the `Fail(...)` method on the factory execution context and return, just like we can do with the `Modified(...)` or `NotModified(...)` methods for [Conditional Refresh](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md), it is possible to trigger the fail-safe flow without having to throw an exception, saving on performance and making our code a little more functional in the meantime.
+
+Here's an example:
+
+```csharp
+var productResult = await cache.GetOrSetAsync<Result<Product>>(
+	$"product:{id}",
+	async (ctx, ct) =>
+	{
+		var productResult = GetProductFromDb(id);
+
+		if (productResult.IsSuccess == false)
+		{
+			return ctx.Fail(productResult.Error);
+		}
+
+		return productResult;
+	},
+	opt => opt.SetDuration(duration).SetFailSafe(true)
+);
+```
+
+## ❤️ A Beautiful Movie
 The name is also an homage to a somewhat forgotten [beautiful movie](https://en.wikipedia.org/wiki/Fail_Safe_(1964_film)), directed by the great Sidney Lumet and with a stellar cast. It's from a different era, so expect black and white and a different acting style, but give it a chance: it's remarkable.
