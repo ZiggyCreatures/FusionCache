@@ -73,27 +73,75 @@ public class MemoryLevelTests
 	[Fact]
 	public async Task ReturnsStaleDataWhenFactoryFailsWithoutExceptionAsync()
 	{
+		var errorMessage = "Sloths are cool";
 		var options = new FusionCacheOptions();
 		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(1);
 		using var cache = new FusionCache(options);
+
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+
 		await Task.Delay(500);
-		var newValue = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => ctx.Fail("Sloths are cool"));
+
+		var newValue = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => ctx.Fail(errorMessage));
+
 		Assert.Equal(initialValue, newValue);
+
+		await Task.Delay(options.DefaultEntryOptions.FailSafeThrottleDuration);
+
+		Exception? exc = null;
+		try
+		{
+			_ = await cache.GetOrSetAsync<int>(
+				"foo",
+				async (ctx, _) => ctx.Fail(errorMessage),
+				opt => opt.SetFailSafe(false)
+			);
+		}
+		catch (Exception exc1)
+		{
+			exc = exc1;
+		}
+		Assert.IsType<Exception>(exc);
+		Assert.Equal(errorMessage, exc.Message);
 	}
 
 	[Fact]
 	public void ReturnsStaleDataWhenFactoryFailsWithoutException()
 	{
+		var errorMessage = "Sloths are cool";
 		var options = new FusionCacheOptions();
 		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(1);
 		using var cache = new FusionCache(options);
+
 		var initialValue = cache.GetOrSet<int>("foo", _ => 42);
+
 		Thread.Sleep(500);
-		var newValue = cache.GetOrSet<int>("foo", (ctx, _) => ctx.Fail("Sloths are cool"));
+
+		var newValue = cache.GetOrSet<int>("foo", (ctx, _) => ctx.Fail(errorMessage));
+
 		Assert.Equal(initialValue, newValue);
+
+		Thread.Sleep(options.DefaultEntryOptions.FailSafeThrottleDuration);
+
+		Exception? exc = null;
+		try
+		{
+			_ = cache.GetOrSet<int>(
+				"foo",
+				(ctx, _) => ctx.Fail(errorMessage),
+				opt => opt.SetFailSafe(false)
+			);
+		}
+		catch (Exception exc1)
+		{
+			exc = exc1;
+		}
+		Assert.IsType<Exception>(exc);
+		Assert.Equal(errorMessage, exc.Message);
 	}
 
 	[Fact]
