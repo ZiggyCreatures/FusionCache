@@ -26,11 +26,9 @@ It was born after years of dealing with all sorts of different types of caches: 
 
 </div>
 
-Being a hybrid cache means that it can work both as a normal memory cache (L1) or, optionally, as a multi-level cache (L1+L2) where the 2nd level can be any implementation of the standard `IDistributedCache` interface. This will get us better better scalability, better performance and more resiliency in a multi-node scenario or even just to ease cold starts (initial empty cache, maybe after a restart).
+Being a hybrid cache means it can transparently work as either a normal memory cache (L1) or as a multi-level cache (L1+L2), where the distributed 2nd level (L2) can be any implementation of the standard `IDistributedCache` interface: this will get us better cold starts, better horizontal scalability, more resiliency and overall better performance.
 
-Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep all the memory caches involved perfectly synchronized, without any additional work.
-
-FusionCache also includes some advanced resiliency features like **cache stampede** prevention, a **fail-safe** mechanism, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache also includes an optional [backplane](docs/Backplane.md) for realtime sync between multiple nodes and advanced resiliency features like [cache stampede](docs/CacheStampede.md) protection, a [fail-safe](docs/FailSafe.md) mechanism, [soft/hard timeouts](docs/Timeouts.md), [eager refresh](docs/EagerRefresh.md), full observability via [logging](docs/Logging.md) and [OpenTelemetry](docs/OpenTelemetry.md) and much more.
 
 ## 🏆 Award
 
@@ -78,6 +76,7 @@ These are the **key features** of FusionCache:
 - [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
 - [**🔃 Dependency Injection + Builder**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**♊ Auto-Clone**](docs/AutoClone.md): be sure that cached values returned can be safely modified
 - [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
 - [**🚀 Background Distributed Operations**](docs/BackgroundDistributedOperations.md): distributed operations can easily be executed in the background, safely, for better performance
 - [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
@@ -306,7 +305,7 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling millions and millions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **5 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **6 million times** (thanks everybody!) it may very well be used even more.
 
 Oh, and it is being used in products by Microsoft itself, like [Data API Builder]()!
 
