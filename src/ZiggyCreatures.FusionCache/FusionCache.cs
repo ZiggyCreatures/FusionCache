@@ -517,6 +517,16 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void ProcessFactoryError(string operationId, string key, string errorMessage)
+	{
+		if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
+			_logger.Log(_options.FactoryErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling the factory: {ErrorMessage}", CacheName, InstanceId, operationId, key, errorMessage);
+
+		// EVENT
+		_events.OnFactoryError(operationId, key);
+	}
+
 	internal bool MaybeExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe, long? timestampThreshold)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)

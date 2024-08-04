@@ -160,16 +160,46 @@ public partial class FusionCache
 							value = RunUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
 						}
 
-						activityForFactory?.Dispose();
+						if (ctx.HasFailed)
+						{
+							// FAIL
 
-						hasNewValue = true;
+							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
 
-						UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+							var errorMessage = ctx.ErrorMessage!;
 
-						entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
+							ProcessFactoryError(operationId, key, errorMessage);
 
-						// EVENTS
-						_events.OnFactorySuccess(operationId, key);
+							//MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
+
+							// ACTIVITY
+							activityForFactory?.SetStatus(ActivityStatusCode.Error, errorMessage);
+							activityForFactory?.Dispose();
+
+							entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
+
+							if (entry is null)
+							{
+								throw new Exception(errorMessage);
+							}
+
+							isStale = true;
+						}
+						else
+						{
+							// SUCCESS
+
+							activityForFactory?.Dispose();
+
+							hasNewValue = true;
+
+							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
+
+							// EVENTS
+							_events.OnFactorySuccess(operationId, key);
+						}
 					}
 					catch (OperationCanceledException exc)
 					{
