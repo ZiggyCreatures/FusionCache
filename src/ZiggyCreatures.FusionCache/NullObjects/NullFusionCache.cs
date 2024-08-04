@@ -16,7 +16,7 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects;
 /// </summary>
 [DebuggerDisplay("NAME: {_options.CacheName} - ID: {InstanceId}")]
 public class NullFusionCache
-: IFusionCache
+	: IFusionCache
 {
 	private readonly FusionCacheOptions _options;
 	private readonly FusionCacheEventsHub _events;
@@ -157,6 +157,24 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
+	public IFusionCache SetupSerializer(IFusionCacheSerializer serializer)
+	{
+		return this;
+	}
+
+	/// <inheritdoc/>
+	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache)
+	{
+		return this;
+	}
+
+	/// <inheritdoc/>
+	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+	{
+		return this;
+	}
+
+	/// <inheritdoc/>
 	public IFusionCache RemoveDistributedCache()
 	{
 		return this;
@@ -182,12 +200,6 @@ public class NullFusionCache
 
 	/// <inheritdoc/>
 	public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
-	{
-		return this;
-	}
-
-	/// <inheritdoc/>
-	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
 	{
 		return this;
 	}

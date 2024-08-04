@@ -237,8 +237,42 @@ internal sealed class FusionCacheBuilder
 		// CREATE THE CACHE
 		var cache = new FusionCache(options, memoryCache, logger, memoryLocker);
 
+		// SERIALIZER
+		IFusionCacheSerializer? serializer = null;
+
+		if (UseRegisteredSerializer)
+		{
+			if (SerializerServiceKey is null)
+			{
+				serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+			}
+			else
+			{
+				serializer = serviceProvider.GetKeyedService<IFusionCacheSerializer>(SerializerServiceKey);
+			}
+		}
+		else if (SerializerFactory is not null)
+		{
+			serializer = SerializerFactory.Invoke(serviceProvider);
+		}
+		else
+		{
+			serializer = Serializer;
+		}
+
+		if (serializer is null && ThrowIfMissingSerializer)
+		{
+			throw new InvalidOperationException("A serializer has not been specified, or found in the DI container.");
+		}
+
+		if (serializer is not null)
+		{
+			cache.SetupSerializer(serializer);
+		}
+
 		// DISTRIBUTED CACHE
 		IDistributedCache? distributedCache;
+
 		if (UseRegisteredDistributedCache)
 		{
 			if (DistributedCacheServiceKey is null)
@@ -271,41 +305,7 @@ internal sealed class FusionCacheBuilder
 
 		if (distributedCache is not null)
 		{
-			IFusionCacheSerializer? serializer;
-			if (UseRegisteredSerializer)
-			{
-				if (SerializerServiceKey is null)
-				{
-					serializer = serviceProvider.GetService<IFusionCacheSerializer>();
-				}
-				else
-				{
-					serializer = serviceProvider.GetKeyedService<IFusionCacheSerializer>(SerializerServiceKey);
-				}
-			}
-			else if (SerializerFactory is not null)
-			{
-				serializer = SerializerFactory.Invoke(serviceProvider);
-			}
-			else
-			{
-				serializer = Serializer;
-			}
-
-			if (serializer is not null)
-			{
-				cache.SetupDistributedCache(distributedCache, serializer);
-			}
-			else
-			{
-				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache has not been set up", cache.CacheName, cache.InstanceId, distributedCache.GetType().FullName);
-
-				if (ThrowIfMissingSerializer)
-				{
-					throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache has not been set up");
-				}
-			}
+			cache.SetupDistributedCache(distributedCache);
 		}
 
 		// BACKPLANE

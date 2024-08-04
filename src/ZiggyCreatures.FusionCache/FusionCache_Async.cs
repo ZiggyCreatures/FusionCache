@@ -348,7 +348,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString());
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
 	/// <inheritdoc/>
@@ -382,10 +382,10 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString());
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
-	private async ValueTask<IFusionCacheEntry?> TryGetEntryInternalAsync<TValue>(string operationId, string key, FusionCacheEntryOptions? options, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> TryGetEntryInternalAsync<TValue>(string operationId, string key, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		options ??= _options.DefaultEntryOptions;
 
@@ -532,7 +532,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return SUCCESS", CacheName, InstanceId, operationId, key);
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
 	/// <inheritdoc/>
@@ -566,7 +566,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString());
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
 	/// <inheritdoc/>
