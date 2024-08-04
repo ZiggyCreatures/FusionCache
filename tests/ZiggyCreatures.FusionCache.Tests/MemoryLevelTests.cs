@@ -45,22 +45,54 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task ReturnsStaleDataWhenFactoryFailsWithFailSafeAsync()
+	public async Task ReturnsStaleDataWhenFactoryFailsAsync()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		using var cache = new FusionCache(options);
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-		await Task.Delay(1_500);
+		await Task.Delay(500);
 		var newValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 		Assert.Equal(initialValue, newValue);
 	}
 
 	[Fact]
-	public void ReturnsStaleDataWhenFactoryFailsWithFailSafe()
+	public void ReturnsStaleDataWhenFactoryFails()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		using var cache = new FusionCache(options);
 		var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-		Thread.Sleep(1_500);
+		Thread.Sleep(500);
 		var newValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		Assert.Equal(initialValue, newValue);
+	}
+
+	[Fact]
+	public async Task ReturnsStaleDataWhenFactoryFailsWithoutExceptionAsync()
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		using var cache = new FusionCache(options);
+		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+		await Task.Delay(500);
+		var newValue = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => ctx.Fail("Sloths are cool"));
+		Assert.Equal(initialValue, newValue);
+	}
+
+	[Fact]
+	public void ReturnsStaleDataWhenFactoryFailsWithoutException()
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		using var cache = new FusionCache(options);
+		var initialValue = cache.GetOrSet<int>("foo", _ => 42);
+		Thread.Sleep(500);
+		var newValue = cache.GetOrSet<int>("foo", (ctx, _) => ctx.Fail("Sloths are cool"));
 		Assert.Equal(initialValue, newValue);
 	}
 
