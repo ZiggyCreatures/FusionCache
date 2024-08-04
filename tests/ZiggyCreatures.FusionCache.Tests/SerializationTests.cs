@@ -223,7 +223,7 @@ public class SerializationTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanDeserializeOldVersionsAsync(SerializerType serializerType)
+	public async Task CanDeserializeOldSnapshotsAsync(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 
@@ -233,9 +233,9 @@ public class SerializationTests
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Samples", filePrefix + "*.bin");
+		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
 
-		TestOutput.WriteLine($"Found {files.Length} samples for {serializer.GetType().Name}");
+		TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
 
 		foreach (var file in files)
 		{
@@ -251,7 +251,7 @@ public class SerializationTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void CanDeserializeOldVersions(SerializerType serializerType)
+	public void CanDeserializeOldSnapshots(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 
@@ -261,9 +261,9 @@ public class SerializationTests
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Samples", filePrefix + "*.bin");
+		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
 
-		TestOutput.WriteLine($"Found {files.Length} samples for {serializer.GetType().Name}");
+		TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
 
 		foreach (var file in files)
 		{
