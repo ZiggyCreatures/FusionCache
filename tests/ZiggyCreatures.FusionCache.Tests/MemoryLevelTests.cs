@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using CacheManager.Core;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -1883,5 +1882,98 @@ public class MemoryLevelTests
 		sw.Stop();
 
 		Assert.True(didThrow);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanAutoCloneAsync(SerializerType serializerType)
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		options.DefaultEntryOptions.EnableAutoClone = true;
+		using var cache = new FusionCache(options);
+
+		cache.SetupSerializer(TestsUtils.GetSerializer(serializerType));
+
+		var foo = new ComplexType()
+		{
+			PropInt = -1
+		};
+
+		await cache.SetAsync("foo", foo);
+
+		var foo1 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+		foo1.PropInt = 1;
+
+		var foo2 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+		foo2.PropInt = 2;
+
+		var foo3 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+		foo3.PropInt = 3;
+
+		Assert.Equal(-1, foo.PropInt);
+
+		Assert.NotNull(foo1);
+		Assert.False(object.ReferenceEquals(foo, foo1));
+		Assert.Equal(1, foo1.PropInt);
+
+		Assert.NotNull(foo2);
+		Assert.False(object.ReferenceEquals(foo, foo2));
+		Assert.Equal(2, foo2.PropInt);
+
+		Assert.NotNull(foo3);
+		Assert.False(object.ReferenceEquals(foo, foo3));
+		Assert.Equal(3, foo3.PropInt);
+
+		//await Assert.ThrowsAsync<FusionCacheSerializationException>(async () =>
+		//{
+		//	_ = await cache.GetOrDefaultAsync<string>("foo");
+		//});
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanAutoClone(SerializerType serializerType)
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.EnableAutoClone = true;
+		using var cache = new FusionCache(options);
+
+		cache.SetupSerializer(TestsUtils.GetSerializer(serializerType));
+
+		var foo = new ComplexType()
+		{
+			PropInt = -1
+		};
+
+		cache.Set("foo", foo);
+
+		var foo1 = cache.GetOrDefault<ComplexType>("foo")!;
+		foo1.PropInt = 1;
+
+		var foo2 = cache.GetOrDefault<ComplexType>("foo")!;
+		foo2.PropInt = 2;
+
+		var foo3 = cache.GetOrDefault<ComplexType>("foo")!;
+		foo3.PropInt = 3;
+
+		Assert.Equal(-1, foo.PropInt);
+
+		Assert.NotNull(foo1);
+		Assert.False(object.ReferenceEquals(foo, foo1));
+		Assert.Equal(1, foo1.PropInt);
+
+		Assert.NotNull(foo2);
+		Assert.False(object.ReferenceEquals(foo, foo2));
+		Assert.Equal(2, foo2.PropInt);
+
+		Assert.NotNull(foo3);
+		Assert.False(object.ReferenceEquals(foo, foo3));
+		Assert.Equal(3, foo3.PropInt);
+
+		//Assert.Throws<FusionCacheSerializationException>(() =>
+		//{
+		//	_ = cache.GetOrDefault<string>("foo");
+		//});
 	}
 }
