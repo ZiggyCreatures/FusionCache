@@ -25,7 +25,7 @@ internal static class FusionCacheInternalUtils
 		{
 			// SEE: https://nimaara.com/2018/10/10/generating-ids-in-csharp.html
 
-			char[] buffer = _buffer.Value;
+			char[] buffer = _buffer.Value!;
 
 			buffer[0] = _chars[(int)(id >> 60) & 31];
 			buffer[1] = _chars[(int)(id >> 55) & 31];
@@ -206,7 +206,7 @@ internal static class FusionCacheInternalUtils
 			CacheItemPriority.High => "H",
 			CacheItemPriority.NeverRemove => "NR",
 			// FALLBACK
-			_ => Enum.GetName(CacheItemPriorityType, priority),
+			_ => Enum.GetName(CacheItemPriorityType, priority) ?? "",
 		};
 	}
 

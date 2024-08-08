@@ -63,7 +63,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 			};
 
 			if (levelKind is not null)
-				res.Add(new KeyValuePair<string, object?>("fusioncache.operation.level", levelKind.ToString().ToLowerInvariant()));
+				res.Add(new KeyValuePair<string, object?>("fusioncache.operation.level", levelKind.ToString()?.ToLowerInvariant()));
 
 			return res;
 		}

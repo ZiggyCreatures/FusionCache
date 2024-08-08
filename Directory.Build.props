@@ -23,6 +23,7 @@
 		<Nullable>enable</Nullable>
 		<PackageIcon>logo-128x128.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<!--<CheckEolTargetFramework>false</CheckEolTargetFramework>-->
 		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
 	</PropertyGroup>
 

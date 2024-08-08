@@ -1432,4 +1432,41 @@ public class DependencyInjectionTests
 		Assert.NotNull(fooCache);
 		Assert.NotNull(barCache);
 	}
+
+	[Fact]
+	public void CanUseASerializerWithoutADistributedCache()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache("Foo")
+			.WithDefaultEntryOptions(opt =>
+			{
+				opt.EnableAutoClone = true;
+			})
+			.WithSerializer(new FusionCacheSystemTextJsonSerializer());
+
+		services.AddFusionCache("Bar")
+			.WithDefaultEntryOptions(opt =>
+			{
+				opt.EnableAutoClone = true;
+			});
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var fooCache = cacheProvider.GetCache("Foo");
+		var barCache = cacheProvider.GetCache("Bar");
+
+		fooCache.Set("foo", 123);
+		barCache.Set("bar", 456);
+
+		var foo = fooCache.GetOrDefault<int>("foo");
+		Assert.Equal(123, foo);
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			var bar = barCache.GetOrDefault<int>("bar");
+		});
+	}
 }

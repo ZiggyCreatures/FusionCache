@@ -160,16 +160,46 @@ public partial class FusionCache
 							value = RunUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
 						}
 
-						activityForFactory?.Dispose();
+						if (ctx.HasFailed)
+						{
+							// FAIL
 
-						hasNewValue = true;
+							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
 
-						UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+							var errorMessage = ctx.ErrorMessage!;
 
-						entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
+							ProcessFactoryError(operationId, key, errorMessage);
 
-						// EVENTS
-						_events.OnFactorySuccess(operationId, key);
+							//MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
+
+							// ACTIVITY
+							activityForFactory?.SetStatus(ActivityStatusCode.Error, errorMessage);
+							activityForFactory?.Dispose();
+
+							entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
+
+							if (entry is null)
+							{
+								throw new Exception(errorMessage);
+							}
+
+							isStale = true;
+						}
+						else
+						{
+							// SUCCESS
+
+							activityForFactory?.Dispose();
+
+							hasNewValue = true;
+
+							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
+
+							// EVENTS
+							_events.OnFactorySuccess(operationId, key);
+						}
 					}
 					catch (OperationCanceledException exc)
 					{
@@ -348,7 +378,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString());
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
 	/// <inheritdoc/>
@@ -382,10 +412,10 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString());
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
-	private IFusionCacheEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions? options, CancellationToken token)
+	private IFusionCacheMemoryEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions? options, CancellationToken token)
 	{
 		options ??= _options.DefaultEntryOptions;
 
@@ -532,7 +562,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return SUCCESS", CacheName, InstanceId, operationId, key);
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
 	/// <inheritdoc/>
@@ -566,7 +596,7 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString());
 
-		return entry.GetValue<TValue>();
+		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
 	/// <inheritdoc/>
