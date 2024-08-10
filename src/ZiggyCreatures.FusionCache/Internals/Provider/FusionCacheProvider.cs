@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,32 +8,34 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Provider;
 internal sealed class FusionCacheProvider
 	: IFusionCacheProvider
 {
-	private readonly Dictionary<string, LazyNamedCache?> _caches;
+	private readonly FrozenDictionary<string, LazyNamedCache?> _caches;
 
 	public FusionCacheProvider(IEnumerable<IFusionCache> defaultCaches, IEnumerable<LazyNamedCache> lazyNamedCaches)
 	{
-		_caches = [];
+		List<KeyValuePair<string, LazyNamedCache?>> caches = [];
 		foreach (var group in lazyNamedCaches.GroupBy(g => g.CacheName))
 		{
 			if (group.Count() == 1)
 			{
 				// ONLY 1 CACHE -> ADD IT
-				_caches[group.Key] = group.First();
+				caches.Add(new(group.Key, group.First()));
 			}
 			else
 			{
 				// MORE THAN 1 CACHE -> ADD NULL
 				// NOTE: THIS WILL SIGNAL THAT THERE WERE MULTIPLE ONES AND, SINCE
 				// THEY WILL NOT BE ACCESSIBLE ANYWAY, WILL SAVE SOME MEMORY
-				_caches[group.Key] = null;
+				caches.Add(new(group.Key, null));
 			}
 		}
 
 		var defaultCache = defaultCaches.LastOrDefault();
 		if (defaultCache is not null)
 		{
-			_caches[defaultCache.CacheName] = new LazyNamedCache(defaultCache.CacheName, defaultCache);
+			caches.Add(new(defaultCache.CacheName, new LazyNamedCache(defaultCache.CacheName, defaultCache)));
 		}
+
+		_caches = caches.ToFrozenDictionary();
 	}
 
 	public IFusionCache? GetCacheOrNull(string cacheName)
