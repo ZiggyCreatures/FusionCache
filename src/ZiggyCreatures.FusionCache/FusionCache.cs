@@ -578,10 +578,13 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveDistributedCache()
 	{
-		_dca = null;
+		if (_dca is not null)
+		{
+			_dca = null;
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed cache removed", CacheName, InstanceId);
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed cache removed", CacheName, InstanceId);
+		}
 
 		return this;
 	}
