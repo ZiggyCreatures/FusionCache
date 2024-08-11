@@ -124,8 +124,8 @@ public class RunUtilsTests
 		sw.Stop();
 
 		Assert.Equal(-1, res);
-		Assert.True(sw.ElapsedMilliseconds >= timeoutMs);
-		Assert.True(sw.ElapsedMilliseconds < innerDelayMs);
+		Assert.True(sw.ElapsedMilliseconds >= timeoutMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is less than specified timeout ({timeoutMs}ms)");
+		Assert.True(sw.ElapsedMilliseconds < innerDelayMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
 	}
 
 	[Fact]
@@ -142,8 +142,8 @@ public class RunUtilsTests
 		sw.Stop();
 
 		Assert.Equal(-1, res);
-		Assert.True(sw.ElapsedMilliseconds >= timeoutMs);
-		Assert.True(sw.ElapsedMilliseconds < innerDelayMs);
+		Assert.True(sw.ElapsedMilliseconds >= timeoutMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is less than specified timeout ({timeoutMs}ms)");
+		Assert.True(sw.ElapsedMilliseconds < innerDelayMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
 	}
 
 	[Fact]

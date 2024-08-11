@@ -59,13 +59,13 @@ var product = await cache.GetOrSetAsync<Product>(
 
 		using var resp = await client.SendAsync(req, ct);
 
-		resp.EnsureSuccessStatusCode();
-
 		if (resp.StatusCode == HttpStatusCode.NotModified)
 		{
 			// NOT MODIFIED -> RETURN STALE VALUE
 			return ctx.NotModified();
 		}
+
+		resp.EnsureSuccessStatusCode();
 
 		// NORMAL RESPONSE: SAVE ETAG + RETURN VALUE
 		return ctx.Modified(

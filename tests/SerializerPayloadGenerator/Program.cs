@@ -19,18 +19,18 @@ var serializers = new IFusionCacheSerializer[] {
 	new FusionCacheServiceStackJsonSerializer()
 };
 
-var generateSamples = false;
+var generateSnapshots = false;
 
-if (generateSamples)
+if (generateSnapshots)
 {
-	GenerateSamples(serializers, CreateEntry());
+	GenerateSnapshots(serializers, CreateEntry());
 }
 else
 {
-	TestSamples<FusionCacheDistributedEntry<string>>(serializers);
+	TestSnapshots<FusionCacheDistributedEntry<string>>(serializers);
 }
 
-static void TestSamples<T>(IFusionCacheSerializer[] serializers)
+static void TestSnapshots<T>(IFusionCacheSerializer[] serializers)
 {
 	foreach (var serializer in serializers)
 	{
@@ -40,10 +40,10 @@ static void TestSamples<T>(IFusionCacheSerializer[] serializers)
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Samples", filePrefix + "*.bin");
+		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
 
 		Console.WriteLine($"SERIALIZER: {serializer.GetType().Name} v{version ?? "?"}");
-		Console.WriteLine("SAMPLES:");
+		Console.WriteLine("SNAPSHOTS:");
 		foreach (var file in files)
 		{
 			var payloadVersion = Regex.Match(file, @"\w+__v(\d+_\d+_\d+)_\d+\.bin").Groups[1].Value.Replace('_', '.');
@@ -81,7 +81,7 @@ static FusionCacheDistributedEntry<string> CreateEntry()
 	);
 }
 
-static void GenerateSamples<T>(IFusionCacheSerializer[] serializers, T value)
+static void GenerateSnapshots<T>(IFusionCacheSerializer[] serializers, T value)
 {
 	foreach (var serializer in serializers)
 	{

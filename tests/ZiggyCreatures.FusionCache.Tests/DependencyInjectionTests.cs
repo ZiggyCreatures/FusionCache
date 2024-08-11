@@ -16,8 +16,6 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
-using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
-using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -31,65 +29,6 @@ public class DependencyInjectionTests
 	public DependencyInjectionTests(ITestOutputHelper output)
 		: base(output, null)
 	{
-	}
-
-	static ILogger? GetLogger(IFusionCache cache)
-	{
-		return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;
-	}
-
-	static IFusionCacheMemoryLocker? GetMemoryLocker(IFusionCache cache)
-	{
-		return typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as IFusionCacheMemoryLocker;
-	}
-
-	static IMemoryCache? GetMemoryCache(IFusionCache cache)
-	{
-		var _mca = typeof(FusionCache).GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache);
-		return _mca!.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(_mca) as IMemoryCache;
-	}
-
-	static IFusionCacheSerializer? GetSerializer(IFusionCache cache)
-	{
-		var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
-		if (dca is null)
-			return null;
-
-		return typeof(DistributedCacheAccessor).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as IFusionCacheSerializer;
-	}
-
-	static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
-		where TDistributedCache : class, IDistributedCache
-	{
-		var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
-		if (dca is null)
-			return null;
-
-		return typeof(DistributedCacheAccessor).GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as TDistributedCache;
-	}
-
-	static TBackplane? GetBackplane<TBackplane>(IFusionCache cache)
-		where TBackplane : class, IFusionCacheBackplane
-	{
-		var bpa = typeof(FusionCache).GetField("_bpa", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as BackplaneAccessor;
-		if (bpa is null)
-			return null;
-
-		return typeof(BackplaneAccessor).GetField("_backplane", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(bpa) as TBackplane;
-	}
-
-	static RedisBackplaneOptions? GetRedisBackplaneOptions(IFusionCache cache)
-	{
-		var backplane = GetBackplane<RedisBackplane>(cache);
-		if (backplane is null)
-			return null;
-
-		return typeof(RedisBackplane).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as RedisBackplaneOptions; ;
-	}
-
-	static IFusionCachePlugin[]? GetPlugins(IFusionCache cache)
-	{
-		return (typeof(FusionCache).GetField("_plugins", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as List<IFusionCachePlugin>)?.ToArray();
 	}
 
 	[Fact]
@@ -215,6 +154,59 @@ public class DependencyInjectionTests
 		{
 			var cache = cacheProvider.GetCache("foo");
 		});
+	}
+
+	[Fact]
+	public void CanDirectlyAddANamedCacheInstance()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var namedCache1 = new FusionCache(
+			new FusionCacheOptions()
+			{
+				CacheName = "foo",
+			},
+			logger: logger
+		);
+		var namedCache2 = new FusionCache(
+			new FusionCacheOptions()
+			{
+				CacheName = "bar",
+			},
+			logger: logger
+		);
+
+		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
+		services.AddFusionCache(namedCache1);
+		services.AddFusionCache(namedCache2);
+		services.AddFusionCache();
+		services.AddFusionCache("baz");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var defaultCache = cacheProvider.GetDefaultCacheOrNull();
+		var fooCache = cacheProvider.GetCacheOrNull("foo");
+		var barCache = cacheProvider.GetCacheOrNull("bar");
+		var bazCache = cacheProvider.GetCacheOrNull("baz");
+
+		Assert.NotNull(defaultCache);
+		Assert.Equal(FusionCacheOptions.DefaultCacheName, defaultCache!.CacheName);
+
+		Assert.NotNull(fooCache);
+		Assert.Equal("foo", fooCache!.CacheName);
+		Assert.Equal(namedCache1, fooCache);
+
+		Assert.NotNull(barCache);
+		Assert.Equal("bar", barCache!.CacheName);
+		Assert.Equal(namedCache2, barCache);
+
+		Assert.NotNull(bazCache);
+		Assert.Equal("baz", bazCache!.CacheName);
 	}
 
 	[Fact]
@@ -453,10 +445,17 @@ public class DependencyInjectionTests
 		// AND IT'S NOT POSSIBLE TO USE THEM IN A MEANINGFUL WAY, AS THE LAST ONE REGISTERED WILL BE THE ONE USED.
 		// THIS FOLLOWS THE STANDARD BEHAVIOR OF MICROSOFT'S DI CONTAINER.
 
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
+		var defaultCache = new FusionCache(new FusionCacheOptions(), logger: logger);
 
 		services.AddFusionCache();
 		services.AddFusionCache();
+		services.AddSingleton<IFusionCache>(defaultCache);
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -469,6 +468,7 @@ public class DependencyInjectionTests
 		Assert.NotNull(cache1);
 		Assert.NotNull(cache2);
 		Assert.NotNull(cache3);
+		Assert.Equal(defaultCache, cache1);
 		Assert.Equal(cache1, cache2);
 		Assert.Equal(cache2, cache3);
 	}
@@ -978,15 +978,15 @@ public class DependencyInjectionTests
 		var bazCache = cacheProvider.GetCache("Baz");
 		var defaultCache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var fooDistributedCache = GetDistributedCache<MemoryDistributedCache>(fooCache);
-		var bazDistributedCache = GetDistributedCache<MemoryDistributedCache>(bazCache);
+		var fooDistributedCache = TestsUtils.GetDistributedCache<MemoryDistributedCache>(fooCache);
+		var bazDistributedCache = TestsUtils.GetDistributedCache<MemoryDistributedCache>(bazCache);
 
-		var fooBackplane = GetBackplane<RedisBackplane>(fooCache);
-		var fooBackplaneOptions = GetRedisBackplaneOptions(fooCache)!;
-		var barBackplane = GetBackplane<IFusionCacheBackplane>(barCache);
-		var bazBackplane = GetBackplane<MemoryBackplane>(bazCache);
-		var defaultBackplane = GetBackplane<RedisBackplane>(defaultCache);
-		var defaultBackplaneOptions = GetRedisBackplaneOptions(defaultCache)!;
+		var fooBackplane = TestsUtils.GetBackplane<RedisBackplane>(fooCache);
+		var fooBackplaneOptions = TestsUtils.GetRedisBackplaneOptions(fooCache)!;
+		var barBackplane = TestsUtils.GetBackplane<IFusionCacheBackplane>(barCache);
+		var bazBackplane = TestsUtils.GetBackplane<MemoryBackplane>(bazCache);
+		var defaultBackplane = TestsUtils.GetBackplane<RedisBackplane>(defaultCache);
+		var defaultBackplaneOptions = TestsUtils.GetRedisBackplaneOptions(defaultCache)!;
 
 		Assert.NotNull(fooCache);
 		Assert.Equal("Foo", fooCache.CacheName);
@@ -1031,7 +1031,7 @@ public class DependencyInjectionTests
 		using var serviceProvider = services.BuildServiceProvider();
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		Assert.Null(GetLogger(cache));
+		Assert.Null(TestsUtils.GetLogger(cache));
 	}
 
 	[Fact]
@@ -1156,7 +1156,7 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var logger = GetLogger(cache);
+		var logger = TestsUtils.GetLogger(cache);
 
 		Assert.NotNull(cache);
 
@@ -1179,7 +1179,7 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var memoryCache = GetMemoryCache(cache);
+		var memoryCache = TestsUtils.GetMemoryCache(cache);
 
 		Assert.NotNull(cache);
 
@@ -1207,8 +1207,8 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var serializer = GetSerializer(cache);
-		var distributedCache = GetDistributedCache<IDistributedCache>(cache);
+		var serializer = TestsUtils.GetSerializer(cache);
+		var distributedCache = TestsUtils.GetDistributedCache<IDistributedCache>(cache);
 
 		Assert.NotNull(cache);
 
@@ -1232,7 +1232,7 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var memoryLocker = GetMemoryLocker(cache);
+		var memoryLocker = TestsUtils.GetMemoryLocker(cache);
 
 		Assert.NotNull(cache);
 
@@ -1256,7 +1256,7 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var backplane = GetBackplane<IFusionCacheBackplane>(cache);
+		var backplane = TestsUtils.GetBackplane<IFusionCacheBackplane>(cache);
 
 		Assert.NotNull(cache);
 
@@ -1297,7 +1297,7 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var plugins = GetPlugins(cache);
+		var plugins = TestsUtils.GetPlugins(cache);
 
 		Assert.NotNull(cache);
 
@@ -1374,13 +1374,13 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
-		var logger = GetLogger(cache);
-		var memoryCache = GetMemoryCache(cache);
-		var serializer = GetSerializer(cache);
-		var distributedCache = GetDistributedCache<IDistributedCache>(cache);
-		var memoryLocker = GetMemoryLocker(cache);
-		var backplane = GetBackplane<IFusionCacheBackplane>(cache);
-		var plugins = GetPlugins(cache);
+		var logger = TestsUtils.GetLogger(cache);
+		var memoryCache = TestsUtils.GetMemoryCache(cache);
+		var serializer = TestsUtils.GetSerializer(cache);
+		var distributedCache = TestsUtils.GetDistributedCache<IDistributedCache>(cache);
+		var memoryLocker = TestsUtils.GetMemoryLocker(cache);
+		var backplane = TestsUtils.GetBackplane<IFusionCacheBackplane>(cache);
+		var plugins = TestsUtils.GetPlugins(cache);
 
 		Assert.NotNull(cache);
 
@@ -1431,5 +1431,42 @@ public class DependencyInjectionTests
 
 		Assert.NotNull(fooCache);
 		Assert.NotNull(barCache);
+	}
+
+	[Fact]
+	public void CanUseASerializerWithoutADistributedCache()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache("Foo")
+			.WithDefaultEntryOptions(opt =>
+			{
+				opt.EnableAutoClone = true;
+			})
+			.WithSerializer(new FusionCacheSystemTextJsonSerializer());
+
+		services.AddFusionCache("Bar")
+			.WithDefaultEntryOptions(opt =>
+			{
+				opt.EnableAutoClone = true;
+			});
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var fooCache = cacheProvider.GetCache("Foo");
+		var barCache = cacheProvider.GetCache("Bar");
+
+		fooCache.Set("foo", 123);
+		barCache.Set("bar", 456);
+
+		var foo = fooCache.GetOrDefault<int>("foo");
+		Assert.Equal(123, foo);
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			var bar = barCache.GetOrDefault<int>("bar");
+		});
 	}
 }

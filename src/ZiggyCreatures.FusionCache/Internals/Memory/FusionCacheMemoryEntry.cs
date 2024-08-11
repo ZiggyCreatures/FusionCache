@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -19,13 +20,46 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		Timestamp = timestamp;
 	}
 
-	public object? Value { get; set; }
+	private byte[]? _serializedValue;
+
+	private object? _value;
+	public object? Value
+	{
+		get
+		{
+			return _value;
+		}
+		set
+		{
+			_value = value;
+			lock (this)
+			{
+				_serializedValue = null;
+			}
+		}
+	}
 
 	public FusionCacheEntryMetadata? Metadata { get; private set; }
 
 	public long Timestamp { get; private set; }
 
 	public DateTimeOffset PhysicalExpiration { get; set; }
+
+	public byte[] GetSerializedValue(IFusionCacheSerializer serializer)
+	{
+		byte[]? serializedValue = _serializedValue;
+		if (serializedValue is not null)
+			return serializedValue;
+
+		lock (this)
+		{
+			if (_serializedValue is not null)
+				return _serializedValue;
+
+			_serializedValue = serializer.Serialize(GetValue<TValue>());
+			return _serializedValue;
+		}
+	}
 
 	public TValue1 GetValue<TValue1>()
 	{

@@ -978,7 +978,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <param name="ignoreMemoryDistributedCache">Indicates if the distributed cache found in the DI container should be ignored if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.</param>
 	/// <param name="throwIfMissingSerializer">Indicates if an exception should be thrown in case a valid <see cref="IFusionCacheSerializer"/> has not been provided: this is useful to avoid thinking of having a usable distributed cache when, in reality, that is not the case since a serializer is needed for it to work and none has been found.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder TryWithRegisteredDistributedCache(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = true)
+	public static IFusionCacheBuilder TryWithRegisteredDistributedCache(this IFusionCacheBuilder builder, bool ignoreMemoryDistributedCache = true, bool throwIfMissingSerializer = false)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));

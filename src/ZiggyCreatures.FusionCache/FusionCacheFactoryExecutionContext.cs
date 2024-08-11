@@ -58,6 +58,17 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		return _options;
 	}
 
+	internal bool HasFailed
+	{
+		get { return ErrorMessage is not null; }
+	}
+
+	internal string? ErrorMessage
+	{
+		get;
+		private set;
+	}
+
 	/// <summary>
 	/// The stale value, maybe.
 	/// <br/><br/>
@@ -134,6 +145,22 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		ETag = etag;
 		LastModified = lastModified;
 		return value;
+	}
+
+	/// <summary>
+	/// For when a fail occurs, without the need to throw an exception.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+	/// </summary>
+	/// <param name="errorMessage">The error message.</param>
+	/// <returns>A placeholder value used to keep the normal flow.</returns>
+	public TValue Fail(string errorMessage)
+	{
+		ErrorMessage = errorMessage;
+		if (string.IsNullOrWhiteSpace(ErrorMessage))
+			ErrorMessage = "An error occurred while running the factory";
+
+		return default!;
 	}
 
 	internal static FusionCacheFactoryExecutionContext<TValue> CreateFromEntries(FusionCacheEntryOptions options, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry)

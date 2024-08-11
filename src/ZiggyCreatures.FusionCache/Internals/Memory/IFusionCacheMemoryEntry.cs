@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 {
@@ -13,6 +14,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory
 	{
 		DateTimeOffset PhysicalExpiration { get; set; }
 		object? Value { get; set; }
+
+		byte[] GetSerializedValue(IFusionCacheSerializer serializer);
 
 		ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync(string operationId, string cacheKey, FusionCache cache);
 		ValueTask<bool> SetDistributedEntryAsync(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token);

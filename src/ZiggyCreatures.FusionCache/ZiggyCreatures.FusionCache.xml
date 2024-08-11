@@ -581,6 +581,12 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.CreateEntryOptions(System.Action{ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions},System.Nullable{System.TimeSpan})">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupSerializer(ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <inheritdoc/>
         </member>
@@ -679,11 +685,6 @@
             <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
             <param name="message">The error message that explains the reason for the exception.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/> class with serialized data.</summary>
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods">
             <summary>
@@ -1620,11 +1621,6 @@
             <param name="message">The error message that explains the reason for the exception.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> class with serialized data.</summary>
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
             <summary>
             Represents all the options available for a single <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> entry.
@@ -1636,7 +1632,7 @@
             <summary>
             Creates a new instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> object.
             </summary>
-            <param name="duration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property. If null, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDuration"/> will be used.</param>
+            <param name="duration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> option. If null, <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsDuration"/> will be used.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration">
             <summary>
@@ -1648,7 +1644,7 @@
             <br/>
             - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled"/> is set to <see langword="false"/> the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> corresponds to the actual underlying duration in the cache, nothing more, nothing less
             <br/>
-            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled" /> is set to <see langword="true"/>, the underlying duration in the cache corresponds to <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeMaxDuration"/> and the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property is used internally as a way to indicate when the data should be considered stale (expired), without making it actually expire inside the cache levels (memory and/or distributed)
+            - if <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.IsFailSafeEnabled" /> is set to <see langword="true"/>, the underlying duration in the cache corresponds to <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeMaxDuration"/> and the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> option is used internally as a way to indicate when the data should be considered stale (expired), without making it actually expire inside the cache levels (memory and/or distributed)
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
             </summary>
@@ -1657,7 +1653,7 @@
             <summary>
             The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration).
             <br/>
-            This value is intended as a percentage of the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
+            This value is intended as a percentage of the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> option, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
             <br/><br/>
             For example by setting it to 0.8 (80%) with a <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returning the (still valid) cached value to the caller.
             <br/><br/>
@@ -1678,7 +1674,7 @@
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Size">
             <summary>
-            The size of the cache entry, used as a value for the <see cref="P:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions.Size"/> property in the underlying memory cache.
+            The size of the cache entry, used as a value for the <see cref="P:Microsoft.Extensions.Caching.Memory.MemoryCacheEntryOptions.Size"/> option in the underlying memory cache.
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md"/>
             </summary>
@@ -1870,6 +1866,13 @@
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
         </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableAutoClone">
+            <summary>
+            Enable automatic cloning of the value being returned from the cache, by using the provided <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>.
+            <br></br>
+            <strong>NOTE:</strong> if no <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> has been setup or if the value being returned cannot be (de)serialized, an exception will be thrown.
+            </summary>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.ToString">
             <inheritdoc/>
         </member>
@@ -1967,7 +1970,7 @@
             <summary>
             Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Priority"/>.
             </summary>
-            <param name="priority">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Priority"/> property.</param>
+            <param name="priority">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Priority"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetFailSafe(System.Boolean,System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan})">
@@ -1975,8 +1978,8 @@
             Set various options related to the fail-safe mechanism.
             </summary>
             <param name="isEnabled">Enable or disable the fail-safe mechanism.</param>
-            <param name="maxDuration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeMaxDuration"/> property.</param>
-            <param name="throttleDuration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeThrottleDuration"/> property.</param>
+            <param name="maxDuration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeMaxDuration"/> option.</param>
+            <param name="throttleDuration">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FailSafeThrottleDuration"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDistributedCacheFailSafeOptions(System.Nullable{System.TimeSpan})">
@@ -1992,18 +1995,18 @@
             <summary>
             Set various options related to the factory timeouts handling.
             </summary>
-            <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FactorySoftTimeout"/> property.</param>
-            <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FactoryHardTimeout"/> property.</param>
-            <param name="keepTimedOutFactoryResult">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion"/> property.</param>
+            <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FactorySoftTimeout"/> option.</param>
+            <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.FactoryHardTimeout"/> option.</param>
+            <param name="keepTimedOutFactoryResult">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowTimedOutFactoryBackgroundCompletion"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetDistributedCacheTimeouts(System.Nullable{System.TimeSpan},System.Nullable{System.TimeSpan},System.Nullable{System.Boolean})">
             <summary>
             Set various options related to the factory timeouts handling.
             </summary>
-            <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/> property.</param>
-            <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheHardTimeout"/> property.</param>
-            <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> property.</param>
+            <param name="softTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheSoftTimeout"/> option.</param>
+            <param name="hardTimeout">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.DistributedCacheHardTimeout"/> option.</param>
+            <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.AllowBackgroundDistributedCacheOperations"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetBackplane(System.Boolean)">
@@ -2014,7 +2017,7 @@
             <br/>
             <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
             </summary>
-            <param name="enableBackplaneNotifications">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/> property.</param>
+            <param name="enableBackplaneNotifications">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableBackplaneNotifications"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSkipBackplaneNotifications(System.Boolean)">
@@ -2023,7 +2026,7 @@
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
             </summary>
-            <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipBackplaneNotifications"/> property.</param>
+            <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipBackplaneNotifications"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSkipDistributedCache(System.Boolean,System.Nullable{System.Boolean})">
@@ -2032,8 +2035,8 @@
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
-            <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache"/> property.</param>
-            <param name="skipBackplaneNotifications">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipBackplaneNotifications"/> property: if set to <see langword="null"/>, no changes will be made.</param>
+            <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCache"/> option.</param>
+            <param name="skipBackplaneNotifications">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipBackplaneNotifications"/> option: if set to <see langword="null"/>, no changes will be made.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSkipDistributedCacheReadWhenStale(System.Boolean)">
@@ -2042,7 +2045,7 @@
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
-            <param name="skip">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCacheReadWhenStale"/> property.</param>
+            <param name="skip">Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipDistributedCacheReadWhenStale"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetSkipMemoryCache(System.Boolean)">
@@ -2053,7 +2056,16 @@
             <br/><br/>
             <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
             </summary>
-            <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipMemoryCache"/> property.</param>
+            <param name="skip">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipMemoryCache"/> option.</param>
+            <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SetAutoClone(System.Boolean)">
+            <summary>
+            Set the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableAutoClone"/> option.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoClone.md"/>
+            </summary>
+            <param name="enable">The value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableAutoClone"/> option.</param>
             <returns>The <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.Duplicate(System.Nullable{System.TimeSpan})">
@@ -2570,6 +2582,25 @@
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException">
+            <summary>
+            The exception thrown when a factory fails via the Fail() method and fail-safe was not enabled or possible.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class with a specified error message.</summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1">
             <summary>
             Models the execution context passed to a FusionCache factory.
@@ -2648,6 +2679,15 @@
             <param name="etag">The new value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.ETag"/> property.</param>
             <param name="lastModified">The new value for the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.LastModified"/> property.</param>
             <returns>The new value to be cached.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1.Fail(System.String)">
+            <summary>
+            For when a fail occurs, without the need to throw an exception.
+            <br/><br/>
+            <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+            </summary>
+            <param name="errorMessage">The error message.</param>
+            <returns>A placeholder value used to keep the normal flow.</returns>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults">
             <summary>
@@ -2774,6 +2814,11 @@
         <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache">
             <summary>
             The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.SkipMemoryCache"/>.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.FusionCacheGlobalDefaults.EntryOptionsEnableAutoClone">
+            <summary>
+            The global default <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EnableAutoClone"/>.
             </summary>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheOptions">
@@ -3128,11 +3173,6 @@
             <param name="message">The error message that explains the reason for the exception.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/> class with serialized data.</summary>
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
             The shared interface that models what a FusionCache instance can do.
@@ -3320,9 +3360,25 @@
             <param name="options">The options to adhere during this operation. If null is passed, <see cref="P:ZiggyCreatures.Caching.Fusion.IFusionCache.DefaultEntryOptions"/> will be used.</param>
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupSerializer(ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+            <summary>
+            Setup a serializer by providing an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used with the distributed level (L2) if also setup, or for auto-clone.
+            </summary>
+            <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
+            <summary>
+            Setup a distributed level (L2), by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/>.
+            <br/>
+            Please note that a serializer (instance of <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/>) must be setup before calling this method), otherwise use the overload that accepts them both.
+            </summary>
+            <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
+            <returns>The same <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCache"/> instance, usable in a fluent api way.</returns>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.IFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <summary>
-            Sets a secondary caching level, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and vice versa.
+            Setup a secondary caching level, by providing an <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance and an <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and vice versa.
             </summary>
             <param name="distributedCache">The <see cref="T:Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> instance to use.</param>
             <param name="serializer">The <see cref="T:ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer"/> instance to use.</param>
@@ -4187,6 +4243,15 @@
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.RemoveBackplane">
             <inheritdoc/>
         </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.SetupSerializer(ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
+            <inheritdoc/>
+        </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.RemoveDistributedCache">
             <inheritdoc/>
         </member>
@@ -4200,9 +4265,6 @@
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.SetupBackplane(ZiggyCreatures.Caching.Fusion.Backplane.IFusionCacheBackplane)">
-            <inheritdoc/>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.SetupDistributedCache(Microsoft.Extensions.Caching.Distributed.IDistributedCache,ZiggyCreatures.Caching.Fusion.Serialization.IFusionCacheSerializer)">
             <inheritdoc/>
         </member>
         <member name="M:ZiggyCreatures.Caching.Fusion.NullObjects.NullFusionCache.TryGet``1(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions,System.Threading.CancellationToken)">
@@ -4377,13 +4439,6 @@
             <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException"/> class with the specified error message and inner exception.</summary>
             <param name="message">The message that describes the error.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not null, the current exception is raised in a catch block that handles the inner exception.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException"/> class with serialized data.</summary>
-            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> object that contains serialized object data about the exception being thrown.</param>
-            <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> object that contains contextual information about the source or destination. The context parameter is reserved for future use, and can be specified as null.</param>
-            <exception cref="T:System.ArgumentNullException">The <paramref name="info">info</paramref> parameter is null.</exception>
-            <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is null, or <see cref="P:System.Exception.HResult"/> is zero (0).</exception>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions">
             <summary>

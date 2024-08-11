@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
@@ -20,7 +21,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheEntryOptions"/> object.
 	/// </summary>
-	/// <param name="duration">The value for the <see cref="Duration"/> property. If null, <see cref="FusionCacheGlobalDefaults.EntryOptionsDuration"/> will be used.</param>
+	/// <param name="duration">The value for the <see cref="Duration"/> option. If null, <see cref="FusionCacheGlobalDefaults.EntryOptionsDuration"/> will be used.</param>
 	public FusionCacheEntryOptions(TimeSpan? duration = null)
 	{
 		Duration = duration ?? FusionCacheGlobalDefaults.EntryOptionsDuration;
@@ -64,7 +65,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/>
 	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/> the <see cref="Duration"/> corresponds to the actual underlying duration in the cache, nothing more, nothing less
 	/// <br/>
-	/// - if <see cref="IsFailSafeEnabled" /> is set to <see langword="true"/>, the underlying duration in the cache corresponds to <see cref="FailSafeMaxDuration"/> and the <see cref="Duration"/> property is used internally as a way to indicate when the data should be considered stale (expired), without making it actually expire inside the cache levels (memory and/or distributed)
+	/// - if <see cref="IsFailSafeEnabled" /> is set to <see langword="true"/>, the underlying duration in the cache corresponds to <see cref="FailSafeMaxDuration"/> and the <see cref="Duration"/> option is used internally as a way to indicate when the data should be considered stale (expired), without making it actually expire inside the cache levels (memory and/or distributed)
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 	/// </summary>
@@ -75,7 +76,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration).
 	/// <br/>
-	/// This value is intended as a percentage of the <see cref="Duration"/> property, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
+	/// This value is intended as a percentage of the <see cref="Duration"/> option, expressed as a value between 0.0 and 1.0 (eg: 0.5 = 50%, 0.75 = 75%, etc).
 	/// <br/><br/>
 	/// For example by setting it to 0.8 (80%) with a <see cref="Duration"/> of 10 minutes, if there's a cache access for the entry after 8 minutes (80% of 10 minutes) an eager refresh will automatically start in the background, while immediately returning the (still valid) cached value to the caller.
 	/// <br/><br/>
@@ -110,7 +111,7 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan JitterMaxDuration { get; set; }
 
 	/// <summary>
-	/// The size of the cache entry, used as a value for the <see cref="MemoryCacheEntryOptions.Size"/> property in the underlying memory cache.
+	/// The size of the cache entry, used as a value for the <see cref="MemoryCacheEntryOptions.Size"/> option in the underlying memory cache.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/StepByStep.md"/>
 	/// </summary>
@@ -309,6 +310,13 @@ public sealed class FusionCacheEntryOptions
 	/// </summary>
 	public bool SkipMemoryCache { get; set; }
 
+	/// <summary>
+	/// Enable automatic cloning of the value being returned from the cache, by using the provided <see cref="IFusionCacheSerializer"/>.
+	/// <br></br>
+	/// <strong>NOTE:</strong> if no <see cref="IFusionCacheSerializer"/> has been setup or if the value being returned cannot be (de)serialized, an exception will be thrown.
+	/// </summary>
+	public bool EnableAutoClone { get; set; }
+
 	internal bool IsSafeForAdaptiveCaching { get; set; }
 
 	/// <inheritdoc/>
@@ -467,7 +475,7 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Set the <see cref="Priority"/>.
 	/// </summary>
-	/// <param name="priority">The value for the <see cref="Priority"/> property.</param>
+	/// <param name="priority">The value for the <see cref="Priority"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetPriority(CacheItemPriority priority)
 	{
@@ -479,8 +487,8 @@ public sealed class FusionCacheEntryOptions
 	/// Set various options related to the fail-safe mechanism.
 	/// </summary>
 	/// <param name="isEnabled">Enable or disable the fail-safe mechanism.</param>
-	/// <param name="maxDuration">The value for the <see cref="FailSafeMaxDuration"/> property.</param>
-	/// <param name="throttleDuration">The value for the <see cref="FailSafeThrottleDuration"/> property.</param>
+	/// <param name="maxDuration">The value for the <see cref="FailSafeMaxDuration"/> option.</param>
+	/// <param name="throttleDuration">The value for the <see cref="FailSafeThrottleDuration"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetFailSafe(bool isEnabled, TimeSpan? maxDuration = null, TimeSpan? throttleDuration = null)
 	{
@@ -508,9 +516,9 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Set various options related to the factory timeouts handling.
 	/// </summary>
-	/// <param name="softTimeout">The value for the <see cref="FactorySoftTimeout"/> property.</param>
-	/// <param name="hardTimeout">The value for the <see cref="FactoryHardTimeout"/> property.</param>
-	/// <param name="keepTimedOutFactoryResult">The value for the <see cref="AllowTimedOutFactoryBackgroundCompletion"/> property.</param>
+	/// <param name="softTimeout">The value for the <see cref="FactorySoftTimeout"/> option.</param>
+	/// <param name="hardTimeout">The value for the <see cref="FactoryHardTimeout"/> option.</param>
+	/// <param name="keepTimedOutFactoryResult">The value for the <see cref="AllowTimedOutFactoryBackgroundCompletion"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetFactoryTimeouts(TimeSpan? softTimeout = null, TimeSpan? hardTimeout = null, bool? keepTimedOutFactoryResult = null)
 	{
@@ -526,9 +534,9 @@ public sealed class FusionCacheEntryOptions
 	/// <summary>
 	/// Set various options related to the factory timeouts handling.
 	/// </summary>
-	/// <param name="softTimeout">The value for the <see cref="DistributedCacheSoftTimeout"/> property.</param>
-	/// <param name="hardTimeout">The value for the <see cref="DistributedCacheHardTimeout"/> property.</param>
-	/// <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="AllowBackgroundDistributedCacheOperations"/> property.</param>
+	/// <param name="softTimeout">The value for the <see cref="DistributedCacheSoftTimeout"/> option.</param>
+	/// <param name="hardTimeout">The value for the <see cref="DistributedCacheHardTimeout"/> option.</param>
+	/// <param name="allowBackgroundDistributedCacheOperations">The value for the <see cref="AllowBackgroundDistributedCacheOperations"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetDistributedCacheTimeouts(TimeSpan? softTimeout = null, TimeSpan? hardTimeout = null, bool? allowBackgroundDistributedCacheOperations = null)
 	{
@@ -548,7 +556,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/>
 	/// <strong>OBSOLETE NOW:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/issues/101"/>
 	/// </summary>
-	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> property.</param>
+	/// <param name="enableBackplaneNotifications">Set the <see cref="EnableBackplaneNotifications"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	[Obsolete("Please use the SetSkipBackplaneNotifications method and invert the value: EnableBackplaneNotifications = true is the same as SkipBackplaneNotifications = false")]
@@ -562,7 +570,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	/// <param name="skip">The value for the <see cref="SkipBackplaneNotifications"/> property.</param>
+	/// <param name="skip">The value for the <see cref="SkipBackplaneNotifications"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSkipBackplaneNotifications(bool skip)
 	{
@@ -575,8 +583,8 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> property.</param>
-	/// <param name="skipBackplaneNotifications">The value for the <see cref="SkipBackplaneNotifications"/> property: if set to <see langword="null"/>, no changes will be made.</param>
+	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> option.</param>
+	/// <param name="skipBackplaneNotifications">The value for the <see cref="SkipBackplaneNotifications"/> option: if set to <see langword="null"/>, no changes will be made.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSkipDistributedCache(bool skip, bool? skipBackplaneNotifications)
 	{
@@ -591,7 +599,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	/// <param name="skip">Set the <see cref="SkipDistributedCacheReadWhenStale"/> property.</param>
+	/// <param name="skip">Set the <see cref="SkipDistributedCacheReadWhenStale"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSkipDistributedCacheReadWhenStale(bool skip)
 	{
@@ -606,11 +614,24 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	/// <param name="skip">The value for the <see cref="SkipMemoryCache"/> property.</param>
+	/// <param name="skip">The value for the <see cref="SkipMemoryCache"/> option.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSkipMemoryCache(bool skip = true)
 	{
 		SkipMemoryCache = skip;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="EnableAutoClone"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoClone.md"/>
+	/// </summary>
+	/// <param name="enable">The value for the <see cref="EnableAutoClone"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetAutoClone(bool enable = true)
+	{
+		EnableAutoClone = enable;
 		return this;
 	}
 
@@ -671,7 +692,7 @@ public sealed class FusionCacheEntryOptions
 			res.RegisterPostEvictionCallback(
 				(key, entry, reason, state) =>
 				{
-					((FusionCacheMemoryEventsHub?)state)?.OnEviction(string.Empty, key.ToString(), reason, ((IFusionCacheMemoryEntry?)entry)?.Value);
+					((FusionCacheMemoryEventsHub?)state)?.OnEviction(string.Empty, key.ToString() ?? "", reason, ((IFusionCacheMemoryEntry?)entry)?.Value);
 				},
 				events
 			);
@@ -821,7 +842,9 @@ public sealed class FusionCacheEntryOptions
 			SkipDistributedCache = SkipDistributedCache,
 			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
 
-			SkipMemoryCache = SkipMemoryCache
+			SkipMemoryCache = SkipMemoryCache,
+
+			EnableAutoClone = EnableAutoClone
 		};
 	}
 

@@ -91,7 +91,7 @@ public static class FusionCacheServiceCollectionExtensions
 
 		if (cache.CacheName == FusionCacheOptions.DefaultCacheName)
 		{
-			services.TryAddSingleton<IFusionCache>(cache);
+			services.AddSingleton<IFusionCache>(cache);
 		}
 		else
 		{
@@ -152,7 +152,7 @@ public static class FusionCacheServiceCollectionExtensions
 
 		if (cacheName == FusionCacheOptions.DefaultCacheName)
 		{
-			services.TryAddSingleton<IFusionCache>(serviceProvider =>
+			services.AddSingleton<IFusionCache>(serviceProvider =>
 			{
 				return builder.Build(serviceProvider);
 			});

@@ -8,7 +8,7 @@
 
 I've been lucky enough to have been invited to some lives, podcasts and shows to talk about caching and FusionCache.
 
-If you are more into videos that text, here's a list you may enjoy.
+If you are more into videos than text, here's a list you may enjoy.
 
 
 <br/>

@@ -127,7 +127,7 @@ public readonly struct MaybeValue<TValue>
 	public override int GetHashCode()
 	{
 		var hashCode = 1814622215;
-		hashCode = (hashCode * -1521134295) + EqualityComparer<TValue>.Default.GetHashCode(_value);
+		hashCode = (hashCode * -1521134295) + EqualityComparer<TValue>.Default.GetHashCode(_value!);
 		hashCode = (hashCode * -1521134295) + HasValue.GetHashCode();
 		return hashCode;
 	}

@@ -346,7 +346,8 @@ internal static class RunUtils
 					{
 						if (antecedent.IsFaulted)
 						{
-							((Action<Exception>)state)?.Invoke(antecedent.Exception.GetSingleInnerExceptionOrSelf());
+							if (antecedent.Exception is not null)
+								((Action<Exception>?)state)?.Invoke(antecedent.Exception.GetSingleInnerExceptionOrSelf());
 						}
 					},
 					exceptionProcessor
@@ -395,7 +396,8 @@ internal static class RunUtils
 					{
 						if (antecedent.IsFaulted)
 						{
-							((Action<Exception>)state)?.Invoke(antecedent.Exception.GetSingleInnerExceptionOrSelf());
+							if (antecedent.Exception is not null)
+								((Action<Exception>?)state)?.Invoke(antecedent.Exception.GetSingleInnerExceptionOrSelf());
 						}
 					},
 					exceptionProcessor

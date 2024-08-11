@@ -198,7 +198,23 @@ public interface IFusionCache
 	void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Sets a secondary caching level, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and vice versa.
+	/// Setup a serializer by providing an <see cref="IFusionCacheSerializer"/> instance to be used with the distributed level (L2) if also setup, or for auto-clone.
+	/// </summary>
+	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
+	/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+	IFusionCache SetupSerializer(IFusionCacheSerializer serializer);
+
+	/// <summary>
+	/// Setup a distributed level (L2), by providing an <see cref="IDistributedCache"/>.
+	/// <br/>
+	/// Please note that a serializer (instance of <see cref="IFusionCacheSerializer"/>) must be setup before calling this method), otherwise use the overload that accepts them both.
+	/// </summary>
+	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
+	/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+	IFusionCache SetupDistributedCache(IDistributedCache distributedCache);
+
+	/// <summary>
+	/// Setup a secondary caching level, by providing an <see cref="IDistributedCache"/> instance and an <see cref="IFusionCacheSerializer"/> instance to be used to convert from generic values to byte[] and vice versa.
 	/// </summary>
 	/// <param name="distributedCache">The <see cref="IDistributedCache"/> instance to use.</param>
 	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
