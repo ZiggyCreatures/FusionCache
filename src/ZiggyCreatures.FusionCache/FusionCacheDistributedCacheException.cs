@@ -32,11 +32,11 @@ public class FusionCacheDistributedCacheException
 	{
 	}
 
-	/// <summary>Initializes a new instance of the <see cref="FusionCacheDistributedCacheException"/> class with serialized data.</summary>
-	/// <param name="info">The object that holds the serialized object data.</param>
-	/// <param name="context">The contextual information about the source or destination.</param>
-	protected FusionCacheDistributedCacheException(SerializationInfo info, StreamingContext context)
-		: base(info, context)
-	{
-	}
+	///// <summary>Initializes a new instance of the <see cref="FusionCacheDistributedCacheException"/> class with serialized data.</summary>
+	///// <param name="info">The object that holds the serialized object data.</param>
+	///// <param name="context">The contextual information about the source or destination.</param>
+	//protected FusionCacheDistributedCacheException(SerializationInfo info, StreamingContext context)
+	//	: base(info, context)
+	//{
+	//}
 }
