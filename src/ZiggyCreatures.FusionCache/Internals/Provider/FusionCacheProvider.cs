@@ -10,7 +10,7 @@ internal sealed class FusionCacheProvider
 {
 	private readonly FrozenDictionary<string, LazyNamedCache?> _caches;
 
-	public FusionCacheProvider(IEnumerable<IFusionCache> defaultCaches, IEnumerable<LazyNamedCache> lazyNamedCaches)
+	public FusionCacheProvider(IEnumerable<IFusionCache> directCaches, IEnumerable<LazyNamedCache> lazyNamedCaches)
 	{
 		List<KeyValuePair<string, LazyNamedCache?>> caches = [];
 		foreach (var group in lazyNamedCaches.GroupBy(g => g.CacheName))
@@ -29,7 +29,7 @@ internal sealed class FusionCacheProvider
 			}
 		}
 
-		var defaultCache = defaultCaches.LastOrDefault();
+		var defaultCache = directCaches.LastOrDefault();
 		if (defaultCache is not null)
 		{
 			caches.Add(new(defaultCache.CacheName, new LazyNamedCache(defaultCache.CacheName, defaultCache)));
