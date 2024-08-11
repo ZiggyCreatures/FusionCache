@@ -103,7 +103,7 @@ public class MemoryLevelTests
 		{
 			exc = exc1;
 		}
-		Assert.IsType<Exception>(exc);
+		Assert.IsType<FusionCacheFactoryException>(exc);
 		Assert.Equal(errorMessage, exc.Message);
 	}
 
@@ -140,7 +140,7 @@ public class MemoryLevelTests
 		{
 			exc = exc1;
 		}
-		Assert.IsType<Exception>(exc);
+		Assert.IsType<FusionCacheFactoryException>(exc);
 		Assert.Equal(errorMessage, exc.Message);
 	}
 

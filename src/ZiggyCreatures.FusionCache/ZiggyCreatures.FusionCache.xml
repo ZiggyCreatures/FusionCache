@@ -2582,6 +2582,25 @@
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException">
+            <summary>
+            The exception thrown when a factory fails via the Fail() method and fail-safe was not enabled or possible.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class with a specified error message.</summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1">
             <summary>
             Models the execution context passed to a FusionCache factory.
