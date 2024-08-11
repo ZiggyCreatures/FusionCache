@@ -40,12 +40,12 @@ public partial class FusionCache
 	private DistributedCacheAccessor? _dca;
 	private IFusionCacheSerializer? _serializer;
 	private BackplaneAccessor? _bpa;
-	private readonly object _backplaneLock = new object();
+	private readonly Lock _backplaneLock = new Lock();
 	private AutoRecoveryService? _autoRecovery;
-	private readonly object _autoRecoveryLock = new object();
+	private readonly Lock _autoRecoveryLock = new Lock();
 	private FusionCacheEventsHub _events;
 	private List<IFusionCachePlugin>? _plugins;
-	private readonly object _pluginsLock = new object();
+	private readonly Lock _pluginsLock = new Lock();
 
 	private FusionCacheEntryOptions? _tryUpdateOptions;
 
