@@ -4,6 +4,6 @@
 
 </div>
 
-# 🛡️ Cache Stampede prevention
+# 🛡️ Cache Stampede protection
 
 This content has been moved to the [CacheStampede](CacheStampede.md) page.

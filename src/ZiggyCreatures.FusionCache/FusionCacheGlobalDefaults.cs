@@ -130,4 +130,9 @@ public static class FusionCacheGlobalDefaults
 	/// The global default <see cref="FusionCacheEntryOptions.SkipMemoryCache"/>.
 	/// </summary>
 	public static bool EntryOptionsSkipMemoryCache { get; set; } = false;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.EnableAutoClone"/>.
+	/// </summary>
+	public static bool EntryOptionsEnableAutoClone { get; set; } = false;
 }

@@ -328,6 +328,11 @@ public class FusionCacheOptions
 	public bool ReThrowOriginalExceptions { get; set; }
 
 	/// <summary>
+	/// Specify that, even when calling async code, the sync version of the serialization methods should be preferred.
+	/// </summary>
+	public bool PreferSyncSerialization { get; set; }
+
+	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -455,6 +460,8 @@ public class FusionCacheOptions
 
 			ReThrowOriginalExceptions = ReThrowOriginalExceptions,
 
+			PreferSyncSerialization = PreferSyncSerialization,
+
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,
 
@@ -472,7 +479,7 @@ public class FusionCacheOptions
 			EventHandlingErrorsLogLevel = EventHandlingErrorsLogLevel,
 
 			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
-			PluginsInfoLogLevel = PluginsInfoLogLevel
+			PluginsInfoLogLevel = PluginsInfoLogLevel,
 		};
 
 		return res;

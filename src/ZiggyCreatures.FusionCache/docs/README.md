@@ -2,17 +2,15 @@
 
 ![FusionCache logo](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/logo-256x256.png)
 
-## FusionCache is an easy to use, fast and robust cache with advanced resiliency features and an optional distributed 2nd level.
+## FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
 ![FusionCache diagram](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/diagram.png)
 
-It uses a memory cache (any impl of the standard `IMemoryCache` interface) as the **primary** backing store and optionally a distributed, 2nd level cache (any impl of the standard `IDistributedCache` interface) as a **secondary** backing store for better resilience and higher performance, for example in a multi-node scenario or to avoid the typical effects of a cold start (initial empty cache, maybe after a restart).
+Being a hybrid cache means it can transparently work as either a normal memory cache (L1) or as a multi-level cache (L1+L2), where the distributed 2nd level (L2) can be any implementation of the standard `IDistributedCache` interface: this will get us better cold starts, better horizontal scalability, more resiliency and overall better performance.
 
-Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep each node's memory cache perfectly synchronized, without any additional work.
-
-FusionCache also includes some advanced resiliency features like a **fail-safe** mechanism, **cache stampede** prevention, fine grained **soft/hard timeouts** with **background factory completion**, customizable **extensive logging** and more (see below).
+FusionCache also includes an optional [backplane](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md) for realtime sync between multiple nodes and advanced resiliency features like [cache stampede](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md) protection, a [fail-safe](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md) mechanism, [soft/hard timeouts](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md), [eager refresh](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/EagerRefresh.md), full observability via [logging](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md) and [OpenTelemetry](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/OpenTelemetry.md) and much more.
 
 ## 🏆 Award
 
@@ -28,9 +26,16 @@ Curious about what you can achieve from start to finish? There's a [👩‍🏫 
 
 In search of all the docs? There's a [page](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/README.md) for that, too.
 
-More into videos? The fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) have been kind enough to invite me on the show and listen to me mumbling random caching stuff.
+## 📺 Media
 
-[![On .NET Talk](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/talk-on-dotnet.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+More into videos?
+
+I've been lucky enough to be invited on some shows and podcasts here and there: you can find them in the [Media](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Media.md) section.
+
+A good example is when the fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) invited me on the show to allow me to mumbling random caching stuff.
+
+[![On .NET Talk](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/talks/on-dotnet.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+
 
 ## ✔ Features
 These are the **key features** of FusionCache:
@@ -46,7 +51,9 @@ These are the **key features** of FusionCache:
 - [**🦅 Eager Refresh**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
 - [**🔃 Dependency Injection + Builder**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
 - [**📛 Named Caches**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**♊ Auto-Clone**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoClone.md): be sure that cached values returned can be safely modified
 - [**🔭 OpenTelemetry**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/OpenTelemetry.md): native observability support via OpenTelemetry
+- [**🚀 Background Distributed Operations**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/BackgroundDistributedOperations.md): distributed operations can easily be executed in the background, safely, for better performance
 - [**📜 Logging**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 - [**💫 Fully sync/async**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
 - [**📞 Events**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
@@ -138,6 +145,6 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **4 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **6 million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!

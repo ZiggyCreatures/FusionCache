@@ -16,9 +16,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Builder;
 internal sealed class FusionCacheBuilder
 	: IFusionCacheBuilder
 {
-	public FusionCacheBuilder(string cacheName)
+	public FusionCacheBuilder(string cacheName, IServiceCollection services)
 	{
 		CacheName = cacheName;
+		Services = services;
 
 		UseRegisteredLogger = true;
 
@@ -36,17 +37,22 @@ internal sealed class FusionCacheBuilder
 
 	public string CacheName { get; }
 
+	public IServiceCollection Services { get; }
+
 	public bool UseRegisteredLogger { get; set; }
+	public object? LoggerServiceKey { get; set; }
 	public ILogger<FusionCache>? Logger { get; set; }
 	public Func<IServiceProvider, ILogger<FusionCache>>? LoggerFactory { get; set; }
 	public bool ThrowIfMissingLogger { get; set; }
 
 	public bool UseRegisteredMemoryCache { get; set; }
+	public object? MemoryCacheServiceKey { get; set; }
 	public IMemoryCache? MemoryCache { get; set; }
 	public Func<IServiceProvider, IMemoryCache>? MemoryCacheFactory { get; set; }
 	public bool ThrowIfMissingMemoryCache { get; set; }
 
 	public bool UseRegisteredMemoryLocker { get; set; }
+	public object? MemoryLockerServiceKey { get; set; }
 	public IFusionCacheMemoryLocker? MemoryLocker { get; set; }
 	public Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
 	public bool ThrowIfMissingMemoryLocker { get; set; }
@@ -61,22 +67,26 @@ internal sealed class FusionCacheBuilder
 	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 	public bool UseRegisteredSerializer { get; set; }
+	public object? SerializerServiceKey { get; set; }
 	public IFusionCacheSerializer? Serializer { get; set; }
 	public Func<IServiceProvider, IFusionCacheSerializer>? SerializerFactory { get; set; }
 	public bool ThrowIfMissingSerializer { get; set; }
 
 	public bool UseRegisteredDistributedCache { get; set; }
+	public object? DistributedCacheServiceKey { get; set; }
 	public bool IgnoreRegisteredMemoryDistributedCache { get; set; }
 	public IDistributedCache? DistributedCache { get; set; }
 	public Func<IServiceProvider, IDistributedCache>? DistributedCacheFactory { get; set; }
 	public bool ThrowIfMissingDistributedCache { get; set; }
 
 	public bool UseRegisteredBackplane { get; set; }
+	public object? BackplaneServiceKey { get; set; }
 	public IFusionCacheBackplane? Backplane { get; set; }
 	public Func<IServiceProvider, IFusionCacheBackplane>? BackplaneFactory { get; set; }
 	public bool ThrowIfMissingBackplane { get; set; }
 
 	public bool UseAllRegisteredPlugins { get; set; }
+	public object? PluginsServiceKey { get; set; }
 	public List<IFusionCachePlugin> Plugins { get; }
 	public List<Func<IServiceProvider, IFusionCachePlugin>> PluginsFactories { get; }
 
@@ -145,7 +155,14 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredLogger)
 		{
-			logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			if (LoggerServiceKey is null)
+			{
+				logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			}
+			else
+			{
+				logger = serviceProvider.GetKeyedService<ILogger<FusionCache>>(LoggerServiceKey);
+			}
 		}
 		else if (LoggerFactory is not null)
 		{
@@ -166,7 +183,14 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredMemoryCache)
 		{
-			memoryCache = serviceProvider.GetService<IMemoryCache>();
+			if (MemoryCacheServiceKey is null)
+			{
+				memoryCache = serviceProvider.GetService<IMemoryCache>();
+			}
+			else
+			{
+				memoryCache = serviceProvider.GetKeyedService<IMemoryCache>(MemoryCacheServiceKey);
+			}
 		}
 		else if (MemoryCacheFactory is not null)
 		{
@@ -187,7 +211,14 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredMemoryLocker)
 		{
-			memoryLocker = serviceProvider.GetService<IFusionCacheMemoryLocker>();
+			if (MemoryLockerServiceKey is null)
+			{
+				memoryLocker = serviceProvider.GetService<IFusionCacheMemoryLocker>();
+			}
+			else
+			{
+				memoryLocker = serviceProvider.GetKeyedService<IFusionCacheMemoryLocker>(MemoryLockerServiceKey);
+			}
 		}
 		else if (MemoryLockerFactory is not null)
 		{
@@ -206,11 +237,53 @@ internal sealed class FusionCacheBuilder
 		// CREATE THE CACHE
 		var cache = new FusionCache(options, memoryCache, logger, memoryLocker);
 
+		// SERIALIZER
+		IFusionCacheSerializer? serializer = null;
+
+		if (UseRegisteredSerializer)
+		{
+			if (SerializerServiceKey is null)
+			{
+				serializer = serviceProvider.GetService<IFusionCacheSerializer>();
+			}
+			else
+			{
+				serializer = serviceProvider.GetKeyedService<IFusionCacheSerializer>(SerializerServiceKey);
+			}
+		}
+		else if (SerializerFactory is not null)
+		{
+			serializer = SerializerFactory.Invoke(serviceProvider);
+		}
+		else
+		{
+			serializer = Serializer;
+		}
+
+		if (serializer is null && ThrowIfMissingSerializer)
+		{
+			throw new InvalidOperationException("A serializer has not been specified, or found in the DI container.");
+		}
+
+		if (serializer is not null)
+		{
+			cache.SetupSerializer(serializer);
+		}
+
 		// DISTRIBUTED CACHE
 		IDistributedCache? distributedCache;
+
 		if (UseRegisteredDistributedCache)
 		{
-			distributedCache = serviceProvider.GetService<IDistributedCache>();
+			if (DistributedCacheServiceKey is null)
+			{
+				distributedCache = serviceProvider.GetService<IDistributedCache>();
+			}
+			else
+			{
+				distributedCache = serviceProvider.GetKeyedService<IDistributedCache>(DistributedCacheServiceKey);
+			}
+
 			if (IgnoreRegisteredMemoryDistributedCache && distributedCache is MemoryDistributedCache)
 			{
 				distributedCache = null;
@@ -232,41 +305,21 @@ internal sealed class FusionCacheBuilder
 
 		if (distributedCache is not null)
 		{
-			IFusionCacheSerializer? serializer;
-			if (UseRegisteredSerializer)
-			{
-				serializer = serviceProvider.GetService<IFusionCacheSerializer>();
-			}
-			else if (SerializerFactory is not null)
-			{
-				serializer = SerializerFactory.Invoke(serviceProvider);
-			}
-			else
-			{
-				serializer = Serializer;
-			}
-
-			if (serializer is not null)
-			{
-				cache.SetupDistributedCache(distributedCache, serializer);
-			}
-			else
-			{
-				if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-					logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: a usable implementation of IDistributedCache was found (CACHE={DistributedCacheType}) but no implementation of IFusionCacheSerializer was found, so the distributed cache has not been set up", cache.CacheName, cache.InstanceId, distributedCache.GetType().FullName);
-
-				if (ThrowIfMissingSerializer)
-				{
-					throw new InvalidOperationException($"A distributed cache was about to be used ({distributedCache.GetType().FullName}) but no implementation of IFusionCacheSerializer has been specified or found, so the distributed cache has not been set up");
-				}
-			}
+			cache.SetupDistributedCache(distributedCache);
 		}
 
 		// BACKPLANE
 		IFusionCacheBackplane? backplane;
 		if (UseRegisteredBackplane)
 		{
-			backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+			if (BackplaneServiceKey is null)
+			{
+				backplane = serviceProvider.GetService<IFusionCacheBackplane>();
+			}
+			else
+			{
+				backplane = serviceProvider.GetKeyedService<IFusionCacheBackplane>(BackplaneServiceKey);
+			}
 		}
 		else if (BackplaneFactory is not null)
 		{
@@ -293,6 +346,11 @@ internal sealed class FusionCacheBuilder
 		if (UseAllRegisteredPlugins)
 		{
 			plugins.AddRange(serviceProvider.GetServices<IFusionCachePlugin>());
+		}
+
+		if (PluginsServiceKey is not null)
+		{
+			plugins.AddRange(serviceProvider.GetKeyedServices<IFusionCachePlugin>(PluginsServiceKey));
 		}
 
 		if (Plugins?.Any() == true)

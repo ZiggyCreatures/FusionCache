@@ -75,8 +75,9 @@ public static class FusionCacheServiceCollectionExtensions
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="cache">The custom FusionCache instance.</param>
+	/// <param name="asKeyedService">Also register this FusionCache instance as a keyed service.</param>
 	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
-	public static IServiceCollection AddFusionCache(this IServiceCollection services, IFusionCache cache)
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, IFusionCache cache, bool asKeyedService)
 	{
 		if (services is null)
 			throw new ArgumentNullException(nameof(services));
@@ -90,14 +91,32 @@ public static class FusionCacheServiceCollectionExtensions
 
 		if (cache.CacheName == FusionCacheOptions.DefaultCacheName)
 		{
-			services.TryAddSingleton<IFusionCache>(cache);
+			services.AddSingleton<IFusionCache>(cache);
 		}
 		else
 		{
 			services.AddSingleton<LazyNamedCache>(new LazyNamedCache(cache.CacheName, cache));
 		}
 
+		if (asKeyedService)
+		{
+			services.AddKeyedSingleton<IFusionCache>(cache.CacheName, cache);
+		}
+
 		return services;
+	}
+
+	/// <summary>
+	/// Adds a custom instance of <see cref="IFusionCache"/> to the <see cref="IServiceCollection" />.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
+	/// <param name="cache">The custom FusionCache instance.</param>
+	/// <returns>The <see cref="IServiceCollection"/> so that additional calls can be chained.</returns>
+	public static IServiceCollection AddFusionCache(this IServiceCollection services, IFusionCache cache)
+	{
+		return services.AddFusionCache(cache, false);
 	}
 
 	/// <summary>
@@ -129,11 +148,11 @@ public static class FusionCacheServiceCollectionExtensions
 
 		services.AddFusionCacheProvider();
 
-		IFusionCacheBuilder builder = new FusionCacheBuilder(cacheName);
+		IFusionCacheBuilder builder = new FusionCacheBuilder(cacheName, services);
 
 		if (cacheName == FusionCacheOptions.DefaultCacheName)
 		{
-			services.TryAddSingleton<IFusionCache>(serviceProvider =>
+			services.AddSingleton<IFusionCache>(serviceProvider =>
 			{
 				return builder.Build(serviceProvider);
 			});

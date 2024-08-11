@@ -41,7 +41,7 @@
         </member>
         <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeBackplane">
             <summary>
-            Include traces for the backplane. (default: <see langword="true"/>)
+            Include traces for the backplane. (default: <see langword="false"/>)
             </summary>
         </member>
         <member name="T:OpenTelemetry.Metrics.MeterProviderBuilderExtensions">

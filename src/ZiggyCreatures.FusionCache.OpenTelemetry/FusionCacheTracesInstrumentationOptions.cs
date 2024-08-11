@@ -16,8 +16,8 @@
 		public bool IncludeDistributedLevel { get; set; } = true;
 
 		/// <summary>
-		/// Include traces for the backplane. (default: <see langword="true"/>)
+		/// Include traces for the backplane. (default: <see langword="false"/>)
 		/// </summary>
-		public bool IncludeBackplane { get; set; } = true;
+		public bool IncludeBackplane { get; set; } = false;
 	}
 }

@@ -47,6 +47,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		{
 			public const string FactoryBackgroundMove = "factory moved to the background";
 			public const string FactoryBackgroundMoveNotAllowed = "factory not allowed to be moved to the background";
+			public const string BackplaneIncomingMessageInvalid = "incoming message invalid";
+			public const string BackplaneIncomingMessageConflicts = "incoming message with conflicts";
+			public const string BackplaneIncomingMessageUnknownAction = "incoming message with unknown action";
 		}
 
 		public static IEnumerable<KeyValuePair<string, object?>> GetCommonTags(string? cacheName, string? cacheInstanceId, string? key, string? operationId, CacheLevelKind? levelKind)
@@ -60,7 +63,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 			};
 
 			if (levelKind is not null)
-				res.Add(new KeyValuePair<string, object?>("fusioncache.operation.level", levelKind.ToString().ToLowerInvariant()));
+				res.Add(new KeyValuePair<string, object?>("fusioncache.operation.level", levelKind.ToString()?.ToLowerInvariant()));
 
 			return res;
 		}

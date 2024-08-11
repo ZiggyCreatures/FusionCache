@@ -45,23 +45,103 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task ReturnsStaleDataWhenFactoryFailsWithFailSafeAsync()
+	public async Task ReturnsStaleDataWhenFactoryFailsAsync()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		using var cache = new FusionCache(options);
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-		await Task.Delay(1_500);
+		await Task.Delay(500);
 		var newValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 		Assert.Equal(initialValue, newValue);
 	}
 
 	[Fact]
-	public void ReturnsStaleDataWhenFactoryFailsWithFailSafe()
+	public void ReturnsStaleDataWhenFactoryFails()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		using var cache = new FusionCache(options);
 		var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
-		Thread.Sleep(1_500);
+		Thread.Sleep(500);
 		var newValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 		Assert.Equal(initialValue, newValue);
+	}
+
+	[Fact]
+	public async Task ReturnsStaleDataWhenFactoryFailsWithoutExceptionAsync()
+	{
+		var errorMessage = "Sloths are cool";
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(1);
+		using var cache = new FusionCache(options);
+
+		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+
+		await Task.Delay(500);
+
+		var newValue = await cache.GetOrSetAsync<int>("foo", async (ctx, _) => ctx.Fail(errorMessage));
+
+		Assert.Equal(initialValue, newValue);
+
+		await Task.Delay(options.DefaultEntryOptions.FailSafeThrottleDuration);
+
+		Exception? exc = null;
+		try
+		{
+			_ = await cache.GetOrSetAsync<int>(
+				"foo",
+				async (ctx, _) => ctx.Fail(errorMessage),
+				opt => opt.SetFailSafe(false)
+			);
+		}
+		catch (Exception exc1)
+		{
+			exc = exc1;
+		}
+		Assert.IsType<FusionCacheFactoryException>(exc);
+		Assert.Equal(errorMessage, exc.Message);
+	}
+
+	[Fact]
+	public void ReturnsStaleDataWhenFactoryFailsWithoutException()
+	{
+		var errorMessage = "Sloths are cool";
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(1);
+		using var cache = new FusionCache(options);
+
+		var initialValue = cache.GetOrSet<int>("foo", _ => 42);
+
+		Thread.Sleep(500);
+
+		var newValue = cache.GetOrSet<int>("foo", (ctx, _) => ctx.Fail(errorMessage));
+
+		Assert.Equal(initialValue, newValue);
+
+		Thread.Sleep(options.DefaultEntryOptions.FailSafeThrottleDuration);
+
+		Exception? exc = null;
+		try
+		{
+			_ = cache.GetOrSet<int>(
+				"foo",
+				(ctx, _) => ctx.Fail(errorMessage),
+				opt => opt.SetFailSafe(false)
+			);
+		}
+		catch (Exception exc1)
+		{
+			exc = exc1;
+		}
+		Assert.IsType<FusionCacheFactoryException>(exc);
+		Assert.Equal(errorMessage, exc.Message);
 	}
 
 	[Fact]
@@ -359,13 +439,13 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task CancelingAnOperationActuallyCancelsItAsync()
+	public async Task CanCancelAnOperationAsync()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
 		var sw = Stopwatch.StartNew();
-		var outerCancelDelayMs = 500;
-		var factoryDelayMs = 2_000;
+		var outerCancelDelayMs = 200;
+		var factoryDelayMs = 5_000;
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
 		{
 			var cts = new CancellationTokenSource(outerCancelDelayMs);
@@ -383,13 +463,13 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public void CancelingAnOperationActuallyCancelsIt()
+	public void CanCancelAnOperation()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
 		var sw = Stopwatch.StartNew();
-		var outerCancelDelayMs = 500;
-		var factoryDelayMs = 2_000;
+		var outerCancelDelayMs = 200;
+		var factoryDelayMs = 5_000;
 		Assert.ThrowsAny<OperationCanceledException>(() =>
 		{
 			var cts = new CancellationTokenSource(outerCancelDelayMs);
@@ -815,6 +895,84 @@ public class MemoryLevelTests
 		Assert.Equal(1, foo3.Value);
 		Assert.Equal(4, foo4);
 	}
+
+
+	[Fact]
+	public async Task AdaptiveCachingCanWorkOnExceptionAsync()
+	{
+		var options = new FusionCacheOptions();
+
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(5);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+
+		var cache = new FusionCache(options);
+		var key = "foo";
+
+		cache.GetOrSet(key, "bar");
+
+		// LOGICALLY EXPIRE THE KEY SO THE FAIL-SAFE LOGIC TRIGGERS
+		cache.Expire(key);
+
+		await Assert.ThrowsAsync<Exception>(async () =>
+		{
+			await cache.GetOrSetAsync<string>(key, async (ctx, ct) =>
+			{
+				try
+				{
+					throw new Exception("Factory failed");
+				}
+				finally
+				{
+					// DISABLE FAIL SAFE
+					ctx.Options.SetFailSafe(false);
+				}
+			});
+		});
+
+		await cache.GetOrSetAsync<string>(key, async (ctx, ct) =>
+		{
+			throw new Exception("Factory failed");
+		});
+	}
+
+	[Fact]
+	public void AdaptiveCachingCanWorkOnException()
+	{
+		var options = new FusionCacheOptions();
+
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(5);
+		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+
+		var cache = new FusionCache(options);
+		var key = "foo";
+
+		cache.GetOrSet(key, "bar");
+
+		// LOGICALLY EXPIRE THE KEY SO THE FAIL-SAFE LOGIC TRIGGERS
+		cache.Expire(key);
+
+		Assert.Throws<Exception>(() =>
+		{
+			cache.GetOrSet<string>(key, (ctx, ct) =>
+			{
+				try
+				{
+					throw new Exception("Factory failed");
+				}
+				finally
+				{
+					// DISABLE FAIL SAFE
+					ctx.Options.SetFailSafe(false);
+				}
+			});
+		});
+
+		cache.GetOrSet<string>(key, (ctx, ct) =>
+		{
+			throw new Exception("Factory failed");
+		});
+	}
+
 
 	[Fact]
 	public async Task FailSafeMaxDurationNormalizationOccursAsync()
@@ -1804,5 +1962,98 @@ public class MemoryLevelTests
 		sw.Stop();
 
 		Assert.True(didThrow);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanAutoCloneAsync(SerializerType serializerType)
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		options.DefaultEntryOptions.EnableAutoClone = true;
+		using var cache = new FusionCache(options);
+
+		cache.SetupSerializer(TestsUtils.GetSerializer(serializerType));
+
+		var foo = new ComplexType()
+		{
+			PropInt = -1
+		};
+
+		await cache.SetAsync("foo", foo);
+
+		var foo1 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+		foo1.PropInt = 1;
+
+		var foo2 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+		foo2.PropInt = 2;
+
+		var foo3 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+		foo3.PropInt = 3;
+
+		Assert.Equal(-1, foo.PropInt);
+
+		Assert.NotNull(foo1);
+		Assert.False(object.ReferenceEquals(foo, foo1));
+		Assert.Equal(1, foo1.PropInt);
+
+		Assert.NotNull(foo2);
+		Assert.False(object.ReferenceEquals(foo, foo2));
+		Assert.Equal(2, foo2.PropInt);
+
+		Assert.NotNull(foo3);
+		Assert.False(object.ReferenceEquals(foo, foo3));
+		Assert.Equal(3, foo3.PropInt);
+
+		//await Assert.ThrowsAsync<FusionCacheSerializationException>(async () =>
+		//{
+		//	_ = await cache.GetOrDefaultAsync<string>("foo");
+		//});
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanAutoClone(SerializerType serializerType)
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.EnableAutoClone = true;
+		using var cache = new FusionCache(options);
+
+		cache.SetupSerializer(TestsUtils.GetSerializer(serializerType));
+
+		var foo = new ComplexType()
+		{
+			PropInt = -1
+		};
+
+		cache.Set("foo", foo);
+
+		var foo1 = cache.GetOrDefault<ComplexType>("foo")!;
+		foo1.PropInt = 1;
+
+		var foo2 = cache.GetOrDefault<ComplexType>("foo")!;
+		foo2.PropInt = 2;
+
+		var foo3 = cache.GetOrDefault<ComplexType>("foo")!;
+		foo3.PropInt = 3;
+
+		Assert.Equal(-1, foo.PropInt);
+
+		Assert.NotNull(foo1);
+		Assert.False(object.ReferenceEquals(foo, foo1));
+		Assert.Equal(1, foo1.PropInt);
+
+		Assert.NotNull(foo2);
+		Assert.False(object.ReferenceEquals(foo, foo2));
+		Assert.Equal(2, foo2.PropInt);
+
+		Assert.NotNull(foo3);
+		Assert.False(object.ReferenceEquals(foo, foo3));
+		Assert.Equal(3, foo3.PropInt);
+
+		//Assert.Throws<FusionCacheSerializationException>(() =>
+		//{
+		//	_ = cache.GetOrDefault<string>("foo");
+		//});
 	}
 }

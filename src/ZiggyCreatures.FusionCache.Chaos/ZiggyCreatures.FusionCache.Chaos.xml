@@ -91,6 +91,30 @@
             <param name="info">The object that holds the serialized object data.</param>
             <param name="context">The contextual information about the source or destination.</param>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache">
+            <summary>
+            An implementation of <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> that acts on behalf of another one, but with a (controllable) amount of chaos in-between.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache.#ctor(Microsoft.Extensions.Caching.Memory.IMemoryCache,Microsoft.Extensions.Logging.ILogger{ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache})">
+            <summary>
+            Initializes a new instance of the ChaosMemoryCache class.
+            </summary>
+            <param name="innerCache">The actual <see cref="T:Microsoft.Extensions.Caching.Memory.IMemoryCache"/> used if and when chaos does not happen.</param>
+            <param name="logger">The logger to use, or <see langword="null"/>.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache.CreateEntry(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache.Dispose">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache.Remove(System.Object)">
+            <inheritdoc/>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryCache.TryGetValue(System.Object,System.Object@)">
+            <inheritdoc/>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.Chaos.ChaosMemoryLocker">
             <summary>
             An implementation of <see cref="T:ZiggyCreatures.Caching.Fusion.Locking.IFusionCacheMemoryLocker"/> with a (controllable) amount of chaos in-between.

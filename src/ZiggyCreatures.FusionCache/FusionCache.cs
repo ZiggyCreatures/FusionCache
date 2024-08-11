@@ -38,6 +38,7 @@ public partial class FusionCache
 	private IFusionCacheMemoryLocker _memoryLocker;
 	private MemoryCacheAccessor _mca;
 	private DistributedCacheAccessor? _dca;
+	private IFusionCacheSerializer? _serializer;
 	private BackplaneAccessor? _bpa;
 	private readonly object _backplaneLock = new object();
 	private AutoRecoveryService? _autoRecovery;
@@ -516,6 +517,16 @@ public partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void ProcessFactoryError(string operationId, string key, string errorMessage)
+	{
+		if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
+			_logger.Log(_options.FactoryErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling the factory: {ErrorMessage}", CacheName, InstanceId, operationId, key, errorMessage);
+
+		// EVENT
+		_events.OnFactoryError(operationId, key);
+	}
+
 	internal bool MaybeExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe, long? timestampThreshold)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -525,18 +536,41 @@ public partial class FusionCache
 	}
 
 	/// <inheritdoc/>
-	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+	public IFusionCache SetupSerializer(IFusionCacheSerializer serializer)
+	{
+		if (serializer is null)
+			throw new ArgumentNullException(nameof(serializer));
+
+		_serializer = serializer;
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup serializer (SERIALIZER={SerializerType})", CacheName, InstanceId, _serializer.GetType().FullName);
+
+		return this;
+	}
+
+	/// <inheritdoc/>
+	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache)
 	{
 		if (distributedCache is null)
 			throw new ArgumentNullException(nameof(distributedCache));
 
-		if (serializer is null)
-			throw new ArgumentNullException(nameof(serializer));
+		if (_serializer is null)
+			throw new InvalidOperationException("The serializer must be set before setting up the distributed cache");
 
-		_dca = new DistributedCacheAccessor(distributedCache, serializer, _options, _logger, _events.Distributed);
+		_dca = new DistributedCacheAccessor(distributedCache, _serializer, _options, _logger, _events.Distributed);
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup distributed cache (CACHE={DistributedCacheType} SERIALIZER={SerializerType})", CacheName, InstanceId, distributedCache.GetType().FullName, serializer.GetType().FullName);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup distributed cache (CACHE={DistributedCacheType})", CacheName, InstanceId, distributedCache.GetType().FullName);
+
+		return this;
+	}
+
+	/// <inheritdoc/>
+	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache, IFusionCacheSerializer serializer)
+	{
+		SetupSerializer(serializer);
+		SetupDistributedCache(distributedCache);
 
 		return this;
 	}
@@ -544,10 +578,13 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveDistributedCache()
 	{
-		_dca = null;
+		if (_dca is not null)
+		{
+			_dca = null;
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed cache removed", CacheName, InstanceId);
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed cache removed", CacheName, InstanceId);
+		}
 
 		return this;
 	}
@@ -806,17 +843,31 @@ public partial class FusionCache
 		return false;
 	}
 
-	internal async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(string operationId, string cacheKey, FusionCacheMemoryEntry<TValue> memoryEntry)
+	private void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options, ref DistributedCacheAccessor? dca, ref MemoryCacheAccessor? mca)
+	{
+		// UPDATE ADAPTIVE OPTIONS
+		var maybeNewOptions = ctx.GetOptions();
+
+		if (ReferenceEquals(options, maybeNewOptions))
+			return;
+
+		options = maybeNewOptions;
+
+		dca = GetCurrentDistributedAccessor(options);
+		mca = GetCurrentMemoryAccessor(options);
+	}
+
+	internal async ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(string operationId, string key, FusionCacheMemoryEntry<TValue> memoryEntry)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to update memory entry from distributed entry", CacheName, InstanceId, operationId, cacheKey);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to update memory entry from distributed entry", CacheName, InstanceId, operationId, key);
 
 		try
 		{
 			if (HasDistributedCache == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because there's no distributed cache", CacheName, InstanceId, operationId, cacheKey);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because there's no distributed cache", CacheName, InstanceId, operationId, key);
 
 				return (false, false, false);
 			}
@@ -826,22 +877,22 @@ public partial class FusionCache
 			if (dca is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because distributed cache is not enabled for the current operation", CacheName, InstanceId, operationId, cacheKey);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because distributed cache is not enabled for the current operation", CacheName, InstanceId, operationId, key);
 
 				return (false, false, false);
 			}
 
-			if (dca.IsCurrentlyUsable(operationId, cacheKey) == false)
+			if (dca.IsCurrentlyUsable(operationId, key) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because distributed cache is not currently usable", CacheName, InstanceId, operationId, cacheKey);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because distributed cache is not currently usable", CacheName, InstanceId, operationId, key);
 
 				return (true, false, false);
 			}
 
 			try
 			{
-				var (distributedEntry, isValid) = await dca.TryGetEntryAsync<TValue>(operationId, cacheKey, TryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
+				var (distributedEntry, isValid) = await dca.TryGetEntryAsync<TValue>(operationId, key, TryUpdateOptions, false, Timeout.InfiniteTimeSpan, default).ConfigureAwait(false);
 
 				if (distributedEntry is null || isValid == false)
 				{
@@ -849,7 +900,7 @@ public partial class FusionCache
 					//return;
 
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry not found or stale, do not update memory entry", CacheName, InstanceId, operationId, cacheKey);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry not found or stale, do not update memory entry", CacheName, InstanceId, operationId, key);
 
 					return (false, false, false);
 				}
@@ -857,7 +908,7 @@ public partial class FusionCache
 				if (/*distributedEntry.Timestamp is not null &&*/ distributedEntry.Timestamp == memoryEntry.Timestamp)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry same as distributed entry, do not update memory entry", CacheName, InstanceId, operationId, cacheKey);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry same as distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);
 
 					return (false, true, false);
 				}
@@ -866,28 +917,30 @@ public partial class FusionCache
 				{
 					//return;
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than distributed entry, do not update memory entry", CacheName, InstanceId, operationId, cacheKey);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);
 
 					return (false, false, false);
 				}
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): updating memory entry from distributed entry", CacheName, InstanceId, operationId, cacheKey);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): updating memory entry from distributed entry", CacheName, InstanceId, operationId, key);
 
-				memoryEntry.UpdateFromDistributedEntry(distributedEntry);
+
+				_mca.UpdateEntryFromDistributedEntry(operationId, key, memoryEntry, distributedEntry);
+				//memoryEntry.UpdateFromDistributedEntry(distributedEntry);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, cacheKey);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, key);
 
 				// EVENT
-				_events.Memory.OnSet(operationId, cacheKey);
+				_events.Memory.OnSet(operationId, key);
 
 				return (false, false, true);
 			}
 			catch (Exception exc)
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to update a memory entry from a distributed entry", CacheName, InstanceId, operationId, cacheKey);
+					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to update a memory entry from a distributed entry", CacheName, InstanceId, operationId, key);
 
 				//MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 
@@ -897,9 +950,71 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling TryUpdateMemoryEntryFromDistributedEntryUntypedAsync() to try to update a memory entry from a distributed entry without knowing the TValue type", CacheName, InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling TryUpdateMemoryEntryFromDistributedEntryUntypedAsync() to try to update a memory entry from a distributed entry without knowing the TValue type", CacheName, InstanceId, operationId, key);
 
 			return (true, false, false);
+		}
+	}
+
+	internal TValue GetValueFromMemoryEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions? options)
+	{
+		if (entry is null)
+			throw new ArgumentNullException(nameof(entry));
+
+		options ??= _options.DefaultEntryOptions;
+
+		if (options.EnableAutoClone == false)
+			return entry.GetValue<TValue>();
+
+		if (_serializer is null)
+			throw new InvalidOperationException($"A serializer is needed when using {nameof(FusionCacheEntryOptions.EnableAutoClone)}.");
+
+		if (entry.Value is null)
+			return entry.GetValue<TValue>();
+
+		byte[] serializedValue;
+		try
+		{
+			serializedValue = entry.GetSerializedValue(_serializer);
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while serializing a value", _options.CacheName, _options.InstanceId, operationId, key);
+
+			// EVENT
+			_events.Distributed.OnSerializationError(operationId, key);
+
+			if (_options.ReThrowOriginalExceptions)
+			{
+				throw;
+			}
+			else
+			{
+				throw new FusionCacheSerializationException("An error occurred while serializing a value", exc);
+			}
+		}
+
+		try
+		{
+			return _serializer.Deserialize<TValue>(serializedValue)!;
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while deserializing a value", _options.CacheName, _options.InstanceId, operationId, key);
+
+			// EVENT
+			_events.Distributed.OnDeserializationError(operationId, key);
+
+			if (_options.ReThrowOriginalExceptions)
+			{
+				throw;
+			}
+			else
+			{
+				throw new FusionCacheSerializationException("An error occurred while deserializing a value", exc);
+			}
 		}
 	}
 }

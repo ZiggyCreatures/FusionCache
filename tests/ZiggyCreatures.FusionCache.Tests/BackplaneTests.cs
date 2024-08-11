@@ -714,10 +714,10 @@ public class BackplaneTests
 		var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
 		fusionCache.SetupBackplane(chaosBackplane);
 
+		await Task.Delay(TimeSpan.FromMilliseconds(1_000));
+
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 		chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
-
-		await Task.Delay(TimeSpan.FromMilliseconds(1_000));
 
 		var sw = Stopwatch.StartNew();
 		await fusionCache.SetAsync<int>("foo", 21, eo);
@@ -753,10 +753,10 @@ public class BackplaneTests
 		var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
 		fusionCache.SetupBackplane(chaosBackplane);
 
+		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
+
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
 		chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
-
-		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
 
 		var sw = Stopwatch.StartNew();
 		fusionCache.Set<int>("foo", 21, eo);
