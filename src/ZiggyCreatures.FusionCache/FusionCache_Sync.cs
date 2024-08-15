@@ -180,7 +180,7 @@ public partial class FusionCache
 
 							if (entry is null)
 							{
-								throw new Exception(errorMessage);
+								throw new FusionCacheFactoryException(errorMessage);
 							}
 
 							isStale = true;

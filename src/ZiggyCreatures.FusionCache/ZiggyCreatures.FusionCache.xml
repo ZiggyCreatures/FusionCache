@@ -686,11 +686,6 @@
             <param name="message">The error message that explains the reason for the exception.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheBackplaneException"/> class with serialized data.</summary>
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
-        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheBuilderExtMethods">
             <summary>
             A set of extension methods that add some commonly used setup actions to an instance of a <see cref="T:ZiggyCreatures.Caching.Fusion.IFusionCacheBuilder"/> object.
@@ -1625,11 +1620,6 @@
             <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
             <param name="message">The error message that explains the reason for the exception.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheDistributedCacheException"/> class with serialized data.</summary>
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions">
             <summary>
@@ -2592,6 +2582,25 @@
             <param name="token">An optional <see cref="T:System.Threading.CancellationToken"/> to cancel the operation.</param>
             <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
         </member>
+        <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException">
+            <summary>
+            The exception thrown when a factory fails via the Fail() method and fail-safe was not enabled or possible.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class.
+            </summary>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor(System.String)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class with a specified error message.</summary>
+            <param name="message">The message that describes the error.</param>
+        </member>
+        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException.#ctor(System.String,ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException)">
+            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
+            <param name="message">The error message that explains the reason for the exception.</param>
+            <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
+        </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.FusionCacheFactoryExecutionContext`1">
             <summary>
             Models the execution context passed to a FusionCache factory.
@@ -3163,11 +3172,6 @@
             <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.</summary>
             <param name="message">The error message that explains the reason for the exception.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not a null reference (Nothing in Visual Basic), the current exception is raised in a catch block that handles the inner exception.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCacheSerializationException"/> class with serialized data.</summary>
-            <param name="info">The object that holds the serialized object data.</param>
-            <param name="context">The contextual information about the source or destination.</param>
         </member>
         <member name="T:ZiggyCreatures.Caching.Fusion.IFusionCache">
             <summary>
@@ -4435,13 +4439,6 @@
             <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException"/> class with the specified error message and inner exception.</summary>
             <param name="message">The message that describes the error.</param>
             <param name="innerException">The exception that is the cause of the current exception. If the innerException parameter is not null, the current exception is raised in a catch block that handles the inner exception.</param>
-        </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
-            <summary>Initializes a new instance of the <see cref="T:ZiggyCreatures.Caching.Fusion.SyntheticTimeoutException"/> class with serialized data.</summary>
-            <param name="info">The <see cref="T:System.Runtime.Serialization.SerializationInfo"/> object that contains serialized object data about the exception being thrown.</param>
-            <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"/> object that contains contextual information about the source or destination. The context parameter is reserved for future use, and can be specified as null.</param>
-            <exception cref="T:System.ArgumentNullException">The <paramref name="info">info</paramref> parameter is null.</exception>
-            <exception cref="T:System.Runtime.Serialization.SerializationException">The class name is null, or <see cref="P:System.Exception.HResult"/> is zero (0).</exception>
         </member>
         <member name="T:Microsoft.Extensions.DependencyInjection.FusionCacheServiceCollectionExtensions">
             <summary>
