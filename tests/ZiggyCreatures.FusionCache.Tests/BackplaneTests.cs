@@ -6,6 +6,7 @@ using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
 using Xunit.Abstractions;
@@ -694,7 +695,7 @@ public class BackplaneTests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanExecuteBackgroundBackplaneOperationsAsync(SerializerType serializerType)
 	{
-		var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+		var simulatedDelay = TimeSpan.FromMilliseconds(1_000);
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var eo = new FusionCacheEntryOptions().SetDurationSec(10);
@@ -704,7 +705,8 @@ public class BackplaneTests
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
+		var options = CreateFusionCacheOptions();
+		using var fusionCache = new FusionCache(options, memoryCache, logger);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
@@ -714,26 +716,29 @@ public class BackplaneTests
 		var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
 		fusionCache.SetupBackplane(chaosBackplane);
 
-		await Task.Delay(TimeSpan.FromMilliseconds(1_000));
+		await Task.Delay(options.AutoRecoveryDelay.PlusALittleBit());
 
-		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
-		chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
+		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
+		chaosBackplane.SetAlwaysDelayExactly(simulatedDelay);
 
 		var sw = Stopwatch.StartNew();
 		await fusionCache.SetAsync<int>("foo", 21, eo);
 		sw.Stop();
 
-		await Task.Delay(TimeSpan.FromMilliseconds(1_000));
+		await Task.Delay(simulatedDelay);
 
-		Assert.True(sw.Elapsed >= simulatedDelayMs);
-		Assert.True(sw.Elapsed < simulatedDelayMs * 2);
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
+		Assert.True(elapsedMs >= simulatedDelay.TotalMilliseconds);
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds * 2);
 	}
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
 	public void CanExecuteBackgroundBackplaneOperations(SerializerType serializerType)
 	{
-		var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+		var simulatedDelay = TimeSpan.FromMilliseconds(1_000);
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var eo = new FusionCacheEntryOptions().SetDurationSec(10);
@@ -743,7 +748,8 @@ public class BackplaneTests
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 
-		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
+		var options = CreateFusionCacheOptions();
+		using var fusionCache = new FusionCache(options, memoryCache, logger);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
@@ -753,19 +759,22 @@ public class BackplaneTests
 		var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
 		fusionCache.SetupBackplane(chaosBackplane);
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
+		Thread.Sleep(options.AutoRecoveryDelay.PlusALittleBit());
 
-		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
-		chaosBackplane.SetAlwaysDelayExactly(simulatedDelayMs);
+		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
+		chaosBackplane.SetAlwaysDelayExactly(simulatedDelay);
 
 		var sw = Stopwatch.StartNew();
 		fusionCache.Set<int>("foo", 21, eo);
 		sw.Stop();
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
+		Thread.Sleep(simulatedDelay);
 
-		Assert.True(sw.Elapsed >= simulatedDelayMs);
-		Assert.True(sw.Elapsed < simulatedDelayMs * 2);
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
+		Assert.True(elapsedMs >= simulatedDelay.TotalMilliseconds);
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds * 2);
 	}
 
 	[Fact]
@@ -833,9 +842,9 @@ public class BackplaneTests
 
 		await Task.Delay(1_000);
 
-		var v1 = await cache1.GetOrSetAsync(key, async _ => 10, TimeSpan.FromMinutes(10));
-		var v2 = await cache2.GetOrSetAsync(key, async _ => 20, TimeSpan.FromMinutes(10));
-		var v3 = await cache3.GetOrSetAsync(key, async _ => 30, TimeSpan.FromMinutes(10));
+		var v1 = await cache1.GetOrSetAsync(key, async _ => 10, TimeSpan.FromHours(10));
+		var v2 = await cache2.GetOrSetAsync(key, async _ => 20, TimeSpan.FromHours(10));
+		var v3 = await cache3.GetOrSetAsync(key, async _ => 30, TimeSpan.FromHours(10));
 
 		Assert.Equal(4, v1);
 		Assert.Equal(4, v2);
@@ -867,9 +876,9 @@ public class BackplaneTests
 
 		Thread.Sleep(1_000);
 
-		var v1 = cache1.GetOrSet(key, _ => 10, TimeSpan.FromMinutes(10));
-		var v2 = cache2.GetOrSet(key, _ => 20, TimeSpan.FromMinutes(10));
-		var v3 = cache3.GetOrSet(key, _ => 30, TimeSpan.FromMinutes(10));
+		var v1 = cache1.GetOrSet(key, _ => 10, TimeSpan.FromHours(10));
+		var v2 = cache2.GetOrSet(key, _ => 20, TimeSpan.FromHours(10));
+		var v3 = cache3.GetOrSet(key, _ => 30, TimeSpan.FromHours(10));
 
 		Assert.Equal(4, v1);
 		Assert.Equal(4, v2);
