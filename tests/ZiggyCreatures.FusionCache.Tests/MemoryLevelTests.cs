@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
@@ -441,6 +442,7 @@ public class MemoryLevelTests
 	[Fact]
 	public async Task CanCancelAnOperationAsync()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
 		var sw = Stopwatch.StartNew();
@@ -453,18 +455,21 @@ public class MemoryLevelTests
 		});
 		sw.Stop();
 
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+
 		TestOutput.WriteLine($"Outer Cancel: {outerCancelDelayMs} ms");
 		TestOutput.WriteLine($"Factory Delay: {factoryDelayMs} ms");
-		TestOutput.WriteLine($"Elapsed: {sw.ElapsedMilliseconds} ms");
+		TestOutput.WriteLine($"Elapsed (with extra pad): {elapsedMs} ms");
 
 		Assert.Equal(-1, res);
-		Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is less than outer cancel");
-		Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is not less than factory delay");
+		Assert.True(elapsedMs >= outerCancelDelayMs, "Elapsed is less than outer cancel");
+		Assert.True(elapsedMs < factoryDelayMs, "Elapsed is not less than factory delay");
 	}
 
 	[Fact]
 	public void CanCancelAnOperation()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions());
 		int res = -1;
 		var sw = Stopwatch.StartNew();
@@ -477,13 +482,15 @@ public class MemoryLevelTests
 		});
 		sw.Stop();
 
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+
 		TestOutput.WriteLine($"Outer Cancel: {outerCancelDelayMs} ms");
 		TestOutput.WriteLine($"Factory Delay: {factoryDelayMs} ms");
-		TestOutput.WriteLine($"Elapsed: {sw.ElapsedMilliseconds} ms");
+		TestOutput.WriteLine($"Elapsed (with extra pad): {elapsedMs} ms");
 
 		Assert.Equal(-1, res);
-		Assert.True(sw.ElapsedMilliseconds >= outerCancelDelayMs, "Elapsed is less than outer cancel");
-		Assert.True(sw.ElapsedMilliseconds < factoryDelayMs, "Elapsed is not less than factory delay");
+		Assert.True(elapsedMs >= outerCancelDelayMs, "Elapsed is less than outer cancel");
+		Assert.True(elapsedMs < factoryDelayMs, "Elapsed is not less than factory delay");
 	}
 
 	[Fact]
@@ -1468,12 +1475,13 @@ public class MemoryLevelTests
 			}
 		);
 		sw.Stop();
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
 		Assert.True(eagerRefreshIsStarted);
 		Assert.True(eagerRefreshIsEnded);
-		Assert.True(sw.Elapsed < lockTimeout);
+		Assert.True(elapsedMs < lockTimeout.TotalMilliseconds);
 		Assert.True(v4 > v3);
 		Assert.True(v4 == v3EagerResult);
 		Assert.False(v4 == v4SupposedlyNot);
@@ -1545,12 +1553,13 @@ public class MemoryLevelTests
 			}
 		);
 		sw.Stop();
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
 		Assert.True(eagerRefreshIsStarted);
 		Assert.True(eagerRefreshIsEnded);
-		Assert.True(sw.Elapsed < lockTimeout);
+		Assert.True(elapsedMs < lockTimeout.TotalMilliseconds);
 		Assert.True(v4 > v3);
 		Assert.True(v4 == v3EagerResult);
 		Assert.False(v4 == v4SupposedlyNot);
