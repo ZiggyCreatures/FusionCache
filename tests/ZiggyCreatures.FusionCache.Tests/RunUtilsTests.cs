@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -123,9 +124,11 @@ public class RunUtilsTests
 		});
 		sw.Stop();
 
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+
 		Assert.Equal(-1, res);
-		Assert.True(sw.ElapsedMilliseconds >= timeoutMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is less than specified timeout ({timeoutMs}ms)");
-		Assert.True(sw.ElapsedMilliseconds < innerDelayMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
+		Assert.True(elapsedMs >= timeoutMs, $"Elapsed ({elapsedMs}ms) is less than specified timeout ({timeoutMs}ms)");
+		Assert.True(elapsedMs < innerDelayMs, $"Elapsed ({elapsedMs}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
 	}
 
 	[Fact]
@@ -141,9 +144,11 @@ public class RunUtilsTests
 		});
 		sw.Stop();
 
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+
 		Assert.Equal(-1, res);
-		Assert.True(sw.ElapsedMilliseconds >= timeoutMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is less than specified timeout ({timeoutMs}ms)");
-		Assert.True(sw.ElapsedMilliseconds < innerDelayMs, $"Elapsed ({sw.ElapsedMilliseconds}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
+		Assert.True(elapsedMs >= timeoutMs, $"Elapsed ({elapsedMs}ms) is less than specified timeout ({timeoutMs}ms)");
+		Assert.True(elapsedMs < innerDelayMs, $"Elapsed ({elapsedMs}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
 	}
 
 	[Fact]
