@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
 env:
   DOTNET_NOLOGO: true
+  TEST_RESULTS: artifacts/tests
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,6 +14,19 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '8.0.x'
+
     - run: dotnet --info
     - name: Build solution and run all tests
-      run: dotnet test --verbosity normal
+      run: dotnet test --verbosity normal -l trx --results-directory '${{ env.TEST_RESULTS }}'
+
+    - name: Publish test results
+      uses: EnricoMi/publish-unit-test-result-action/linux@v2
+      if: ${{ success() || failure() }}
+      with:
+        files: '${{ env.TEST_RESULTS }}/*.trx'
+        check_name: "Test results"
+        report_individual_runs: true
+        action_fail: true
+        time_unit: milliseconds
+        #ignore_runs: true
+        compare_to_earlier_commit: false
