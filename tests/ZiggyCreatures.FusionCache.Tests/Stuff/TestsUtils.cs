@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -130,5 +131,12 @@ public static class TestsUtils
 	public static IFusionCachePlugin[]? GetPlugins(IFusionCache cache)
 	{
 		return (typeof(FusionCache).GetField("_plugins", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as List<IFusionCachePlugin>)?.ToArray();
+	}
+
+	private static readonly TimeSpan StopwatchExtraPadding = TimeSpan.FromMilliseconds(5);
+	public static TimeSpan GetElapsedWithSafePad(this Stopwatch sw)
+	{
+		// NOTE: for the extra 5ms, see here https://github.com/dotnet/runtime/issues/100455
+		return sw.Elapsed + StopwatchExtraPadding;
 	}
 }

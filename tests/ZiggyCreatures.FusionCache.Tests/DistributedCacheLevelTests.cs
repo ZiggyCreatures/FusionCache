@@ -221,6 +221,7 @@ public class DistributedCacheLevelTests
 	public async Task AppliesDistributedCacheSoftTimeoutAsync(SerializerType serializerType)
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
+		var logger = CreateXUnitLogger<FusionCache>();
 
 		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 		var softTimeout = TimeSpan.FromMilliseconds(100);
@@ -239,9 +240,12 @@ public class DistributedCacheLevelTests
 		var res = await fusionCache.GetOrSetAsync<int>(keyFoo, async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
 		sw.Stop();
 
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
 		Assert.Equal(42, res);
-		Assert.True(sw.ElapsedMilliseconds >= 100, "Distributed cache soft timeout not applied");
-		Assert.True(sw.Elapsed < simulatedDelay, "Distributed cache soft timeout not applied");
+		Assert.True(elapsedMs >= 100, "Distributed cache soft timeout not applied");
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds, "Distributed cache soft timeout not applied");
 	}
 
 	[Theory]
@@ -249,6 +253,7 @@ public class DistributedCacheLevelTests
 	public void AppliesDistributedCacheSoftTimeout(SerializerType serializerType)
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
+		var logger = CreateXUnitLogger<FusionCache>();
 
 		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 		var softTimeout = TimeSpan.FromMilliseconds(100);
@@ -267,9 +272,12 @@ public class DistributedCacheLevelTests
 		var res = fusionCache.GetOrSet<int>(keyFoo, _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout));
 		sw.Stop();
 
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
 		Assert.Equal(42, res);
-		Assert.True(sw.ElapsedMilliseconds >= 100, "Distributed cache soft timeout not applied");
-		Assert.True(sw.Elapsed < simulatedDelay, "Distributed cache soft timeout not applied");
+		Assert.True(elapsedMs >= 100, "Distributed cache soft timeout not applied");
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds, "Distributed cache soft timeout not applied");
 	}
 
 	[Theory]
@@ -1191,6 +1199,7 @@ public class DistributedCacheLevelTests
 	public async Task EagerRefreshDoesNotBlockAsync(SerializerType serializerType)
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
+		var logger = CreateXUnitLogger<FusionCache>();
 
 		var duration = TimeSpan.FromSeconds(2);
 		var syntheticDelay = TimeSpan.FromSeconds(2);
@@ -1222,7 +1231,10 @@ public class DistributedCacheLevelTests
 		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
 		sw.Stop();
 
-		Assert.True(sw.Elapsed < syntheticDelay);
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
+		Assert.True(elapsedMs < syntheticDelay.TotalMilliseconds);
 	}
 
 	[Theory]
@@ -1230,6 +1242,7 @@ public class DistributedCacheLevelTests
 	public void EagerRefreshDoesNotBlock(SerializerType serializerType)
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
+		var logger = CreateXUnitLogger<FusionCache>();
 
 		var duration = TimeSpan.FromSeconds(2);
 		var syntheticDelay = TimeSpan.FromSeconds(2);
@@ -1261,7 +1274,10 @@ public class DistributedCacheLevelTests
 		var v3 = cache.GetOrSet<long>(keyFoo, _ => DateTimeOffset.UtcNow.Ticks);
 		sw.Stop();
 
-		Assert.True(sw.Elapsed < syntheticDelay);
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
+		Assert.True(elapsedMs < syntheticDelay.TotalMilliseconds);
 	}
 
 	[Theory]
@@ -1346,7 +1362,7 @@ public class DistributedCacheLevelTests
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
 
-		var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 		var eo = new FusionCacheEntryOptions().SetDurationSec(10);
 		eo.AllowBackgroundDistributedCacheOperations = true;
 
@@ -1359,21 +1375,26 @@ public class DistributedCacheLevelTests
 
 		await fusionCache.SetAsync<int>(keyFoo, 21, eo);
 		await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
-		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
+		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 		var sw = Stopwatch.StartNew();
 		// SHOULD RETURN IMMEDIATELY
 		await fusionCache.SetAsync<int>(keyFoo, 42, eo);
 		sw.Stop();
-		logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
+		logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.GetElapsedWithSafePad().TotalMilliseconds);
+
 		await Task.Delay(TimeSpan.FromMilliseconds(200));
+
 		chaosDistributedCache.SetNeverDelay();
 		memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
 		var foo1 = await fusionCache.GetOrDefaultAsync<int>(keyFoo, -1, eo);
-		await Task.Delay(simulatedDelayMs.PlusALittleBit());
+		await Task.Delay(simulatedDelay.PlusALittleBit());
 		memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
 		var foo2 = await fusionCache.GetOrDefaultAsync<int>(keyFoo, -1, eo);
 
-		Assert.True(sw.Elapsed < simulatedDelayMs);
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds);
 		Assert.Equal(21, foo1);
 		Assert.Equal(42, foo2);
 	}
@@ -1384,7 +1405,7 @@ public class DistributedCacheLevelTests
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
 
-		var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
+		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 		var eo = new FusionCacheEntryOptions().SetDurationSec(10);
 		eo.AllowBackgroundDistributedCacheOperations = true;
 
@@ -1397,21 +1418,24 @@ public class DistributedCacheLevelTests
 
 		fusionCache.Set<int>(keyFoo, 21, eo);
 		Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
-		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelayMs);
+		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 		var sw = Stopwatch.StartNew();
 		// SHOULD RETURN IMMEDIATELY
 		fusionCache.Set<int>(keyFoo, 42, eo);
 		sw.Stop();
-		logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.ElapsedMilliseconds);
+		logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.GetElapsedWithSafePad().TotalMilliseconds);
 		Thread.Sleep(TimeSpan.FromMilliseconds(200));
 		chaosDistributedCache.SetNeverDelay();
 		memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
 		var foo1 = fusionCache.GetOrDefault<int>(keyFoo, -1, eo);
-		Thread.Sleep(simulatedDelayMs.PlusALittleBit());
+		Thread.Sleep(simulatedDelay.PlusALittleBit());
 		memoryCache.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
 		var foo2 = fusionCache.GetOrDefault<int>(keyFoo, -1, eo);
 
-		Assert.True(sw.Elapsed < simulatedDelayMs);
+		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
+		logger.LogTrace($"Elapsed (with extra pad): {elapsedMs} ms");
+
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds);
 		Assert.Equal(21, foo1);
 		Assert.Equal(42, foo2);
 	}
