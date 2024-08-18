@@ -75,10 +75,14 @@ public class MemoryLevelTests
 	public async Task ReturnsStaleDataWhenFactoryFailsWithoutExceptionAsync()
 	{
 		var errorMessage = "Sloths are cool";
+		var throttleDuration = TimeSpan.FromSeconds(1);
+
 		var options = new FusionCacheOptions();
 		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
-		options.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(1);
+		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+		options.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
+		
 		using var cache = new FusionCache(options);
 
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42);
@@ -89,7 +93,7 @@ public class MemoryLevelTests
 
 		Assert.Equal(initialValue, newValue);
 
-		await Task.Delay(options.DefaultEntryOptions.FailSafeThrottleDuration);
+		await Task.Delay(throttleDuration.PlusALittleBit());
 
 		Exception? exc = null;
 		try
@@ -104,6 +108,8 @@ public class MemoryLevelTests
 		{
 			exc = exc1;
 		}
+
+		Assert.NotNull(exc);
 		Assert.IsType<FusionCacheFactoryException>(exc);
 		Assert.Equal(errorMessage, exc.Message);
 	}
@@ -112,10 +118,14 @@ public class MemoryLevelTests
 	public void ReturnsStaleDataWhenFactoryFailsWithoutException()
 	{
 		var errorMessage = "Sloths are cool";
+		var throttleDuration = TimeSpan.FromSeconds(1);
+
 		var options = new FusionCacheOptions();
 		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
-		options.DefaultEntryOptions.FailSafeThrottleDuration = TimeSpan.FromSeconds(1);
+		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+		options.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
+
 		using var cache = new FusionCache(options);
 
 		var initialValue = cache.GetOrSet<int>("foo", _ => 42);
@@ -126,7 +136,7 @@ public class MemoryLevelTests
 
 		Assert.Equal(initialValue, newValue);
 
-		Thread.Sleep(options.DefaultEntryOptions.FailSafeThrottleDuration);
+		Thread.Sleep(throttleDuration.PlusALittleBit());
 
 		Exception? exc = null;
 		try
@@ -141,6 +151,8 @@ public class MemoryLevelTests
 		{
 			exc = exc1;
 		}
+
+		Assert.NotNull(exc);
 		Assert.IsType<FusionCacheFactoryException>(exc);
 		Assert.Equal(errorMessage, exc.Message);
 	}
