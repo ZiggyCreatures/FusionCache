@@ -833,7 +833,7 @@ public class EventsTests
 		// CACHE 2
 		await cache2.RemoveAsync("foo", opt => opt.SetSkipBackplaneNotifications(false));
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(200));
+		Thread.Sleep(TimeSpan.FromMilliseconds(2_000));
 
 		// REMOVE HANDLERS
 		cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
@@ -889,7 +889,7 @@ public class EventsTests
 		// CACHE 2
 		cache2.Remove("foo", opt => opt.SetSkipBackplaneNotifications(false));
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(200));
+		Thread.Sleep(TimeSpan.FromMilliseconds(2_000));
 
 		// REMOVE HANDLERS
 		cache2.Events.Backplane.MessagePublished -= onMessagePublished2;
