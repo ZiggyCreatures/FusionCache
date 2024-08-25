@@ -6,7 +6,7 @@
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</PackageId>
 		<Description>FusionCache serializer based on ServiceStack's Json serializer</Description>
 		<PackageTags>json;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
