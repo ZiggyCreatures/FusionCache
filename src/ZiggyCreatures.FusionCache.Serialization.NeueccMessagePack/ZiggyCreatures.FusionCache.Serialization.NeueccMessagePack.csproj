@@ -6,10 +6,11 @@
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</PackageId>
 		<Description>FusionCache serializer based on Neuecc's MessagePack serializer</Description>
 		<PackageTags>messagepack;msgpack;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
+			- Changed: namespace adjustments
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
@@ -20,11 +21,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MessagePack" Version="2.5.172" />
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+		<PackageReference Include="MessagePack" Version="2.5.172" />
 	</ItemGroup>
 
 </Project>
