@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
@@ -82,7 +81,7 @@ public class MemoryLevelTests
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
 		options.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
 		options.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
-		
+
 		using var cache = new FusionCache(options);
 
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42);

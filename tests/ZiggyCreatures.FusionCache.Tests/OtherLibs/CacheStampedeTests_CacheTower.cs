@@ -20,7 +20,7 @@ public abstract class CacheStampedeTests_CacheTower
 	[InlineData(1_000)]
 	public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
 	{
-		await using (var cache = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))]}))
+		await using (var cache = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))] }))
 		{
 			var cacheSettings = new CacheSettings(TimeSpan.FromSeconds(10));
 

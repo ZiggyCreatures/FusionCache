@@ -3,36 +3,35 @@ using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
-namespace FusionCacheTests.Stuff
+namespace FusionCacheTests.Stuff;
+
+internal class SyncOnlySerializer
+	: IFusionCacheSerializer
 {
-	internal class SyncOnlySerializer
-		: IFusionCacheSerializer
+	private IFusionCacheSerializer _serializer;
+
+	public SyncOnlySerializer()
 	{
-		private IFusionCacheSerializer _serializer;
+		_serializer = new FusionCacheSystemTextJsonSerializer();
+	}
 
-		public SyncOnlySerializer()
-		{
-			_serializer = new FusionCacheSystemTextJsonSerializer();
-		}
+	public byte[] Serialize<T>(T? obj)
+	{
+		return _serializer.Serialize(obj);
+	}
 
-		public byte[] Serialize<T>(T? obj)
-		{
-			return _serializer.Serialize(obj);
-		}
+	public T? Deserialize<T>(byte[] data)
+	{
+		return _serializer.Deserialize<T>(data);
+	}
 
-		public T? Deserialize<T>(byte[] data)
-		{
-			return _serializer.Deserialize<T>(data);
-		}
+	public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
+	{
+		throw new NotImplementedException();
+	}
 
-		public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
-		{
-			throw new NotImplementedException();
-		}
-
-		public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
-		{
-			throw new NotImplementedException();
-		}
+	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
+	{
+		throw new NotImplementedException();
 	}
 }
