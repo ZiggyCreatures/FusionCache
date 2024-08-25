@@ -6,10 +6,11 @@
 		<PackageId>ZiggyCreatures.FusionCache.OpenTelemetry</PackageId>
 		<Description>Add native OpenTelemetry support to FusionCache.</Description>
 		<PackageTags>telemetry;observability;opentelemetry;open-telemetry;chaos;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCache.OpenTelemetry</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.OpenTelemetry</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.OpenTelemetry.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
+			- Changed: namespace adjustments
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 	</PropertyGroup>
@@ -20,8 +21,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="OpenTelemetry.Api" Version="1.9.0" />
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OpenTelemetry.Api" Version="1.9.0" />
 	</ItemGroup>
 
 </Project>

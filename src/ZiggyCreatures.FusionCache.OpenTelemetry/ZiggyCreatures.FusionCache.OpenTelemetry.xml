@@ -4,42 +4,42 @@
         <name>ZiggyCreatures.FusionCache.OpenTelemetry</name>
     </assembly>
     <members>
-        <member name="T:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheMetricsInstrumentationOptions">
+        <member name="T:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheMetricsInstrumentationOptions">
             <summary>
             Represents the options available for the metrics instrumentation of FusionCache.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheMetricsInstrumentationOptions.IncludeMemoryLevel">
+        <member name="P:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheMetricsInstrumentationOptions.IncludeMemoryLevel">
             <summary>
             Include metrics for the memory level. (default: <see langword="false"/>)
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheMetricsInstrumentationOptions.IncludeDistributedLevel">
+        <member name="P:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheMetricsInstrumentationOptions.IncludeDistributedLevel">
             <summary>
             Include metrics for the distributed level. (default: <see langword="false"/>)
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheMetricsInstrumentationOptions.IncludeBackplane">
+        <member name="P:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheMetricsInstrumentationOptions.IncludeBackplane">
             <summary>
             Include metrics for the backplane. (default: <see langword="false"/>)
             </summary>
         </member>
-        <member name="T:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions">
+        <member name="T:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheTracesInstrumentationOptions">
             <summary>
             Represents the options available for the traces instrumentation of FusionCache.
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeMemoryLevel">
+        <member name="P:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeMemoryLevel">
             <summary>
             Include traces for the memory level. (default: <see langword="false"/>)
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeDistributedLevel">
+        <member name="P:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeDistributedLevel">
             <summary>
             Include traces for the distributed level. (default: <see langword="true"/>)
             </summary>
         </member>
-        <member name="P:ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeBackplane">
+        <member name="P:ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheTracesInstrumentationOptions.IncludeBackplane">
             <summary>
             Include traces for the backplane. (default: <see langword="false"/>)
             </summary>
@@ -49,7 +49,7 @@
             Contains extension methods to <see cref="T:OpenTelemetry.Metrics.MeterProviderBuilder"/> for enabling FusionCache metrics instrumentation.
             </summary>
         </member>
-        <member name="M:OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddFusionCacheInstrumentation(OpenTelemetry.Metrics.MeterProviderBuilder,System.Action{ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheMetricsInstrumentationOptions})">
+        <member name="M:OpenTelemetry.Metrics.MeterProviderBuilderExtensions.AddFusionCacheInstrumentation(OpenTelemetry.Metrics.MeterProviderBuilder,System.Action{ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheMetricsInstrumentationOptions})">
             <summary>
             Enable metrics instrumentation for FusionCache.
             </summary>
@@ -62,7 +62,7 @@
             Contains extension methods to <see cref="T:OpenTelemetry.Trace.TracerProviderBuilder"/> for enabling FusionCache traces instrumentation.
             </summary>
         </member>
-        <member name="M:OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddFusionCacheInstrumentation(OpenTelemetry.Trace.TracerProviderBuilder,System.Action{ZiggyCreatures.FusionCache.OpenTelemetry.FusionCacheTracesInstrumentationOptions})">
+        <member name="M:OpenTelemetry.Trace.TracerProviderBuilderExtensions.AddFusionCacheInstrumentation(OpenTelemetry.Trace.TracerProviderBuilder,System.Action{ZiggyCreatures.Caching.Fusion.OpenTelemetry.FusionCacheTracesInstrumentationOptions})">
             <summary>
             Enable traces instrumentation for FusionCache.
             </summary>

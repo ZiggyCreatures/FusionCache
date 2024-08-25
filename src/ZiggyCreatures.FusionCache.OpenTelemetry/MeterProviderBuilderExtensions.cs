@@ -1,6 +1,6 @@
 ﻿using System;
 using ZiggyCreatures.Caching.Fusion;
-using ZiggyCreatures.FusionCache.OpenTelemetry;
+using ZiggyCreatures.Caching.Fusion.OpenTelemetry;
 
 namespace OpenTelemetry.Metrics
 {
