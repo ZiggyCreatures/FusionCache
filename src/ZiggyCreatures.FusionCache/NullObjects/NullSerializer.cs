@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.NullObjects;
@@ -10,26 +11,26 @@ public class NullSerializer
 	: IFusionCacheSerializer
 {
 	/// <inheritdoc/>
-	public T? Deserialize<T>(byte[] data)
-	{
-		return default;
-	}
-
-	/// <inheritdoc/>
-	public ValueTask<T?> DeserializeAsync<T>(byte[] data)
-	{
-		return new ValueTask<T?>(default(T?));
-	}
-
-	/// <inheritdoc/>
 	public byte[] Serialize<T>(T? obj)
 	{
 		return [];
 	}
 
 	/// <inheritdoc/>
-	public ValueTask<byte[]> SerializeAsync<T>(T? obj)
+	public T? Deserialize<T>(byte[] data)
+	{
+		return default;
+	}
+
+	/// <inheritdoc/>
+	public ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		return new ValueTask<byte[]>([]);
+	}
+
+	/// <inheritdoc/>
+	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
+	{
+		return new ValueTask<T?>(default(T?));
 	}
 }

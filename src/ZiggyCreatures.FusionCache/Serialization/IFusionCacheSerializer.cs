@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -11,7 +12,7 @@ public interface IFusionCacheSerializer
 	/// Serialized the specified <paramref name="obj"/> into a byte[].
 	/// </summary>
 	/// <typeparam name="T">The type of the <paramref name="obj"/> parameter.</typeparam>
-	/// <param name="obj"></param>
+	/// <param name="obj">The object to serialize.</param>
 	/// <returns>The byte[] which represents the serialized <paramref name="obj"/>.</returns>
 	byte[] Serialize<T>(T? obj);
 
@@ -19,7 +20,7 @@ public interface IFusionCacheSerializer
 	/// Deserialized the specified byte[] <paramref name="data"/> into an object of type <typeparamref name="T"/>.
 	/// </summary>
 	/// <typeparam name="T">The type of the object to be returned.</typeparam>
-	/// <param name="data"></param>
+	/// <param name="data">The data to deserialize.</param>
 	/// <returns>The deserialized object.</returns>
 	T? Deserialize<T>(byte[] data);
 
@@ -27,15 +28,17 @@ public interface IFusionCacheSerializer
 	/// Serialized the specified <paramref name="obj"/> into a byte[].
 	/// </summary>
 	/// <typeparam name="T">The type of the <paramref name="obj"/> parameter.</typeparam>
-	/// <param name="obj"></param>
+	/// <param name="obj">The object to serialize.</param>
+	/// <param name="token">The cancellation token.</param>
 	/// <returns>The byte[] which represents the serialized <paramref name="obj"/>.</returns>
-	ValueTask<byte[]> SerializeAsync<T>(T? obj);
+	ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default);
 
 	/// <summary>
 	/// Deserialized the specified byte[] <paramref name="data"/> into an object of type <typeparamref name="T"/>.
 	/// </summary>
 	/// <typeparam name="T">The type of the object to be returned.</typeparam>
-	/// <param name="data"></param>
+	/// <param name="data">The data to deserialize.</param>
+	/// /// <param name="token">The cancellation token.</param>
 	/// <returns>The deserialized object.</returns>
-	ValueTask<T?> DeserializeAsync<T>(byte[] data);
+	ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default);
 }

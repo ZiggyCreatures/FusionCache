@@ -81,7 +81,7 @@ internal partial class DistributedCacheAccessor
 			}
 			else
 			{
-				data = await _serializer.SerializeAsync(distributedEntry).ConfigureAwait(false);
+				data = await _serializer.SerializeAsync(distributedEntry, token).ConfigureAwait(false);
 			}
 		}
 		catch (Exception exc)
@@ -204,7 +204,7 @@ internal partial class DistributedCacheAccessor
 			}
 			else
 			{
-				entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data).ConfigureAwait(false);
+				entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data, token).ConfigureAwait(false);
 			}
 
 			var isValid = false;
