@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Chaos.Internals;
@@ -27,20 +28,6 @@ public class ChaosSerializer
 	}
 
 	/// <inheritdoc/>
-	public T? Deserialize<T>(byte[] data)
-	{
-		MaybeChaos();
-		return _innerSerializer.Deserialize<T>(data);
-	}
-
-	/// <inheritdoc/>
-	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
-	{
-		await MaybeChaosAsync().ConfigureAwait(false);
-		return await _innerSerializer.DeserializeAsync<T>(data);
-	}
-
-	/// <inheritdoc/>
 	public byte[] Serialize<T>(T? obj)
 	{
 		MaybeChaos();
@@ -48,9 +35,23 @@ public class ChaosSerializer
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
+	public T? Deserialize<T>(byte[] data)
+	{
+		MaybeChaos();
+		return _innerSerializer.Deserialize<T>(data);
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		await MaybeChaosAsync().ConfigureAwait(false);
-		return await _innerSerializer.SerializeAsync<T>(obj);
+		return await _innerSerializer.SerializeAsync<T>(obj, token);
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
+	{
+		await MaybeChaosAsync().ConfigureAwait(false);
+		return await _innerSerializer.DeserializeAsync<T>(data, token);
 	}
 }
