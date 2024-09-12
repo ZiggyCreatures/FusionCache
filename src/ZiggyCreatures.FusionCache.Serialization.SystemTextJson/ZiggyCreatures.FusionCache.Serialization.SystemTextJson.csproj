@@ -6,7 +6,7 @@
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</PackageId>
 		<Description>FusionCache serializer based on System.Text.Json</Description>
 		<PackageTags>json;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.SystemTextJson</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="System.Text.Json" Version="8.0.4" />
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
 	</ItemGroup>
 
 </Project>

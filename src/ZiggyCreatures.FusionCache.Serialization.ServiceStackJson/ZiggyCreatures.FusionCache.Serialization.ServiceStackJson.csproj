@@ -25,6 +25,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="ServiceStack.Text" Version="8.3.0" />
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
 	</ItemGroup>
 
 </Project>

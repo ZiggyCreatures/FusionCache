@@ -6,7 +6,7 @@
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</PackageId>
 		<Description>FusionCache serializer based on protobuf-net</Description>
 		<PackageTags>protobuf;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<RootNamespace>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet</RootNamespace>
 		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
@@ -20,11 +20,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="protobuf-net" Version="3.2.30" />
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+		<PackageReference Include="protobuf-net" Version="3.2.30" />
+		<PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="3.0.1" />
 	</ItemGroup>
 
 </Project>
