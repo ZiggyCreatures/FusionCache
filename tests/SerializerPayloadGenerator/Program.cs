@@ -83,18 +83,18 @@ static FusionCacheDistributedEntry<string> CreateEntry()
 
 static void GenerateSnapshots<T>(IFusionCacheSerializer[] serializers, T value)
 {
+	var assembly = typeof(FusionCache).Assembly;
+	var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+	string? version = fvi.FileVersion;
+
+	if (string.IsNullOrWhiteSpace(version))
+	{
+		Console.WriteLine("Cannot establish the serializer version");
+		return;
+	}
+
 	foreach (var serializer in serializers)
 	{
-		var assembly = typeof(FusionCache).Assembly;
-		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? version = fvi.FileVersion;
-
-		if (string.IsNullOrWhiteSpace(version))
-		{
-			Console.WriteLine("Cannot establish the serializer version");
-			return;
-		}
-
 		var filePrefix = $"{serializer.GetType().Name}__";
 
 		var filename = $"{filePrefix}v{version.Replace('.', '_')}.bin".ToLowerInvariant();
