@@ -51,9 +51,9 @@ The idea is that:
 
 That's cool, but how?
 
-Well FusionCache always had the ability to specify a serializer (type `IFusionCacheSerializer`) to be able to work with the distributed cache: it will use the same serializer to (de)serialize values, easy peasy.
+Well FusionCache always had the ability to specify a serializer (type `IFusionCacheSerializer`) to be able to work with the distributed cache, so it uses the same serializer to (de)serialize values, easy peasy.
 
-To avoid being forced to also specify A new method `SetupSerializer(serializer)` is being created, while also being able to do the same via dependency injection, as always.
+To avoid being forced to also specify a distributed cache only to specify a serializer, a `SetupSerializer(serializer)` method is available, while also being able to do the same via dependency injection, as always.
 The option `ReThrowOriginalExceptions` will also be respected.
 
 By simply setting `EnableAutoClone` to `true` in the entry options, FusionCache will take care of everything.
