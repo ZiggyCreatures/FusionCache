@@ -62,6 +62,7 @@
             <b>System.DateTimeOffset?</b> EagerExpiration<br/>
             <b>string</b> ETag<br/>
             <b>System.DateTimeOffset?</b> LastModified<br/>
+            <b>long?</b> Size<br/>
             </code>
             </remarks>
         </member>
