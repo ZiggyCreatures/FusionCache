@@ -55,7 +55,7 @@ public class BackplaneTests
 		return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 	}
 
-	private IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null)
+	private IFusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IDistributedCache? distributedCache, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null, IMemoryCache? memoryCache = null)
 	{
 		var options = CreateFusionCacheOptions();
 
@@ -63,7 +63,7 @@ public class BackplaneTests
 		options.EnableSyncEventHandlersExecution = true;
 
 		setupAction?.Invoke(options);
-		var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
+		var fusionCache = new FusionCache(options, memoryCache, logger: CreateXUnitLogger<FusionCache>());
 		fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		if (distributedCache is not null && serializerType.HasValue)
@@ -883,5 +883,103 @@ public class BackplaneTests
 		Assert.Equal(4, v1);
 		Assert.Equal(4, v2);
 		Assert.Equal(3, v3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanUseMultiNodeCachesWithSizeLimitAsync(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var key1 = Guid.NewGuid().ToString("N");
+		var key2 = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var memoryCache1 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache2 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache3 = new MemoryCache(new MemoryCacheOptions()
+		{
+			//SizeLimit = 10
+		});
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache1);
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache2);
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache3);
+
+		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		await cache1.SetAsync(key1, 1, options => options.SetSize(1));
+
+		await Task.Delay(1_000);
+
+		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
+		var maybe2 = await cache2.TryGetAsync<int>(key1);
+
+		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
+		await cache3.SetAsync(key2, 2);
+
+		await Task.Delay(1_000);
+
+		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
+		var maybe1 = await cache1.TryGetAsync<int>(key2, options => options.SetSize(1));
+
+		Assert.True(maybe2.HasValue);
+		Assert.Equal(1, maybe2.Value);
+
+		Assert.True(maybe1.HasValue);
+		Assert.Equal(2, maybe1.Value);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanUseMultiNodeCachesWithSizeLimit(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var key1 = Guid.NewGuid().ToString("N");
+		var key2 = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var memoryCache1 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache2 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache3 = new MemoryCache(new MemoryCacheOptions()
+		{
+			//SizeLimit = 10
+		});
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache1);
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache2);
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache3);
+
+		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		cache1.Set(key1, 1, options => options.SetSize(1));
+
+		Thread.Sleep(1_000);
+
+		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
+		var maybe2 = cache2.TryGet<int>(key1);
+
+		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
+		cache3.Set(key2, 2);
+
+		Thread.Sleep(1_000);
+
+		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
+		var maybe1 = cache1.TryGet<int>(key2, options => options.SetSize(1));
+
+		Assert.True(maybe2.HasValue);
+		Assert.Equal(1, maybe2.Value);
+
+		Assert.True(maybe1.HasValue);
+		Assert.Equal(2, maybe1.Value);
 	}
 }
