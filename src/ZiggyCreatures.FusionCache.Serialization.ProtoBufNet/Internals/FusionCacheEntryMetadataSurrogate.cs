@@ -22,6 +22,9 @@ internal class FusionCacheEntryMetadataSurrogate
 	[ProtoMember(5)]
 	public long? EagerExpirationUtcTicks { get; set; }
 
+	[ProtoMember(6)]
+	public long? Size { get; set; }
+
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
 	{
 		if (value is null)
@@ -33,7 +36,8 @@ internal class FusionCacheEntryMetadataSurrogate
 			IsFromFailSafe = value.IsFromFailSafe,
 			EagerExpirationUtcTicks = value.EagerExpiration?.UtcTicks,
 			ETag = value.ETag,
-			LastModifiedUtcTicks = value.LastModified?.UtcTicks
+			LastModifiedUtcTicks = value.LastModified?.UtcTicks,
+			Size = value.Size
 		};
 	}
 
@@ -47,7 +51,8 @@ internal class FusionCacheEntryMetadataSurrogate
 			value.IsFromFailSafe,
 			value.EagerExpirationUtcTicks.HasValue ? new DateTimeOffset(value.EagerExpirationUtcTicks.Value, TimeSpan.Zero) : null,
 			value.ETag,
-			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null
+			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null,
+			value.Size
 		);
 	}
 }
