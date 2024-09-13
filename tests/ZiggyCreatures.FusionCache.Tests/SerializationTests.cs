@@ -203,7 +203,8 @@ public class SerializationTests
 	public void LoopSucceedsWithDistributedEntryAndComplexTypes(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(DateTimeOffset.UtcNow.AddSeconds(10), true, DateTimeOffset.UtcNow.AddSeconds(9), "abc123", DateTimeOffset.UtcNow), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var now = DateTimeOffset.UtcNow;
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1), true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1)), FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = serializer.Serialize(obj);
 

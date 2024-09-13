@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
@@ -31,17 +32,45 @@ public static class TestsUtils
 			case SerializerType.NewtonsoftJson:
 				return new FusionCacheNewtonsoftJsonSerializer();
 			case SerializerType.SystemTextJson:
-				return new FusionCacheSystemTextJsonSerializer();
+				// NOTE: WE USE THE VERSION WITH THE RecyclableMemoryStreamManager BECAUSE
+				// IF THIS WORKS, THEN IT WORKS THE "BASIC" ONE FOR SURE
+				return new FusionCacheSystemTextJsonSerializer(new FusionCacheSystemTextJsonSerializer.Options
+				{
+					StreamManager = new RecyclableMemoryStreamManager()
+				});
 			case SerializerType.ServiceStackJson:
-				return new FusionCacheServiceStackJsonSerializer();
+				// NOTE: WE USE THE VERSION WITH THE RecyclableMemoryStreamManager BECAUSE
+				// IF THIS WORKS, THEN IT WORKS THE "BASIC" ONE FOR SURE
+				return new FusionCacheServiceStackJsonSerializer(new FusionCacheServiceStackJsonSerializer.Options
+				{
+					StreamManager = new RecyclableMemoryStreamManager()
+				});
 			case SerializerType.NeueccMessagePack:
 				return new FusionCacheNeueccMessagePackSerializer();
 			case SerializerType.ProtoBufNet:
-				return new FusionCacheProtoBufNetSerializer();
+				// NOTE: WE USE THE VERSION WITH THE RecyclableMemoryStreamManager BECAUSE
+				// IF THIS WORKS, THEN IT WORKS THE "BASIC" ONE FOR SURE
+				return new FusionCacheProtoBufNetSerializer(new FusionCacheProtoBufNetSerializer.Options
+				{
+					StreamManager = new RecyclableMemoryStreamManager()
+				});
 			case SerializerType.CysharpMemoryPack:
 				return new FusionCacheCysharpMemoryPackSerializer();
 			default:
-				throw new ArgumentException("Invalid serializer specified", nameof(serializerType));
+				throw new ArgumentException("Invalid serializer type specified", nameof(serializerType));
+		}
+	}
+
+	public static IFusionCacheMemoryLocker GetMemoryLocker(MemoryLockerType memoryLockerType)
+	{
+		switch (memoryLockerType)
+		{
+			case MemoryLockerType.Standard:
+				return new StandardMemoryLocker();
+			case MemoryLockerType.Probabilistic:
+				return new ProbabilisticMemoryLocker();
+			default:
+				throw new ArgumentException("Invalid memory locker type specified", nameof(memoryLockerType));
 		}
 	}
 

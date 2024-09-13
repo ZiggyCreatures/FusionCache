@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using FusionCacheTests.Stuff;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -12,12 +13,10 @@ public class CacheStampedeTests
 	private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
 	[Theory]
-	[InlineData(10)]
-	[InlineData(100)]
-	[InlineData(1_000)]
-	public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(int accessorsCount)
+	[ClassData(typeof(CacheStampedeClassData))]
+	public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
 		var factoryCallsCount = 0;
 
@@ -43,12 +42,10 @@ public class CacheStampedeTests
 	}
 
 	[Theory]
-	[InlineData(10)]
-	[InlineData(100)]
-	[InlineData(1_000)]
-	public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(int accessorsCount)
+	[ClassData(typeof(CacheStampedeClassData))]
+	public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
 		var factoryCallsCount = 0;
 
@@ -70,12 +67,10 @@ public class CacheStampedeTests
 	}
 
 	[Theory]
-	[InlineData(10)]
-	[InlineData(100)]
-	[InlineData(1_000)]
-	public async Task OnlyOneFactoryGetsCalledEvenInMixedHighConcurrencyAsync(int accessorsCount)
+	[ClassData(typeof(CacheStampedeClassData))]
+	public async Task OnlyOneFactoryGetsCalledEvenInMixedHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
 		var factoryCallsCount = 0;
 

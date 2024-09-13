@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -25,12 +26,12 @@ internal class SyncOnlySerializer
 		return _serializer.Deserialize<T>(data);
 	}
 
-	public async ValueTask<byte[]> SerializeAsync<T>(T? obj)
+	public async ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token)
 	{
 		throw new NotImplementedException();
 	}
 
-	public async ValueTask<T?> DeserializeAsync<T>(byte[] data)
+	public async ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token)
 	{
 		throw new NotImplementedException();
 	}
