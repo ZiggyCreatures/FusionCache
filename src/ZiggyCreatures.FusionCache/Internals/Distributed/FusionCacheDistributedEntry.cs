@@ -77,7 +77,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
-			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified),
+			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
 			timestamp
 		);
 	}
@@ -104,7 +104,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
-			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified),
+			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp
 		);
 	}

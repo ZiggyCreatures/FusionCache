@@ -663,8 +663,10 @@ public sealed class FusionCacheEntryOptions
 		return FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, true);
 	}
 
-	internal (MemoryCacheEntryOptions? memoryEntryOptions, DateTimeOffset? absoluteExpiration) ToMemoryCacheEntryOptionsOrAbsoluteExpiration(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key)
+	internal (MemoryCacheEntryOptions? memoryEntryOptions, DateTimeOffset? absoluteExpiration) ToMemoryCacheEntryOptionsOrAbsoluteExpiration(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key, long? size)
 	{
+		size ??= Size;
+
 		var absoluteExpiration = GetAbsoluteExpiration(out var incoherentFailSafeMaxDuration);
 
 		// INCOHERENT DURATION
@@ -674,14 +676,14 @@ public sealed class FusionCacheEntryOptions
 				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {FailSafeMaxDuration} was lower than the Duration {Duration} on {Options}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString());
 		}
 
-		if (Size is null && Priority == CacheItemPriority.Normal && events.HasEvictionSubscribers() == false)
+		if (size is null && Priority == CacheItemPriority.Normal && events.HasEvictionSubscribers() == false)
 		{
 			return (null, absoluteExpiration);
 		}
 
 		var res = new MemoryCacheEntryOptions
 		{
-			Size = Size,
+			Size = size,
 			Priority = Priority,
 			AbsoluteExpiration = absoluteExpiration
 		};

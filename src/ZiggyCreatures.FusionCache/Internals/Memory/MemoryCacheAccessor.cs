@@ -57,7 +57,7 @@ internal sealed class MemoryCacheAccessor
 
 		if (skipPhysicalSet == false)
 		{
-			var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key);
+			var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key, entry.Metadata?.Size);
 
 			if (memoryEntryOptions is not null)
 			{

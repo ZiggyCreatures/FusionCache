@@ -85,6 +85,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return
 			options.IsFailSafeEnabled
 			|| options.EagerRefreshThreshold.HasValue
+			|| options.Size is not null
 			|| meta is not null
 		;
 	}
@@ -95,6 +96,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return
 			options.IsFailSafeEnabled
 			|| options.EagerRefreshThreshold.HasValue
+			|| options.Size is not null
 			|| isFromFailSafe
 			|| lastModified is not null
 			|| etag is not null
@@ -118,7 +120,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			value,
-			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified),
+			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
 			timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp()
 		);
 	}
@@ -151,7 +153,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
-			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified),
+			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp
 		);
 	}

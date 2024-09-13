@@ -3744,15 +3744,16 @@
             Metadata for an entry in a <see cref="T:ZiggyCreatures.Caching.Fusion.FusionCache"/> .
             </summary>
         </member>
-        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.#ctor(System.DateTimeOffset,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.DateTimeOffset})">
+        <member name="M:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.#ctor(System.DateTimeOffset,System.Boolean,System.Nullable{System.DateTimeOffset},System.String,System.Nullable{System.DateTimeOffset},System.Nullable{System.Int64})">
             <summary>
             Creates a new instance.
             </summary>
             <param name="logicalExpiration">The logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
             <param name="isFromFailSafe">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
-            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
             <param name="eagerExpiration">The eager expiration, based on the <see cref="P:ZiggyCreatures.Caching.Fusion.FusionCacheEntryOptions.EagerRefreshThreshold"/>.</param>
+            <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+            <param name="size">Ifprovided, it's the Size of the cache entry.</param>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LogicalExpiration">
             <summary>
@@ -3777,6 +3778,11 @@
             </summary>
         </member>
         <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.LastModified">
+            <summary>
+            If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+            </summary>
+        </member>
+        <member name="P:ZiggyCreatures.Caching.Fusion.Internals.FusionCacheEntryMetadata.Size">
             <summary>
             If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
             </summary>
