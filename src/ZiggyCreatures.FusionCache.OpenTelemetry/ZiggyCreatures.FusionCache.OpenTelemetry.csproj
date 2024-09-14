@@ -7,7 +7,7 @@
 		<Description>Add native OpenTelemetry support to FusionCache.</Description>
 		<PackageTags>telemetry;observability;opentelemetry;open-telemetry;chaos;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.OpenTelemetry</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.OpenTelemetry.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 			- Changed: namespace adjustments

@@ -7,7 +7,7 @@
 		<Description>FusionCache serializer based on protobuf-net</Description>
 		<PackageTags>protobuf;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

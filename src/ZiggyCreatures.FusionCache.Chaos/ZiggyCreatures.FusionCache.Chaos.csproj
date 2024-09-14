@@ -7,7 +7,7 @@
 		<Description>Chaos-related utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behavior in a controlled failing environment.</Description>
 		<PackageTags>chaos;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Chaos</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Chaos.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

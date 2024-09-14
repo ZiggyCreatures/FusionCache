@@ -7,7 +7,7 @@
 		<Description>FusionCache in memory backplane, used for testing</Description>
 		<PackageTags>backplane;memory;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.Memory</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Backplane.Memory.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

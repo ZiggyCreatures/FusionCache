@@ -7,7 +7,7 @@
 		<Description>FusionCache serializer based on System.Text.Json</Description>
 		<PackageTags>json;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.SystemTextJson.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

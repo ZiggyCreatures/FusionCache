@@ -7,7 +7,7 @@
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
 		<PackageTags>json;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>

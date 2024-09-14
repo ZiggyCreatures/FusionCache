@@ -7,7 +7,6 @@
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.xml</DocumentationFile>
 		<PackageReleaseNotes>
 			- Add: support for auto-cloning to avoid undesired mutations
 			- Add: support for triggering fail-safe without involving exceptions
@@ -15,6 +14,7 @@
 			- Change: added multi-targeting, with more granular dependencies to remove the unneeded ones
 			- Perf: more efficient FusionCacheProvider
 		</PackageReleaseNotes>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<!--
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>

@@ -7,7 +7,7 @@
 		<Description>FusionCache serializer based on Cysharp's MemoryPack serializer</Description>
 		<PackageTags>memorypack;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack</RootNamespace>
-		<DocumentationFile>ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.xml</DocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			- Updated: package dependencies
 		</PackageReleaseNotes>
