@@ -918,6 +918,9 @@ public class BackplaneTests
 		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
 		var maybe2 = await cache2.TryGetAsync<int>(key1);
 
+		Assert.True(maybe2.HasValue);
+		Assert.Equal(1, maybe2.Value);
+
 		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
 		await cache3.SetAsync(key2, 2);
 
@@ -926,9 +929,6 @@ public class BackplaneTests
 		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
 		var maybe1 = await cache1.TryGetAsync<int>(key2, options => options.SetSize(1));
-
-		Assert.True(maybe2.HasValue);
-		Assert.Equal(1, maybe2.Value);
 
 		Assert.True(maybe1.HasValue);
 		Assert.Equal(2, maybe1.Value);
@@ -967,6 +967,9 @@ public class BackplaneTests
 		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
 		var maybe2 = cache2.TryGet<int>(key1);
 
+		Assert.True(maybe2.HasValue);
+		Assert.Equal(1, maybe2.Value);
+
 		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
 		cache3.Set(key2, 2);
 
@@ -975,9 +978,6 @@ public class BackplaneTests
 		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
 		var maybe1 = cache1.TryGet<int>(key2, options => options.SetSize(1));
-
-		Assert.True(maybe2.HasValue);
-		Assert.Equal(1, maybe2.Value);
 
 		Assert.True(maybe1.HasValue);
 		Assert.Equal(2, maybe1.Value);
