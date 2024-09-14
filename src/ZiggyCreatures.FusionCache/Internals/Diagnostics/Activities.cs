@@ -56,14 +56,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		{
 			var res = new List<KeyValuePair<string, object?>>
 			{
-				new KeyValuePair<string, object?>("fusioncache.cache.name", cacheName),
-				new KeyValuePair<string, object?>("fusioncache.cache.instance_id", cacheInstanceId),
-				new KeyValuePair<string, object?>("fusioncache.operation.key", key),
-				new KeyValuePair<string, object?>("fusioncache.operation.operation_id", operationId),
+				new KeyValuePair<string, object?>(Tags.Names.CacheName, cacheName),
+				new KeyValuePair<string, object?>(Tags.Names.CacheInstanceId, cacheInstanceId),
+				new KeyValuePair<string, object?>(Tags.Names.OperationKey, key),
+				new KeyValuePair<string, object?>(Tags.Names.OperationId, operationId),
 			};
 
 			if (levelKind is not null)
-				res.Add(new KeyValuePair<string, object?>("fusioncache.operation.level", levelKind.ToString()?.ToLowerInvariant()));
+				res.Add(new KeyValuePair<string, object?>(Tags.Names.OperationLevel, levelKind.ToString()?.ToLowerInvariant()));
 
 			return res;
 		}
@@ -79,22 +79,5 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 				name: activityName
 			);
 		}
-
-		//public static Activity? StartActivityWithCommonTags(this ActivitySource source, bool isLinked, string activityName, string? cacheName, string? cacheInstanceId, string? key, string? operationId)
-		//{
-		//	if (source.HasListeners() == false)
-		//		return null;
-
-		//	// THIS OK?
-		//	return source.StartActivity(
-		//		name,
-		//		ActivityKind.Internal,
-		//		new ActivityContext(),
-		//		tags: GetCommonTags(cacheName, cacheInstanceId, key, operationId),
-		//		links: isLinked
-		//			? new List<ActivityLink> { new ActivityLink(Activity.Current?.Context ?? new ActivityContext()) }
-		//			: null
-		//	);
-		//}
 	}
 }

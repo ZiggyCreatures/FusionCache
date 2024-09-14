@@ -146,9 +146,6 @@ internal sealed partial class BackplaneAccessor
 			var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 			ProcessError(operationId, "", exc, $"subscribing to a backplane of type {_backplane.GetType().FullName}");
-
-			//if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-			//	_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while subscribing to a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, "", _backplane.GetType().FullName);
 		}
 	}
 
@@ -169,9 +166,6 @@ internal sealed partial class BackplaneAccessor
 			var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 			ProcessError(operationId, "", exc, $"unsubscribing from a backplane of type {_backplane.GetType().FullName}");
-
-			//if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-			//	_logger.Log(_options.BackplaneErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while unsubscribing from a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, "", _backplane.GetType().FullName);
 		}
 	}
 
@@ -236,8 +230,8 @@ internal sealed partial class BackplaneAccessor
 		Activity.Current = null;
 
 		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
-		activity?.SetTag("fusioncache.backplane.message_action", message.Action.ToString());
-		activity?.SetTag("fusioncache.backplane.message_source_id", message.SourceId);
+		activity?.SetTag(Tags.Names.BackplaneMessageAction, message.Action.ToString());
+		activity?.SetTag(Tags.Names.BackplaneMessageSourceId, message.SourceId);
 
 		// REVERT THE PREVIOUS CURRENT ACTIVITY
 		Activity.Current = previous;
@@ -333,13 +327,6 @@ internal sealed partial class BackplaneAccessor
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] no memory entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 			return;
 		}
-
-		//// IF NO VALUE -> EXPIRE LOCALLY
-		//if (memoryEntry.Value is null)
-		//{
-		//	_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
-		//	return;
-		//}
 
 		// IF MEMORY ENTRY SAME AS REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
 		if (memoryEntry.Timestamp == message.Timestamp)

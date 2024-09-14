@@ -189,7 +189,7 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
 
-			_events.OnMiss(operationId, key);
+			_events.OnMiss(operationId, key, activity);
 
 			return (null, false);
 		}
@@ -232,11 +232,11 @@ internal partial class DistributedCacheAccessor
 			// EVENT
 			if (entry is not null)
 			{
-				_events.OnHit(operationId, key, isValid == false);
+				_events.OnHit(operationId, key, isValid == false, activity);
 			}
 			else
 			{
-				_events.OnMiss(operationId, key);
+				_events.OnMiss(operationId, key, activity);
 			}
 
 			return (entry, isValid);
@@ -266,7 +266,7 @@ internal partial class DistributedCacheAccessor
 		}
 
 		// EVENT
-		_events.OnMiss(operationId, key);
+		_events.OnMiss(operationId, key, activity);
 
 		return (null, false);
 	}

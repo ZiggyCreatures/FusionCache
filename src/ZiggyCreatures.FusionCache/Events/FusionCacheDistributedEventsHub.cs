@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
@@ -40,7 +41,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 	{
-		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.distributed.circuit_breaker.closed", isClosed));
+		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.DistributedCircuitBreakerClosed, isClosed));
 
 		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 	}
@@ -59,18 +60,18 @@ public sealed class FusionCacheDistributedEventsHub
 		DeserializationError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal override void OnHit(string operationId, string key, bool isStale)
+	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
-		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.stale", isStale));
+		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
-		base.OnHit(operationId, key, isStale);
+		base.OnHit(operationId, key, isStale, activity);
 	}
 
-	internal override void OnMiss(string operationId, string key)
+	internal override void OnMiss(string operationId, string key, Activity? activity)
 	{
 		Metrics.CounterDistributedMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		base.OnMiss(operationId, key);
+		base.OnMiss(operationId, key, activity);
 	}
 
 	internal override void OnSet(string operationId, string key)

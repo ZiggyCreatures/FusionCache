@@ -70,11 +70,11 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
 		public static KeyValuePair<string, object?>[] GetCommonTags(string? cacheName, string? cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
 		{
 			return [
-				new KeyValuePair<string, object?>("fusioncache.cache.name", cacheName),
+				new KeyValuePair<string, object?>(Tags.Names.CacheName, cacheName),
 				// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS, PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES
-				//new KeyValuePair<string, object?>("fusioncache.cache.instance_id", cacheInstanceId),
-				//new KeyValuePair<string, object?>("fusioncache.operation.key", key),
-				//new KeyValuePair<string, object?>("fusioncache.operation.operation_id", operationId),
+				//new KeyValuePair<string, object?>(Tags.Names.CacheInstanceId, cacheInstanceId),
+				//new KeyValuePair<string, object?>(Tags.Names.OperationKey, key),
+				//new KeyValuePair<string, object?>(Tags.Names.OperationId, operationId),
 				.. extraTags ?? []
 			];
 		}

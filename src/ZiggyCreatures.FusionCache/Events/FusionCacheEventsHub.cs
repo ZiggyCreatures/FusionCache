@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
@@ -97,28 +98,28 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnFactoryError(string operationId, string key)
 	{
-		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", false));
+		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, false));
 
 		FactoryError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnFactorySuccess(string operationId, string key)
 	{
-		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", false));
+		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, false));
 
 		FactorySuccess?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactoryError(string operationId, string key)
 	{
-		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", true));
+		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, true));
 
 		BackgroundFactoryError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal void OnBackgroundFactorySuccess(string operationId, string key)
 	{
-		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.operation.background", true));
+		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, true));
 
 		BackgroundFactorySuccess?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _errorsLogLevel, _syncExecution);
 	}
@@ -137,18 +138,18 @@ public sealed class FusionCacheEventsHub
 		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal override void OnHit(string operationId, string key, bool isStale)
+	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
-		Metrics.CounterHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.stale", isStale));
+		Metrics.CounterHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
-		base.OnHit(operationId, key, isStale);
+		base.OnHit(operationId, key, isStale, activity);
 	}
 
-	internal override void OnMiss(string operationId, string key)
+	internal override void OnMiss(string operationId, string key, Activity? activity)
 	{
 		Metrics.CounterMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		base.OnMiss(operationId, key);
+		base.OnMiss(operationId, key, activity);
 	}
 
 	internal override void OnSet(string operationId, string key)

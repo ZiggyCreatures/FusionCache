@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -45,7 +46,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value)
 	{
-		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.memory.evict_reason", reason.ToString()));
+		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.MemoryEvictReason, reason.ToString()));
 
 		Eviction?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 	}
@@ -57,18 +58,18 @@ public sealed class FusionCacheMemoryEventsHub
 		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal override void OnHit(string operationId, string key, bool isStale)
+	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
-		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>("fusioncache.stale", isStale));
+		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
-		base.OnHit(operationId, key, isStale);
+		base.OnHit(operationId, key, isStale, activity);
 	}
 
-	internal override void OnMiss(string operationId, string key)
+	internal override void OnMiss(string operationId, string key, Activity? activity)
 	{
 		Metrics.CounterMemoryMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		base.OnMiss(operationId, key);
+		base.OnMiss(operationId, key, activity);
 	}
 
 	internal override void OnSet(string operationId, string key)

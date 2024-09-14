@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
@@ -42,13 +44,20 @@ public abstract class FusionCacheCommonEventsHub
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? Remove;
 
-	internal virtual void OnHit(string operationId, string key, bool isStale)
+	internal virtual void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
+		// ACTIVITY
+		activity?.AddTag(Tags.Names.Hit, true);
+		activity?.AddTag(Tags.Names.Stale, isStale);
+
 		Hit?.SafeExecute(operationId, key, _cache, new FusionCacheEntryHitEventArgs(key, isStale), nameof(Hit), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal virtual void OnMiss(string operationId, string key)
+	internal virtual void OnMiss(string operationId, string key, Activity? activity)
 	{
+		// ACTIVITY
+		activity?.AddTag(Tags.Names.Hit, false);
+
 		Miss?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Miss), _logger, _errorsLogLevel, _syncExecution);
 	}
 

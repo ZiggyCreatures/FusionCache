@@ -27,7 +27,7 @@ internal partial class BackplaneAccessor
 
 		// ACTIVITY
 		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplanePublish, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
-		activity?.SetTag("fusioncache.backplane.message_action", message.Action.ToString());
+		activity?.SetTag(Tags.Names.BackplaneMessageAction, message.Action.ToString());
 
 		if (isAutoRecovery == false)
 		{

@@ -93,11 +93,11 @@ internal sealed class MemoryCacheAccessor
 		// EVENT
 		if (entry is not null)
 		{
-			_events.OnHit(operationId, key, entry.IsLogicallyExpired());
+			_events.OnHit(operationId, key, entry.IsLogicallyExpired(), activity);
 		}
 		else
 		{
-			_events.OnMiss(operationId, key);
+			_events.OnMiss(operationId, key, activity);
 		}
 
 		return entry;
@@ -140,11 +140,11 @@ internal sealed class MemoryCacheAccessor
 		// EVENT
 		if (entry is not null)
 		{
-			_events.OnHit(operationId, key, isValid == false);
+			_events.OnHit(operationId, key, isValid == false, activity);
 		}
 		else
 		{
-			_events.OnMiss(operationId, key);
+			_events.OnMiss(operationId, key, activity);
 		}
 
 		return (entry, isValid);

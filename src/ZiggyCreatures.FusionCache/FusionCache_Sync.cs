@@ -13,7 +13,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 
 public partial class FusionCache
 {
-	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, CancellationToken token)
+	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
 	{
 		options ??= _options.DefaultEntryOptions;
 
@@ -57,7 +57,7 @@ public partial class FusionCache
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 			// EVENT
-			_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry!.Metadata?.IsFromFailSafe ?? false));
+			_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry!.Metadata?.IsFromFailSafe ?? false), activity);
 
 			return memoryEntry;
 		}
@@ -80,7 +80,7 @@ public partial class FusionCache
 				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false), activity);
 
 				return memoryEntry;
 			}
@@ -97,7 +97,7 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false));
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false), activity);
 
 				return memoryEntry;
 			}
@@ -257,18 +257,18 @@ public partial class FusionCache
 			}
 
 			// EVENT
-			_events.OnMiss(operationId, key);
+			_events.OnMiss(operationId, key, activity);
 			_events.OnSet(operationId, key);
 		}
 		else if (entry is not null)
 		{
 			// EVENT
-			_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false));
+			_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false), activity);
 		}
 		else
 		{
 			// EVENT
-			_events.OnMiss(operationId, key);
+			_events.OnMiss(operationId, key, activity);
 		}
 
 		return entry;
@@ -334,7 +334,7 @@ public partial class FusionCache
 
 			// ACTIVITY
 			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
-			activity?.SetTag("fusioncache.factory.eager_refresh", true);
+			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
 			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
 
@@ -366,7 +366,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, true, failSafeDefaultValue, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, factory, true, failSafeDefaultValue, options, activity, token);
 
 		if (entry is null)
 		{
@@ -400,7 +400,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, false, default, options, token);
+		var entry = GetOrSetEntryInternal<TValue>(operationId, key, (_, _) => defaultValue, false, default, options, activity, token);
 
 		if (entry is null)
 		{
@@ -415,7 +415,7 @@ public partial class FusionCache
 		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 	}
 
-	private IFusionCacheMemoryEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions? options, CancellationToken token)
+	private IFusionCacheMemoryEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
 	{
 		options ??= _options.DefaultEntryOptions;
 
@@ -436,7 +436,7 @@ public partial class FusionCache
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 			// EVENT
-			_events.OnHit(operationId, key, memoryEntry!.Metadata?.IsFromFailSafe ?? false);
+			_events.OnHit(operationId, key, memoryEntry!.Metadata?.IsFromFailSafe ?? false, activity);
 
 			return memoryEntry;
 		}
@@ -452,13 +452,13 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", CacheName, InstanceId, operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, true);
+				_events.OnHit(operationId, key, true, activity);
 
 				return memoryEntry;
 			}
 
 			// EVENT
-			_events.OnMiss(operationId, key);
+			_events.OnMiss(operationId, key, activity);
 
 			return null;
 		}
@@ -482,7 +482,7 @@ public partial class FusionCache
 			}
 
 			// EVENT
-			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false);
+			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false, activity);
 
 			return memoryEntry;
 		}
@@ -506,7 +506,7 @@ public partial class FusionCache
 				}
 
 				// EVENT
-				_events.OnHit(operationId, key, true);
+				_events.OnHit(operationId, key, true, activity);
 
 				return memoryEntry;
 			}
@@ -518,14 +518,14 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", CacheName, InstanceId, operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, true);
+				_events.OnHit(operationId, key, true, activity);
 
 				return memoryEntry;
 			}
 		}
 
 		// EVENT
-		_events.OnMiss(operationId, key);
+		_events.OnMiss(operationId, key, activity);
 
 		return null;
 	}
@@ -549,7 +549,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.TryGet, CacheName, InstanceId, key, operationId);
 
-		var entry = TryGetEntryInternal<TValue>(operationId, key, options, token);
+		var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
 
 		if (entry is null)
 		{
@@ -584,7 +584,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrDefault, CacheName, InstanceId, key, operationId);
 
-		var entry = TryGetEntryInternal<TValue>(operationId, key, options, token);
+		var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
 
 		if (entry is null)
 		{
