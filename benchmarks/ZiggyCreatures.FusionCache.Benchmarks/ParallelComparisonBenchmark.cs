@@ -11,6 +11,7 @@ using CacheTower.Providers.Memory;
 using EasyCaching.Core;
 using LazyCache;
 using LazyCache.Providers;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using ZiggyCreatures.Caching.Fusion.Locking;
@@ -52,6 +53,7 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 		private CacheStack _CacheTower = null!;
 		private IEasyCachingProvider _EasyCaching = null!;
 		private CachingService _LazyCache = null!;
+		private HybridCache _HybridCache = null!;
 
 		[GlobalSetup]
 		public void Setup()
@@ -67,15 +69,17 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 			// SETUP DI
 			var services = new ServiceCollection();
 			services.AddEasyCaching(options => { options.UseInMemory("default"); });
+			services.AddHybridCache();
 			ServiceProvider = services.BuildServiceProvider();
 
 			// SETUP CACHES
 			_FusionCache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
 			_FusionCacheProbabilistic = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new ProbabilisticMemoryLocker());
-			_CacheTower = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))]});
+			_CacheTower = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))] });
 			_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
 			_LazyCache = new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions())));
 			_LazyCache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
+			_HybridCache = ServiceProvider.GetRequiredService<HybridCache>();
 		}
 
 		[GlobalCleanup]
@@ -251,6 +255,33 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks
 							}
 						);
 						tasks.Add(t);
+					});
+				});
+
+				await Task.WhenAll(tasks).ConfigureAwait(false);
+			}
+		}
+
+		[Benchmark]
+		public async Task HybridCache()
+		{
+			for (int i = 0; i < Rounds; i++)
+			{
+				var tasks = new ConcurrentBag<Task>();
+
+				Parallel.ForEach(Keys, key =>
+				{
+					Parallel.For(0, Accessors, _ =>
+					{
+						var t = _HybridCache.GetOrCreateAsync<SamplePayload>(
+							key,
+							async _ =>
+							{
+								await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+								return new SamplePayload();
+							}
+						);
+						tasks.Add(t.AsTask());
 					});
 				});
 
