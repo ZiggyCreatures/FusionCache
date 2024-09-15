@@ -2,47 +2,46 @@
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios
+namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios;
+
+public static class ScratchpadScenario
 {
-	public static class ScratchpadScenario
+	public static async Task RunAsync()
 	{
-		public static async Task RunAsync()
+		Console.Title = "FusionCache - Scratchpad";
+
+		Console.OutputEncoding = Encoding.UTF8;
+
+		// CACHE OPTIONS
+		var options = new FusionCacheOptions
 		{
-			Console.Title = "FusionCache - Scratchpad";
-
-			Console.OutputEncoding = Encoding.UTF8;
-
-			// CACHE OPTIONS
-			var options = new FusionCacheOptions
+			DefaultEntryOptions = new FusionCacheEntryOptions
 			{
-				DefaultEntryOptions = new FusionCacheEntryOptions
-				{
-					Duration = TimeSpan.FromMinutes(1),
-					//Priority = CacheItemPriority.NeverRemove,
+				Duration = TimeSpan.FromMinutes(1),
+				//Priority = CacheItemPriority.NeverRemove,
 
-					//IsFailSafeEnabled = true,
-					//FailSafeMaxDuration = TimeSpan.FromMinutes(10),
-					//FailSafeThrottleDuration = TimeSpan.FromSeconds(10),
+				//IsFailSafeEnabled = true,
+				//FailSafeMaxDuration = TimeSpan.FromMinutes(10),
+				//FailSafeThrottleDuration = TimeSpan.FromSeconds(10),
 
-					//FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+				//FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
 
-					//AllowBackgroundDistributedCacheOperations = false,
-					//AllowBackgroundBackplaneOperations = false
-				},
-			};
+				//AllowBackgroundDistributedCacheOperations = false,
+				//AllowBackgroundBackplaneOperations = false
+			},
+		};
 
-			var cache = new FusionCache(options);
+		var cache = new FusionCache(options);
 
-			const string Key = "test key";
-			const string Value = "test value";
+		const string Key = "test key";
+		const string Value = "test value";
 
-			//cache.Set(Key, Value);
+		//cache.Set(Key, Value);
 
-			//var foo = cache.TryGet<string?>(Key).GetValueOrDefault(null);
+		//var foo = cache.TryGet<string?>(Key).GetValueOrDefault(null);
 
-			var foo = cache.GetOrSet(Key, _ => Value);
+		var foo = cache.GetOrSet(Key, _ => Value);
 
-			cache.Remove(Key);
-		}
+		cache.Remove(Key);
 	}
 }

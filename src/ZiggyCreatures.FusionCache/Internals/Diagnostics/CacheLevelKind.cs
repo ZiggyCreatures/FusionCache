@@ -1,8 +1,7 @@
-﻿namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics
+﻿namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
+
+internal enum CacheLevelKind
 {
-	internal enum CacheLevelKind
-	{
-		Memory = 0,
-		Distributed = 1
-	}
+	Memory = 0,
+	Distributed = 1
 }

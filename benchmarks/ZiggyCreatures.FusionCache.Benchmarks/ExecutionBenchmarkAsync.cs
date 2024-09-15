@@ -6,67 +6,66 @@ using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
-namespace ZiggyCreatures.Caching.Fusion.Benchmarks
+namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
+
+[MemoryDiagnoser]
+[Config(typeof(Config))]
+public class ExecutionBenchmarkAsync
 {
-	[MemoryDiagnoser]
-	[Config(typeof(Config))]
-	public class ExecutionBenchmarkAsync
+	private class Config : ManualConfig
 	{
-		private class Config : ManualConfig
+		public Config()
 		{
-			public Config()
-			{
-				AddColumn(
-					StatisticColumn.P95
-				);
-			}
-		}
-
-		private async Task ExecutorAsync()
-		{
-			for (int i = 0; i < 1_000_000_000; i++)
-			{
-				i++;
-			}
-		}
-
-		[Benchmark(Baseline = true)]
-		public async Task WithTimeout()
-		{
-			await RunUtils.RunAsyncActionAdvancedAsync(
-				async _ => await ExecutorAsync(),
-				TimeSpan.FromSeconds(2),
-				false,
-				true
+			AddColumn(
+				StatisticColumn.P95
 			);
 		}
+	}
 
-		[Benchmark]
-		public async Task WithTimeout2()
+	private async Task ExecutorAsync()
+	{
+		for (int i = 0; i < 1_000_000_000; i++)
 		{
-			await RunUtils.RunAsyncActionAdvancedAsync(
-				async _ => await ExecutorAsync(),
-				TimeSpan.FromSeconds(2),
-				true,
-				true
-			);
+			i++;
 		}
+	}
 
-		[Benchmark]
-		public async Task WithoutTimeout()
-		{
-			await RunUtils.RunAsyncActionAdvancedAsync(
-				async _ => await ExecutorAsync(),
-				Timeout.InfiniteTimeSpan,
-				true,
-				true
-			);
-		}
+	[Benchmark(Baseline = true)]
+	public async Task WithTimeout()
+	{
+		await RunUtils.RunAsyncActionAdvancedAsync(
+			async _ => await ExecutorAsync(),
+			TimeSpan.FromSeconds(2),
+			false,
+			true
+		);
+	}
 
-		[Benchmark]
-		public async Task Raw()
-		{
-			await ExecutorAsync();
-		}
+	[Benchmark]
+	public async Task WithTimeout2()
+	{
+		await RunUtils.RunAsyncActionAdvancedAsync(
+			async _ => await ExecutorAsync(),
+			TimeSpan.FromSeconds(2),
+			true,
+			true
+		);
+	}
+
+	[Benchmark]
+	public async Task WithoutTimeout()
+	{
+		await RunUtils.RunAsyncActionAdvancedAsync(
+			async _ => await ExecutorAsync(),
+			Timeout.InfiniteTimeSpan,
+			true,
+			true
+		);
+	}
+
+	[Benchmark]
+	public async Task Raw()
+	{
+		await ExecutorAsync();
 	}
 }

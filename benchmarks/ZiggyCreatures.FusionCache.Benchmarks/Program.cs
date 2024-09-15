@@ -1,13 +1,12 @@
 ﻿using System.Threading.Tasks;
 using BenchmarkDotNet.Running;
 
-namespace ZiggyCreatures.Caching.Fusion.Benchmarks
+namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
+
+class Program
 {
-	class Program
+	public static async Task Main(string[] args)
 	{
-		public static async Task Main(string[] args)
-		{
-			BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run();
-		}
+		BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run();
 	}
 }
