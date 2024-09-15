@@ -2,19 +2,20 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
-		<Version>1.3.0</Version>
+		<Version>1.4.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
-		<PackageReleaseNotes>
-			- Add: support for auto-cloning to avoid undesired mutations
-			- Add: support for triggering fail-safe without involving exceptions
-			- Change: adaptive caching now works even on errors
-			- Change: added multi-targeting, with more granular dependencies to remove the unneeded ones
-			- Perf: more efficient FusionCacheProvider
-		</PackageReleaseNotes>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<PackageReleaseNotes>
+			- Change: throw specific exception when factory fails without fail-safe
+			- Fix: entry Size is now being correctly restored from distributed cache
+			- Add: new observability tags for hit/miss and stale/fresh
+			- Add: cancellation support for async methods for serializers
+			- Perf: switched to FrozenDictionary for FusionCacheProvider for better perf
+			- Perf: added support for RecyclableMemoryStream
+		</PackageReleaseNotes>
 		<!--
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
