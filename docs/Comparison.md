@@ -15,6 +15,7 @@ The caching libraries I've looked at are (in alphabetical order):
 - [**CacheManager**](https://github.com/MichaCo/CacheManager)
 - [**CacheTower**](https://github.com/TurnerSoftware/CacheTower)
 - [**EasyCaching**](https://github.com/dotnetcore/EasyCaching)
+- [**HybridCache**](https://github.com/dotnet/aspnetcore/issues/53255)
 - [**LazyCache**](https://github.com/alastairtree/LazyCache)
 
 All of them are good overall, and all have a different set of features.
@@ -56,28 +57,29 @@ The general features I've identified are:
 
 This is how they compare:
 
-|                          | FusionCache | CacheManager | CacheTower | EasyCaching (1) | LazyCache (2) |
-| ---:                     | :---:       | :---:        | :---:      | :---:           |:---:          |
-| **Cache Stampede prev.** | ✔          | ❌           | ✔          | ✔              | ✔            |
-| **Sync Api**             | ✔          | ✔            | ❌         | ✔              | ✔            |
-| **Async Api**            | ✔          | ❌           | ✔          | ✔              | ⚠            |
-| **Fail-Safe or similar** | ✔          | ❌           | ❌         | ❌             | ❌           |
-| **Timeouts**             | ✔          | ❌           | ❌         | ❌             | ❌           |
-| **Adaptive Caching**     | ✔          | ❌           | ❌         | ❌             | ✔            |
-| **Cancellation**         | ✔          | ❌           | ❌         | ❌             | ❌           |
-| **Multi-provider**       | ✔          | ✔            | ✔          | ✔              | ❌           |
-| **Multi-level**          | ✔          | ✔            | ✔          | ⚠              | ❌           |
-| **Backplane**            | ✔          | ✔            | ✔          | ✔              | ❌           |
-| **Auto-Recovery**        | ✔          | ❌           | ❌         | ❌             | ❌           |
-| **Events**               | ✔          | ✔            | ❌         | ❌             | ❌           |
-| **OpenTelemetry**        | ✔          | ❌           | ❌         | ❌             | ❌           |
-| **Logging**              | ✔          | ✔            | ❌         | ✔              | ❌           |
-| **Portable**             | ✔          | ✔            | ✔          | ✔              | ✔            |
-| **Tests**                | ✔          | ✔            | ✔          | ✔              | ✔            |
-| **Xml Comments**         | ✔          | ✔            | ✔          | ✔              | ❌           |
-| **Docs**                 | ✔          | ✔            | ✔          | ✔              | ✔            |
-| **License**              | `MIT`      | `Apache 2.0`  | `MIT`      | `MIT`           | `MIT`        |
+|                          | FusionCache | HybridCache (3) | CacheManager | CacheTower | EasyCaching (1) | LazyCache (2) |
+| ---:                     | :---:       | :---:        | :---:        | :---:      | :---:           |:---:          |
+| **Cache Stampede prev.** | ✔          | ✔            | ❌           | ✔          | ✔              | ✔            |
+| **Sync Api**             | ✔          | ❌           | ✔            | ❌         | ✔              | ✔            |
+| **Async Api**            | ✔          | ✔            | ❌           | ✔          | ✔              | ⚠            |
+| **Fail-Safe or similar** | ✔          | ❌           | ❌           | ❌         | ❌             | ❌           |
+| **Timeouts**             | ✔          | ❌           | ❌           | ❌         | ❌             | ❌           |
+| **Adaptive Caching**     | ✔          | ❌           | ❌           | ❌         | ❌             | ✔            |
+| **Cancellation**         | ✔          | ✔            | ❌           | ❌         | ❌             | ❌           |
+| **Multi-provider**       | ✔          | ✔            | ✔            | ✔          | ✔              | ❌           |
+| **Multi-level**          | ✔          | ✔            | ✔            | ✔          | ⚠              | ❌           |
+| **Backplane**            | ✔          | ✔            | ✔            | ✔          | ✔              | ❌           |
+| **Auto-Recovery**        | ✔          | ❌           | ❌           | ❌         | ❌             | ❌           |
+| **Events**               | ✔          | ❌           | ✔            | ❌         | ❌             | ❌           |
+| **OpenTelemetry**        | ✔          | ❌           | ❌           | ❌         | ❌             | ❌           |
+| **Logging**              | ✔          | ❌           | ✔            | ❌         | ✔              | ❌           |
+| **Portable**             | ✔          | ✔            | ✔            | ✔          | ✔              | ✔            |
+| **Tests**                | ✔          | ✔           | ✔            | ✔          | ✔              | ✔            |
+| **Xml Comments**         | ✔          | ❌           | ✔            | ✔          | ✔              | ❌           |
+| **Docs**                 | ✔          | ✔           | ✔            | ✔          | ✔              | ✔            |
+| **License**              | `MIT`      | `Same as .NET`  | `Apache 2.0`  | `MIT`      | `MIT`           | `MIT`        |
 
 ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
 - (2): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.
+- (3): **HybridCache** is not currently out yet, I'll update the table when it will be released.
