@@ -19,15 +19,21 @@ internal sealed class MemoryCacheAccessor
 		else
 		{
 			_cache = new MemoryCache(new MemoryCacheOptions());
-			_cacheShouldBeDisposed = true;
+			_cacheIsOwned = true;
 		}
+		// AN ACTUAL CLEAR CAN BE DONE ONLY WHEN THE INNER IMemoryCache
+		// IS TOTALLY OWNED (EG: NOT PASSED FROM THE OUTSIDE) AND ITS
+		// ACTUAL TYPE IS MemoryCache, WHICH HAS THE Clear() METHOD
+		_cacheCanClear = _cacheIsOwned && _cache is MemoryCache;
+
 		_options = options;
 		_logger = logger;
 		_events = events;
 	}
 
 	private IMemoryCache _cache;
-	private readonly bool _cacheShouldBeDisposed;
+	private readonly bool _cacheIsOwned;
+	private readonly bool _cacheCanClear;
 	private readonly FusionCacheOptions _options;
 	private readonly ILogger? _logger;
 	private readonly FusionCacheMemoryEventsHub _events;
@@ -216,6 +222,20 @@ internal sealed class MemoryCacheAccessor
 		return true;
 	}
 
+	public bool CanClear
+	{
+		get { return _cacheCanClear; }
+	}
+
+	public bool TryClear()
+	{
+		if (_cacheCanClear == false)
+			return false;
+
+		((MemoryCache)_cache).Clear();
+		return true;
+	}
+
 	// IDISPOSABLE
 	private bool _disposedValue = false;
 	private void Dispose(bool disposing)
@@ -224,7 +244,7 @@ internal sealed class MemoryCacheAccessor
 		{
 			if (disposing)
 			{
-				if (_cacheShouldBeDisposed)
+				if (_cacheIsOwned)
 				{
 					(_cache as MemoryCache)?.Compact(1);
 					_cache.Dispose();
