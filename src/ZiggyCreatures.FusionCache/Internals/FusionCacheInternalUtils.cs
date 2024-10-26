@@ -59,12 +59,16 @@ internal static class FusionCacheInternalUtils
 		return DateTimeOffset.UtcNow.UtcTicks;
 	}
 
-
 	public static string MaybeGenerateOperationId(ILogger? logger)
 	{
 		if (logger is null)
 			return string.Empty;
 
+		return GeneratorUtils.GenerateOperationId();
+	}
+
+	public static string GenerateOperationId()
+	{
 		return GeneratorUtils.GenerateOperationId();
 	}
 
@@ -161,7 +165,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is null)
 			return null;
 
-		return "FE" + entry.ToString();
+		return "FE@" + entry.Timestamp + entry.ToString();
 	}
 
 	public static string? ToLogString(this TimeSpan ts)
@@ -236,7 +240,7 @@ internal static class FusionCacheInternalUtils
 			return entry1;
 
 		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.Metadata?.Tags, entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
