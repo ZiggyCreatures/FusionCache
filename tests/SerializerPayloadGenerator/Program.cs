@@ -76,6 +76,7 @@ static FusionCacheDistributedEntry<string> CreateEntry()
 			, logicalExpiration.AddDays(-10)
 			, "MyETagValue"
 			, logicalExpiration.AddDays(-100)
+			, 1
 		),
 		DateTimeOffset.UtcNow.Ticks
 	);
