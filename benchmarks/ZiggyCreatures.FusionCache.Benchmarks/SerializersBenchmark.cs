@@ -52,10 +52,10 @@ public abstract class AbstractSerializersBenchmark
 		}
 	}
 
-	protected IFusionCacheSerializer _Normal;
-	protected IFusionCacheSerializer _Recyclable;
-	protected List<SampleModel> _Models = new List<SampleModel>();
-	protected byte[] _Blob;
+	protected IFusionCacheSerializer _Normal = null!;
+	protected IFusionCacheSerializer _Recyclable = null!;
+	protected List<SampleModel> _Models = [];
+	protected byte[] _Blob = null!;
 
 	[Params(1, 100, 1_000)]
 	public int Size;
