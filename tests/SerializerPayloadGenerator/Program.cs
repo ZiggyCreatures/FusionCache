@@ -97,7 +97,7 @@ static void GenerateSnapshots<T>(IFusionCacheSerializer[] serializers, T value)
 	{
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var filename = $"{filePrefix}v{version.Replace('.', '_')}.bin".ToLowerInvariant();
+		var filename = $"{filePrefix}v{version!.Replace('.', '_')}.bin".ToLowerInvariant();
 
 		var payload = serializer.Serialize(value);
 
