@@ -76,6 +76,7 @@ static FusionCacheDistributedEntry<string> CreateEntry()
 			, logicalExpiration.AddDays(-10)
 			, "MyETagValue"
 			, logicalExpiration.AddDays(-100)
+			, 1
 		),
 		DateTimeOffset.UtcNow.Ticks
 	);
@@ -97,7 +98,7 @@ static void GenerateSnapshots<T>(IFusionCacheSerializer[] serializers, T value)
 	{
 		var filePrefix = $"{serializer.GetType().Name}__";
 
-		var filename = $"{filePrefix}v{version.Replace('.', '_')}.bin".ToLowerInvariant();
+		var filename = $"{filePrefix}v{version!.Replace('.', '_')}.bin".ToLowerInvariant();
 
 		var payload = serializer.Serialize(value);
 
