@@ -17,6 +17,7 @@
 		<PackageReference Include="Serilog" Version="4.1.0" />
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+		<PackageReference Include="System.Text.Json" Version="8.0.5" />
 	</ItemGroup>
 
 	<ItemGroup>
