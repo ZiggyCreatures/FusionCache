@@ -13,9 +13,10 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal sealed class FusionCacheMemoryEntry<TValue>
 	: IFusionCacheMemoryEntry
 {
-	public FusionCacheMemoryEntry(object? value, FusionCacheEntryMetadata? metadata, long timestamp)
+	public FusionCacheMemoryEntry(object? value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp)
 	{
 		Value = value;
+		Tags = tags;
 		Metadata = metadata;
 		Timestamp = timestamp;
 	}
@@ -38,6 +39,8 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 			}
 		}
 	}
+
+	public string[]? Tags { get; set; }
 
 	public FusionCacheEntryMetadata? Metadata { get; private set; }
 
@@ -73,6 +76,8 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 	public override string ToString()
 	{
+		// TODO: SHOULD WE ALSO INCLUDE TAGS?
+
 		if (Metadata is null)
 			return "[]";
 
@@ -103,12 +108,13 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		;
 	}
 
-	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long? timestamp)
+	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long? timestamp)
 	{
 		if (RequiresMetadata(options, isFromFailSafe, lastModified, etag) == false)
 		{
 			return new FusionCacheMemoryEntry<TValue>(
 				value,
+				tags,
 				null,
 				timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp()
 			);
@@ -120,6 +126,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			value,
+			tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
 			timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp()
 		);
@@ -131,6 +138,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		{
 			return new FusionCacheMemoryEntry<TValue>(
 				entry.GetValue<TValue>(),
+				entry.Tags,
 				null,
 				entry.Timestamp
 			);
@@ -153,6 +161,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
+			entry.Tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp
 		);
@@ -161,6 +170,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 	public void UpdateFromDistributedEntry(FusionCacheDistributedEntry<TValue> distributedEntry)
 	{
 		Value = distributedEntry.Value;
+		Tags = distributedEntry.Tags;
 		Timestamp = distributedEntry.Timestamp;
 		Metadata = distributedEntry.Metadata;
 	}

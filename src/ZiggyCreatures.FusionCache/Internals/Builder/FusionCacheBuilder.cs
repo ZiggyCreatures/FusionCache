@@ -102,7 +102,15 @@ internal sealed class FusionCacheBuilder
 
 		if (UseRegisteredOptions)
 		{
-			options = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheOptions>>().Get(CacheName);
+			if (CacheName == FusionCacheOptions.DefaultCacheName)
+			{
+				options = serviceProvider.GetService<IOptions<FusionCacheOptions>>()?.Value;
+			}
+			else
+			{
+				options = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheOptions>>().Get(CacheName);
+			}
+
 			if (options is not null)
 			{
 				options.CacheName = CacheName;
@@ -353,12 +361,12 @@ internal sealed class FusionCacheBuilder
 			plugins.AddRange(serviceProvider.GetKeyedServices<IFusionCachePlugin>(PluginsServiceKey));
 		}
 
-		if (Plugins?.Any() == true)
+		if (Plugins?.Count > 0)
 		{
 			plugins.AddRange(Plugins);
 		}
 
-		if (PluginsFactories?.Any() == true)
+		if (PluginsFactories?.Count > 0)
 		{
 			foreach (var pluginFactory in PluginsFactories)
 			{

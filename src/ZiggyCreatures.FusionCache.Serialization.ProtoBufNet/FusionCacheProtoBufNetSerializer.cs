@@ -138,6 +138,7 @@ public class FusionCacheProtoBufNetSerializer
 					.Add(1, nameof(FusionCacheDistributedEntry<bool>.Value))
 					.Add(2, nameof(FusionCacheDistributedEntry<bool>.Metadata))
 					.Add(3, nameof(FusionCacheDistributedEntry<bool>.Timestamp))
+					.Add(4, nameof(FusionCacheDistributedEntry<bool>.Tags))
 				;
 
 				tmp.Add(t);

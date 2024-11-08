@@ -103,6 +103,11 @@ public static class TestsUtils
 		return options;
 	}
 
+	public static FusionCacheOptions GetOptions(this IFusionCache cache)
+	{
+		return (typeof(FusionCache).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as FusionCacheOptions)!;
+	}
+
 	public static ILogger? GetLogger(IFusionCache cache)
 	{
 		return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;

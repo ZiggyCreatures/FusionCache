@@ -130,7 +130,7 @@ public partial class FusionCache
 					var value = factory(null!, token);
 					hasNewValue = true;
 
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, null, null, null);
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, FusionCache.NoTags, options, isStale, null, null, null);
 				}
 				else
 				{
@@ -141,7 +141,7 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
 
-					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry);
+					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry, FusionCache.NoTags);
 
 					// ACTIVITY
 					var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
@@ -195,7 +195,7 @@ public partial class FusionCache
 
 							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
 
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, isStale, ctx.LastModified, ctx.ETag, null);
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, FusionCache.NoTags, options, isStale, ctx.LastModified, ctx.ETag, null);
 
 							// EVENTS
 							_events.OnFactorySuccess(operationId, key);
@@ -336,7 +336,7 @@ public partial class FusionCache
 			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
 			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
-			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry);
+			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry, FusionCache.NoTags);
 
 			var factoryTask = Task.Run(() => factory(ctx, default));
 
@@ -619,7 +619,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, options, false, null, null, null);
+		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, FusionCache.NoTags, options, false, null, null, null);
 
 		var mca = GetCurrentMemoryAccessor(options);
 		if (mca is not null)

@@ -24,6 +24,24 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredOptions(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.Options = null;
+		builder.UseRegisteredOptions = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a <see cref="FusionCacheOptions"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <param name="options">The <see cref="FusionCacheOptions"/> instance to use.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithOptions(this IFusionCacheBuilder builder, FusionCacheOptions? options)
@@ -32,6 +50,8 @@ public static partial class FusionCacheBuilderExtMethods
 			throw new ArgumentNullException(nameof(builder));
 
 		builder.Options = options;
+
+		builder.UseRegisteredOptions = options is null;
 
 		return builder;
 	}

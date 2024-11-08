@@ -144,6 +144,16 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
+	/// The default <see cref="FusionCacheEntryOptions"/> to use for the RemoveByTagAsync() feature when none will be specified, and as the starting point when duplicating one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
+	public FusionCacheEntryOptions? ExpireByTagDefaultEntryOptions { get; set; }
+
+	/// <summary>
 	/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
@@ -443,6 +453,7 @@ public class FusionCacheOptions
 			CacheKeyPrefix = CacheKeyPrefix,
 
 			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
+			ExpireByTagDefaultEntryOptions = ExpireByTagDefaultEntryOptions?.Duplicate(),
 
 			EnableAutoRecovery = EnableAutoRecovery,
 			AutoRecoveryDelay = AutoRecoveryDelay,

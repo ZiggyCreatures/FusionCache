@@ -277,6 +277,9 @@ internal sealed partial class BackplaneAccessor
 
 				// HANDLE SET
 				await HandleIncomingMessageSetAsync(operationId, message).ConfigureAwait(false);
+
+				// HANDLE A POTENTIAL UPDATE OF THE CLEAR TIMESTAMP
+				MaybeUpdateClearTimestamp(operationId, message);
 				break;
 			case BackplaneMessageAction.EntryRemove:
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -378,5 +381,18 @@ internal sealed partial class BackplaneAccessor
 		}
 
 		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
+	}
+
+	private void MaybeUpdateClearTimestamp(string operationId, BackplaneMessage message)
+	{
+		if (message.CacheKey != _cache.ClearTagInternalCacheKey)
+			return;
+
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a cache-wide CLEAR has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+		// RESET THE CLEAR TIMESTAMP, SO THAT AT THE NEXT TIME
+		// IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
+		_cache.ClearTimestamp = -1;
 	}
 }

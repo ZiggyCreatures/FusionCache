@@ -17,9 +17,10 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <param name="value">The actual value.</param>
 	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
-	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp)
+	public FusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp)
 	{
 		Value = value;
+		Tags = tags;
 		Metadata = metadata;
 		Timestamp = timestamp;
 	}
@@ -39,6 +40,10 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <inheritdoc/>
 	[DataMember(Name = "v", EmitDefaultValue = false)]
 	public TValue Value { get; set; }
+
+	/// <inheritdoc/>
+	[DataMember(Name = "x", EmitDefaultValue = false)]
+	public string[]? Tags { get; set; }
 
 	/// <inheritdoc/>
 	[DataMember(Name = "m", EmitDefaultValue = false)]
@@ -63,13 +68,15 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <inheritdoc/>
 	public override string ToString()
 	{
+		// TODO: SHOULD WE ALSO INCLUDE TAGS?
+
 		if (Metadata is null)
 			return "[]";
 
 		return Metadata.ToString();
 	}
 
-	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
+	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
 	{
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
 
@@ -77,6 +84,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
+			tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
 			timestamp
 		);
@@ -104,6 +112,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
+			entry.Tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp
 		);

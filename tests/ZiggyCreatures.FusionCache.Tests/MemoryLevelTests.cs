@@ -2076,4 +2076,118 @@ public class MemoryLevelTests
 		//	_ = cache.GetOrDefault<string>("foo");
 		//});
 	}
+
+	[Fact]
+	public async Task CanRemoveByTagAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+
+		await cache.SetAsync<int>("foo", ["x", "y"], 1);
+		await cache.SetAsync<int>("bar", ["y", "z"], 2);
+		await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 3);
+
+		var foo1 = await cache.GetOrSetAsyncExp<int>("foo", ["x", "y"], async (_, _) => 11);
+		var bar1 = await cache.GetOrSetAsyncExp<int>("bar", ["y", "z"], async (_, _) => 22);
+		var baz1 = await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 33);
+
+		await cache.ExpireByTagAsync("x");
+
+		var foo2 = await cache.GetOrDefaultAsync<int>("foo");
+		var bar2 = await cache.GetOrSetAsyncExp<int>("bar", ["y", "z"], async (_, _) => 222);
+		var baz2 = await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 333);
+
+		await cache.ExpireByTagAsync("y");
+
+		var foo3 = await cache.GetOrSetAsyncExp<int>("foo", ["x", "y"], async (_, _) => 1111);
+		var bar3 = await cache.GetOrSetAsyncExp<int>("bar", ["y", "z"], async (_, _) => 2222);
+		var baz3 = await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 3333);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(333, baz2);
+
+		Assert.Equal(1111, foo3);
+		Assert.Equal(2222, bar3);
+		Assert.Equal(333, baz3);
+	}
+
+	[Fact]
+	public async Task CanClearAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		// CACHE A: PASSING A MEMORY CACHE -> CANNOT EXECUTE RAW CLEAR
+		MemoryCache? mcA = new MemoryCache(new MemoryCacheOptions());
+		using var cacheA = new FusionCache(new FusionCacheOptions() { CacheName = "CACHE_A" }, mcA, logger: logger);
+
+		// CACHE B: NOT PASSING A MEMORY CACHE -> CAN EXECUTE RAW CLEAR
+		using var cacheB = new FusionCache(new FusionCacheOptions() { CacheName = "CACHE_B" }, logger: logger);
+		var mcB = TestsUtils.GetMemoryCache(cacheB) as MemoryCache;
+
+		await cacheA.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		await cacheA.SetAsync<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		await cacheA.SetAsync<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		await cacheB.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		await cacheB.SetAsync<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		await cacheB.SetAsync<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		// BOTH CACHES HAVE 3 ITEMS
+		Assert.Equal(3, mcA.Count);
+		Assert.Equal(3, mcB?.Count);
+
+		var fooA1 = await cacheA.GetOrDefaultAsync<int>("foo");
+		var barA1 = await cacheA.GetOrDefaultAsync<int>("bar");
+		var bazA1 = await cacheA.GetOrDefaultAsync<int>("baz");
+
+		var fooB1 = await cacheB.GetOrDefaultAsync<int>("foo");
+		var barB1 = await cacheB.GetOrDefaultAsync<int>("bar");
+		var bazB1 = await cacheB.GetOrDefaultAsync<int>("baz");
+
+		await cacheA.ClearAsync();
+		await cacheB.ClearAsync();
+
+		// CACHE A HAS 4 ITEMS (3 FOR ITEMS + 1 FOR THE * TAG)
+		Assert.Equal(4, mcA.Count);
+
+		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
+		Assert.Equal(0, mcB?.Count);
+
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+		var fooA2 = await cacheA.GetOrDefaultAsync<int>("foo");
+		var barA2 = await cacheA.GetOrDefaultAsync<int>("bar");
+		var bazA2 = await cacheA.GetOrDefaultAsync<int>("baz");
+
+		var fooB2 = await cacheB.GetOrDefaultAsync<int>("foo");
+		var barB2 = await cacheB.GetOrDefaultAsync<int>("bar");
+		var bazB2 = await cacheB.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, fooA1);
+		Assert.Equal(2, barA1);
+		Assert.Equal(3, bazA1);
+
+		Assert.Equal(1, fooB1);
+		Assert.Equal(2, barB1);
+		Assert.Equal(3, bazB1);
+
+		Assert.Equal(0, fooA2);
+		Assert.Equal(0, barA2);
+		Assert.Equal(0, bazA2);
+
+		Assert.Equal(0, fooB2);
+		Assert.Equal(0, barB2);
+		Assert.Equal(0, bazB2);
+
+		// CACHE A HAS MORE THAN 0 ITEMS (CANNOT BE PRECISE, BECAUSE INTERNAL UNKNOWN BEHAVIOUR)
+		Assert.True(mcA.Count > 0);
+
+		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
+		Assert.Equal(0, mcB?.Count);
+	}
 }

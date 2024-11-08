@@ -20,6 +20,7 @@ using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
+using FusionCacheTests.Stuff;
 
 namespace FusionCacheTests;
 
@@ -86,6 +87,11 @@ public class DependencyInjectionTests
 			AutoRecoveryMaxItems = 123,
 		};
 
+		//services.Configure<FusionCacheOptions>(o =>
+		//{
+		//	o.AutoRecoveryMaxItems = 456;
+		//});
+
 		services.AddFusionCache()
 			.WithOptions(options)
 			.WithOptions(opt =>
@@ -102,9 +108,11 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
+		var options2 = cache.GetOptions();
+
 		Assert.NotNull(cache);
 		Assert.Equal(FusionCacheOptions.DefaultCacheName, cache.CacheName);
-		Assert.Equal(123, options.AutoRecoveryMaxItems);
+		Assert.Equal(123, options2.AutoRecoveryMaxItems);
 		Assert.Equal(TimeSpan.FromSeconds(123), cache.DefaultEntryOptions.DistributedCacheDuration!.Value);
 		Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
 	}

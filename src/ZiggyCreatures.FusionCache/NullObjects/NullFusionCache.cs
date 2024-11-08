@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,7 +118,7 @@ public class NullFusionCache
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
-		return factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null), token);
+		return factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
 	}
 
 	/// <inheritdoc/>
@@ -129,7 +130,7 @@ public class NullFusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
-		return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null), token);
+		return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
 	}
 
 	/// <inheritdoc/>
@@ -220,5 +221,29 @@ public class NullFusionCache
 	public void Dispose()
 	{
 		// EMTPY
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask<TValue> GetOrSetAsyncExp<TValue>(string key, IEnumerable<string>? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return await GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
+	}
+
+	/// <inheritdoc/>
+	public ValueTask SetAsync<TValue>(string key, IEnumerable<string>? tags, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public ValueTask ExpireByTagAsync(string tag, CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public ValueTask ClearAsync(CancellationToken token = default)
+	{
+		return new ValueTask();
 	}
 }
