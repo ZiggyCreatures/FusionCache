@@ -90,7 +90,7 @@ public class MemoryBackplane
 				if (_channelName is null)
 					throw new NullReferenceException("The backplane channel name is null");
 
-				_subscribers = _connection.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
+				_subscribers = _connection.GetOrAdd(_channelName, _ => []);
 			}
 		}
 	}
