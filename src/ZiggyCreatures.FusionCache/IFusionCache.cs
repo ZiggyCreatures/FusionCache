@@ -152,7 +152,7 @@ public interface IFusionCache
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask SetAsync<TValue>(string key, IEnumerable<string>? tags, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.

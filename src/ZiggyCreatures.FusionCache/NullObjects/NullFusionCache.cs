@@ -193,11 +193,11 @@ public class NullFusionCache
 		// EMPTY
 	}
 
-	/// <inheritdoc/>
-	public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		return new ValueTask();
-	}
+	///// <inheritdoc/>
+	//public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	//{
+	//	return new ValueTask();
+	//}
 
 	/// <inheritdoc/>
 	public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
@@ -230,7 +230,7 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public ValueTask SetAsync<TValue>(string key, IEnumerable<string>? tags, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		return new ValueTask();
 	}
