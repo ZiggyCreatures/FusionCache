@@ -4,7 +4,7 @@ namespace FusionCacheTests.Overloads;
 
 internal static partial class OverloadsCallsTryouts
 {
-	private static void GetOrSetCalls(IFusionCache cache)
+	internal static void GetOrSetCalls(IFusionCache cache)
 	{
 		// FACTORY / FAIL-SAFE DEFAULT VALUE
 		_ = cache.GetOrSet<int?>(
@@ -74,7 +74,7 @@ internal static partial class OverloadsCallsTryouts
 		);
 	}
 
-	private static void GetOrDefaultCalls(IFusionCache cache)
+	internal static void GetOrDefaultCalls(IFusionCache cache)
 	{
 		_ = cache.GetOrDefault<int?>(
 			Key,
@@ -92,7 +92,7 @@ internal static partial class OverloadsCallsTryouts
 		);
 	}
 
-	private static void SetCalls(IFusionCache cache)
+	internal static void SetCalls(IFusionCache cache)
 	{
 		cache.Set<int?>(
 			Key,
@@ -110,7 +110,7 @@ internal static partial class OverloadsCallsTryouts
 		);
 	}
 
-	private static void RemoveCalls(IFusionCache cache)
+	internal static void RemoveCalls(IFusionCache cache)
 	{
 		cache.Remove(
 			Key,

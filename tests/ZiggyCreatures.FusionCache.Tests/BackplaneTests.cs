@@ -1004,8 +1004,8 @@ public class BackplaneTests
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
-		await cache1.SetAsync<int>(fooKey, [xTag, yTag], 1);
-		await cache2.SetAsync<int>(barKey, [yTag, zTag], 2);
+		await cache1.SetAsync<int>(fooKey, 1, tags: [xTag, yTag]);
+		await cache2.SetAsync<int>(barKey, 2, tags: [yTag, zTag]);
 		await cache3.GetOrSetAsyncExp<int>(bazKey, [xTag, zTag], async (_, _) => 3);
 
 		var foo1 = await cache1.GetOrSetAsyncExp<int>(fooKey, [xTag, yTag], async (_, _) => 11);
@@ -1054,21 +1054,21 @@ public class BackplaneTests
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
-		await cache1.SetAsync<int>("milk", ["beverage", "white"], 1);
-		await cache1.SetAsync<int>("coconut", ["food", "white"], 1);
+		await cache1.SetAsync<int>("milk", 1, tags: ["beverage", "white"]);
+		await cache1.SetAsync<int>("coconut", 1, tags: ["food", "white"]);
 
-		await cache2.SetAsync<int>("orange", ["fruit", "orange"], 1);
+		await cache2.SetAsync<int>("orange", 1, tags: ["fruit", "orange"]);
 		await cache2.GetOrSetAsyncExp<int>("banana", null, async (ctx, _) =>
 		{
 			ctx.Tags = ["fruit", "yellow"];
 			return 1;
 		});
 
-		await cache2.SetAsync<int>("red_wine", ["beverage", "red"], 1);
+		await cache2.SetAsync<int>("red_wine", 1, tags: ["beverage", "red"]);
 
-		await cache3.SetAsync<int>("trippa", ["food", "red"], 1);
-		await cache3.SetAsync<int>("risotto_milanese", ["food", "yellow"], 1);
-		await cache3.SetAsync<int>("kimchi", ["food", "red"], 1);
+		await cache3.SetAsync<int>("trippa", 1, tags: ["food", "red"]);
+		await cache3.SetAsync<int>("risotto_milanese", 1, tags: ["food", "yellow"]);
+		await cache3.SetAsync<int>("kimchi", 1, tags: ["food", "red"]);
 
 		var milk1 = await cache1.GetOrDefaultAsync<int>("milk");
 		var coconut1 = await cache1.GetOrDefaultAsync<int>("coconut");
@@ -1167,9 +1167,9 @@ public class BackplaneTests
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 
-		await cache1.SetAsync<int>("foo", ["x", "y", "z"], 1);
-		await cache1.SetAsync<int>("bar", ["x", "y", "z"], 1);
-		await cache1.SetAsync<int>("baz", ["x", "y", "z"], 1);
+		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y", "z"]);
+		await cache1.SetAsync<int>("bar", 1, tags: ["x", "y", "z"]);
+		await cache1.SetAsync<int>("baz", 1, tags: ["x", "y", "z"]);
 
 		var foo1 = await cache2.GetOrDefaultAsync<int>("foo");
 		var bar1 = await cache2.GetOrDefaultAsync<int>("bar");

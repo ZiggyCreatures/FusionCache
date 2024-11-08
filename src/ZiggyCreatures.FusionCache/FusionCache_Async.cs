@@ -687,7 +687,7 @@ public partial class FusionCache
 	//}
 
 	/// <inheritdoc/>
-	public async ValueTask SetAsync<TValue>(string key, IEnumerable<string>? tags, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		ValidateCacheKey(key);
 		ValidateTags(tags);
@@ -1068,9 +1068,9 @@ public partial class FusionCache
 	{
 		await SetAsync(
 			GetTagCacheKey(tag),
-			NoTags,
 			DateTimeOffset.UtcNow.Ticks,
 			_expireByTagDefaultEntryOptions,
+			NoTags,
 			token
 		);
 	}

@@ -2083,8 +2083,8 @@ public class MemoryLevelTests
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 
-		await cache.SetAsync<int>("foo", ["x", "y"], 1);
-		await cache.SetAsync<int>("bar", ["y", "z"], 2);
+		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"]);
+		await cache.SetAsync<int>("bar", 2, tags: ["y", "z"]);
 		await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 3);
 
 		var foo1 = await cache.GetOrSetAsyncExp<int>("foo", ["x", "y"], async (_, _) => 11);
