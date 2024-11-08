@@ -240,7 +240,7 @@ internal static class FusionCacheInternalUtils
 			return entry1;
 
 		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.Metadata?.Tags, entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Tags, options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -37,6 +38,8 @@ public interface IFusionCache
 	/// <param name="duration">An optional duration to directly change the <see cref="FusionCacheEntryOptions.Duration"/> of the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
 	/// <returns>The newly created <see cref="FusionCacheEntryOptions"/>.</returns>
 	FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null);
+
+	// GET OR SET
 
 	/// <summary>
 	/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.
@@ -82,6 +85,8 @@ public interface IFusionCache
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
+	// GET OR DEFAULT
+
 	/// <summary>
 	/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be returned.
 	/// </summary>
@@ -104,6 +109,8 @@ public interface IFusionCache
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
+	// TRY GET
+
 	/// <summary>
 	/// Try to get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/> and returns a <see cref="MaybeValue{TValue}"/> instance.
 	/// </summary>
@@ -122,16 +129,30 @@ public interface IFusionCache
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
+	// SET
+
+	///// <summary>
+	///// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
+	///// </summary>
+	///// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+	///// <param name="key">The cache key which identifies the entry in the cache.</param>
+	///// <param name="value">The value to put in the cache.</param>
+	///// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	///// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
+	//ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
 	/// <summary>
-	/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
+	/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/>, optionally tagged with the specified <paramref name="tags"/>, with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
 	/// </summary>
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="value">The value to put in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	ValueTask SetAsync<TValue>(string key, IEnumerable<string>? tags, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
@@ -142,6 +163,8 @@ public interface IFusionCache
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Set<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+	// REMOVE
 
 	/// <summary>
 	/// Removes the value in the cache for the specified <paramref name="key"/>.
@@ -159,6 +182,8 @@ public interface IFusionCache
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+	// EXPIRE
 
 	/// <summary>
 	/// Expires the cache entry for the specified <paramref name="key"/>.
@@ -197,12 +222,16 @@ public interface IFusionCache
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
+	// SERIALIZATION
+
 	/// <summary>
 	/// Setup a serializer by providing an <see cref="IFusionCacheSerializer"/> instance to be used with the distributed level (L2) if also setup, or for auto-clone.
 	/// </summary>
 	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use.</param>
 	/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
 	IFusionCache SetupSerializer(IFusionCacheSerializer serializer);
+
+	// DISTRIBUTED CACHE
 
 	/// <summary>
 	/// Setup a distributed level (L2), by providing an <see cref="IDistributedCache"/>.
@@ -232,6 +261,8 @@ public interface IFusionCache
 	/// </summary>
 	bool HasDistributedCache { get; }
 
+	// BACKPLANE
+
 	/// <summary>
 	/// Sets a backplane, by providing an <see cref="IFusionCacheBackplane"/> instance.
 	/// </summary>
@@ -250,10 +281,14 @@ public interface IFusionCache
 	/// </summary>
 	bool HasBackplane { get; }
 
+	// EVENTS
+
 	/// <summary>
 	/// The central place for all events handling of this FusionCache instance.
 	/// </summary>
 	FusionCacheEventsHub Events { get; }
+
+	// PLUGINS
 
 	/// <summary>
 	/// Add a plugin to this FusionCache instance, then start it.
@@ -267,4 +302,15 @@ public interface IFusionCache
 	/// <param name="plugin">The <see cref="IFusionCachePlugin"/> instance.</param>
 	/// <returns><see langword="true"/> if the plugin has been removed, otherwise <see langword="false"/>.</returns>
 	bool RemovePlugin(IFusionCachePlugin plugin);
+
+
+
+
+	// TODO: FINISH THIS
+
+	ValueTask ExpireByTagAsync(string tag, CancellationToken token = default);
+
+	ValueTask ClearAsync(CancellationToken token = default);
+
+	ValueTask<TValue> GetOrSetAsyncExp<TValue>(string key, IEnumerable<string>? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 }

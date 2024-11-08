@@ -28,6 +28,12 @@ internal interface IFusionCacheEntry
 	/// <param name="value">The value.</param>
 	void SetValue<TValue>(TValue value);
 
+
+	/// <summary>
+	/// The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.
+	/// </summary>
+	string[]? Tags { get; set; }
+
 	/// <summary>
 	/// Metadata about the cache entry.
 	/// </summary>

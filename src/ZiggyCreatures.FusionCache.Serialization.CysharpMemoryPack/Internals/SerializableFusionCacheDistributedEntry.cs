@@ -19,10 +19,13 @@ internal partial class SerializableFusionCacheDistributedEntry<TValue>
 	[MemoryPackInclude]
 	public long Timestamp => Entry?.Timestamp ?? 0;
 
+	[MemoryPackInclude]
+	public string[]? Tags => Entry is not null ? Entry.Tags : default;
+
 	[MemoryPackConstructor]
-	SerializableFusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp)
+	SerializableFusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp)
 	{
-		this.Entry = new FusionCacheDistributedEntry<TValue>(value, metadata, timestamp);
+		this.Entry = new FusionCacheDistributedEntry<TValue>(value, tags, metadata, timestamp);
 	}
 
 	public SerializableFusionCacheDistributedEntry(FusionCacheDistributedEntry<TValue>? entry)
