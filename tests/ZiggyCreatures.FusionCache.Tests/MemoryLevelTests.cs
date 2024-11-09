@@ -2085,23 +2085,23 @@ public class MemoryLevelTests
 
 		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"]);
 		await cache.SetAsync<int>("bar", 2, tags: ["y", "z"]);
-		await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 3);
+		await cache.GetOrSetAsync<int>("baz", async (_, _) => 3, tags: ["x", "z"]);
 
-		var foo1 = await cache.GetOrSetAsyncExp<int>("foo", ["x", "y"], async (_, _) => 11);
-		var bar1 = await cache.GetOrSetAsyncExp<int>("bar", ["y", "z"], async (_, _) => 22);
-		var baz1 = await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 33);
+		var foo1 = await cache.GetOrSetAsync<int>("foo", async (_, _) => 11, tags: ["x", "y"]);
+		var bar1 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
+		var baz1 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 33, tags: ["x", "z"]);
 
-		await cache.ExpireByTagAsync("x");
+		await cache.RemoveByTagAsync("x");
 
 		var foo2 = await cache.GetOrDefaultAsync<int>("foo");
-		var bar2 = await cache.GetOrSetAsyncExp<int>("bar", ["y", "z"], async (_, _) => 222);
-		var baz2 = await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 333);
+		var bar2 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 222, tags: ["y", "z"]);
+		var baz2 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 333, tags: ["x", "z"]);
 
-		await cache.ExpireByTagAsync("y");
+		await cache.RemoveByTagAsync("y");
 
-		var foo3 = await cache.GetOrSetAsyncExp<int>("foo", ["x", "y"], async (_, _) => 1111);
-		var bar3 = await cache.GetOrSetAsyncExp<int>("bar", ["y", "z"], async (_, _) => 2222);
-		var baz3 = await cache.GetOrSetAsyncExp<int>("baz", ["x", "z"], async (_, _) => 3333);
+		var foo3 = await cache.GetOrSetAsync<int>("foo", async (_, _) => 1111, tags: ["x", "y"]);
+		var bar3 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 2222, tags: ["y", "z"]);
+		var baz3 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 3333, tags: ["x", "z"]);
 
 		Assert.Equal(1, foo1);
 		Assert.Equal(2, bar1);

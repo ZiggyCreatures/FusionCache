@@ -127,8 +127,14 @@ public class NullFusionCache
 		return defaultValue;
 	}
 
+	///// <inheritdoc/>
+	//public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	//{
+	//	return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
+	//}
+
 	/// <inheritdoc/>
-	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
 	}
@@ -223,11 +229,11 @@ public class NullFusionCache
 		// EMTPY
 	}
 
-	/// <inheritdoc/>
-	public async ValueTask<TValue> GetOrSetAsyncExp<TValue>(string key, IEnumerable<string>? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		return await GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
-	}
+	///// <inheritdoc/>
+	//public async ValueTask<TValue> GetOrSetAsyncExp<TValue>(string key, IEnumerable<string>? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	//{
+	//	return await GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
+	//}
 
 	/// <inheritdoc/>
 	public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
@@ -236,7 +242,7 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public ValueTask ExpireByTagAsync(string tag, CancellationToken token = default)
+	public ValueTask RemoveByTagAsync(string tag, CancellationToken token = default)
 	{
 		return new ValueTask();
 	}

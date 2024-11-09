@@ -52,6 +52,7 @@ internal static class FusionCacheInternalUtils
 
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
+	internal static readonly string[]? NoTags = null;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static long GetCurrentTimestamp()
