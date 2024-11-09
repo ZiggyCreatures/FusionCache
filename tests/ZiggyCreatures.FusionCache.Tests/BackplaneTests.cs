@@ -15,6 +15,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace FusionCacheTests;
 
@@ -1006,27 +1007,27 @@ public class BackplaneTests
 
 		await cache1.SetAsync<int>(fooKey, 1, tags: [xTag, yTag]);
 		await cache2.SetAsync<int>(barKey, 2, tags: [yTag, zTag]);
-		await cache3.GetOrSetAsyncExp<int>(bazKey, [xTag, zTag], async (_, _) => 3);
+		await cache3.GetOrSetAsync<int>(bazKey, async (_, _) => 3, tags: [xTag, zTag]);
 
-		var foo1 = await cache1.GetOrSetAsyncExp<int>(fooKey, [xTag, yTag], async (_, _) => 11);
-		var bar1 = await cache2.GetOrSetAsyncExp<int>(barKey, [yTag, zTag], async (_, _) => 22);
-		var baz1 = await cache3.GetOrSetAsyncExp<int>(bazKey, [xTag, zTag], async (_, _) => 33);
+		var foo1 = await cache1.GetOrSetAsync<int>(fooKey, async (_, _) => 11, tags: [xTag, yTag]);
+		var bar1 = await cache2.GetOrSetAsync<int>(barKey, async (_, _) => 22, tags: [yTag, zTag]);
+		var baz1 = await cache3.GetOrSetAsync<int>(bazKey, async (_, _) => 33, tags: [xTag, zTag]);
 
-		await cache1.ExpireByTagAsync(xTag);
+		await cache1.RemoveByTagAsync(xTag);
 
 		await Task.Delay(100);
 
 		var foo2 = await cache3.GetOrDefaultAsync<int>(fooKey);
-		var bar2 = await cache1.GetOrSetAsyncExp<int>(barKey, [yTag, zTag], async (_, _) => 222);
-		var baz2 = await cache2.GetOrSetAsyncExp<int>(bazKey, [xTag, zTag], async (_, _) => 333);
+		var bar2 = await cache1.GetOrSetAsync<int>(barKey, async (_, _) => 222, tags: [yTag, zTag]);
+		var baz2 = await cache2.GetOrSetAsync<int>(bazKey, async (_, _) => 333, tags: [xTag, zTag]);
 
-		await cache3.ExpireByTagAsync(yTag);
+		await cache3.RemoveByTagAsync(yTag);
 
 		await Task.Delay(100);
 
-		var foo3 = await cache2.GetOrSetAsyncExp<int>(fooKey, [xTag, yTag], async (_, _) => 1111);
-		var bar3 = await cache3.GetOrSetAsyncExp<int>(barKey, [yTag, zTag], async (_, _) => 2222);
-		var baz3 = await cache1.GetOrSetAsyncExp<int>(bazKey, [xTag, zTag], async (_, _) => 3333);
+		var bar3 = await cache3.GetOrSetAsync<int>(barKey, async (_, _) => 2222, tags: [yTag, zTag]);
+		var foo3 = await cache2.GetOrSetAsync<int>(fooKey, async (_, _) => 1111, tags: [xTag, yTag]);
+		var baz3 = await cache1.GetOrSetAsync<int>(bazKey, async (_, _) => 3333, tags: [xTag, zTag]);
 
 		Assert.Equal(1, foo1);
 		Assert.Equal(2, bar1);
@@ -1043,22 +1044,22 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanRemoveByTag2Async(SerializerType serializerType)
+	public async Task CanRemoveByTagWithCacheKeyPrefixAsync(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
 
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var distributedCache = CreateDistributedCache();
-		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
-		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
-		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C3");
 
 		await cache1.SetAsync<int>("milk", 1, tags: ["beverage", "white"]);
 		await cache1.SetAsync<int>("coconut", 1, tags: ["food", "white"]);
 
 		await cache2.SetAsync<int>("orange", 1, tags: ["fruit", "orange"]);
-		await cache2.GetOrSetAsyncExp<int>("banana", null, async (ctx, _) =>
+		await cache2.GetOrSetAsync<int>("banana", async (ctx, _) =>
 		{
 			ctx.Tags = ["fruit", "yellow"];
 			return 1;
@@ -1088,7 +1089,7 @@ public class BackplaneTests
 		Assert.Equal(1, risotto1);
 		Assert.Equal(1, kimchi1);
 
-		await cache3.ExpireByTagAsync("red");
+		await cache3.RemoveByTagAsync("red");
 
 		await Task.Delay(100);
 
@@ -1110,7 +1111,7 @@ public class BackplaneTests
 		Assert.Equal(1, risotto2);
 		Assert.Equal(0, kimchi2);
 
-		await cache2.ExpireByTagAsync("yellow");
+		await cache2.RemoveByTagAsync("yellow");
 
 		await Task.Delay(100);
 
@@ -1179,7 +1180,7 @@ public class BackplaneTests
 		Assert.Equal(1, bar1);
 		Assert.Equal(1, baz1);
 
-		await cache1.ExpireByTagAsync("blah");
+		await cache1.RemoveByTagAsync("blah");
 
 		await Task.Delay(100);
 
@@ -1191,7 +1192,7 @@ public class BackplaneTests
 		Assert.Equal(1, bar2);
 		Assert.Equal(1, baz2);
 
-		await cache2.ExpireByTagAsync("y");
+		await cache2.RemoveByTagAsync("y");
 
 		await Task.Delay(100);
 

@@ -20,7 +20,6 @@ using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
-using FusionCacheTests.Stuff;
 
 namespace FusionCacheTests;
 

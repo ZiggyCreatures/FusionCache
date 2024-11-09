@@ -151,7 +151,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
 	/// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
-	public FusionCacheEntryOptions? ExpireByTagDefaultEntryOptions { get; set; }
+	public FusionCacheEntryOptions? RemoveByTagDefaultEntryOptions { get; set; }
 
 	/// <summary>
 	/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
@@ -453,7 +453,7 @@ public class FusionCacheOptions
 			CacheKeyPrefix = CacheKeyPrefix,
 
 			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
-			ExpireByTagDefaultEntryOptions = ExpireByTagDefaultEntryOptions?.Duplicate(),
+			RemoveByTagDefaultEntryOptions = RemoveByTagDefaultEntryOptions?.Duplicate(),
 
 			EnableAutoRecovery = EnableAutoRecovery,
 			AutoRecoveryDelay = AutoRecoveryDelay,

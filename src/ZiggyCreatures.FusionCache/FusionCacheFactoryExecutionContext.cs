@@ -121,6 +121,11 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		get { return LastModified.HasValue; }
 	}
 
+	/// <summary>
+	/// The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
 	public string[]? Tags { get; set; }
 
 	/// <summary>

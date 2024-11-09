@@ -17,12 +17,24 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <param name="value">The actual value.</param>
 	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
-	public FusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp)
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
+	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp, string[]? tags)
 	{
 		Value = value;
 		Tags = tags;
 		Metadata = metadata;
 		Timestamp = timestamp;
+	}
+
+	/// <summary>
+	/// Creates a new instance.
+	/// </summary>
+	/// <param name="value">The actual value.</param>
+	/// <param name="metadata">The metadata for the entry.</param>
+	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
+	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp)
+		: this(value, metadata, timestamp, FusionCacheInternalUtils.NoTags)
+	{
 	}
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -42,16 +54,16 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	public TValue Value { get; set; }
 
 	/// <inheritdoc/>
-	[DataMember(Name = "x", EmitDefaultValue = false)]
-	public string[]? Tags { get; set; }
-
-	/// <inheritdoc/>
 	[DataMember(Name = "m", EmitDefaultValue = false)]
 	public FusionCacheEntryMetadata? Metadata { get; set; }
 
 	/// <inheritdoc/>
 	[DataMember(Name = "t", EmitDefaultValue = false)]
 	public long Timestamp { get; set; }
+
+	/// <inheritdoc/>
+	[DataMember(Name = "x", EmitDefaultValue = false)]
+	public string[]? Tags { get; set; }
 
 	/// <inheritdoc/>
 	public TValue1 GetValue<TValue1>()
@@ -69,7 +81,6 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	public override string ToString()
 	{
 		// TODO: SHOULD WE ALSO INCLUDE TAGS?
-
 		if (Metadata is null)
 			return "[]";
 
@@ -84,10 +95,10 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
-			tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
 			timestamp
-		);
+,
+			tags);
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -112,9 +123,9 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
-			entry.Tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp
-		);
+,
+			entry.Tags);
 	}
 }

@@ -25,7 +25,7 @@ internal partial class SerializableFusionCacheDistributedEntry<TValue>
 	[MemoryPackConstructor]
 	SerializableFusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp)
 	{
-		this.Entry = new FusionCacheDistributedEntry<TValue>(value, tags, metadata, timestamp);
+		this.Entry = new FusionCacheDistributedEntry<TValue>(value, metadata, timestamp, tags);
 	}
 
 	public SerializableFusionCacheDistributedEntry(FusionCacheDistributedEntry<TValue>? entry)
