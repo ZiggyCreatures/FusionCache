@@ -275,8 +275,9 @@ public sealed partial class FusionCache
 		if (tag is null)
 			throw new ArgumentNullException(nameof(tag));
 
-		if (tag == ClearTag)
-			throw new ArgumentOutOfRangeException(nameof(tag), $"The tag '{ClearTag}' is reserved and cannot be used.");
+		// TODO: SHOULD WE KEEP THIS CHECK, AND SOMEHOW BYPASS IT INTERNALLY?
+		//if (tag == ClearTag)
+		//	throw new ArgumentOutOfRangeException(nameof(tag), $"The tag '{ClearTag}' is reserved and cannot be used.");
 	}
 
 	private static void ValidateTags(IEnumerable<string>? tags)
