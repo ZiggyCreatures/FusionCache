@@ -41,18 +41,6 @@ public interface IFusionCache
 
 	// GET OR SET
 
-	///// <summary>
-	///// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.
-	///// </summary>
-	///// <typeparam name="TValue">The type of the value in the cache.</typeparam>
-	///// <param name="key">The cache key which identifies the entry in the cache.</param>
-	///// <param name="factory">The function which will be called if the value is not found in the cache.</param>
-	///// <param name="failSafeDefaultValue">In case fail-safe is activated and there's no stale data to use, this value will be used instead of throwing an exception.</param>
-	///// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
-	///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	///// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
-	//ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
-
 	/// <summary>
 	/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="factory"/> will be called and the returned value saved according to the <paramref name="options"/> provided.
 	/// </summary>
@@ -143,17 +131,6 @@ public interface IFusionCache
 	MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// SET
-
-	///// <summary>
-	///// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/> with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
-	///// </summary>
-	///// <typeparam name="TValue">The type of the value in the cache.</typeparam>
-	///// <param name="key">The cache key which identifies the entry in the cache.</param>
-	///// <param name="value">The value to put in the cache.</param>
-	///// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
-	///// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	///// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	//ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Put the <paramref name="value"/> in the cache for the specified <paramref name="key"/>, optionally tagged with the specified <paramref name="tags"/>, with the provided <paramref name="options"/>. If a value is already there it will be overwritten.
