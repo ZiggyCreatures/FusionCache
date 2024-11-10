@@ -102,17 +102,21 @@ public class ParallelComparisonBenchmark
 			Parallel.ForEach(Keys, key =>
 			{
 				Parallel.For(0, Accessors, _ =>
-			   {
-				   var t = _FusionCache.GetOrSetAsync<SamplePayload>(
-					  key,
-					  async ct =>
-					  {
-						  await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-						  return new SamplePayload();
-					  }
-				  );
-				   tasks.Add(t.AsTask());
-			   });
+				{
+					var t = _FusionCache.GetOrSetAsync<SamplePayload>(
+						key,
+						async (ctx, ct) =>
+						{
+							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+							return new SamplePayload();
+						},
+						default,
+						null,
+						null,
+						default
+					);
+					tasks.Add(t.AsTask());
+				});
 			});
 
 			await Task.WhenAll(tasks).ConfigureAwait(false);
