@@ -60,30 +60,6 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public bool HasDistributedCache
-	{
-		get { return false; }
-	}
-
-	/// <inheritdoc/>
-	public bool HasBackplane
-	{
-		get { return false; }
-	}
-
-	/// <inheritdoc/>
-	public FusionCacheEventsHub Events
-	{
-		get { return _events; }
-	}
-
-	/// <inheritdoc/>
-	public void AddPlugin(IFusionCachePlugin plugin)
-	{
-		// EMPTY
-	}
-
-	/// <inheritdoc/>
 	public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 	{
 		var res = _options.DefaultEntryOptions.Duplicate(duration);
@@ -91,28 +67,12 @@ public class NullFusionCache
 		return res;
 	}
 
-	/// <inheritdoc/>
-	public void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		// EMPTY
-	}
+	// GET OR SET
 
 	/// <inheritdoc/>
-	public ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return new ValueTask();
-	}
-
-	/// <inheritdoc/>
-	public TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		return defaultValue;
-	}
-
-	/// <inheritdoc/>
-	public ValueTask<TValue?> GetOrDefaultAsync<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		return new ValueTask<TValue?>(defaultValue);
+		return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
 	}
 
 	/// <inheritdoc/>
@@ -122,34 +82,60 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	{
-		return defaultValue;
-	}
-
-	///// <inheritdoc/>
-	//public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	//{
-	//	return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
-	//}
-
-	/// <inheritdoc/>
-	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
-	{
-		return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
-	}
-
-	/// <inheritdoc/>
-	public ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		return new ValueTask<TValue>(defaultValue);
 	}
 
 	/// <inheritdoc/>
-	public void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
+	{
+		return defaultValue;
+	}
+
+	// GET OR DEFAULT
+
+	/// <inheritdoc/>
+	public ValueTask<TValue?> GetOrDefaultAsync<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return new ValueTask<TValue?>(defaultValue);
+	}
+
+	/// <inheritdoc/>
+	public TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return defaultValue;
+	}
+
+	// TRY GET
+
+	/// <inheritdoc/>
+	public ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return new ValueTask<MaybeValue<TValue>>();
+	}
+
+	/// <inheritdoc/>
+	public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return default;
+	}
+
+	// SET
+
+	/// <inheritdoc/>
+	public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public void Set<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		// EMPTY
 	}
+
+	// REMOVE
 
 	/// <inheritdoc/>
 	public ValueTask RemoveAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
@@ -158,16 +144,62 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public IFusionCache RemoveBackplane()
+	public void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
-		return this;
+		// EMPTY
 	}
+
+	// EXPIRE
+
+	/// <inheritdoc/>
+	public ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		// EMPTY
+	}
+
+	// TAGGING
+
+	/// <inheritdoc/>
+	public ValueTask RemoveByTagAsync(string tag, CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public void RemoveByTag(string tag, CancellationToken token = default)
+	{
+		// EMPTY
+	}
+
+	// CLEAR
+
+	/// <inheritdoc/>
+	public ValueTask ClearAsync(CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public void Clear(CancellationToken token = default)
+	{
+		// EMPTY
+	}
+
+	// SERIALIZATION
 
 	/// <inheritdoc/>
 	public IFusionCache SetupSerializer(IFusionCacheSerializer serializer)
 	{
 		return this;
 	}
+
+	// DISTRIBUTED CACHE
 
 	/// <inheritdoc/>
 	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache)
@@ -188,22 +220,12 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public bool RemovePlugin(IFusionCachePlugin plugin)
+	public bool HasDistributedCache
 	{
-		return false;
+		get { return false; }
 	}
 
-	/// <inheritdoc/>
-	public void Set<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
-	{
-		// EMPTY
-	}
-
-	///// <inheritdoc/>
-	//public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	//{
-	//	return new ValueTask();
-	//}
+	// BACKPLANE
 
 	/// <inheritdoc/>
 	public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
@@ -212,44 +234,44 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
-	public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public IFusionCache RemoveBackplane()
 	{
-		return default;
+		return this;
 	}
 
 	/// <inheritdoc/>
-	public ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public bool HasBackplane
 	{
-		return new ValueTask<MaybeValue<TValue>>();
+		get { return false; }
 	}
+
+	// EVENTS
+
+	/// <inheritdoc/>
+	public FusionCacheEventsHub Events
+	{
+		get { return _events; }
+	}
+
+	// PLUGINS
+
+	/// <inheritdoc/>
+	public void AddPlugin(IFusionCachePlugin plugin)
+	{
+		// EMPTY
+	}
+
+	/// <inheritdoc/>
+	public bool RemovePlugin(IFusionCachePlugin plugin)
+	{
+		return false;
+	}
+
+	// DISPOSABLE
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
 		// EMTPY
-	}
-
-	///// <inheritdoc/>
-	//public async ValueTask<TValue> GetOrSetAsyncExp<TValue>(string key, IEnumerable<string>? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
-	//{
-	//	return await GetOrSetAsync<TValue>(key, factory, failSafeDefaultValue, options, token).ConfigureAwait(false);
-	//}
-
-	/// <inheritdoc/>
-	public ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
-	{
-		return new ValueTask();
-	}
-
-	/// <inheritdoc/>
-	public ValueTask RemoveByTagAsync(string tag, CancellationToken token = default)
-	{
-		return new ValueTask();
-	}
-
-	/// <inheritdoc/>
-	public ValueTask ClearAsync(CancellationToken token = default)
-	{
-		return new ValueTask();
 	}
 }

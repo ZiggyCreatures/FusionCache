@@ -74,8 +74,9 @@ public interface IFusionCache
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according to the <paramref name="options"/> provided.
@@ -84,8 +85,9 @@ public interface IFusionCache
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default);
 
 	// GET OR DEFAULT
 
@@ -227,6 +229,17 @@ public interface IFusionCache
 	ValueTask RemoveByTagAsync(string tag, CancellationToken token = default);
 
 	/// <summary>
+	/// Remove (or expire, based on fail-safe) all the entries tagged with the specified <paramref name="tag"/>.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	/// <param name="tag">The tag to use to identify the entries to remove.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	void RemoveByTag(string tag, CancellationToken token = default);
+
+	// CLEAR
+
+	/// <summary>
 	/// Remove (or expire, based on fail-safe) all the entries in the cache.
 	/// This works with all supported scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, cache key prefix usage, etc.
 	/// <br/><br/>
@@ -235,6 +248,15 @@ public interface IFusionCache
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	ValueTask ClearAsync(CancellationToken token = default);
+
+	/// <summary>
+	/// Remove (or expire, based on fail-safe) all the entries in the cache.
+	/// This works with all supported scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, cache key prefix usage, etc.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	void Clear(CancellationToken token = default);
 
 	// SERIALIZATION
 
