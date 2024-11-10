@@ -789,7 +789,7 @@ public partial class FusionCache
 		{
 			if (ClearTimestamp < 0)
 			{
-				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, SharedTagExpirationDataFactory, 0, _removeByTagDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, SharedTagExpirationDataFactoryAsync, 0, _removeByTagDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 
 				_tmp = Interlocked.Exchange(ref ClearTimestamp, _tmp);
 
@@ -815,7 +815,7 @@ public partial class FusionCache
 
 			foreach (var tag in tags)
 			{
-				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), SharedTagExpirationDataFactory, 0, _removeByTagDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), SharedTagExpirationDataFactoryAsync, 0, _removeByTagDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 				if (entryTimestamp <= tagExpiration)
 				{
 					// EXPIRED (BY TAG)

@@ -2117,6 +2117,45 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
+	public void CanRemoveByTag()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"]);
+		cache.Set<int>("bar", 2, tags: ["y", "z"]);
+		cache.GetOrSet<int>("baz", (_, _) => 3, tags: ["x", "z"]);
+
+		var foo1 = cache.GetOrSet<int>("foo", (_, _) => 11, tags: ["x", "y"]);
+		var bar1 = cache.GetOrSet<int>("bar", (_, _) => 22, tags: ["y", "z"]);
+		var baz1 = cache.GetOrSet<int>("baz", (_, _) => 33, tags: ["x", "z"]);
+
+		cache.RemoveByTag("x");
+
+		var foo2 = cache.GetOrDefault<int>("foo");
+		var bar2 = cache.GetOrSet<int>("bar", (_, _) => 222, tags: ["y", "z"]);
+		var baz2 = cache.GetOrSet<int>("baz", (_, _) => 333, tags: ["x", "z"]);
+
+		cache.RemoveByTag("y");
+
+		var foo3 = cache.GetOrSet<int>("foo", (_, _) => 1111, tags: ["x", "y"]);
+		var bar3 = cache.GetOrSet<int>("bar", (_, _) => 2222, tags: ["y", "z"]);
+		var baz3 = cache.GetOrSet<int>("baz", (_, _) => 3333, tags: ["x", "z"]);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(333, baz2);
+
+		Assert.Equal(1111, foo3);
+		Assert.Equal(2222, bar3);
+		Assert.Equal(333, baz3);
+	}
+
+	[Fact]
 	public async Task CanClearAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
@@ -2167,6 +2206,81 @@ public class MemoryLevelTests
 		var fooB2 = await cacheB.GetOrDefaultAsync<int>("foo");
 		var barB2 = await cacheB.GetOrDefaultAsync<int>("bar");
 		var bazB2 = await cacheB.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, fooA1);
+		Assert.Equal(2, barA1);
+		Assert.Equal(3, bazA1);
+
+		Assert.Equal(1, fooB1);
+		Assert.Equal(2, barB1);
+		Assert.Equal(3, bazB1);
+
+		Assert.Equal(0, fooA2);
+		Assert.Equal(0, barA2);
+		Assert.Equal(0, bazA2);
+
+		Assert.Equal(0, fooB2);
+		Assert.Equal(0, barB2);
+		Assert.Equal(0, bazB2);
+
+		// CACHE A HAS MORE THAN 0 ITEMS (CANNOT BE PRECISE, BECAUSE INTERNAL UNKNOWN BEHAVIOUR)
+		Assert.True(mcA.Count > 0);
+
+		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
+		Assert.Equal(0, mcB?.Count);
+	}
+
+	[Fact]
+	public void CanClear()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		// CACHE A: PASSING A MEMORY CACHE -> CANNOT EXECUTE RAW CLEAR
+		MemoryCache? mcA = new MemoryCache(new MemoryCacheOptions());
+		using var cacheA = new FusionCache(new FusionCacheOptions() { CacheName = "CACHE_A" }, mcA, logger: logger);
+
+		// CACHE B: NOT PASSING A MEMORY CACHE -> CAN EXECUTE RAW CLEAR
+		using var cacheB = new FusionCache(new FusionCacheOptions() { CacheName = "CACHE_B" }, logger: logger);
+		var mcB = TestsUtils.GetMemoryCache(cacheB) as MemoryCache;
+
+		cacheA.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cacheA.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cacheA.Set<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		cacheB.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cacheB.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cacheB.Set<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		// BOTH CACHES HAVE 3 ITEMS
+		Assert.Equal(3, mcA.Count);
+		Assert.Equal(3, mcB?.Count);
+
+		var fooA1 = cacheA.GetOrDefault<int>("foo");
+		var barA1 = cacheA.GetOrDefault<int>("bar");
+		var bazA1 = cacheA.GetOrDefault<int>("baz");
+
+		var fooB1 = cacheB.GetOrDefault<int>("foo");
+		var barB1 = cacheB.GetOrDefault<int>("bar");
+		var bazB1 = cacheB.GetOrDefault<int>("baz");
+
+		cacheA.Clear();
+		cacheB.Clear();
+
+		// CACHE A HAS 4 ITEMS (3 FOR ITEMS + 1 FOR THE * TAG)
+		Assert.Equal(4, mcA.Count);
+
+		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
+		Assert.Equal(0, mcB?.Count);
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
+		var fooA2 = cacheA.GetOrDefault<int>("foo");
+		var barA2 = cacheA.GetOrDefault<int>("bar");
+		var bazA2 = cacheA.GetOrDefault<int>("baz");
+
+		var fooB2 = cacheB.GetOrDefault<int>("foo");
+		var barB2 = cacheB.GetOrDefault<int>("bar");
+		var bazB2 = cacheB.GetOrDefault<int>("baz");
 
 		Assert.Equal(1, fooA1);
 		Assert.Equal(2, barA1);

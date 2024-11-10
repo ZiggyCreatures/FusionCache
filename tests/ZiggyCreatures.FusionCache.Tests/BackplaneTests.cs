@@ -15,7 +15,6 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
-using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace FusionCacheTests;
 
@@ -1044,6 +1043,61 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanRemoveByTag(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
+		var barKey = "bar:" + Guid.NewGuid().ToString("N");
+		var bazKey = "baz:" + Guid.NewGuid().ToString("N");
+
+		var xTag = "tag:x:" + Guid.NewGuid().ToString("N");
+		var yTag = "tag:y:" + Guid.NewGuid().ToString("N");
+		var zTag = "tag:z:" + Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+
+		cache1.Set<int>(fooKey, 1, tags: [xTag, yTag]);
+		cache2.Set<int>(barKey, 2, tags: [yTag, zTag]);
+		cache3.GetOrSet<int>(bazKey, (_, _) => 3, tags: [xTag, zTag]);
+
+		var foo1 = cache1.GetOrSet<int>(fooKey, (_, _) => 11, tags: [xTag, yTag]);
+		var bar1 = cache2.GetOrSet<int>(barKey, (_, _) => 22, tags: [yTag, zTag]);
+		var baz1 = cache3.GetOrSet<int>(bazKey, (_, _) => 33, tags: [xTag, zTag]);
+
+		cache1.RemoveByTag(xTag);
+
+		Thread.Sleep(100);
+
+		var foo2 = cache3.GetOrDefault<int>(fooKey);
+		var bar2 = cache1.GetOrSet<int>(barKey, (_, _) => 222, tags: [yTag, zTag]);
+		var baz2 = cache2.GetOrSet<int>(bazKey, (_, _) => 333, tags: [xTag, zTag]);
+
+		cache3.RemoveByTag(yTag);
+
+		Thread.Sleep(100);
+
+		var bar3 = cache3.GetOrSet<int>(barKey, (_, _) => 2222, tags: [yTag, zTag]);
+		var foo3 = cache2.GetOrSet<int>(fooKey, (_, _) => 1111, tags: [xTag, yTag]);
+		var baz3 = cache1.GetOrSet<int>(bazKey, (_, _) => 3333, tags: [xTag, zTag]);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(333, baz2);
+
+		Assert.Equal(1111, foo3);
+		Assert.Equal(2222, bar3);
+		Assert.Equal(333, baz3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanRemoveByTagWithCacheKeyPrefixAsync(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
@@ -1158,6 +1212,120 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanRemoveByTagWithCacheKeyPrefix(SerializerType serializerType)
+	{
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C3");
+
+		cache1.Set<int>("milk", 1, tags: ["beverage", "white"]);
+		cache1.Set<int>("coconut", 1, tags: ["food", "white"]);
+
+		cache2.Set<int>("orange", 1, tags: ["fruit", "orange"]);
+		cache2.GetOrSet<int>("banana", (ctx, _) =>
+		{
+			ctx.Tags = ["fruit", "yellow"];
+			return 1;
+		});
+
+		cache2.Set<int>("red_wine", 1, tags: ["beverage", "red"]);
+
+		cache3.Set<int>("trippa", 1, tags: ["food", "red"]);
+		cache3.Set<int>("risotto_milanese", 1, tags: ["food", "yellow"]);
+		cache3.Set<int>("kimchi", 1, tags: ["food", "red"]);
+
+		var milk1 = cache1.GetOrDefault<int>("milk");
+		var coconut1 = cache1.GetOrDefault<int>("coconut");
+		var orange1 = cache1.GetOrDefault<int>("orange");
+		var banana1 = cache1.GetOrDefault<int>("banana");
+		var redwine1 = cache1.GetOrDefault<int>("red_wine");
+		var trippa1 = cache1.GetOrDefault<int>("trippa");
+		var risotto1 = cache1.GetOrDefault<int>("risotto_milanese");
+		var kimchi1 = cache1.GetOrDefault<int>("kimchi");
+
+		Assert.Equal(1, milk1);
+		Assert.Equal(1, coconut1);
+		Assert.Equal(1, orange1);
+		Assert.Equal(1, banana1);
+		Assert.Equal(1, redwine1);
+		Assert.Equal(1, trippa1);
+		Assert.Equal(1, risotto1);
+		Assert.Equal(1, kimchi1);
+
+		cache3.RemoveByTag("red");
+
+		Thread.Sleep(100);
+
+		var milk2 = cache1.GetOrDefault<int>("milk");
+		var coconut2 = cache1.GetOrDefault<int>("coconut");
+		var orange2 = cache1.GetOrDefault<int>("orange");
+		var banana2 = cache1.GetOrDefault<int>("banana");
+		var redwine2 = cache1.GetOrDefault<int>("red_wine");
+		var trippa2 = cache1.GetOrDefault<int>("trippa");
+		var risotto2 = cache1.GetOrDefault<int>("risotto_milanese");
+		var kimchi2 = cache1.GetOrDefault<int>("kimchi");
+
+		Assert.Equal(1, milk2);
+		Assert.Equal(1, coconut2);
+		Assert.Equal(1, orange2);
+		Assert.Equal(1, banana2);
+		Assert.Equal(0, redwine2);
+		Assert.Equal(0, trippa2);
+		Assert.Equal(1, risotto2);
+		Assert.Equal(0, kimchi2);
+
+		cache2.RemoveByTag("yellow");
+
+		Thread.Sleep(100);
+
+		var milk3 = cache1.GetOrDefault<int>("milk");
+		var coconut3 = cache1.GetOrDefault<int>("coconut");
+		var orange3 = cache1.GetOrDefault<int>("orange");
+		var banana3 = cache1.GetOrDefault<int>("banana");
+		var redwine3 = cache1.GetOrDefault<int>("red_wine");
+		var trippa3 = cache1.GetOrDefault<int>("trippa");
+		var risotto3 = cache1.GetOrDefault<int>("risotto_milanese");
+		var kimchi3 = cache1.GetOrDefault<int>("kimchi");
+
+		Assert.Equal(1, milk3);
+		Assert.Equal(1, coconut3);
+		Assert.Equal(1, orange3);
+		Assert.Equal(0, banana3);
+		Assert.Equal(0, redwine3);
+		Assert.Equal(0, trippa3);
+		Assert.Equal(0, risotto3);
+		Assert.Equal(0, kimchi3);
+
+		cache2.Clear();
+
+		Thread.Sleep(100);
+
+		var milk4 = cache1.GetOrDefault<int>("milk");
+		var coconut4 = cache1.GetOrDefault<int>("coconut");
+		var orange4 = cache1.GetOrDefault<int>("orange");
+		var banana4 = cache1.GetOrDefault<int>("banana");
+		var redwine4 = cache1.GetOrDefault<int>("red_wine");
+		var trippa4 = cache1.GetOrDefault<int>("trippa");
+		var risotto4 = cache1.GetOrDefault<int>("risotto_milanese");
+		var kimchi4 = cache1.GetOrDefault<int>("kimchi");
+
+		Assert.Equal(0, milk4);
+		Assert.Equal(0, coconut4);
+		Assert.Equal(0, orange4);
+		Assert.Equal(0, banana4);
+		Assert.Equal(0, redwine4);
+		Assert.Equal(0, trippa4);
+		Assert.Equal(0, risotto4);
+		Assert.Equal(0, kimchi4);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task RemoveByTagDoesNotRemoveTagDataAsync(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
@@ -1199,6 +1367,55 @@ public class BackplaneTests
 		var foo3 = await cache2.GetOrDefaultAsync<int>("foo");
 		var bar3 = await cache1.GetOrDefaultAsync<int>("bar");
 		var baz3 = await cache2.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, foo3);
+		Assert.Equal(0, bar3);
+		Assert.Equal(0, baz3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void RemoveByTagDoesNotRemoveTagData(SerializerType serializerType)
+	{
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+
+		cache1.Set<int>("foo", 1, tags: ["x", "y", "z"]);
+		cache1.Set<int>("bar", 1, tags: ["x", "y", "z"]);
+		cache1.Set<int>("baz", 1, tags: ["x", "y", "z"]);
+
+		var foo1 = cache2.GetOrDefault<int>("foo");
+		var bar1 = cache2.GetOrDefault<int>("bar");
+		var baz1 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(1, bar1);
+		Assert.Equal(1, baz1);
+
+		cache1.RemoveByTag("blah");
+
+		Thread.Sleep(100);
+
+		var foo2 = cache1.GetOrDefault<int>("foo");
+		var bar2 = cache2.GetOrDefault<int>("bar");
+		var baz2 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, foo2);
+		Assert.Equal(1, bar2);
+		Assert.Equal(1, baz2);
+
+		cache2.RemoveByTag("y");
+
+		Thread.Sleep(100);
+
+		var foo3 = cache2.GetOrDefault<int>("foo");
+		var bar3 = cache1.GetOrDefault<int>("bar");
+		var baz3 = cache2.GetOrDefault<int>("baz");
 
 		Assert.Equal(0, foo3);
 		Assert.Equal(0, bar3);
@@ -1281,6 +1498,80 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanClear(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+
+		logger.LogInformation("STEP 1");
+
+		cache1.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cache1.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cache1.Set<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		logger.LogInformation("STEP 2");
+
+		var foo1_1 = cache1.GetOrDefault<int>("foo");
+		var bar1_1 = cache1.GetOrDefault<int>("bar");
+		var baz1_1 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, foo1_1);
+		Assert.Equal(2, bar1_1);
+		Assert.Equal(3, baz1_1);
+
+		logger.LogInformation("STEP 3");
+
+		var foo2_1 = cache2.GetOrDefault<int>("foo");
+		var bar2_1 = cache2.GetOrDefault<int>("bar");
+		var baz2_1 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, foo2_1);
+		Assert.Equal(2, bar2_1);
+		Assert.Equal(3, baz2_1);
+
+		logger.LogInformation("STEP 4");
+
+		cache2.Clear();
+
+		logger.LogInformation("STEP 5");
+
+		cache2.Set<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		logger.LogInformation("STEP 6");
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
+		logger.LogInformation("STEP 7");
+
+		var foo1_2 = cache1.GetOrDefault<int>("foo");
+		var bar1_2 = cache1.GetOrDefault<int>("bar");
+		var baz1_2 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, foo1_2);
+		Assert.Equal(22, bar1_2);
+		Assert.Equal(0, baz1_2);
+
+		logger.LogInformation("STEP 8");
+
+		var foo2_2 = cache2.GetOrDefault<int>("foo");
+		var bar2_2 = cache2.GetOrDefault<int>("bar");
+		var baz2_2 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, foo2_2);
+		Assert.Equal(22, bar2_2);
+		Assert.Equal(0, baz2_2);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanClearWithColdStartsAsync(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
@@ -1314,6 +1605,45 @@ public class BackplaneTests
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 
 		var bar2_2 = await cache2.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, bar2_2);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanClearWithColdStarts(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+
+		cache1.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cache1.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		var foo1_1 = cache1.GetOrDefault<int>("foo");
+		var bar1_1 = cache1.GetOrDefault<int>("bar");
+
+		Assert.Equal(1, foo1_1);
+		Assert.Equal(2, bar1_1);
+
+		cache1.Clear();
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
+		var foo1_2 = cache1.GetOrDefault<int>("foo");
+
+		Assert.Equal(0, foo1_2);
+
+		// SIMULATE A COLD START BY ADDING A NEW CACHE INSTANCE LATER
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+
+		var bar2_2 = cache2.GetOrDefault<int>("bar");
 
 		Assert.Equal(0, bar2_2);
 	}
