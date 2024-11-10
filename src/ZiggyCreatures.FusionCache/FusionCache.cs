@@ -69,17 +69,25 @@ public sealed partial class FusionCache
 	private readonly bool _removeByTagDefaultEntryOptionsSelfManaged = false;
 	private readonly FusionCacheEntryOptions _removeByTagDefaultEntryOptions;
 	private readonly FusionCacheEntryOptions _cascadeRemoveByTagEntryOptions;
-	internal const string ClearTag = "__*"; // MAYBE JUST USE "*" TO ALIGN WITH HybridCache ?
+	internal const string ClearTag = "__*"; // MAYBE JUST USE "*" TO ALIGN WITH HybridCache ? CHECK WITH MARC
 	internal readonly string ClearTagCacheKey;
 	internal readonly string ClearTagInternalCacheKey;
 	internal long ClearTimestamp;
 
-	private static Task<long> SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	private static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
 	{
 		if (ctx.HasStaleValue)
 			return Task.FromResult(ctx.StaleValue.Value);
 
 		return Task.FromResult(0L);
+	}
+
+	private static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	{
+		if (ctx.HasStaleValue)
+			return ctx.StaleValue.Value;
+
+		return 0L;
 	}
 
 	/// <summary>
