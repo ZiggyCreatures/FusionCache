@@ -224,9 +224,10 @@ public interface IFusionCache
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	/// <param name="tag">The tag to use to identify the entries to remove.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask RemoveByTagAsync(string tag, CancellationToken token = default);
+	ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Remove (or expire, based on fail-safe) all the entries tagged with the specified <paramref name="tag"/>.
@@ -234,8 +235,9 @@ public interface IFusionCache
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	/// <param name="tag">The tag to use to identify the entries to remove.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	void RemoveByTag(string tag, CancellationToken token = default);
+	void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// CLEAR
 
@@ -245,9 +247,10 @@ public interface IFusionCache
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask ClearAsync(CancellationToken token = default);
+	ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Remove (or expire, based on fail-safe) all the entries in the cache.
@@ -255,8 +258,9 @@ public interface IFusionCache
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	void Clear(CancellationToken token = default);
+	void Clear(FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// SERIALIZATION
 

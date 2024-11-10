@@ -166,13 +166,13 @@ public class NullFusionCache
 	// TAGGING
 
 	/// <inheritdoc/>
-	public ValueTask RemoveByTagAsync(string tag, CancellationToken token = default)
+	public ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		return new ValueTask();
 	}
 
 	/// <inheritdoc/>
-	public void RemoveByTag(string tag, CancellationToken token = default)
+	public void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		// EMPTY
 	}
@@ -180,13 +180,13 @@ public class NullFusionCache
 	// CLEAR
 
 	/// <inheritdoc/>
-	public ValueTask ClearAsync(CancellationToken token = default)
+	public ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		return new ValueTask();
 	}
 
 	/// <inheritdoc/>
-	public void Clear(CancellationToken token = default)
+	public void Clear(FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		// EMPTY
 	}
