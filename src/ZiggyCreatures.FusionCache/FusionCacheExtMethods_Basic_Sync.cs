@@ -18,9 +18,24 @@ public static partial class FusionCacheExtMethods
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token)
 	{
-		return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), token);
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+	}
+
+	/// <summary>
+	/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <paramref name="duration"/> provided.
+	/// </summary>
+	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, IEnumerable<string>? tags = null, CancellationToken token = default)
+	{
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -32,9 +47,24 @@ public static partial class FusionCacheExtMethods
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
 	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token)
 	{
-		return cache.GetOrSet<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+	}
+
+	/// <summary>
+	/// Get the value of type <typeparamref name="TValue"/> in the cache for the specified <paramref name="key"/>: if not there, the <paramref name="defaultValue"/> will be saved according with the <see cref="FusionCacheEntryOptions"/> resulting by calling the provided <paramref name="setupAction"/> lambda.
+	/// </summary>
+	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
+	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, IEnumerable<string>? tags = null, CancellationToken token = default)
+	{
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	#endregion

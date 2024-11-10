@@ -410,7 +410,7 @@ public partial class FusionCache
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
@@ -428,7 +428,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, FusionCacheInternalUtils.NoTags, (_, _) => Task.FromResult(defaultValue), false, default, options, activity, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, tags, (_, _) => Task.FromResult(defaultValue), false, default, options, activity, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{
@@ -868,6 +868,8 @@ public partial class FusionCache
 			token
 		);
 	}
+
+	// CLEAR
 
 	/// <inheritdoc/>
 	public async ValueTask ClearAsync(CancellationToken token = default)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
@@ -393,6 +394,6 @@ internal sealed partial class BackplaneAccessor
 
 		// RESET THE CLEAR TIMESTAMP, SO THAT AT THE NEXT TIME
 		// IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
-		_cache.ClearTimestamp = -1;
+		Interlocked.Exchange(ref _cache.ClearTimestamp, -1);
 	}
 }
