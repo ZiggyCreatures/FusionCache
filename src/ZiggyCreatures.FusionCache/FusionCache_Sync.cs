@@ -854,14 +854,14 @@ public partial class FusionCache
 	}
 
 	/// <inheritdoc/>
-	public void RemoveByTag(string tag, CancellationToken token = default)
+	public void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		ValidateTag(tag);
 
 		Set(
 			GetTagCacheKey(tag),
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			_removeByTagDefaultEntryOptions,
+			options ?? _removeByTagDefaultEntryOptions,
 			FusionCacheInternalUtils.NoTags,
 			token
 		);
@@ -870,7 +870,7 @@ public partial class FusionCache
 	// CLEAR
 
 	/// <inheritdoc/>
-	public void Clear(CancellationToken token = default)
+	public void Clear(FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		var operationId = MaybeGenerateOperationId();
 
@@ -879,7 +879,7 @@ public partial class FusionCache
 		if (TryExecuteRawClear(operationId))
 			return;
 
-		RemoveByTag(ClearTag, token);
+		RemoveByTag(ClearTag, options, token);
 	}
 
 	// DISTRIBUTED ACTIONS

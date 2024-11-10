@@ -856,14 +856,14 @@ public partial class FusionCache
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask RemoveByTagAsync(string tag, CancellationToken token = default)
+	public async ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		ValidateTag(tag);
 
 		await SetAsync(
 			GetTagCacheKey(tag),
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			_removeByTagDefaultEntryOptions,
+			options ?? _removeByTagDefaultEntryOptions,
 			FusionCacheInternalUtils.NoTags,
 			token
 		);
@@ -872,7 +872,7 @@ public partial class FusionCache
 	// CLEAR
 
 	/// <inheritdoc/>
-	public async ValueTask ClearAsync(CancellationToken token = default)
+	public async ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		var operationId = MaybeGenerateOperationId();
 
@@ -881,7 +881,7 @@ public partial class FusionCache
 		if (TryExecuteRawClear(operationId))
 			return;
 
-		await RemoveByTagAsync(ClearTag, token);
+		await RemoveByTagAsync(ClearTag, options, token);
 	}
 
 	// DISTRIBUTED ACTIONS
