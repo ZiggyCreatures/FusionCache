@@ -143,8 +143,8 @@ FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is
 
 Yes!
 
-FusionCache is being used **in production** on **real world projects** for years, happily handling millions of requests.
+FusionCache is being used **in production** on **real world projects** for years, happily handling billions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **6 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **8 million times** (thanks everybody!) it may very well be used even more.
 
 And again, if you are using it please [**✉ drop me a line**](https://twitter.com/jodydonetti), I'd like to know!
