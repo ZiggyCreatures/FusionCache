@@ -4,7 +4,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
-using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -209,11 +208,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredKeyedLogger(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.WithRegisteredLogger();
-		b.LoggerServiceKey = serviceKey;
+		builder.WithRegisteredLogger();
+		builder.LoggerServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -399,11 +395,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredKeyedMemoryCache(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.WithRegisteredMemoryCache();
-		b.MemoryCacheServiceKey = serviceKey;
+		builder.WithRegisteredMemoryCache();
+		builder.MemoryCacheServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -603,11 +596,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredKeyedMemoryLocker(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.WithRegisteredMemoryLocker();
-		b.MemoryLockerServiceKey = serviceKey;
+		builder.WithRegisteredMemoryLocker();
+		builder.MemoryLockerServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -773,11 +763,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredKeyedSerializer(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.WithRegisteredSerializer();
-		b.SerializerServiceKey = serviceKey;
+		builder.WithRegisteredSerializer();
+		builder.SerializerServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -949,11 +936,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredKeyedDistributedCache(this IFusionCacheBuilder builder, object? serviceKey, bool ignoreMemoryDistributedCache = true)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.WithRegisteredDistributedCache(ignoreMemoryDistributedCache);
-		b.DistributedCacheServiceKey = serviceKey;
+		builder.WithRegisteredDistributedCache(ignoreMemoryDistributedCache);
+		builder.DistributedCacheServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -1186,11 +1170,8 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithRegisteredKeyedBackplane(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.WithRegisteredBackplane();
-		b.BackplaneServiceKey = serviceKey;
+		builder.WithRegisteredBackplane();
+		builder.BackplaneServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -1365,10 +1346,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithAllRegisteredKeyedPlugins(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.PluginsServiceKey = serviceKey;
+		builder.PluginsServiceKey = serviceKey;
 
 		return builder;
 	}
@@ -1415,10 +1393,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithoutAllRegisteredKeyedPlugins(this IFusionCacheBuilder builder)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.PluginsServiceKey = null;
+		builder.PluginsServiceKey = null;
 
 		return builder;
 	}
@@ -1587,10 +1562,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder, object? serviceKey)
 	{
-		if ((builder is FusionCacheBuilder b) == false)
-			throw new InvalidOperationException("This builder does not support keyed services: maybe you need to update the FusionCache package reference to a version >= 1.2.0.");
-
-		b.Services.AddKeyedSingleton<IFusionCache>(serviceKey, (serviceProvider, key) =>
+		builder.Services.AddKeyedSingleton<IFusionCache>(serviceKey, (serviceProvider, key) =>
 		{
 			if (key is string stringKey && stringKey == FusionCacheOptions.DefaultCacheName)
 			{

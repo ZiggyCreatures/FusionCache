@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
@@ -23,12 +24,22 @@ public interface IFusionCacheBuilder
 	/// </summary>
 	string CacheName { get; }
 
+	/// <summary>
+	/// The <see cref="IServiceCollection"/> instance to use for the builder when working with the DI container.
+	/// </summary>
+	public IServiceCollection Services { get; }
+
 	#region LOGGER
 
 	/// <summary>
 	/// Indicates if the builder should try find and use an <see cref="ILogger{FusionCache}"/> service registered in the DI container.
 	/// </summary>
 	bool UseRegisteredLogger { get; set; }
+
+	/// <summary>
+	/// The keyed service key to use for the logger.
+	/// </summary>
+	public object? LoggerServiceKey { get; set; }
 
 	/// <summary>
 	/// A specific <see cref="ILogger{FusionCache}"/> instance to be used.
@@ -105,6 +116,11 @@ public interface IFusionCacheBuilder
 	IMemoryCache? MemoryCache { get; set; }
 
 	/// <summary>
+	/// The keyed service key to use for the memory cache.
+	/// </summary>
+	public object? MemoryCacheServiceKey { get; set; }
+
+	/// <summary>
 	/// A factory that creates the <see cref="IMemoryCache"/> instance to be used.
 	/// </summary>
 	Func<IServiceProvider, IMemoryCache>? MemoryCacheFactory { get; set; }
@@ -122,6 +138,11 @@ public interface IFusionCacheBuilder
 	/// Indicates if the builder should try find and use an <see cref="IFusionCacheMemoryLocker"/> service registered in the DI container.
 	/// </summary>
 	bool UseRegisteredMemoryLocker { get; set; }
+
+	/// <summary>
+	/// The keyed service key to use for the memory locker.
+	/// </summary>
+	public object? MemoryLockerServiceKey { get; set; }
 
 	/// <summary>
 	/// A specific <see cref="IFusionCacheMemoryLocker"/> instance to be used.
@@ -148,6 +169,11 @@ public interface IFusionCacheBuilder
 	bool UseRegisteredSerializer { get; set; }
 
 	/// <summary>
+	/// The keyed service key to use for the memory serializer.
+	/// </summary>
+	public object? SerializerServiceKey { get; set; }
+
+	/// <summary>
 	/// A specific <see cref="IFusionCacheSerializer"/> instance to be used.
 	/// </summary>
 	IFusionCacheSerializer? Serializer { get; set; }
@@ -170,6 +196,11 @@ public interface IFusionCacheBuilder
 	/// Indicates if the builder should try find and use an <see cref="IDistributedCache"/> service registered in the DI container.
 	/// </summary>
 	bool UseRegisteredDistributedCache { get; set; }
+
+	/// <summary>
+	/// The keyed service key to use for the distributed cache.
+	/// </summary>
+	public object? DistributedCacheServiceKey { get; set; }
 
 	/// <summary>
 	/// When trying to find an <see cref="IDistributedCache"/> service registered in the DI container, ignore it if it is of type <see cref="MemoryDistributedCache"/>, since that is not really a distributed cache and it's automatically registered by ASP.NET MVC without control from the user.
@@ -201,6 +232,11 @@ public interface IFusionCacheBuilder
 	bool UseRegisteredBackplane { get; set; }
 
 	/// <summary>
+	/// The keyed service key to use for the backplane.
+	/// </summary>
+	public object? BackplaneServiceKey { get; set; }
+
+	/// <summary>
 	/// A specific <see cref="IFusionCacheBackplane"/> instance to be used.
 	/// </summary>
 	IFusionCacheBackplane? Backplane { get; set; }
@@ -223,6 +259,11 @@ public interface IFusionCacheBuilder
 	/// Indicates if the builder should try find and use any available <see cref="IFusionCachePlugin"/> services registered in the DI container.
 	/// </summary>
 	bool UseAllRegisteredPlugins { get; set; }
+
+	/// <summary>
+	/// The keyed service key to use for the plugins.
+	/// </summary>
+	public object? PluginsServiceKey { get; set; }
 
 	/// <summary>
 	/// A specific set of <see cref="IFusionCachePlugin"/> instances to be used.

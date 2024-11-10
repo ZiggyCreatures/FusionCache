@@ -44,6 +44,15 @@ internal sealed class FusionCacheBuilder
 	public Func<IServiceProvider, ILogger<FusionCache>>? LoggerFactory { get; set; }
 	public bool ThrowIfMissingLogger { get; set; }
 
+	public bool UseRegisteredOptions { get; set; }
+	public FusionCacheOptions? Options { get; set; }
+	public bool UseCacheKeyPrefix { get; set; }
+	public string? CacheKeyPrefix { get; set; }
+	public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
+
+	public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
+	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
+
 	public bool UseRegisteredMemoryCache { get; set; }
 	public object? MemoryCacheServiceKey { get; set; }
 	public IMemoryCache? MemoryCache { get; set; }
@@ -55,15 +64,6 @@ internal sealed class FusionCacheBuilder
 	public IFusionCacheMemoryLocker? MemoryLocker { get; set; }
 	public Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
 	public bool ThrowIfMissingMemoryLocker { get; set; }
-
-	public bool UseRegisteredOptions { get; set; }
-	public FusionCacheOptions? Options { get; set; }
-	public bool UseCacheKeyPrefix { get; set; }
-	public string? CacheKeyPrefix { get; set; }
-	public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
-
-	public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
-	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 	public bool UseRegisteredSerializer { get; set; }
 	public object? SerializerServiceKey { get; set; }
