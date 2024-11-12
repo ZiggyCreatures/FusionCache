@@ -74,14 +74,10 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		Value = value;
 	}
 
+	/// <inheritdoc/>
 	public override string ToString()
 	{
-		// TODO: SHOULD WE ALSO INCLUDE TAGS?
-
-		if (Metadata is null)
-			return "[]";
-
-		return Metadata.ToString();
+		return FusionCacheInternalUtils.ToLogString(this) ?? "";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
