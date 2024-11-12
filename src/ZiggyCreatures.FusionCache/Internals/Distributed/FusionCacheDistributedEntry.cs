@@ -80,11 +80,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		// TODO: SHOULD WE ALSO INCLUDE TAGS?
-		if (Metadata is null)
-			return "[]";
-
-		return Metadata.ToString();
+		return FusionCacheInternalUtils.ToLogString(this) ?? "";
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
@@ -96,9 +92,9 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
-			timestamp
-,
-			tags);
+			timestamp,
+			tags
+		);
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -124,8 +120,8 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
-			entry.Timestamp
-,
-			entry.Tags);
+			entry.Timestamp,
+			entry.Tags
+		);
 	}
 }

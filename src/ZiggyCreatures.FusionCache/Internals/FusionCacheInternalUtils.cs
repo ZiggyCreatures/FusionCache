@@ -51,7 +51,9 @@ internal static class FusionCacheInternalUtils
 	}
 
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
+	private const string DateTimeOffsetFormatString = "yyyy-MM-ddTHH:mm:ss.ffffff";
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
+	private static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
 	internal static readonly string[]? NoTags = null;
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -83,6 +85,7 @@ internal static class FusionCacheInternalUtils
 		return ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Remove(new KeyValuePair<TKey, TValue>(key, value));
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsLogicallyExpired(this IFusionCacheEntry? entry)
 	{
 		if (entry?.Metadata is null)
@@ -90,8 +93,6 @@ internal static class FusionCacheInternalUtils
 
 		return entry.Metadata.IsLogicallyExpired();
 	}
-
-	public static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
 
 	public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
 	{
@@ -118,7 +119,7 @@ internal static class FusionCacheInternalUtils
 		if (delta.TotalHours > -1 && delta.TotalHours < 1)
 			return delta.TotalMinutes.ToString("0") + "m";
 
-		return dt.ToString("o");
+		return dt.ToString(DateTimeOffsetFormatString);
 	}
 
 	public static string? ToLogString_Expiration(this DateTimeOffset? dt)
@@ -129,12 +130,17 @@ internal static class FusionCacheInternalUtils
 		return dt.Value.ToLogString_Expiration();
 	}
 
+	public static string? ToLogString(this DateTimeOffset dt)
+	{
+		return dt.ToString(DateTimeOffsetFormatString);
+	}
+
 	public static string? ToLogString(this DateTimeOffset? dt)
 	{
 		if (dt is null)
 			return "/";
 
-		return dt.Value.ToString("o");
+		return dt.Value.ToString(DateTimeOffsetFormatString);
 	}
 
 	public static string? ToLogString(this MemoryCacheEntryOptions? options)
@@ -142,7 +148,7 @@ internal static class FusionCacheInternalUtils
 		if (options is null)
 			return null;
 
-		return $"MEO[CEXP={options.AbsoluteExpiration!.Value.ToLogString_Expiration()} PR={options.Priority.ToLogString()} S={options.Size?.ToString()}]";
+		return $"MEO[CEXP={options.AbsoluteExpiration!.Value.ToLogString_Expiration()}, PR={options.Priority.ToLogString()}, S={options.Size?.ToString()}]";
 	}
 
 	public static string? ToLogString(this DistributedCacheEntryOptions? options)
@@ -166,7 +172,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is null)
 			return null;
 
-		return "FE@" + entry.Timestamp + entry.ToString();
+		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})@{ToLogString(new DateTimeOffset(entry.Timestamp, TimeSpan.Zero))}[T={string.Join(",", entry.Tags ?? [])}]{entry.Metadata?.ToString() ?? "[]"}";
 	}
 
 	public static string? ToLogString(this TimeSpan ts)
