@@ -172,7 +172,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is null)
 			return null;
 
-		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})@{ToLogString(new DateTimeOffset(entry.Timestamp, TimeSpan.Zero))}[T={string.Join(",", entry.Tags ?? [])}]{entry.Metadata?.ToString() ?? "[]"}";
+		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})@{new DateTimeOffset(entry.Timestamp, TimeSpan.Zero).ToLogString()}[T={string.Join(",", entry.Tags ?? [])}]{entry.Metadata?.ToString() ?? "[]"}";
 	}
 
 	public static string? ToLogString(this TimeSpan ts)
