@@ -80,7 +80,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return FusionCacheInternalUtils.ToLogString(this) ?? "";
+		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
