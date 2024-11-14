@@ -432,6 +432,15 @@ public class FusionCacheOptions
 	/// </summary>
 	public LogLevel PluginsErrorsLogLevel { get; set; }
 
+	/// <summary>
+	/// Include tags when logging a cache entry: since tags may contain sensitive data, be careful about enabling this.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	public bool IncludeTagsInLogs { get; set; }
+
 	FusionCacheOptions IOptions<FusionCacheOptions>.Value
 	{
 		get { return this; }
@@ -491,6 +500,8 @@ public class FusionCacheOptions
 
 			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
 			PluginsInfoLogLevel = PluginsInfoLogLevel,
+
+			IncludeTagsInLogs = IncludeTagsInLogs,
 		};
 
 		return res;

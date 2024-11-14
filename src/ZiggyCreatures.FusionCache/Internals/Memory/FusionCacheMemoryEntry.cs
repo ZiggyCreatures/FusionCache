@@ -77,7 +77,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return FusionCacheInternalUtils.ToLogString(this) ?? "";
+		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

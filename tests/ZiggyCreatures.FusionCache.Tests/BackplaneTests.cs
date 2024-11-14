@@ -30,7 +30,8 @@ public class BackplaneTests
 	{
 		var res = new FusionCacheOptions
 		{
-			CacheKeyPrefix = TestingCacheKeyPrefix
+			CacheKeyPrefix = TestingCacheKeyPrefix,
+			IncludeTagsInLogs = true,
 		};
 
 		return res;
