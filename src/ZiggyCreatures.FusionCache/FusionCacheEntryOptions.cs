@@ -50,10 +50,12 @@ public sealed class FusionCacheEntryOptions
 		AllowBackgroundBackplaneOperations = FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations;
 		ReThrowBackplaneExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowBackplaneExceptions;
 
-		SkipDistributedCache = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache;
+		SkipDistributedCacheRead = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheRead;
+		SkipDistributedCacheWrite = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheWrite;
 		SkipDistributedCacheReadWhenStale = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale;
 
-		SkipMemoryCache = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache;
+		SkipMemoryCacheRead = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheRead;
+		SkipMemoryCacheWrite = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheWrite;
 	}
 
 	/// <summary>
@@ -288,7 +290,31 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	public bool SkipDistributedCache { get; set; }
+	public bool SkipDistributedCache
+	{
+		get
+		{
+			return SkipDistributedCacheRead && SkipDistributedCacheWrite;
+		}
+		set
+		{
+			SkipDistributedCacheRead = SkipDistributedCacheWrite = value;
+		}
+	}
+
+	/// <summary>
+	/// Skip reading from the distributed cache, if any.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipDistributedCacheRead { get; set; }
+
+	/// <summary>
+	/// Skip writing to the distributed cache, if any.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipDistributedCacheWrite { get; set; }
 
 	/// <summary>
 	/// When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it.
@@ -308,7 +334,35 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	public bool SkipMemoryCache { get; set; }
+	public bool SkipMemoryCache
+	{
+		get
+		{
+			return SkipMemoryCacheRead && SkipMemoryCacheWrite;
+		}
+		set
+		{
+			SkipMemoryCacheRead = SkipMemoryCacheWrite = value;
+		}
+	}
+
+	/// <summary>
+	/// Skip reading from the memory cache.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipMemoryCacheRead { get; set; }
+
+	/// <summary>
+	/// Skip writing to the memory cache.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	public bool SkipMemoryCacheWrite { get; set; }
 
 	/// <summary>
 	/// Enable automatic cloning of the value being returned from the cache, by using the provided <see cref="IFusionCacheSerializer"/>.
@@ -322,7 +376,7 @@ public sealed class FusionCacheEntryOptions
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[LKTO={LockTimeout.ToLogString_Timeout()} DUR={Duration.ToLogString()} SKM={SkipMemoryCache.ToStringYN()} SKD={SkipDistributedCache.ToStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} SZ={Size.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} SBN={SkipBackplaneNotifications.ToStringYN()} ABBO={AllowBackgroundBackplaneOperations.ToStringYN()} AC={EnableAutoClone.ToStringYN()}]";
+		return $"[DUR={Duration.ToLogString()} LKTO={LockTimeout.ToLogString_Timeout()} SKMR={SkipMemoryCacheRead.ToStringYN()} SKMW={SkipMemoryCacheWrite.ToStringYN()} SKDR={SkipDistributedCacheRead.ToStringYN()} SKDW={SkipDistributedCacheWrite.ToStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} SZ={Size.ToLogString()} FS={IsFailSafeEnabled.ToStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToStringYN()} SBN={SkipBackplaneNotifications.ToStringYN()} ABBO={AllowBackgroundBackplaneOperations.ToStringYN()} AC={EnableAutoClone.ToStringYN()}]";
 	}
 
 	/// <summary>
@@ -579,16 +633,46 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the <see cref="SkipDistributedCache"/> option.
+	/// Set the <see cref="SkipDistributedCacheRead"/> and <see cref="SkipDistributedCacheWrite"/> options.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	/// <param name="skip">The value for the <see cref="SkipDistributedCache"/> option.</param>
+	/// <param name="skip">The value for the <see cref="SkipDistributedCacheRead"/> and <see cref="SkipDistributedCacheWrite"/> options.</param>
 	/// <param name="skipBackplaneNotifications">The value for the <see cref="SkipBackplaneNotifications"/> option: if set to <see langword="null"/>, no changes will be made.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSkipDistributedCache(bool skip, bool? skipBackplaneNotifications)
 	{
-		SkipDistributedCache = skip;
+		SkipDistributedCacheRead = skip;
+		SkipDistributedCacheWrite = skip;
+		if (skipBackplaneNotifications.HasValue)
+			SkipBackplaneNotifications = skipBackplaneNotifications.Value;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipDistributedCacheRead"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipDistributedCacheRead"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipDistributedCacheRead(bool skip)
+	{
+		SkipDistributedCacheRead = skip;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipDistributedCacheWrite"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipDistributedCacheWrite"/> option.</param>
+	/// <param name="skipBackplaneNotifications">The value for the <see cref="SkipBackplaneNotifications"/> option: if set to <see langword="null"/>, no changes will be made.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipDistributedCacheWrite(bool skip, bool? skipBackplaneNotifications)
+	{
+		SkipDistributedCacheWrite = skip;
 		if (skipBackplaneNotifications.HasValue)
 			SkipBackplaneNotifications = skipBackplaneNotifications.Value;
 		return this;
@@ -608,17 +692,48 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
-	/// Set the <see cref="SkipMemoryCache"/> option.
+	/// Set the <see cref="SkipMemoryCacheRead"/> and <see cref="SkipMemoryCacheWrite"/> options.
 	/// <br/><br/>
 	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	/// <param name="skip">The value for the <see cref="SkipMemoryCache"/> option.</param>
+	/// <param name="skip">The value for the <see cref="SkipMemoryCacheRead"/> and <see cref="SkipMemoryCacheWrite"/> options.</param>
 	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
 	public FusionCacheEntryOptions SetSkipMemoryCache(bool skip = true)
 	{
-		SkipMemoryCache = skip;
+		SkipMemoryCacheRead = skip;
+		SkipMemoryCacheWrite = skip;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipMemoryCacheRead"/> option.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipMemoryCacheRead"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipMemoryCacheRead(bool skip = true)
+	{
+		SkipMemoryCacheRead = skip;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="SkipMemoryCacheWrite"/> option.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this option must be used very carefully and is generally not recommended, as it will not protect you from some problems like Cache Stampede. Also, it can lead to a lot of extra work for the 2nd level (distributed cache) and a lot of extra network traffic.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipMemoryCacheWrite"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipMemoryCacheWrite(bool skip = true)
+	{
+		SkipMemoryCacheWrite = skip;
 		return this;
 	}
 
@@ -841,10 +956,12 @@ public sealed class FusionCacheEntryOptions
 
 			SkipBackplaneNotifications = SkipBackplaneNotifications,
 
-			SkipDistributedCache = SkipDistributedCache,
+			SkipDistributedCacheRead = SkipDistributedCacheRead,
+			SkipDistributedCacheWrite = SkipDistributedCacheWrite,
 			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
 
-			SkipMemoryCache = SkipMemoryCache,
+			SkipMemoryCacheRead = SkipMemoryCacheRead,
+			SkipMemoryCacheWrite = SkipMemoryCacheWrite,
 
 			EnableAutoClone = EnableAutoClone
 		};
