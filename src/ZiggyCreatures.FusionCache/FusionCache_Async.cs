@@ -27,8 +27,8 @@ public partial class FusionCache
 			// TRY WITH DISTRIBUTED CACHE (IF ANY)
 			try
 			{
-				var dca = GetCurrentDistributedAccessor(options);
-				if (dca.CanBeUsed(operationId, key))
+				var dca = DistributedCache;
+				if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 				{
 					FusionCacheDistributedEntry<TValue>? distributedEntry;
 					bool distributedEntryIsValid;
@@ -41,13 +41,12 @@ public partial class FusionCache
 							try
 							{
 								// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
-								var mca = GetCurrentMemoryAccessor(options);
-								if (mca is not null)
+								if (_mca.ShouldWrite(options))
 								{
 									if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 										_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
 
-									mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
+									_mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
 								}
 							}
 							finally
@@ -98,10 +97,9 @@ public partial class FusionCache
 		object? memoryLockObj = null;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
-		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
+		if (_mca.ShouldRead(options))
 		{
-			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
+			(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry(operationId, key);
 		}
 
 		// TAGGING
@@ -140,7 +138,7 @@ public partial class FusionCache
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 			// EVENT
-			_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry!.Metadata?.IsFromFailSafe ?? false), activity);
+			_events.OnHit(operationId, key, memoryEntryIsValid == false || memoryEntry!.IsStale(), activity);
 
 			return memoryEntry;
 		}
@@ -163,15 +161,15 @@ public partial class FusionCache
 				// --> USE IT (WITHOUT SAVING IT, SINCE THE ALREADY RUNNING FACTORY WILL DO IT ANYWAY)
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false), activity);
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || memoryEntry.IsStale(), activity);
 
 				return memoryEntry;
 			}
 
 			// TRY AGAIN WITH MEMORY CACHE (AFTER THE MEMORY LOCK HAS BEEN ACQUIRED, MAYBE SOMETHING CHANGED)
-			if (mca is not null)
+			if (_mca.ShouldRead(options))
 			{
-				(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
+				(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry(operationId, key);
 			}
 
 			// TAGGING
@@ -187,7 +185,7 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 				// EVENT
-				_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry?.Metadata?.IsFromFailSafe ?? false), activity);
+				_events.OnHit(operationId, key, memoryEntryIsValid == false || memoryEntry!.IsStale(), activity);
 
 				return memoryEntry;
 			}
@@ -196,14 +194,14 @@ public partial class FusionCache
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
-			var dca = GetCurrentDistributedAccessor(options);
-			if (dca.CanBeUsed(operationId, key))
+			var dca = DistributedCache;
+			if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 			{
-				if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) == false)
+				if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false)
 				{
 					token.ThrowIfCancellationRequested();
 
-					(distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
+					(distributedEntry, distributedEntryIsValid) = await _dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 				}
 			}
 
@@ -261,13 +259,11 @@ public partial class FusionCache
 						{
 							// FAIL
 
-							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+							UpdateAdaptiveOptions(ctx, ref options);
 
 							var errorMessage = ctx.ErrorMessage!;
 
 							ProcessFactoryError(operationId, key, errorMessage);
-
-							//MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
 
 							// ACTIVITY
 							activityForFactory?.SetStatus(ActivityStatusCode.Error, errorMessage);
@@ -290,7 +286,7 @@ public partial class FusionCache
 
 							hasNewValue = true;
 
-							UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+							UpdateAdaptiveOptions(ctx, ref options);
 
 							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, ctx.Tags, options, isStale, ctx.LastModified, ctx.ETag, null);
 
@@ -308,7 +304,7 @@ public partial class FusionCache
 					}
 					catch (Exception exc)
 					{
-						UpdateAdaptiveOptions(ctx, ref options, ref dca, ref mca);
+						UpdateAdaptiveOptions(ctx, ref options);
 
 						ProcessFactoryError(operationId, key, exc);
 
@@ -329,9 +325,9 @@ public partial class FusionCache
 			// SAVING THE DATA IN THE MEMORY CACHE
 			if (entry is not null)
 			{
-				if (mca is not null)
+				if (_mca.ShouldWrite(options))
 				{
-					mca.SetEntry<TValue>(operationId, key, entry, options, ReferenceEquals(memoryEntry, entry));
+					_mca.SetEntry<TValue>(operationId, key, entry, options, ReferenceEquals(memoryEntry, entry));
 				}
 			}
 		}
@@ -360,7 +356,7 @@ public partial class FusionCache
 		else if (entry is not null)
 		{
 			// EVENT
-			_events.OnHit(operationId, key, isStale || (entry?.Metadata?.IsFromFailSafe ?? false), activity);
+			_events.OnHit(operationId, key, isStale || entry.IsStale(), activity);
 		}
 		else
 		{
@@ -454,10 +450,9 @@ public partial class FusionCache
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 
-		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
+		if (_mca.ShouldRead(options))
 		{
-			(memoryEntry, memoryEntryIsValid) = mca.TryGetEntry(operationId, key);
+			(memoryEntry, memoryEntryIsValid) = _mca.TryGetEntry(operationId, key);
 		}
 
 		// TAGGING
@@ -479,15 +474,15 @@ public partial class FusionCache
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 			// EVENT
-			_events.OnHit(operationId, key, memoryEntry!.Metadata?.IsFromFailSafe ?? false, activity);
+			_events.OnHit(operationId, key, memoryEntry!.IsStale(), activity);
 
 			return memoryEntry;
 		}
 
-		var dca = GetCurrentDistributedAccessor(options);
+		var dca = DistributedCache;
 
 		// EARLY RETURN: NO USABLE DISTRIBUTED CACHE
-		if ((memoryEntry is not null && options.SkipDistributedCacheReadWhenStale) || dca.CanBeUsed(operationId, key) == false)
+		if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) || dca.CanBeUsed(operationId, key) == false)
 		{
 			if (options.IsFailSafeEnabled && memoryEntry is not null)
 			{
@@ -533,13 +528,13 @@ public partial class FusionCache
 			memoryEntry = distributedEntry!.AsMemoryEntry<TValue>(options);
 
 			// SAVING THE DATA IN THE MEMORY CACHE
-			if (mca is not null)
+			if (_mca.ShouldWrite(options))
 			{
-				mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+				_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
 			}
 
 			// EVENT
-			_events.OnHit(operationId, key, distributedEntry!.Metadata?.IsFromFailSafe ?? false, activity);
+			_events.OnHit(operationId, key, distributedEntry!.IsStale(), activity);
 
 			return memoryEntry;
 		}
@@ -557,9 +552,9 @@ public partial class FusionCache
 				memoryEntry = distributedEntry.AsMemoryEntry<TValue>(options);
 
 				// SAVING THE DATA IN THE MEMORY CACHE
-				if (mca is not null)
+				if (_mca.ShouldWrite(options))
 				{
-					mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
+					_mca.SetEntry<TValue>(operationId, key, memoryEntry, options);
 				}
 
 				// EVENT
@@ -684,10 +679,9 @@ public partial class FusionCache
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
 		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tags?.ToArray(), options, false, null, null, null);
 
-		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
+		if (_mca.ShouldWrite(options))
 		{
-			mca.SetEntry<TValue>(operationId, key, entry, options);
+			_mca.SetEntry<TValue>(operationId, key, entry, options);
 		}
 
 		if (RequiresDistributedOperations(options))
@@ -711,10 +705,9 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Remove, CacheName, InstanceId, key, operationId);
 
-		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
+		if (_mca.ShouldWrite(options))
 		{
-			mca.RemoveEntry(operationId, key, options);
+			_mca.RemoveEntry(operationId, key, options);
 		}
 
 		if (RequiresDistributedOperations(options))
@@ -752,10 +745,9 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Expire, CacheName, InstanceId, key, operationId);
 
-		var mca = GetCurrentMemoryAccessor(options);
-		if (mca is not null)
+		if (_mca.ShouldWrite(options))
 		{
-			mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
+			_mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
 		}
 
 		if (RequiresDistributedOperations(options))
@@ -787,9 +779,9 @@ public partial class FusionCache
 	{
 		if (ClearTagInternalCacheKey != key && CanExecuteRawClear() == false)
 		{
-			if (ClearTimestamp < 0)
+			if (ClearTimestamp < 0 || HasBackplane == false)
 			{
-				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, SharedTagExpirationDataFactoryAsync, 0, _removeByTagDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, SharedTagExpirationDataFactoryAsync, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 
 				_tmp = Interlocked.Exchange(ref ClearTimestamp, _tmp);
 
@@ -815,7 +807,7 @@ public partial class FusionCache
 
 			foreach (var tag in tags)
 			{
-				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), SharedTagExpirationDataFactoryAsync, 0, _removeByTagDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), SharedTagExpirationDataFactoryAsync, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 				if (entryTimestamp <= tagExpiration)
 				{
 					// EXPIRED (BY TAG)
@@ -863,7 +855,7 @@ public partial class FusionCache
 		await SetAsync(
 			GetTagCacheKey(tag),
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			options ?? _removeByTagDefaultEntryOptions,
+			options ?? _tagsDefaultEntryOptions,
 			FusionCacheInternalUtils.NoTags,
 			token
 		);
@@ -900,13 +892,13 @@ public partial class FusionCache
 			async ct1 =>
 			{
 				// DISTRIBUTED CACHE
-				var dca = GetCurrentDistributedAccessor(options);
-				if (dca is not null)
+				var dca = DistributedCache;
+				if (dca.ShouldWrite(options))
 				{
 					var dcaSuccess = false;
 					try
 					{
-						if (dca.IsCurrentlyUsable(operationId, key))
+						if (dca!.IsCurrentlyUsable(operationId, key))
 						{
 							dcaSuccess = await distributedCacheAction(dca, isBackground, ct1).ConfigureAwait(false);
 						}
@@ -931,13 +923,13 @@ public partial class FusionCache
 					async ct2 =>
 					{
 						// BACKPLANE
-						var bpa = GetCurrentBackplaneAccessor(options);
-						if (bpa is not null)
+						var bpa = Backplane;
+						if (bpa.ShouldWrite(options))
 						{
 							var bpaSuccess = false;
 							try
 							{
-								if (bpa.IsCurrentlyUsable(operationId, key))
+								if (bpa!.IsCurrentlyUsable(operationId, key))
 								{
 									bpaSuccess = await backplaneAction(bpa, isBackplaneBackground, ct2).ConfigureAwait(false);
 								}

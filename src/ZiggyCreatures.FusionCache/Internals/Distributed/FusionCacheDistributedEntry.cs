@@ -102,7 +102,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		//if (options.IsFailSafeEnabled == false && entry.Metadata is null && options.EagerRefreshThreshold.HasValue == false)
 		//	return new FusionCacheDistributedEntry<TValue>(entry.GetValue<TValue>(), null);
 
-		var isFromFailSafe = entry.Metadata?.IsFromFailSafe ?? false;
+		var isStale = entry.IsStale();
 
 		DateTimeOffset exp;
 
@@ -112,14 +112,14 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		}
 		else
 		{
-			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
+			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isStale ? options.FailSafeThrottleDuration : options.Duration, options, true);
 		}
 
-		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
+		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isStale, options.EagerRefreshThreshold, exp);
 
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
-			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
+			new FusionCacheEntryMetadata(exp, isStale, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp,
 			entry.Tags
 		);

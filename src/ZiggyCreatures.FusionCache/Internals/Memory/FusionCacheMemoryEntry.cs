@@ -140,7 +140,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 			);
 		}
 
-		var isFromFailSafe = entry.Metadata?.IsFromFailSafe ?? false;
+		var isStale = entry.IsStale();
 
 		DateTimeOffset exp;
 
@@ -150,15 +150,15 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		}
 		else
 		{
-			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
+			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isStale ? options.FailSafeThrottleDuration : options.Duration, options, true);
 		}
 
-		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
+		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isStale, options.EagerRefreshThreshold, exp);
 
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
 			entry.Tags,
-			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
+			new FusionCacheEntryMetadata(exp, isStale, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
 			entry.Timestamp
 		);
 	}

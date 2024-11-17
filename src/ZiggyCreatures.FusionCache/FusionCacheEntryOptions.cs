@@ -290,6 +290,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
+	[Obsolete("Please use the specific SkipDistributedCacheRead and SkipDistributedCacheWrite options. To set them both at the same time, you can use SetSkipDistributedCache(skip).")]
 	public bool SkipDistributedCache
 	{
 		get
@@ -334,6 +335,7 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
+	[Obsolete("Please use the specific SkipMemoryCacheRead and SkipMemoryCacheWrite options. To set them both at the same time, you can use SetSkipMemoryCache(skip).")]
 	public bool SkipMemoryCache
 	{
 		get

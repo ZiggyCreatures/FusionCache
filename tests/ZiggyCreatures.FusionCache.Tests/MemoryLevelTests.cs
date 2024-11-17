@@ -864,7 +864,8 @@ public class MemoryLevelTests
 
 		var foo2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
 		{
-			ctx.Options.SkipMemoryCache = true;
+			ctx.Options.SkipMemoryCacheRead = true;
+			ctx.Options.SkipMemoryCacheWrite = true;
 
 			return 2;
 		});
@@ -896,7 +897,8 @@ public class MemoryLevelTests
 
 		var foo2 = cache.GetOrSet<int>("foo", (ctx, _) =>
 		{
-			ctx.Options.SkipMemoryCache = true;
+			ctx.Options.SkipMemoryCacheRead = true;
+			ctx.Options.SkipMemoryCacheWrite = true;
 
 			return 2;
 		});
@@ -2303,5 +2305,63 @@ public class MemoryLevelTests
 
 		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
 		Assert.Equal(0, mcB?.Count);
+	}
+
+	[Fact]
+	public async Task CanSkipMemoryCacheReadAsync()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions());
+
+		await cache.SetAsync<int>("foo", 42, opt => opt.SetSkipMemoryCacheWrite());
+		var maybeFoo1 = await cache.TryGetAsync<int>("foo");
+		await cache.SetAsync<int>("foo", 42);
+		var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCacheRead());
+		var maybeFoo3 = await cache.TryGetAsync<int>("foo");
+		await cache.RemoveAsync("foo", opt => opt.SetSkipMemoryCacheWrite());
+		var maybeFoo4 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCacheRead());
+		var maybeFoo5 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCacheWrite());
+		await cache.RemoveAsync("foo", opt => opt.SetSkipMemoryCacheRead());
+		var maybeFoo6 = await cache.TryGetAsync<int>("foo");
+
+		await cache.GetOrSetAsync<int>("bar", 42, opt => opt.SetSkipMemoryCache());
+		var maybeBar = await cache.TryGetAsync<int>("bar");
+
+		Assert.False(maybeFoo1.HasValue);
+		Assert.False(maybeFoo2.HasValue);
+		Assert.True(maybeFoo3.HasValue);
+		Assert.False(maybeFoo4.HasValue);
+		Assert.True(maybeFoo5.HasValue);
+		Assert.False(maybeFoo6.HasValue);
+
+		Assert.False(maybeBar.HasValue);
+	}
+
+	[Fact]
+	public void CanSkipMemoryCacheRead()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions());
+
+		cache.Set<int>("foo", 42, opt => opt.SetSkipMemoryCacheWrite());
+		var maybeFoo1 = cache.TryGet<int>("foo");
+		cache.Set<int>("foo", 42);
+		var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCacheRead());
+		var maybeFoo3 = cache.TryGet<int>("foo");
+		cache.Remove("foo", opt => opt.SetSkipMemoryCacheWrite());
+		var maybeFoo4 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCacheRead());
+		var maybeFoo5 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCacheWrite());
+		cache.Remove("foo", opt => opt.SetSkipMemoryCacheRead());
+		var maybeFoo6 = cache.TryGet<int>("foo");
+
+		cache.GetOrSet<int>("bar", 42, opt => opt.SetSkipMemoryCache());
+		var maybeBar = cache.TryGet<int>("bar");
+
+		Assert.False(maybeFoo1.HasValue);
+		Assert.False(maybeFoo2.HasValue);
+		Assert.True(maybeFoo3.HasValue);
+		Assert.False(maybeFoo4.HasValue);
+		Assert.True(maybeFoo5.HasValue);
+		Assert.False(maybeFoo6.HasValue);
+
+		Assert.False(maybeBar.HasValue);
 	}
 }

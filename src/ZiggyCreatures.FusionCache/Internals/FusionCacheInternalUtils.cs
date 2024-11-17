@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -92,6 +93,12 @@ internal static class FusionCacheInternalUtils
 			return false;
 
 		return entry.Metadata.IsLogicallyExpired();
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsStale(this IFusionCacheEntry entry)
+	{
+		return entry.Metadata?.IsFromFailSafe ?? false;
 	}
 
 	public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
@@ -257,7 +264,7 @@ internal static class FusionCacheInternalUtils
 			return entry1;
 
 		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Tags, options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Tags, options, entry.IsStale(), entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
@@ -355,25 +362,87 @@ internal static class FusionCacheInternalUtils
 		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool ShouldRead(this MemoryCacheAccessor mca, FusionCacheEntryOptions options)
+	{
+		if (options.SkipMemoryCacheRead)
+			return false;
+
+		return true;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool ShouldWrite(this MemoryCacheAccessor mca, FusionCacheEntryOptions options)
+	{
+		if (options.SkipMemoryCacheWrite)
+			return false;
+
+		return true;
+	}
+
+	public static bool ShouldRead(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	{
+		if (dca is null)
+			return false;
+
+		if (options.SkipDistributedCacheRead)
+			return false;
+
+		return true;
+	}
+
+	public static bool ShouldReadWhenStale(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	{
+		if (dca is null)
+			return false;
+
+		if (options.SkipDistributedCacheRead || options.SkipDistributedCacheReadWhenStale)
+			return false;
+
+		return true;
+	}
+
+	public static bool ShouldWrite(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	{
+		if (dca is null)
+			return false;
+
+		if (options.SkipDistributedCacheWrite)
+			return false;
+
+		return true;
+	}
+
 	public static bool CanBeUsed(this DistributedCacheAccessor? dca, string? operationId, string? key)
 	{
 		if (dca is null)
 			return false;
 
-		if (dca.IsCurrentlyUsable(operationId, key))
-			return true;
+		if (dca.IsCurrentlyUsable(operationId, key) == false)
+			return false;
 
-		return false;
+		return true;
 	}
 
-	//public static bool CanBeUsed(this BackplaneAccessor? bpa, string? operationId, string? key)
-	//{
-	//	if (bpa is null)
-	//		return false;
+	public static bool ShouldWrite(this BackplaneAccessor? bpa, FusionCacheEntryOptions options)
+	{
+		if (bpa is null)
+			return false;
 
-	//	if (bpa.IsCurrentlyUsable(operationId, key))
-	//		return true;
+		if (options.SkipBackplaneNotifications)
+			return false;
 
-	//	return false;
-	//}
+		return true;
+	}
+
+	public static bool CanBeUsed(this BackplaneAccessor? bpa, string? operationId, string? key)
+	{
+		if (bpa is null)
+			return false;
+
+		if (bpa.IsCurrentlyUsable(operationId, key) == false)
+			return false;
+
+		return true;
+	}
 }

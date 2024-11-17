@@ -64,12 +64,12 @@ public sealed partial class FusionCache
 	private readonly object _pluginsLock = new object();
 
 	// TAGGING
-	private readonly TimeSpan _removeByTagDefaultEntryOptionsDuration = TimeSpan.FromHours(24);
-	private readonly TimeSpan _removeByTagDefaultEntryOptionsLowDuration = TimeSpan.FromSeconds(30);
-	private readonly bool _removeByTagDefaultEntryOptionsSelfManaged = false;
-	private readonly FusionCacheEntryOptions _removeByTagDefaultEntryOptions;
+	private readonly TimeSpan _tagsDuration = TimeSpan.FromHours(24);
+	private readonly TimeSpan _tagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(30);
+	private readonly bool _tagsDefaultEntryOptionsSelfManaged = false;
+	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
 	private readonly FusionCacheEntryOptions _cascadeRemoveByTagEntryOptions;
-	internal const string ClearTag = "__*"; // MAYBE JUST USE "*" TO ALIGN WITH HybridCache ? CHECK WITH MARC
+	internal const string ClearTag = "__*"; // MAYBE JUST USE "*" TO ALIGN WITH HybridCache ? CHECK WITH MARC...
 	internal readonly string ClearTagCacheKey;
 	internal readonly string ClearTagInternalCacheKey;
 	internal long ClearTimestamp;
@@ -134,27 +134,30 @@ public sealed partial class FusionCache
 		};
 
 		// EXPIRE BY TAG DEFAULT ENTRY OPTIONS
-		if (_options.RemoveByTagDefaultEntryOptions is not null)
+		_tagsMemoryCacheDurationOverride = _options.TagsMemoryCacheDurationOverride;
+		if (_options.TagsDefaultEntryOptions is not null)
 		{
-			_removeByTagDefaultEntryOptions = _options.RemoveByTagDefaultEntryOptions;
+			_tagsDefaultEntryOptions = _options.TagsDefaultEntryOptions;
 		}
 		else
 		{
-			_removeByTagDefaultEntryOptionsSelfManaged = true;
-			_removeByTagDefaultEntryOptions = _options.DefaultEntryOptions.Duplicate();
-			_removeByTagDefaultEntryOptions.Duration = _removeByTagDefaultEntryOptionsDuration;
-			_removeByTagDefaultEntryOptions.DistributedCacheDuration = _removeByTagDefaultEntryOptionsDuration;
-			_removeByTagDefaultEntryOptions.IsFailSafeEnabled = true;
-			_removeByTagDefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
-			_removeByTagDefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-			_removeByTagDefaultEntryOptions.ReThrowDistributedCacheExceptions = false;
-			_removeByTagDefaultEntryOptions.ReThrowSerializationExceptions = false;
-			_removeByTagDefaultEntryOptions.ReThrowBackplaneExceptions = false;
-			_removeByTagDefaultEntryOptions.SkipMemoryCache = false;
-			_removeByTagDefaultEntryOptions.SkipDistributedCache = false;
-			_removeByTagDefaultEntryOptions.SkipBackplaneNotifications = false;
-			_removeByTagDefaultEntryOptions.Priority = CacheItemPriority.NeverRemove;
-			_removeByTagDefaultEntryOptions.Size = 1;
+			_tagsDefaultEntryOptionsSelfManaged = true;
+			_tagsDefaultEntryOptions = _options.DefaultEntryOptions.Duplicate();
+			_tagsDefaultEntryOptions.Duration = _tagsDuration;
+			_tagsDefaultEntryOptions.DistributedCacheDuration = _tagsDuration;
+			_tagsDefaultEntryOptions.IsFailSafeEnabled = true;
+			_tagsDefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+			_tagsDefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			_tagsDefaultEntryOptions.ReThrowDistributedCacheExceptions = false;
+			_tagsDefaultEntryOptions.ReThrowSerializationExceptions = false;
+			_tagsDefaultEntryOptions.ReThrowBackplaneExceptions = false;
+			_tagsDefaultEntryOptions.SkipMemoryCacheRead = false;
+			_tagsDefaultEntryOptions.SkipMemoryCacheWrite = false;
+			_tagsDefaultEntryOptions.SkipDistributedCacheRead = false;
+			_tagsDefaultEntryOptions.SkipDistributedCacheWrite = false;
+			_tagsDefaultEntryOptions.SkipBackplaneNotifications = false;
+			_tagsDefaultEntryOptions.Priority = CacheItemPriority.NeverRemove;
+			_tagsDefaultEntryOptions.Size = 1;
 		}
 
 		// CASCADE EXPIRE BY TAG ENTRY OPTIONS
@@ -169,8 +172,10 @@ public sealed partial class FusionCache
 			ReThrowDistributedCacheExceptions = false,
 			ReThrowSerializationExceptions = false,
 			ReThrowBackplaneExceptions = false,
-			SkipMemoryCache = false,
-			SkipDistributedCache = false,
+			SkipMemoryCacheRead = false,
+			SkipMemoryCacheWrite = false,
+			SkipDistributedCacheRead = false,
+			SkipDistributedCacheWrite = false,
 			SkipBackplaneNotifications = false,
 			Priority = CacheItemPriority.NeverRemove,
 			Size = 1
@@ -313,34 +318,23 @@ public sealed partial class FusionCache
 
 	// MEMORY ACCESSOR
 
-	internal MemoryCacheAccessor GetCurrentMemoryAccessor()
+	internal MemoryCacheAccessor MemoryCache
 	{
-		return _mca;
-	}
-
-	internal MemoryCacheAccessor? GetCurrentMemoryAccessor(FusionCacheEntryOptions options)
-	{
-		return options.SkipMemoryCache ? null : _mca;
+		get { return _mca; }
 	}
 
 	// DISTRIBUTED ACCESSOR
 
-	internal DistributedCacheAccessor? GetCurrentDistributedAccessor(FusionCacheEntryOptions? options)
+	internal DistributedCacheAccessor? DistributedCache
 	{
-		if (options is null)
-			return _dca;
-
-		return options.SkipDistributedCache ? null : _dca;
+		get { return _dca; }
 	}
 
 	// BACKPLANE ACCESSOR
 
-	internal BackplaneAccessor? GetCurrentBackplaneAccessor(FusionCacheEntryOptions? options)
+	internal BackplaneAccessor? Backplane
 	{
-		if (options is null)
-			return _bpa;
-
-		return options.SkipBackplaneNotifications ? null : _bpa;
+		get { return _bpa; }
 	}
 
 	// FAIL-SAFE
@@ -519,10 +513,9 @@ public sealed partial class FusionCache
 					// ADAPTIVE CACHING UPDATE
 					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.GetAwaiter().GetResult(), ctx.Tags, options, false, ctx.LastModified, ctx.ETag, null);
 
-					var mca = GetCurrentMemoryAccessor(options);
-					if (mca is not null)
+					if (_mca.ShouldWrite(options))
 					{
-						mca.SetEntry<TValue>(operationId, key, lateEntry, options);
+						_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 					}
 
 					if (RequiresDistributedOperations(options))
@@ -671,16 +664,18 @@ public sealed partial class FusionCache
 
 	private void UpdateRemoveByTagDefaultEntryOptions()
 	{
-		if (_removeByTagDefaultEntryOptionsSelfManaged == false)
+		// CHECK IF SELF-MANAGED
+		if (_tagsDefaultEntryOptionsSelfManaged == false)
 			return;
 
 		if (HasDistributedCache && HasBackplane == false)
 		{
-			_removeByTagDefaultEntryOptions.Duration = _removeByTagDefaultEntryOptionsLowDuration;
+			// DISTRIBUTED CACHE AND NO BACKPLANE -> USE OVERRIDE
+			_tagsDefaultEntryOptions.Duration = _tagsMemoryCacheDurationOverride;
 		}
 		else
 		{
-			_removeByTagDefaultEntryOptions.Duration = _removeByTagDefaultEntryOptionsDuration;
+			_tagsDefaultEntryOptions.Duration = _tagsDuration;
 		}
 	}
 
@@ -989,7 +984,7 @@ public sealed partial class FusionCache
 
 	internal bool RequiresDistributedOperations(FusionCacheEntryOptions options)
 	{
-		if (HasDistributedCache && options.SkipDistributedCache == false)
+		if (HasDistributedCache && options.SkipDistributedCacheRead == false && options.SkipDistributedCacheWrite == false)
 			return true;
 
 		if (HasBackplane && options.SkipBackplaneNotifications == false)
@@ -1019,7 +1014,7 @@ public sealed partial class FusionCache
 
 	// ADAPTIVE CACHING
 
-	private void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options, ref DistributedCacheAccessor? dca, ref MemoryCacheAccessor? mca)
+	private void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options)
 	{
 		// UPDATE ADAPTIVE OPTIONS
 		var maybeNewOptions = ctx.GetOptions();
@@ -1028,9 +1023,6 @@ public sealed partial class FusionCache
 			return;
 
 		options = maybeNewOptions;
-
-		dca = GetCurrentDistributedAccessor(options);
-		mca = GetCurrentMemoryAccessor(options);
 	}
 
 	// INTERNAL UPDATES
@@ -1050,7 +1042,7 @@ public sealed partial class FusionCache
 				return (false, false, false);
 			}
 
-			var dca = GetCurrentDistributedAccessor(null);
+			var dca = DistributedCache;
 
 			if (dca is null)
 			{

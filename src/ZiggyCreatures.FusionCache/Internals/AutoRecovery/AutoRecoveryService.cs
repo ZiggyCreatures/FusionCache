@@ -72,7 +72,7 @@ internal sealed class AutoRecoveryService
 		options = options.Duplicate();
 
 		// DISTRIBUTED CACHE
-		if (options.SkipDistributedCache == false)
+		if (options.SkipDistributedCacheRead == false || options.SkipDistributedCacheWrite == false)
 		{
 			options.AllowBackgroundDistributedCacheOperations = false;
 			options.DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan;
@@ -89,7 +89,17 @@ internal sealed class AutoRecoveryService
 			options.ReThrowBackplaneExceptions = true;
 		}
 
-		var duration = (options.SkipDistributedCache || _cache.HasDistributedCache == false) ? options.Duration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration);
+		TimeSpan duration;
+
+		if (_cache.HasDistributedCache == false || options.SkipDistributedCacheRead || options.SkipDistributedCacheWrite)
+		{
+			duration = options.Duration;
+		}
+		else
+		{
+			duration = options.DistributedCacheDuration.GetValueOrDefault(options.Duration);
+		}
+
 		var expirationTicks = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(duration, options, false).Ticks;
 
 		if (_queue.Count >= _maxItems && _queue.ContainsKey(cacheKey) == false)
@@ -392,18 +402,17 @@ internal sealed class AutoRecoveryService
 	internal async ValueTask<bool> TryProcessItemSetAsync(string operationId, AutoRecoveryItem item, CancellationToken token)
 	{
 		// DISTRIBUTED CACHE
-		var dca = _cache.GetCurrentDistributedAccessor(item.Options);
-		if (dca is not null)
+		var dca = _cache.DistributedCache;
+		if (dca.ShouldRead(item.Options) && dca.ShouldWrite(item.Options))
 		{
-			if (dca.IsCurrentlyUsable(operationId, item.CacheKey) == false)
+			if (dca!.IsCurrentlyUsable(operationId, item.CacheKey) == false)
 			{
 				return false;
 			}
 
 			// TRY TO GET THE MEMORY CACHE
-			var mca = _cache.GetCurrentMemoryAccessor(item.Options);
-
-			if (mca is not null)
+			var mca = _cache.MemoryCache;
+			if (mca.ShouldRead(item.Options) && mca.ShouldWrite(item.Options))
 			{
 				// TRY TO GET THE MEMORY ENTRY
 				var memoryEntry = mca.GetEntryOrNull(operationId, item.CacheKey);
@@ -450,13 +459,13 @@ internal sealed class AutoRecoveryService
 		}
 
 		// BACKPLANE
-		var bpa = _cache.GetCurrentBackplaneAccessor(item.Options);
-		if (bpa is not null)
+		var bpa = _cache.Backplane;
+		if (bpa.ShouldWrite(item.Options))
 		{
 			var bpaSuccess = false;
 			try
 			{
-				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
+				if (bpa!.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
 					bpaSuccess = await bpa.PublishSetAsync(operationId, item.CacheKey, item.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
@@ -478,13 +487,13 @@ internal sealed class AutoRecoveryService
 	internal async ValueTask<bool> TryProcessItemRemoveAsync(string operationId, AutoRecoveryItem item, CancellationToken token)
 	{
 		// DISTRIBUTED CACHE
-		var dca = _cache.GetCurrentDistributedAccessor(item.Options);
-		if (dca is not null)
+		var dca = _cache.DistributedCache;
+		if (dca.ShouldWrite(item.Options))
 		{
 			var dcaSuccess = false;
 			try
 			{
-				if (dca.IsCurrentlyUsable(operationId, item.CacheKey))
+				if (dca!.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
 					dcaSuccess = await dca.RemoveEntryAsync(operationId, item.CacheKey, item.Options, true, token).ConfigureAwait(false);
 				}
@@ -501,13 +510,13 @@ internal sealed class AutoRecoveryService
 		}
 
 		// BACKPLANE
-		var bpa = _cache.GetCurrentBackplaneAccessor(item.Options);
-		if (bpa is not null)
+		var bpa = _cache.Backplane;
+		if (bpa.ShouldWrite(item.Options))
 		{
 			var bpaSuccess = false;
 			try
 			{
-				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
+				if (bpa!.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
 					bpaSuccess = await bpa.PublishRemoveAsync(operationId, item.CacheKey, item.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}
@@ -529,13 +538,13 @@ internal sealed class AutoRecoveryService
 	internal async ValueTask<bool> TryProcessItemExpireAsync(string operationId, AutoRecoveryItem item, CancellationToken token)
 	{
 		// DISTRIBUTED CACHE
-		var dca = _cache.GetCurrentDistributedAccessor(item.Options);
-		if (dca is not null)
+		var dca = _cache.DistributedCache;
+		if (dca.ShouldWrite(item.Options))
 		{
 			var dcaSuccess = false;
 			try
 			{
-				if (dca.IsCurrentlyUsable(operationId, item.CacheKey))
+				if (dca!.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
 					dcaSuccess = await dca.RemoveEntryAsync(operationId, item.CacheKey, item.Options, true, token).ConfigureAwait(false);
 				}
@@ -552,13 +561,13 @@ internal sealed class AutoRecoveryService
 		}
 
 		// BACKPLANE
-		var bpa = _cache.GetCurrentBackplaneAccessor(item.Options);
-		if (bpa is not null)
+		var bpa = _cache.Backplane;
+		if (bpa.ShouldWrite(item.Options))
 		{
 			var bpaSuccess = false;
 			try
 			{
-				if (bpa.IsCurrentlyUsable(operationId, item.CacheKey))
+				if (bpa!.IsCurrentlyUsable(operationId, item.CacheKey))
 				{
 					bpaSuccess = await bpa.PublishExpireAsync(operationId, item.CacheKey, item.Timestamp, item.Options, true, true, token).ConfigureAwait(false);
 				}

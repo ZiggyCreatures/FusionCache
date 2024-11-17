@@ -168,10 +168,12 @@ public class GeneralTests
 
 			SkipBackplaneNotifications = !FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications,
 
-			SkipDistributedCache = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache,
+			SkipDistributedCacheRead = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheRead,
+			SkipDistributedCacheWrite = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheWrite,
 			SkipDistributedCacheReadWhenStale = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale,
 
-			SkipMemoryCache = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache
+			SkipMemoryCacheRead = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheRead,
+			SkipMemoryCacheWrite = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheWrite,
 		};
 
 		var duplicated = original.Duplicate();

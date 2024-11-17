@@ -20,7 +20,7 @@ public abstract class AbstractTests
 		return new XUnitLogger<T>(minLevel, TestOutput);
 	}
 
-	protected ListLogger<T> CreateListLogger<T>(LogLevel minLogLevel)
+	protected static ListLogger<T> CreateListLogger<T>(LogLevel minLogLevel)
 	{
 		return new ListLogger<T>(minLogLevel);
 	}

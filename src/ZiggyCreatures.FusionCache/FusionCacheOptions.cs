@@ -144,14 +144,28 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
-	/// The default <see cref="FusionCacheEntryOptions"/> to use for the RemoveByTagAsync() feature when none will be specified, and as the starting point when duplicating one.
+	/// The default <see cref="FusionCacheEntryOptions"/> to use for the tag expiration data when none will be specified, and as the starting point when duplicating one.
+	/// <br/>
+	/// This is used by features like RemoveByTag() and Clear().
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// <br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
-	/// <exception cref="ArgumentNullException">Thrown if an attempt is made to set this property to <see langword="null"/>.</exception>
-	public FusionCacheEntryOptions? RemoveByTagDefaultEntryOptions { get; set; }
+	public FusionCacheEntryOptions? TagsDefaultEntryOptions { get; set; }
+
+	/// <summary>
+	/// The default Duration that will be automatically used for the memory level with <see cref="TagsDefaultEntryOptions"/>, when there is a distributed cache but no backplane.
+	/// <br/>
+	/// This is used by features like RemoveByTag() and Clear(), and is useful to reduce the time different memory caches in different nodes remain out-of-sync when not using a backplane.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> if you specify a custom <see cref="TagsDefaultEntryOptions"/>, this option will not be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public TimeSpan TagsMemoryCacheDurationOverride { get; set; }
 
 	/// <summary>
 	/// The duration of the circuit-breaker used when working with the distributed cache. Defaults to <see cref="TimeSpan.Zero"/>, which means the circuit-breaker will never be activated.
@@ -462,7 +476,8 @@ public class FusionCacheOptions
 			CacheKeyPrefix = CacheKeyPrefix,
 
 			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
-			RemoveByTagDefaultEntryOptions = RemoveByTagDefaultEntryOptions?.Duplicate(),
+			TagsDefaultEntryOptions = TagsDefaultEntryOptions?.Duplicate(),
+			TagsMemoryCacheDurationOverride = TagsMemoryCacheDurationOverride,
 
 			EnableAutoRecovery = EnableAutoRecovery,
 			AutoRecoveryDelay = AutoRecoveryDelay,

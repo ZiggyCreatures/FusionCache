@@ -313,7 +313,7 @@ internal sealed partial class BackplaneAccessor
 	{
 		var cacheKey = message.CacheKey!;
 
-		var mca = _cache.GetCurrentMemoryAccessor();
+		var mca = _cache.MemoryCache;
 
 		if (mca is null)
 		{
@@ -348,9 +348,9 @@ internal sealed partial class BackplaneAccessor
 			return;
 		}
 
-		if (_cache.HasDistributedCache)
+		var dca = _cache.DistributedCache;
+		if (dca is not null)
 		{
-			var dca = _cache.GetCurrentDistributedAccessor(null);
 			if (dca.CanBeUsed(operationId, cacheKey) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
