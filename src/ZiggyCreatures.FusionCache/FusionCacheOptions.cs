@@ -60,6 +60,8 @@ public class FusionCacheOptions
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
 
+		TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(30);
+
 		// AUTO-RECOVERY
 		EnableAutoRecovery = true;
 		AutoRecoveryMaxItems = null;
@@ -68,21 +70,15 @@ public class FusionCacheOptions
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
-
 		SerializationErrorsLogLevel = LogLevel.Error;
-
 		DistributedCacheSyntheticTimeoutsLogLevel = LogLevel.Warning;
 		DistributedCacheErrorsLogLevel = LogLevel.Warning;
-
 		FactorySyntheticTimeoutsLogLevel = LogLevel.Warning;
 		FactoryErrorsLogLevel = LogLevel.Warning;
-
 		FailSafeActivationLogLevel = LogLevel.Warning;
 		EventHandlingErrorsLogLevel = LogLevel.Warning;
-
 		BackplaneSyntheticTimeoutsLogLevel = LogLevel.Warning;
 		BackplaneErrorsLogLevel = LogLevel.Warning;
-
 		PluginsInfoLogLevel = LogLevel.Information;
 		PluginsErrorsLogLevel = LogLevel.Error;
 	}
