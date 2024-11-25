@@ -95,19 +95,19 @@ internal partial class DistributedCacheAccessor
 			// EVENT
 			_events.OnSerializationError(operationId, key);
 
-			if (options.ReThrowSerializationExceptions)
+			//if (options.ReThrowSerializationExceptions)
+			//{
+			if (_options.ReThrowOriginalExceptions)
 			{
-				if (_options.ReThrowOriginalExceptions)
-				{
-					throw;
-				}
-				else
-				{
-					throw new FusionCacheSerializationException("An error occurred while serializing a cache value", exc);
-				}
+				throw;
 			}
+			else
+			{
+				throw new FusionCacheSerializationException("An error occurred while serializing a cache value", exc);
+			}
+			//}
 
-			data = null;
+			//data = null;
 		}
 
 		if (data is null)
