@@ -2308,7 +2308,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task CanSkipMemoryCacheReadAsync()
+	public async Task CanSkipMemoryCacheReadWriteAsync()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 
@@ -2337,7 +2337,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public void CanSkipMemoryCacheRead()
+	public void CanSkipMemoryCacheReadWrite()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 
@@ -2363,5 +2363,47 @@ public class MemoryLevelTests
 		Assert.False(maybeFoo6.HasValue);
 
 		Assert.False(maybeBar.HasValue);
+	}
+
+	[Fact]
+	public async Task CanSoftFailWithSoftTimeoutAsync()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions());
+		var value1 = await cache.GetOrSetAsync<int?>("foo", async _ => 42, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		Assert.True(value1.HasValue);
+		Assert.Equal(42, value1.Value);
+
+		await Task.Delay(1_100);
+
+		var value2 = await cache.GetOrSetAsync<int?>("foo", async (ctx, _) => { await Task.Delay(1_000); return ctx.Fail("Some error"); }, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(100));
+		Assert.True(value2.HasValue);
+		Assert.Equal(42, value2.Value);
+
+		await Task.Delay(1_100);
+
+		var value3 = await cache.GetOrDefaultAsync<int?>("foo", options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(100));
+		Assert.True(value3.HasValue);
+		Assert.Equal(42, value3.Value);
+	}
+
+	[Fact]
+	public void CanSoftFailWithSoftTimeout()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions());
+		var value1 = cache.GetOrSet<int?>("foo", _ => 42, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		Assert.True(value1.HasValue);
+		Assert.Equal(42, value1.Value);
+
+		Thread.Sleep(1_100);
+
+		var value2 = cache.GetOrSet<int?>("foo", (ctx, _) => { Thread.Sleep(1_000); return ctx.Fail("Some error"); }, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(100));
+		Assert.True(value2.HasValue);
+		Assert.Equal(42, value2.Value);
+
+		Thread.Sleep(1_100);
+
+		var value3 = cache.GetOrDefault<int?>("foo", options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(100));
+		Assert.True(value3.HasValue);
+		Assert.Equal(42, value3.Value);
 	}
 }
