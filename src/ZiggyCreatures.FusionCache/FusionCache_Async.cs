@@ -781,13 +781,16 @@ public partial class FusionCache
 		{
 			if (ClearTimestamp < 0 || HasBackplane == false)
 			{
-				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, SharedTagExpirationDataFactoryAsync, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 
-				_tmp = Interlocked.Exchange(ref ClearTimestamp, _tmp);
+				var _tmp2 = Interlocked.Exchange(ref ClearTimestamp, _tmp);
 
-				// NEW CLEAR TIMESTAMP
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear timestamp {ClearTimestamp} (OLD: {OldClearTimestamp})", CacheName, InstanceId, operationId, key, ClearTimestamp, _tmp);
+				if (_tmp2 != _tmp)
+				{
+					// NEW CLEAR TIMESTAMP
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear timestamp {ClearTimestamp} (OLD: {OldClearTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				}
 			}
 
 			if (entryTimestamp <= ClearTimestamp)
