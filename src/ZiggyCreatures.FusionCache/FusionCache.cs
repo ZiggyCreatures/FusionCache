@@ -68,7 +68,7 @@ public sealed partial class FusionCache
 	private readonly TimeSpan _tagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(30);
 	private readonly bool _tagsDefaultEntryOptionsSelfManaged = false;
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
-	private readonly FusionCacheEntryOptions _cascadeRemoveByTagEntryOptions;
+	private readonly FusionCacheEntryOptions _cascadeExpireByTagEntryOptions;
 	internal const string ClearTag = "__*"; // MAYBE JUST USE "*" TO ALIGN WITH HybridCache ? CHECK WITH MARC...
 	internal readonly string ClearTagCacheKey;
 	internal readonly string ClearTagInternalCacheKey;
@@ -161,7 +161,7 @@ public sealed partial class FusionCache
 		}
 
 		// CASCADE EXPIRE BY TAG ENTRY OPTIONS
-		_cascadeRemoveByTagEntryOptions = new FusionCacheEntryOptions
+		_cascadeExpireByTagEntryOptions = new FusionCacheEntryOptions
 		{
 			Duration = TimeSpan.FromHours(24),
 			IsFailSafeEnabled = true,
@@ -640,12 +640,20 @@ public sealed partial class FusionCache
 		_events.OnFactoryError(operationId, key);
 	}
 
-	internal bool MaybeExpireMemoryEntryInternal(string operationId, string key, bool allowFailSafe, long? timestampThreshold)
+	internal void RemoveMemoryEntryInternal(string operationId, string key)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal (allowFailSafe={AllowFailSafe}, timestampThreshold={TimestampThreshold})", CacheName, InstanceId, operationId, key, allowFailSafe, timestampThreshold);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal", CacheName, InstanceId, operationId, key);
 
-		return _mca.ExpireEntry(operationId, key, allowFailSafe, timestampThreshold);
+		_mca.RemoveEntry(operationId, key);
+	}
+
+	internal void ExpireMemoryEntryInternal(string operationId, string key, long? timestampThreshold)
+	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal (timestampThreshold={TimestampThreshold})", CacheName, InstanceId, operationId, key, timestampThreshold);
+
+		_mca.ExpireEntry(operationId, key, timestampThreshold);
 	}
 
 	// TAGGING
@@ -662,7 +670,7 @@ public sealed partial class FusionCache
 		return res;
 	}
 
-	private void UpdateRemoveByTagDefaultEntryOptions()
+	private void UpdateTagsDefaultEntryOptions()
 	{
 		// CHECK IF SELF-MANAGED
 		if (_tagsDefaultEntryOptionsSelfManaged == false)
@@ -768,7 +776,7 @@ public sealed partial class FusionCache
 		SetupSerializer(serializer);
 		SetupDistributedCache(distributedCache);
 
-		UpdateRemoveByTagDefaultEntryOptions();
+		UpdateTagsDefaultEntryOptions();
 
 		return this;
 	}
@@ -784,7 +792,7 @@ public sealed partial class FusionCache
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed cache removed", CacheName, InstanceId);
 		}
 
-		UpdateRemoveByTagDefaultEntryOptions();
+		UpdateTagsDefaultEntryOptions();
 
 		return this;
 	}
@@ -813,7 +821,7 @@ public sealed partial class FusionCache
 			_bpa = new BackplaneAccessor(this, backplane, _options, _logger);
 		}
 
-		UpdateRemoveByTagDefaultEntryOptions();
+		UpdateTagsDefaultEntryOptions();
 
 		RunUtils.RunSyncActionAdvanced(
 			_ =>
@@ -862,7 +870,7 @@ public sealed partial class FusionCache
 			}
 		}
 
-		UpdateRemoveByTagDefaultEntryOptions();
+		UpdateTagsDefaultEntryOptions();
 
 		return this;
 	}

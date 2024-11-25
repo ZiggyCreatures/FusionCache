@@ -287,14 +287,14 @@ internal sealed partial class BackplaneAccessor
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
 				// HANDLE REMOVE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO FALSE -> LOCAL REMOVE
-				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, false, null);
+				_cache.RemoveMemoryEntryInternal(operationId, message.CacheKey!);
 				break;
 			case BackplaneMessageAction.EntryExpire:
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (EXPIRE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
 				// HANDLE EXPIRE: CALLING MaybeExpireMemoryEntryInternal() WITH allowFailSafe SET TO TRUE -> LOCAL EXPIRE
-				_cache.MaybeExpireMemoryEntryInternal(operationId, message.CacheKey!, true, message.Timestamp);
+				_cache.ExpireMemoryEntryInternal(operationId, message.CacheKey!, message.Timestamp);
 				break;
 			default:
 				// HANDLE UNKNOWN: DO NOTHING
@@ -349,6 +349,7 @@ internal sealed partial class BackplaneAccessor
 		}
 
 		var dca = _cache.DistributedCache;
+
 		if (dca is not null)
 		{
 			if (dca.CanBeUsed(operationId, cacheKey) == false)
@@ -356,7 +357,7 @@ internal sealed partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] distributed cache not currently usable, expiring local memory entry", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 
-				_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
+				_cache.ExpireMemoryEntryInternal(operationId, cacheKey, message.Timestamp);
 
 				return;
 			}
@@ -381,7 +382,7 @@ internal sealed partial class BackplaneAccessor
 			}
 		}
 
-		_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, message.Timestamp);
+		_cache.ExpireMemoryEntryInternal(operationId, cacheKey, message.Timestamp);
 	}
 
 	private void MaybeUpdateClearTimestamp(string operationId, BackplaneMessage message)

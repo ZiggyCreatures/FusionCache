@@ -706,7 +706,7 @@ public partial class FusionCache
 
 		if (_mca.ShouldWrite(options))
 		{
-			_mca.RemoveEntry(operationId, key, options);
+			_mca.RemoveEntry(operationId, key);
 		}
 
 		if (RequiresDistributedOperations(options))
@@ -746,7 +746,7 @@ public partial class FusionCache
 
 		if (_mca.ShouldWrite(options))
 		{
-			_mca.ExpireEntry(operationId, key, options.IsFailSafeEnabled, null);
+			_mca.ExpireEntry(operationId, key, null);
 		}
 
 		if (RequiresDistributedOperations(options))
@@ -844,13 +844,13 @@ public partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry is expired, removing", CacheName, InstanceId, operationId, key);
 
-		ExpireInternal(key, _cascadeRemoveByTagEntryOptions, token);
+		ExpireInternal(key, _cascadeExpireByTagEntryOptions, token);
 
 		return null;
 	}
 
 	/// <inheritdoc/>
-	public void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public void ExpireByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		ValidateTag(tag);
 
@@ -875,7 +875,7 @@ public partial class FusionCache
 		if (TryExecuteRawClear(operationId))
 			return;
 
-		RemoveByTag(ClearTag, options, token);
+		ExpireByTag(ClearTag, options, token);
 	}
 
 	// DISTRIBUTED ACTIONS

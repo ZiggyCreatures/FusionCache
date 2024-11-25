@@ -54,7 +54,7 @@ internal sealed class MemoryCacheAccessor
 		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
 		if (options.IsFailSafeEnabled == false && options.Duration <= TimeSpan.Zero)
 		{
-			RemoveEntry(operationId, key, options);
+			RemoveEntry(operationId, key);
 			return;
 		}
 
@@ -156,7 +156,7 @@ internal sealed class MemoryCacheAccessor
 		return (entry, isValid);
 	}
 
-	public void RemoveEntry(string operationId, string key, FusionCacheEntryOptions options)
+	public void RemoveEntry(string operationId, string key)
 	{
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryRemove, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
@@ -170,7 +170,7 @@ internal sealed class MemoryCacheAccessor
 		_events.OnRemove(operationId, key);
 	}
 
-	public bool ExpireEntry(string operationId, string key, bool allowFailSafe, long? timestampThreshold)
+	public bool ExpireEntry(string operationId, string key, long? timestampThreshold)
 	{
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryExpire, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
@@ -196,7 +196,7 @@ internal sealed class MemoryCacheAccessor
 			return false;
 		}
 
-		if (allowFailSafe && entry.Metadata is not null && entry.Metadata.IsLogicallyExpired() == false)
+		if (entry.Metadata is not null && entry.Metadata.IsLogicallyExpired() == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);

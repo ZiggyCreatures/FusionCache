@@ -2080,7 +2080,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task CanRemoveByTagAsync()
+	public async Task CanExpireByTagAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
@@ -2093,13 +2093,13 @@ public class MemoryLevelTests
 		var bar1 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
 		var baz1 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 33, tags: ["x", "z"]);
 
-		await cache.RemoveByTagAsync("x");
+		await cache.ExpireByTagAsync("x");
 
 		var foo2 = await cache.GetOrDefaultAsync<int>("foo");
 		var bar2 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 222, tags: ["y", "z"]);
 		var baz2 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 333, tags: ["x", "z"]);
 
-		await cache.RemoveByTagAsync("y");
+		await cache.ExpireByTagAsync("y");
 
 		var foo3 = await cache.GetOrSetAsync<int>("foo", async (_, _) => 1111, tags: ["x", "y"]);
 		var bar3 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 2222, tags: ["y", "z"]);
@@ -2119,7 +2119,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public void CanRemoveByTag()
+	public void CanExpireByTag()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
@@ -2132,13 +2132,13 @@ public class MemoryLevelTests
 		var bar1 = cache.GetOrSet<int>("bar", (_, _) => 22, tags: ["y", "z"]);
 		var baz1 = cache.GetOrSet<int>("baz", (_, _) => 33, tags: ["x", "z"]);
 
-		cache.RemoveByTag("x");
+		cache.ExpireByTag("x");
 
 		var foo2 = cache.GetOrDefault<int>("foo");
 		var bar2 = cache.GetOrSet<int>("bar", (_, _) => 222, tags: ["y", "z"]);
 		var baz2 = cache.GetOrSet<int>("baz", (_, _) => 333, tags: ["x", "z"]);
 
-		cache.RemoveByTag("y");
+		cache.ExpireByTag("y");
 
 		var foo3 = cache.GetOrSet<int>("foo", (_, _) => 1111, tags: ["x", "y"]);
 		var bar3 = cache.GetOrSet<int>("bar", (_, _) => 2222, tags: ["y", "z"]);

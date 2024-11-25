@@ -166,13 +166,13 @@ public class NullFusionCache
 	// TAGGING
 
 	/// <inheritdoc/>
-	public ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public ValueTask ExpireByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		return new ValueTask();
 	}
 
 	/// <inheritdoc/>
-	public void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public void ExpireByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		// EMPTY
 	}

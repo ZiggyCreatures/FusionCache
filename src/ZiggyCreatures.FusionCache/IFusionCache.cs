@@ -180,17 +180,10 @@ public interface IFusionCache
 	// EXPIRE
 
 	/// <summary>
-	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// Expires the cache entry for the specified <paramref name="key"/>: that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// <br/>
 	/// <br/>
-	/// In the memory cache:
-	/// <br/>
-	/// - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
-	/// <br/>
-	/// - if fail-safe is disabled: the entry will be effectively removed
-	/// <br/>
-	/// <br/>
-	/// In the distributed cache (if any), the entry will be effectively removed.
+	/// In the distributed cache (if any), the entry will always be effectively removed.
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
@@ -199,17 +192,10 @@ public interface IFusionCache
 	ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// Expires the cache entry for the specified <paramref name="key"/>: that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// <br/>
 	/// <br/>
-	/// In the memory cache:
-	/// <br/>
-	/// - if fail-safe is enabled: the entry will marked as logically expired, but will still be available as a fallback value in case of future problems
-	/// <br/>
-	/// - if fail-safe is disabled: the entry will be effectively removed
-	/// <br/>
-	/// <br/>
-	/// In the distributed cache (if any), the entry will be effectively removed.
+	/// In the distributed cache (if any), the entry will always be effectively removed.
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
@@ -219,7 +205,7 @@ public interface IFusionCache
 	// TAGGING
 
 	/// <summary>
-	/// Remove (or expire, based on fail-safe) all the entries tagged with the specified <paramref name="tag"/>.
+	/// Expire all entries tagged with the specified <paramref name="tag"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
@@ -227,25 +213,27 @@ public interface IFusionCache
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	ValueTask ExpireByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Remove (or expire, based on fail-safe) all the entries tagged with the specified <paramref name="tag"/>.
+	/// Expire all entries tagged with the specified <paramref name="tag"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	/// <param name="tag">The tag to use to identify the entries to remove.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	void ExpireByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// CLEAR
 
 	/// <summary>
-	/// Remove (or expire, based on fail-safe) all the entries in the cache.
+	/// Expire all entries in the cache: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// This works with all supported scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, cache key prefix usage, etc.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
@@ -253,10 +241,12 @@ public interface IFusionCache
 	ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Remove (or expire, based on fail-safe) all the entries in the cache.
+	/// Expire all entries in the cache: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// This works with all supported scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, cache key prefix usage, etc.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
