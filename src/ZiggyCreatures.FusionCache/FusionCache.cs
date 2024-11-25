@@ -417,10 +417,10 @@ public sealed partial class FusionCache
 			return;
 		}
 
-		if (factoryTask.IsFaulted || factoryTask.IsCanceled)
+		if (factoryTask.IsFaulted || factoryTask.IsCanceled || ctx.HasFailed)
 		{
 			// ACTIVITY
-			activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
+			activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
 			activity?.Dispose();
 
 			return;
@@ -441,12 +441,12 @@ public sealed partial class FusionCache
 
 	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity)
 	{
-		if (factoryTask.IsFaulted || factoryTask.IsCanceled)
+		if (factoryTask.IsFaulted || factoryTask.IsCanceled || ctx.HasFailed)
 		{
 			try
 			{
 				if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory has thrown an exception", CacheName, InstanceId, operationId, key);
 
 				// EVENT
 				_events.OnBackgroundFactoryError(operationId, key);
@@ -458,7 +458,7 @@ public sealed partial class FusionCache
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				// ACTIVITY
-				activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
+				activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
 				activity?.Dispose();
 			}
 
@@ -473,13 +473,13 @@ public sealed partial class FusionCache
 		{
 			try
 			{
-				if (antecedent.Status == TaskStatus.Faulted || antecedent.Status == TaskStatus.Canceled)
+				if (antecedent.Status == TaskStatus.Faulted || antecedent.Status == TaskStatus.Canceled || ctx.HasFailed)
 				{
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
 						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
 
 					// ACTIVITY
-					activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
+					activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
 					activity?.Dispose();
 
 					// EVENT
