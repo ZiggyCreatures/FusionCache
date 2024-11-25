@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals;
@@ -76,6 +77,7 @@ public sealed class FusionCacheEntryMetadata
 	/// Checks if the entry is logically expired.
 	/// </summary>
 	/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public bool IsLogicallyExpired()
 	{
 		return LogicalExpiration < DateTimeOffset.UtcNow;
