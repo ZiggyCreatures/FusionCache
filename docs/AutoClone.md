@@ -82,19 +82,19 @@ cache.SetupSerializer(new FusionCacheSystemTextJsonSerializer());
 
 cache.Set("foo", new Person { Name = "John" });
 
-// RETURNS A CLONE OF CACHED INSTANCE (ORIGINAL REMAINS UNCHANGED)
+// RETURNS A CLONE OF THE CACHED INSTANCE
 var person1 = cache.GetOrDefault<Person>("foo", options => options.SetAutoClone(true));
 Console.WriteLine($"person1: {person1.Name}");
 Console.WriteLine();
 
-// RETURNS A CLONE OF CACHED INSTANCE (MODIFICATIONS AFFECT ONLY THE CLONE)
+// RETURNS A CLONE OF THE CACHED INSTANCE: CHANGES APPLIED ONLY THE CLONE, CACHED INSTANCE REMAINS UNCHANGED
 var person2 = cache.GetOrDefault<Person>("foo", options => options.SetAutoClone(true));
 person2.Name = "Jane";
 Console.WriteLine($"person1: {person1.Name}");
 Console.WriteLine($"person2: {person2.Name}");
 Console.WriteLine();
 
-// RETURNS DIRECT REFERENCE TO CACHED INSTANCE (MODIFICATIONS AFFECT THE CACHE)
+// RETURNS DIRECT REFERENCE TO THE CACHED INSTANCE: CHANGES APPLIED TO THE CACHED INSTANCE ITSELF
 var person3 = cache.GetOrDefault<Person>("foo");
 person3.Name = "Jim";
 Console.WriteLine($"person1: {person1.Name}");
@@ -102,8 +102,8 @@ Console.WriteLine($"person2: {person2.Name}");
 Console.WriteLine($"person3: {person3.Name}");
 Console.WriteLine();
 
-// RETURNS SAME REFERENCE TO CACHED INSTANCE
-// MODIFICATIONS AFFECT BOTH person3 AND person4 AS THEY SHARE THE CACHED REFERENCE
+// RETURNS DIRECT REFERENCE TO THE CACHED INSTANCE: THE INSTANCE IS THE SAME AS BEFORE
+// CHANGES APPLIED TO BOTH person3 AND person4 AS THEY POINT TO THE SAME CACHED INSTANCE
 var person4 = cache.GetOrDefault<Person>("foo");
 person4.Name = "Joe";
 
