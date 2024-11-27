@@ -353,6 +353,35 @@ public class FusionCacheOptions
 	public bool PreferSyncSerialization { get; set; }
 
 	/// <summary>
+	/// Include tags when logging a cache entry: since tags may contain sensitive data, be careful about enabling this.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	public bool IncludeTagsInLogs { get; set; }
+
+	/// <summary>
+	/// Include tags when doing distributed tracing: since tags may contain sensitive data, be careful about enabling this.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/OpenTelemetry.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	public bool IncludeTagsInTraces { get; set; }
+
+	/// <summary>
+	/// Include tags when doing distributed metrics: since tags may contain sensitive data, be careful about enabling this.
+	/// <br/>
+	/// <strong>NOTE:</strong> also, typically metrics are better NOT to have tags with high-cardinality, meaning with a lot of different values, so please be extra careful.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/OpenTelemetry.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	public bool IncludeTagsInMetrics { get; set; }
+
+	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -441,15 +470,6 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
 	/// </summary>
 	public LogLevel PluginsErrorsLogLevel { get; set; }
-
-	/// <summary>
-	/// Include tags when logging a cache entry: since tags may contain sensitive data, be careful about enabling this.
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
-	/// </summary>
-	public bool IncludeTagsInLogs { get; set; }
 
 	FusionCacheOptions IOptions<FusionCacheOptions>.Value
 	{

@@ -855,13 +855,31 @@ public partial class FusionCache
 	{
 		ValidateTag(tag);
 
+		var operationId = MaybeGenerateOperationId();
+
+		options ??= _tagsDefaultEntryOptions;
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling ExpireByTagAsync {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExpireByTag, CacheName, InstanceId, null, operationId);
+
+		if (_options.IncludeTagsInTraces)
+		{
+			activity?.AddTag(Tags.Names.OperationTag, tag);
+		}
+
 		await SetAsync(
 			GetTagCacheKey(tag),
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			options ?? _tagsDefaultEntryOptions,
+			options,
 			FusionCacheInternalUtils.NoTags,
 			token
 		);
+
+		// EVENT
+		_events.OnExpireByTag(operationId, tag);
 	}
 
 	// CLEAR
@@ -871,12 +889,23 @@ public partial class FusionCache
 	{
 		var operationId = MaybeGenerateOperationId();
 
+		options ??= _tagsDefaultEntryOptions;
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling ClearAsync {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Clear, CacheName, InstanceId, null, operationId);
+
 		Interlocked.Exchange(ref ClearTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
 
-		if (TryExecuteRawClear(operationId))
-			return;
+		if (TryExecuteRawClear(operationId) == false)
+		{
+			await ExpireByTagAsync(ClearTag, options, token);
+		}
 
-		await ExpireByTagAsync(ClearTag, options, token);
+		// EVENT
+		_events.OnClear(operationId);
 	}
 
 	// DISTRIBUTED ACTIONS

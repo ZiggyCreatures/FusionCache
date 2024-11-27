@@ -197,7 +197,6 @@ public partial class FusionCache
 			var dca = DistributedCache;
 			if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 			{
-				// TODO: CHECK THIS AGAIN
 				if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false)
 				{
 					token.ThrowIfCancellationRequested();
@@ -780,7 +779,7 @@ public partial class FusionCache
 		{
 			if (ClearTimestamp < 0 || HasBackplane == false)
 			{
-				var _tmp = GetOrSet<long>(ClearTagCacheKey, SharedTagExpirationDataFactory, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
+				var _tmp = GetOrSet<long>(ClearTagCacheKey, SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
 
 				var _tmp2 = Interlocked.Exchange(ref ClearTimestamp, _tmp);
 
@@ -854,13 +853,31 @@ public partial class FusionCache
 	{
 		ValidateTag(tag);
 
+		var operationId = MaybeGenerateOperationId();
+
+		options ??= _tagsDefaultEntryOptions;
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling ExpireByTag {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExpireByTag, CacheName, InstanceId, null, operationId);
+
+		if (_options.IncludeTagsInTraces)
+		{
+			activity?.AddTag(Tags.Names.OperationTag, tag);
+		}
+
 		Set(
 			GetTagCacheKey(tag),
 			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			options ?? _tagsDefaultEntryOptions,
+			options,
 			FusionCacheInternalUtils.NoTags,
 			token
 		);
+
+		// EVENT
+		_events.OnExpireByTag(operationId, tag);
 	}
 
 	// CLEAR
@@ -870,12 +887,23 @@ public partial class FusionCache
 	{
 		var operationId = MaybeGenerateOperationId();
 
+		options ??= _tagsDefaultEntryOptions;
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling Clear {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+
+		// ACTIVITY
+		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Clear, CacheName, InstanceId, null, operationId);
+
 		Interlocked.Exchange(ref ClearTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
 
-		if (TryExecuteRawClear(operationId))
-			return;
+		if (TryExecuteRawClear(operationId) == false)
+		{
+			ExpireByTag(ClearTag, options, token);
+		}
 
-		ExpireByTag(ClearTag, options, token);
+		// EVENT
+		_events.OnClear(operationId);
 	}
 
 	// DISTRIBUTED ACTIONS

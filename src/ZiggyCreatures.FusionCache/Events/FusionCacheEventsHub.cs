@@ -82,6 +82,16 @@ public sealed class FusionCacheEventsHub
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? Expire;
 
+	/// <summary>
+	/// The event for a manual cache ExpireByTag() call.
+	/// </summary>
+	public event EventHandler<FusionCacheTagEventArgs>? ExpireByTag;
+
+	/// <summary>
+	/// The event for a manual cache Clear() call.
+	/// </summary>
+	public event EventHandler<EventArgs>? Clear;
+
 	internal void OnFailSafeActivate(string operationId, string key)
 	{
 		Metrics.CounterFailSafeActivate.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
@@ -138,6 +148,19 @@ public sealed class FusionCacheEventsHub
 		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
+	internal void OnExpireByTag(string operationId, string tag)
+	{
+		KeyValuePair<string, object?>[] extraTags = [];
+		if (_options.IncludeTagsInMetrics)
+		{
+			extraTags = [new KeyValuePair<string, object?>(Tags.Names.OperationTag, tag)];
+		}
+
+		Metrics.CounterExpireByTag.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, extraTags);
+
+		ExpireByTag?.SafeExecute(operationId, "", _cache, new FusionCacheTagEventArgs(tag), nameof(ExpireByTag), _logger, _errorsLogLevel, _syncExecution);
+	}
+
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
 		Metrics.CounterHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
@@ -164,5 +187,12 @@ public sealed class FusionCacheEventsHub
 		Metrics.CounterRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnRemove(operationId, key);
+	}
+
+	internal void OnClear(string operationId)
+	{
+		Metrics.CounterClear.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		Clear?.SafeExecute(operationId, "", _cache, new EventArgs(), nameof(Clear), _logger, _errorsLogLevel, _syncExecution);
 	}
 }

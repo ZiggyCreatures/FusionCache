@@ -9,6 +9,7 @@ internal static class Tags
 
 		public const string OperationKey = "fusioncache.operation.key";
 		public const string OperationId = "fusioncache.operation.operation_id";
+		public const string OperationTag = "fusioncache.operation.tag";
 		public const string OperationLevel = "fusioncache.operation.level";
 		public const string OperationBackground = "fusioncache.operation.background";
 
