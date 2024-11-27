@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -121,7 +122,8 @@ public static class FusionCacheGlobalDefaults
 	/// <br/><br/>
 	/// NOTE: this is not used anymore, please use <see cref="EntryOptionsSkipDistributedCacheRead"/> and <see cref="EntryOptionsSkipDistributedCacheWrite"/>.
 	/// </summary>
-	[Obsolete("Please use the specific EntryOptionsSkipDistributedCacheRead and EntryOptionsSkipDistributedCacheWrite.")]
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Please use the specific EntryOptionsSkipDistributedCacheRead and EntryOptionsSkipDistributedCacheWrite.", true)]
 	public static bool EntryOptionsSkipDistributedCache { get; set; } = false;
 
 	/// <summary>
@@ -144,7 +146,8 @@ public static class FusionCacheGlobalDefaults
 	/// <br/><br/>
 	/// NOTE: this is not used anymore, please use <see cref="EntryOptionsSkipMemoryCacheRead"/> and <see cref="EntryOptionsSkipMemoryCacheWrite"/>.
 	/// </summary>
-	[Obsolete("Please use the specific SkipMemoryCacheRead and SkipMemoryCacheWrite.")]
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Please use the specific SkipMemoryCacheRead and SkipMemoryCacheWrite.", true)]
 	public static bool EntryOptionsSkipMemoryCache { get; set; } = false;
 
 	/// <summary>

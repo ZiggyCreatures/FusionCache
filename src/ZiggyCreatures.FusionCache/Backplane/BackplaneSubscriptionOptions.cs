@@ -14,7 +14,8 @@ public class BackplaneSubscriptionOptions
 	/// <param name="channelName">The channel name to be used.</param>
 	/// <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
 	/// <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
-	[Obsolete("Please use the newer constructor with more parameters.")]
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Please use the newer constructor with more parameters.", true)]
 	public BackplaneSubscriptionOptions(string? channelName, Action<BackplaneConnectionInfo>? connectHandler, Action<BackplaneMessage>? incomingMessageHandler)
 	{
 		CacheName = "";
@@ -23,6 +24,7 @@ public class BackplaneSubscriptionOptions
 		ConnectHandler = connectHandler;
 		IncomingMessageHandler = incomingMessageHandler;
 	}
+
 	/// <summary>
 	/// Creates a new instance of a <see cref="BackplaneSubscriptionOptions"/>.
 	/// </summary>
@@ -59,7 +61,7 @@ public class BackplaneSubscriptionOptions
 	/// The backplane message handler that will be used to process incoming messages.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please use MessageHandler instead.")]
+	[Obsolete("Please use MessageHandler instead.", true)]
 	public Action<BackplaneMessage>? Handler
 	{
 		get { return IncomingMessageHandler; }

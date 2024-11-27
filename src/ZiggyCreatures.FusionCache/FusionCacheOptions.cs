@@ -226,7 +226,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the EnableAutoRecovery property.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the EnableAutoRecovery property.", true)]
 	public bool EnableBackplaneAutoRecovery
 	{
 		get { return EnableAutoRecovery; }
@@ -248,7 +248,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxItems property.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxItems property.", true)]
 	public int? BackplaneAutoRecoveryMaxItems
 	{
 		get { return AutoRecoveryMaxItems; }
@@ -272,7 +272,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxRetryCount property.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryMaxRetryCount property.", true)]
 	public int? BackplaneAutoRecoveryMaxRetryCount
 	{
 		get { return AutoRecoveryMaxRetryCount; }
@@ -299,7 +299,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.", true)]
 	public TimeSpan BackplaneAutoRecoveryReconnectDelay
 	{
 		get { return AutoRecoveryDelay; }
@@ -316,7 +316,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.")]
+	[Obsolete("Backplane auto-recovery is now simply auto-recovery: please use the AutoRecoveryDelay property.", true)]
 	public TimeSpan BackplaneAutoRecoveryDelay
 	{
 		get; set;
@@ -339,7 +339,7 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md"/>
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("This is not needed anymore, everything is handled automatically now.")]
+	[Obsolete("This is not needed anymore, everything is handled automatically now.", true)]
 	public bool EnableDistributedExpireOnBackplaneAutoRecovery { get; set; }
 
 	/// <summary>
@@ -493,6 +493,8 @@ public class FusionCacheOptions
 
 			PreferSyncSerialization = PreferSyncSerialization,
 
+			IncludeTagsInLogs = IncludeTagsInLogs,
+
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,
 
@@ -511,8 +513,6 @@ public class FusionCacheOptions
 
 			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
 			PluginsInfoLogLevel = PluginsInfoLogLevel,
-
-			IncludeTagsInLogs = IncludeTagsInLogs,
 		};
 
 		return res;
