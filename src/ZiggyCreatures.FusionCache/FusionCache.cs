@@ -69,7 +69,7 @@ public sealed partial class FusionCache
 	private readonly bool _tagsDefaultEntryOptionsSelfManaged = false;
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
 	private readonly FusionCacheEntryOptions _cascadeExpireByTagEntryOptions;
-	internal const string ClearTag = "__*"; // MAYBE JUST USE "*" TO ALIGN WITH HybridCache ? CHECK WITH MARC...
+	internal const string ClearTag = "*";
 	internal readonly string ClearTagCacheKey;
 	internal readonly string ClearTagInternalCacheKey;
 	internal long ClearTimestamp;
