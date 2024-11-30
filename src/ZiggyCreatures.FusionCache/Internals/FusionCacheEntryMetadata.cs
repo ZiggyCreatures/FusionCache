@@ -40,7 +40,7 @@ public sealed class FusionCacheEntryMetadata
 	/// <br/>
 	/// When fail-safe is enabled the entry is cached with a higher duration (<see cref="FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
 	/// </summary>
-	[DataMember(Name = "e", EmitDefaultValue = false)]
+	[DataMember(Name = "l", EmitDefaultValue = false)]
 	public DateTimeOffset LogicalExpiration { get; set; }
 
 	/// <summary>
@@ -52,19 +52,19 @@ public sealed class FusionCacheEntryMetadata
 	/// <summary>
 	/// The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.
 	/// </summary>
-	[DataMember(Name = "ea", EmitDefaultValue = false)]
+	[DataMember(Name = "e", EmitDefaultValue = false)]
 	public DateTimeOffset? EagerExpiration { get; set; }
 
 	/// <summary>
 	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
-	[DataMember(Name = "et", EmitDefaultValue = false)]
+	[DataMember(Name = "t", EmitDefaultValue = false)]
 	public string? ETag { get; set; }
 
 	/// <summary>
 	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
-	[DataMember(Name = "lm", EmitDefaultValue = false)]
+	[DataMember(Name = "m", EmitDefaultValue = false)]
 	public DateTimeOffset? LastModified { get; set; }
 
 	/// <summary>
@@ -78,7 +78,7 @@ public sealed class FusionCacheEntryMetadata
 	/// </summary>
 	/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public bool IsLogicallyExpired()
+	internal bool IsLogicallyExpired()
 	{
 		return LogicalExpiration < DateTimeOffset.UtcNow;
 	}
