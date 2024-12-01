@@ -18,8 +18,8 @@ internal static class Activities
 		public const string GetOrDefault = "get from cache";
 		public const string GetOrSet = "get or set from cache";
 		public const string Expire = "expire from cache";
-		public const string ExpireByTag = "expire from cache by tag";
 		public const string Remove = "remove from cache";
+		public const string RemoveByTag = "remove from cache by tag";
 		public const string Clear = "clear cache";
 
 		// MEMORY

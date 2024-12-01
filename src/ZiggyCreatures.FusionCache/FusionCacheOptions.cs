@@ -155,7 +155,7 @@ public class FusionCacheOptions
 	/// <br/>
 	/// This is used by features like RemoveByTag() and Clear(), and is useful to reduce the time different memory caches in different nodes remain out-of-sync when not using a backplane.
 	/// <br/><br/>
-	/// <strong>NOTE:</strong> if you specify a custom <see cref="TagsDefaultEntryOptions"/>, this option will not be used.
+	/// <strong>NOTE:</strong> if you manually specify a custom <see cref="TagsDefaultEntryOptions"/>, this option will not be used.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// <br/>
@@ -210,7 +210,7 @@ public class FusionCacheOptions
 	public string? BackplaneChannelPrefix { get; set; }
 
 	/// <summary>
-	/// Ignores incoming backplane notifications, which normally is DANGEROUS.
+	/// Ignores incoming backplane notifications, which normally is <strong>DANGEROUS</strong>.
 	/// <br/><br/>
 	/// <strong>WARNING:</strong> it is advised not to ignore backplane notifications in any normal circumstance unless you really know what you are doing.
 	/// <br/><br/>
@@ -514,6 +514,8 @@ public class FusionCacheOptions
 			PreferSyncSerialization = PreferSyncSerialization,
 
 			IncludeTagsInLogs = IncludeTagsInLogs,
+			IncludeTagsInTraces = IncludeTagsInTraces,
+			IncludeTagsInMetrics = IncludeTagsInMetrics,
 
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,

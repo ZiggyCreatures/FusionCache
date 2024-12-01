@@ -2026,11 +2026,6 @@ public class MemoryLevelTests
 		Assert.NotNull(foo3);
 		Assert.False(object.ReferenceEquals(foo, foo3));
 		Assert.Equal(3, foo3.PropInt);
-
-		//await Assert.ThrowsAsync<FusionCacheSerializationException>(async () =>
-		//{
-		//	_ = await cache.GetOrDefaultAsync<string>("foo");
-		//});
 	}
 
 	[Theory]
@@ -2072,15 +2067,10 @@ public class MemoryLevelTests
 		Assert.NotNull(foo3);
 		Assert.False(object.ReferenceEquals(foo, foo3));
 		Assert.Equal(3, foo3.PropInt);
-
-		//Assert.Throws<FusionCacheSerializationException>(() =>
-		//{
-		//	_ = cache.GetOrDefault<string>("foo");
-		//});
 	}
 
 	[Fact]
-	public async Task CanExpireByTagAsync()
+	public async Task CanRemoveByTagAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
@@ -2093,13 +2083,13 @@ public class MemoryLevelTests
 		var bar1 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
 		var baz1 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 33, tags: ["x", "z"]);
 
-		await cache.ExpireByTagAsync("x");
+		await cache.RemoveByTagAsync("x");
 
 		var foo2 = await cache.GetOrDefaultAsync<int>("foo");
 		var bar2 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 222, tags: ["y", "z"]);
 		var baz2 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 333, tags: ["x", "z"]);
 
-		await cache.ExpireByTagAsync("y");
+		await cache.RemoveByTagAsync("y");
 
 		var foo3 = await cache.GetOrSetAsync<int>("foo", async (_, _) => 1111, tags: ["x", "y"]);
 		var bar3 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 2222, tags: ["y", "z"]);
@@ -2119,7 +2109,7 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public void CanExpireByTag()
+	public void CanRemoveByTag()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
@@ -2132,13 +2122,13 @@ public class MemoryLevelTests
 		var bar1 = cache.GetOrSet<int>("bar", (_, _) => 22, tags: ["y", "z"]);
 		var baz1 = cache.GetOrSet<int>("baz", (_, _) => 33, tags: ["x", "z"]);
 
-		cache.ExpireByTag("x");
+		cache.RemoveByTag("x");
 
 		var foo2 = cache.GetOrDefault<int>("foo");
 		var bar2 = cache.GetOrSet<int>("bar", (_, _) => 222, tags: ["y", "z"]);
 		var baz2 = cache.GetOrSet<int>("baz", (_, _) => 333, tags: ["x", "z"]);
 
-		cache.ExpireByTag("y");
+		cache.RemoveByTag("y");
 
 		var foo3 = cache.GetOrSet<int>("foo", (_, _) => 1111, tags: ["x", "y"]);
 		var bar3 = cache.GetOrSet<int>("bar", (_, _) => 2222, tags: ["y", "z"]);

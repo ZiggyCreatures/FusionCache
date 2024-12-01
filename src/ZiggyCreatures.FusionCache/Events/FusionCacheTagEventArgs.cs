@@ -3,7 +3,7 @@
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
-/// The specific <see cref="EventArgs"/> object for events related to tag operations (eg: ExpireByTag).
+/// The specific <see cref="EventArgs"/> object for events related to tag operations (eg: RemoveByTag).
 /// </summary>
 public class FusionCacheTagEventArgs : EventArgs
 {

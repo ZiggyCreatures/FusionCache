@@ -83,9 +83,9 @@ public sealed class FusionCacheEventsHub
 	public event EventHandler<FusionCacheEntryEventArgs>? Expire;
 
 	/// <summary>
-	/// The event for a manual cache ExpireByTag() call.
+	/// The event for a manual cache RemoveByTag() call.
 	/// </summary>
-	public event EventHandler<FusionCacheTagEventArgs>? ExpireByTag;
+	public event EventHandler<FusionCacheTagEventArgs>? RemoveByTag;
 
 	/// <summary>
 	/// The event for a manual cache Clear() call.
@@ -148,7 +148,7 @@ public sealed class FusionCacheEventsHub
 		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal void OnExpireByTag(string operationId, string tag)
+	internal void OnRemoveByTag(string operationId, string tag)
 	{
 		KeyValuePair<string, object?>[] extraTags = [];
 		if (_options.IncludeTagsInMetrics)
@@ -156,10 +156,19 @@ public sealed class FusionCacheEventsHub
 			extraTags = [new KeyValuePair<string, object?>(Tags.Names.OperationTag, tag)];
 		}
 
-		Metrics.CounterExpireByTag.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, extraTags);
+		Metrics.CounterRemoveByTag.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, extraTags);
 
-		ExpireByTag?.SafeExecute(operationId, "", _cache, new FusionCacheTagEventArgs(tag), nameof(ExpireByTag), _logger, _errorsLogLevel, _syncExecution);
+		RemoveByTag?.SafeExecute(operationId, "", _cache, new FusionCacheTagEventArgs(tag), nameof(RemoveByTag), _logger, _errorsLogLevel, _syncExecution);
 	}
+
+	internal void OnClear(string operationId)
+	{
+		Metrics.CounterClear.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
+
+		Clear?.SafeExecute(operationId, "", _cache, new EventArgs(), nameof(Clear), _logger, _errorsLogLevel, _syncExecution);
+	}
+
+	// OVERRIDES
 
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
@@ -187,12 +196,5 @@ public sealed class FusionCacheEventsHub
 		Metrics.CounterRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnRemove(operationId, key);
-	}
-
-	internal void OnClear(string operationId)
-	{
-		Metrics.CounterClear.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
-
-		Clear?.SafeExecute(operationId, "", _cache, new EventArgs(), nameof(Clear), _logger, _errorsLogLevel, _syncExecution);
 	}
 }

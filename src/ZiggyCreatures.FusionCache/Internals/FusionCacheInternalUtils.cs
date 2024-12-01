@@ -445,4 +445,20 @@ internal static class FusionCacheInternalUtils
 
 		return true;
 	}
+
+	public static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	{
+		if (ctx.HasStaleValue)
+			return Task.FromResult(ctx.StaleValue.Value);
+
+		return Task.FromResult(0L);
+	}
+
+	public static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	{
+		if (ctx.HasStaleValue)
+			return ctx.StaleValue.Value;
+
+		return 0L;
+	}
 }

@@ -68,27 +68,11 @@ public sealed partial class FusionCache
 	private readonly TimeSpan _tagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(30);
 	private readonly bool _tagsDefaultEntryOptionsSelfManaged = false;
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
-	private readonly FusionCacheEntryOptions _cascadeExpireByTagEntryOptions;
+	private readonly FusionCacheEntryOptions _cascadeRemoveByTagEntryOptions;
 	internal const string ClearTag = "*";
 	internal readonly string ClearTagCacheKey;
 	internal readonly string ClearTagInternalCacheKey;
 	internal long ClearTimestamp;
-
-	private static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
-	{
-		if (ctx.HasStaleValue)
-			return Task.FromResult(ctx.StaleValue.Value);
-
-		return Task.FromResult(0L);
-	}
-
-	private static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
-	{
-		if (ctx.HasStaleValue)
-			return ctx.StaleValue.Value;
-
-		return 0L;
-	}
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -161,7 +145,7 @@ public sealed partial class FusionCache
 		}
 
 		// CASCADE EXPIRE BY TAG ENTRY OPTIONS
-		_cascadeExpireByTagEntryOptions = new FusionCacheEntryOptions
+		_cascadeRemoveByTagEntryOptions = new FusionCacheEntryOptions
 		{
 			Duration = TimeSpan.FromHours(24),
 			IsFailSafeEnabled = true,
@@ -719,6 +703,7 @@ public sealed partial class FusionCache
 		return true;
 	}
 
+	// TODO: USE THIS ONLY WITH AN ACTUAL CLEAR (EG: REMOVE INSTEAD OF EXPIRE)
 	internal bool TryExecuteRawClear(string operationId)
 	{
 		if (CanExecuteRawClear() == false)

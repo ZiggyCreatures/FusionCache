@@ -205,7 +205,7 @@ public interface IFusionCache
 	// TAGGING
 
 	/// <summary>
-	/// Expire all entries tagged with the specified <paramref name="tag"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
+	/// Remove all entries tagged with the specified <paramref name="tag"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
@@ -213,7 +213,7 @@ public interface IFusionCache
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask ExpireByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
 	/// Expire all entries tagged with the specified <paramref name="tag"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
@@ -223,7 +223,7 @@ public interface IFusionCache
 	/// <param name="tag">The tag to use to identify the entries to remove.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	void ExpireByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// CLEAR
 

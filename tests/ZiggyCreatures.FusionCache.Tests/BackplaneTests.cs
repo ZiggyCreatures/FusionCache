@@ -989,7 +989,7 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanExpireByTagAsync(SerializerType serializerType)
+	public async Task CanRemoveByTagAsync(SerializerType serializerType)
 	{
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
@@ -1013,7 +1013,7 @@ public class BackplaneTests
 		var bar1 = await cache2.GetOrSetAsync<int>(barKey, async (_, _) => 22, tags: [yTag, zTag]);
 		var baz1 = await cache3.GetOrSetAsync<int>(bazKey, async (_, _) => 33, tags: [xTag, zTag]);
 
-		await cache1.ExpireByTagAsync(xTag);
+		await cache1.RemoveByTagAsync(xTag);
 
 		await Task.Delay(100);
 
@@ -1021,7 +1021,7 @@ public class BackplaneTests
 		var bar2 = await cache1.GetOrSetAsync<int>(barKey, async (_, _) => 222, tags: [yTag, zTag]);
 		var baz2 = await cache2.GetOrSetAsync<int>(bazKey, async (_, _) => 333, tags: [xTag, zTag]);
 
-		await cache3.ExpireByTagAsync(yTag);
+		await cache3.RemoveByTagAsync(yTag);
 
 		await Task.Delay(100);
 
@@ -1044,7 +1044,7 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void CanExpireByTag(SerializerType serializerType)
+	public void CanRemoveByTag(SerializerType serializerType)
 	{
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
@@ -1068,7 +1068,7 @@ public class BackplaneTests
 		var bar1 = cache2.GetOrSet<int>(barKey, (_, _) => 22, tags: [yTag, zTag]);
 		var baz1 = cache3.GetOrSet<int>(bazKey, (_, _) => 33, tags: [xTag, zTag]);
 
-		cache1.ExpireByTag(xTag);
+		cache1.RemoveByTag(xTag);
 
 		Thread.Sleep(100);
 
@@ -1076,7 +1076,7 @@ public class BackplaneTests
 		var bar2 = cache1.GetOrSet<int>(barKey, (_, _) => 222, tags: [yTag, zTag]);
 		var baz2 = cache2.GetOrSet<int>(bazKey, (_, _) => 333, tags: [xTag, zTag]);
 
-		cache3.ExpireByTag(yTag);
+		cache3.RemoveByTag(yTag);
 
 		Thread.Sleep(100);
 
@@ -1099,7 +1099,7 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanExpireByTagWithCacheKeyPrefixAsync(SerializerType serializerType)
+	public async Task CanRemoveByTagWithCacheKeyPrefixAsync(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
 
@@ -1144,7 +1144,7 @@ public class BackplaneTests
 		Assert.Equal(1, risotto1);
 		Assert.Equal(1, kimchi1);
 
-		await cache3.ExpireByTagAsync("red");
+		await cache3.RemoveByTagAsync("red");
 
 		await Task.Delay(100);
 
@@ -1166,7 +1166,7 @@ public class BackplaneTests
 		Assert.Equal(1, risotto2);
 		Assert.Equal(0, kimchi2);
 
-		await cache2.ExpireByTagAsync("yellow");
+		await cache2.RemoveByTagAsync("yellow");
 
 		await Task.Delay(100);
 
@@ -1213,7 +1213,7 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void CanExpireByTagWithCacheKeyPrefix(SerializerType serializerType)
+	public void CanRemoveByTagWithCacheKeyPrefix(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
 
@@ -1258,7 +1258,7 @@ public class BackplaneTests
 		Assert.Equal(1, risotto1);
 		Assert.Equal(1, kimchi1);
 
-		cache3.ExpireByTag("red");
+		cache3.RemoveByTag("red");
 
 		Thread.Sleep(100);
 
@@ -1280,7 +1280,7 @@ public class BackplaneTests
 		Assert.Equal(1, risotto2);
 		Assert.Equal(0, kimchi2);
 
-		cache2.ExpireByTag("yellow");
+		cache2.RemoveByTag("yellow");
 
 		Thread.Sleep(100);
 
@@ -1327,7 +1327,7 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task ExpireByTagDoesNotRemoveTagDataAsync(SerializerType serializerType)
+	public async Task RemoveByTagDoesNotRemoveTaggingDataAsync(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
 
@@ -1349,7 +1349,7 @@ public class BackplaneTests
 		Assert.Equal(1, bar1);
 		Assert.Equal(1, baz1);
 
-		await cache1.ExpireByTagAsync("blah");
+		await cache1.RemoveByTagAsync("blah");
 
 		await Task.Delay(100);
 
@@ -1361,7 +1361,7 @@ public class BackplaneTests
 		Assert.Equal(1, bar2);
 		Assert.Equal(1, baz2);
 
-		await cache2.ExpireByTagAsync("y");
+		await cache2.RemoveByTagAsync("y");
 
 		await Task.Delay(100);
 
@@ -1376,7 +1376,7 @@ public class BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void ExpireByTagDoesNotRemoveTagData(SerializerType serializerType)
+	public void RemoveByTagDoesNotRemoveTaggingData(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
 
@@ -1398,7 +1398,7 @@ public class BackplaneTests
 		Assert.Equal(1, bar1);
 		Assert.Equal(1, baz1);
 
-		cache1.ExpireByTag("blah");
+		cache1.RemoveByTag("blah");
 
 		Thread.Sleep(100);
 
@@ -1410,7 +1410,7 @@ public class BackplaneTests
 		Assert.Equal(1, bar2);
 		Assert.Equal(1, baz2);
 
-		cache2.ExpireByTag("y");
+		cache2.RemoveByTag("y");
 
 		Thread.Sleep(100);
 
