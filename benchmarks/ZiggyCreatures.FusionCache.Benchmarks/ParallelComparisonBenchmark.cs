@@ -49,6 +49,7 @@ public class ParallelComparisonBenchmark
 	private IServiceProvider ServiceProvider = null!;
 
 	private FusionCache _FusionCache = null!;
+	private FusionCache _FusionCacheNoTagging = null!;
 	private FusionCache _FusionCacheProbabilistic = null!;
 	private CacheStack _CacheTower = null!;
 	private IEasyCachingProvider _EasyCaching = null!;
@@ -76,6 +77,7 @@ public class ParallelComparisonBenchmark
 
 		// SETUP CACHES
 		_FusionCache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
+		_FusionCacheNoTagging = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration), DisabledTagging = true });
 		_FusionCacheProbabilistic = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new ProbabilisticMemoryLocker());
 		_CacheTower = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))] });
 		_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
@@ -88,12 +90,44 @@ public class ParallelComparisonBenchmark
 	public void Cleanup()
 	{
 		_FusionCache.Dispose();
+		_FusionCacheNoTagging.Dispose();
 		_FusionCacheProbabilistic.Dispose();
 		_CacheTower.DisposeAsync().AsTask().Wait();
 	}
 
 	[Benchmark(Baseline = true)]
 	public async Task FusionCache()
+	{
+		for (int i = 0; i < Rounds; i++)
+		{
+			var tasks = new ConcurrentBag<Task>();
+
+			Parallel.ForEach(Keys, key =>
+			{
+				Parallel.For(0, Accessors, _ =>
+				{
+					var t = _FusionCache.GetOrSetAsync<SamplePayload>(
+						key,
+						async (ctx, ct) =>
+						{
+							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+							return new SamplePayload();
+						},
+						default,
+						null,
+						null,
+						default
+					);
+					tasks.Add(t.AsTask());
+				});
+			});
+
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+	}
+
+	[Benchmark]
+	public async Task FusionCache_NoTagging()
 	{
 		for (int i = 0; i < Rounds; i++)
 		{
