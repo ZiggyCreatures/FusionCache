@@ -382,6 +382,13 @@ public class FusionCacheOptions
 	public bool IncludeTagsInMetrics { get; set; }
 
 	/// <summary>
+	/// If set to <see langword="true"/>, disables the entire tagging system, meaning both RemoveByTag and Clear.
+	/// <br/>
+	/// <strong>NOTE:</strong> this may get to a little performance improvement, but if you'll try to call one of the above methods an <see cref="InvalidOperationException"></see> will be thrown.
+	/// </summary>
+	public bool DisabledTagging { get; set; }
+
+	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -516,6 +523,8 @@ public class FusionCacheOptions
 			IncludeTagsInLogs = IncludeTagsInLogs,
 			IncludeTagsInTraces = IncludeTagsInTraces,
 			IncludeTagsInMetrics = IncludeTagsInMetrics,
+
+			DisabledTagging = DisabledTagging,
 
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,

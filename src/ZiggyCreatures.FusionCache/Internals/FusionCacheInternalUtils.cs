@@ -57,6 +57,16 @@ internal static class FusionCacheInternalUtils
 	private static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
 	internal static readonly string[]? NoTags = null;
 
+	public static T[]? AsArray<T>(this IEnumerable<T>? items)
+	{
+		return items switch
+		{
+			null => null,
+			T[] => (T[])items,
+			_ => items.ToArray()
+		};
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static long GetCurrentTimestamp()
 	{

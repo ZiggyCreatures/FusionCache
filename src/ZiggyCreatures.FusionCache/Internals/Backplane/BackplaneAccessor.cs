@@ -387,14 +387,23 @@ internal sealed partial class BackplaneAccessor
 
 	private void MaybeUpdateClearTimestamp(string operationId, BackplaneMessage message)
 	{
-		if (message.CacheKey != _cache.ClearTagInternalCacheKey)
-			return;
+		if (message.CacheKey == _cache.ClearRemoveTagInternalCacheKey)
+		{
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (REMOVE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a cache-wide CLEAR has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+			// RESET THE CLEAR (REMOVE) TIMESTAMP, SO THAT AT THE NEXT
+			// TIME IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
+			Interlocked.Exchange(ref _cache.ClearRemoveTimestamp, -1);
+		}
+		else if (message.CacheKey == _cache.ClearExpireTagInternalCacheKey)
+		{
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (EXPIRE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-		// RESET THE CLEAR TIMESTAMP, SO THAT AT THE NEXT TIME
-		// IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
-		Interlocked.Exchange(ref _cache.ClearTimestamp, -1);
+			// RESET THE CLEAR (EXPIRE) TIMESTAMP, SO THAT AT THE NEXT
+			// TIME IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
+			Interlocked.Exchange(ref _cache.ClearExpireTimestamp, -1);
+		}
 	}
 }

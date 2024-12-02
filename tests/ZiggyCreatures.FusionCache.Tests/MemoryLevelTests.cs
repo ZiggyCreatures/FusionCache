@@ -2073,7 +2073,7 @@ public class MemoryLevelTests
 	public async Task CanRemoveByTagAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
-		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+		using var cache = new FusionCache(new FusionCacheOptions() { IncludeTagsInLogs = true }, logger: logger);
 
 		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"]);
 		await cache.SetAsync<int>("bar", 2, tags: ["y", "z"]);
@@ -2083,25 +2083,25 @@ public class MemoryLevelTests
 		var bar1 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
 		var baz1 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 33, tags: ["x", "z"]);
 
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
 		await cache.RemoveByTagAsync("x");
 
 		var foo2 = await cache.GetOrDefaultAsync<int>("foo");
 		var bar2 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 222, tags: ["y", "z"]);
 		var baz2 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 333, tags: ["x", "z"]);
 
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(333, baz2);
+
 		await cache.RemoveByTagAsync("y");
 
 		var foo3 = await cache.GetOrSetAsync<int>("foo", async (_, _) => 1111, tags: ["x", "y"]);
 		var bar3 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 2222, tags: ["y", "z"]);
 		var baz3 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 3333, tags: ["x", "z"]);
-
-		Assert.Equal(1, foo1);
-		Assert.Equal(2, bar1);
-		Assert.Equal(3, baz1);
-
-		Assert.Equal(0, foo2);
-		Assert.Equal(2, bar2);
-		Assert.Equal(333, baz2);
 
 		Assert.Equal(1111, foo3);
 		Assert.Equal(2222, bar3);
@@ -2180,11 +2180,11 @@ public class MemoryLevelTests
 		var barB1 = await cacheB.GetOrDefaultAsync<int>("bar");
 		var bazB1 = await cacheB.GetOrDefaultAsync<int>("baz");
 
-		await cacheA.ClearAsync();
-		await cacheB.ClearAsync();
+		await cacheA.ClearAsync(false);
+		await cacheB.ClearAsync(false);
 
-		// CACHE A HAS 4 ITEMS (3 FOR ITEMS + 1 FOR THE * TAG)
-		Assert.Equal(4, mcA.Count);
+		// CACHE A HAS 5 ITEMS (3 FOR ITEMS + 1 FOR THE * TAG + 1 FOR THE ** TAG)
+		Assert.Equal(5, mcA.Count);
 
 		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
 		Assert.Equal(0, mcB?.Count);
@@ -2255,11 +2255,11 @@ public class MemoryLevelTests
 		var barB1 = cacheB.GetOrDefault<int>("bar");
 		var bazB1 = cacheB.GetOrDefault<int>("baz");
 
-		cacheA.Clear();
-		cacheB.Clear();
+		cacheA.Clear(false);
+		cacheB.Clear(false);
 
-		// CACHE A HAS 4 ITEMS (3 FOR ITEMS + 1 FOR THE * TAG)
-		Assert.Equal(4, mcA.Count);
+		// CACHE A HAS 5 ITEMS (3 FOR ITEMS + 1 FOR THE * TAG + 1 FOR THE ** TAG)
+		Assert.Equal(5, mcA.Count);
 
 		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
 		Assert.Equal(0, mcB?.Count);
@@ -2295,6 +2295,68 @@ public class MemoryLevelTests
 
 		// CACHE B HAS 0 ITEMS (BECAUSE A RAW CLEAR HAS BEEN EXECUTED)
 		Assert.Equal(0, mcB?.Count);
+	}
+
+	[Fact]
+	public async Task CanClearWithFailSafeAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		// NOT PASSING A MEMORY CACHE -> CAN EXECUTE RAW CLEAR
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+
+		await cache.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
+
+		var foo1 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(true));
+
+		Assert.Equal(1, foo1);
+
+		await cache.ClearAsync();
+
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+		var foo2 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(true));
+
+		Assert.Equal(1, foo2);
+
+		await cache.ClearAsync(false);
+
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
+
+		var foo3 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(true));
+
+		Assert.Equal(0, foo3);
+	}
+
+	[Fact]
+	public void CanClearWithFailSafe()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		// NOT PASSING A MEMORY CACHE -> CAN EXECUTE RAW CLEAR
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+
+		cache.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
+
+		var foo1 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(true));
+
+		Assert.Equal(1, foo1);
+
+		cache.Clear();
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
+		var foo2 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(true));
+
+		Assert.Equal(1, foo2);
+
+		cache.Clear(false);
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
+		var foo3 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(true));
+
+		Assert.Equal(0, foo3);
 	}
 
 	[Fact]
@@ -2395,5 +2457,81 @@ public class MemoryLevelTests
 		var value3 = cache.GetOrDefault<int?>("foo", options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(100));
 		Assert.True(value3.HasValue);
 		Assert.Equal(42, value3.Value);
+	}
+
+	[Fact]
+	public async Task CanDisableTaggingAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions() { DisabledTagging = true }, logger: logger);
+
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+		{
+			await cache.SetAsync<int>("foo", 1, tags: ["x", "y"]);
+		});
+
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+		{
+			await cache.GetOrSetAsync<int>("bar", async (_, _) => 3, tags: ["x", "z"]);
+		});
+
+		var foo1 = await cache.GetOrDefaultAsync<int>("foo");
+		var bar1 = await cache.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, foo1);
+		Assert.Equal(0, bar1);
+
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+		{
+			await cache.RemoveByTagAsync("x");
+		});
+
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+		{
+			await cache.ClearAsync(false);
+		});
+
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+		{
+			await cache.ClearAsync();
+		});
+	}
+
+	[Fact]
+	public void CanDisableTagging()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions() { DisabledTagging = true }, logger: logger);
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			cache.Set<int>("foo", 1, tags: ["x", "y"]);
+		});
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			cache.GetOrSet<int>("bar", (_, _) => 3, tags: ["x", "z"]);
+		});
+
+		var foo1 = cache.GetOrDefault<int>("foo");
+		var bar1 = cache.GetOrDefault<int>("bar");
+
+		Assert.Equal(0, foo1);
+		Assert.Equal(0, bar1);
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			cache.RemoveByTag("x");
+		});
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			cache.Clear(false);
+		});
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			cache.Clear();
+		});
 	}
 }

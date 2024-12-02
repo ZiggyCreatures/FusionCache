@@ -210,7 +210,7 @@ public interface IFusionCache
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	/// <param name="tag">The tag to use to identify the entries to remove.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
@@ -221,36 +221,40 @@ public interface IFusionCache
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	/// <param name="tag">The tag to use to identify the entries to remove.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// CLEAR
 
 	/// <summary>
-	/// Expire all entries in the cache: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
-	/// This works with all supported scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, cache key prefix usage, etc.
+	/// Expire or remove all entries in the cache, based on the <paramref name="allowFailSafe"/> param.
+	/// <br/>
+	/// This works in all scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, with cache key prefix, etc.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
+	/// <param name="allowFailSafe">If set to <see langword="true"/> it will expire all entries in the cache, if set to <see langword="false"/> it will remove all entries in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
-	ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	ValueTask ClearAsync(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Expire all entries in the cache: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
-	/// This works with all supported scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, cache key prefix usage, etc.
+	/// Expire or remove all entries in the cache, based on the <paramref name="allowFailSafe"/> param.
+	/// <br/>
+	/// This works in all scenarios, including L1-only (memory level), L1+L2 (memory level + distributed level), shared caches, with cache key prefix, etc.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
+	/// <param name="allowFailSafe">If set to <see langword="true"/> it will expire all entries in the cache, if set to <see langword="false"/> it will remove all entries in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	void Clear(FusionCacheEntryOptions? options = null, CancellationToken token = default);
+	void Clear(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// SERIALIZATION
 

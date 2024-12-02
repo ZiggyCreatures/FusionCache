@@ -1612,7 +1612,7 @@ public class DistributedCacheLevelTests
 			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(2)
 		};
 		options1.SetInstanceId("C1");
-		using var cache1 = new FusionCache(options1);
+		using var cache1 = new FusionCache(options1, logger: logger);
 		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 		var options2 = new FusionCacheOptions
@@ -1622,7 +1622,7 @@ public class DistributedCacheLevelTests
 			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(2)
 		};
 		options2.SetInstanceId("C2");
-		using var cache2 = new FusionCache(options2);
+		using var cache2 = new FusionCache(options2, logger: logger);
 		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 		logger.LogInformation("STEP 1");

@@ -17,7 +17,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 {
 	private FusionCacheEntryOptions _options;
 
-	internal FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified, string[]? tags)
+	private FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified, string[]? tags)
 	{
 		if (options is null)
 			throw new ArgumentNullException(nameof(options));
@@ -181,14 +181,16 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		{
 			staleValue = MaybeValue<TValue>.FromValue(distributedEntry.GetValue<TValue>());
 			etag = distributedEntry.Metadata?.ETag;
-			tags = distributedEntry.Tags;
+			if (distributedEntry.Tags is not null)
+				tags = distributedEntry.Tags;
 			lastModified = distributedEntry.Metadata?.LastModified;
 		}
 		else if (memoryEntry is not null)
 		{
 			staleValue = MaybeValue<TValue>.FromValue(memoryEntry.GetValue<TValue>());
 			etag = memoryEntry.Metadata?.ETag;
-			tags = memoryEntry.Tags;
+			if (memoryEntry.Tags is not null)
+				tags = memoryEntry.Tags;
 			lastModified = memoryEntry.Metadata?.LastModified;
 		}
 		else

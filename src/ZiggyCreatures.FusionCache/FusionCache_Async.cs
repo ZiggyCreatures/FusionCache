@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -86,11 +85,9 @@ public partial class FusionCache
 		});
 	}
 
-	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, IEnumerable<string>? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
 	{
 		options ??= _options.DefaultEntryOptions;
-
-		var tagsArray = tags?.ToArray();
 
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
@@ -105,8 +102,9 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, memoryEntry!.Timestamp, token).ConfigureAwait(false))
-				memoryEntryIsValid = false;
+			//if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, memoryEntry!.Timestamp, token).ConfigureAwait(false))
+			//	memoryEntryIsValid = false;
+			(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
 		}
 
 		if (memoryEntryIsValid)
@@ -129,7 +127,7 @@ public partial class FusionCache
 				else
 				{
 					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, tagsArray, factory, options, memoryEntry, memoryLockObj);
+					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, tags, factory, options, memoryEntry, memoryLockObj);
 				}
 			}
 
@@ -175,8 +173,10 @@ public partial class FusionCache
 			// TAGGING
 			if (memoryEntryIsValid)
 			{
-				if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, memoryEntry!.Timestamp, token).ConfigureAwait(false))
-					memoryEntryIsValid = false;
+				//if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, memoryEntry!.Timestamp, token).ConfigureAwait(false))
+				//	memoryEntryIsValid = false;
+
+				(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
 			}
 
 			if (memoryEntryIsValid)
@@ -208,8 +208,10 @@ public partial class FusionCache
 			// TAGGING (DISTRIBUTED)
 			if (distributedEntryIsValid)
 			{
-				if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, distributedEntry!.Timestamp, token).ConfigureAwait(false))
-					distributedEntryIsValid = false;
+				//if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, distributedEntry!.Timestamp, token).ConfigureAwait(false))
+				//	distributedEntryIsValid = false;
+
+				(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 			}
 
 			if (distributedEntryIsValid)
@@ -225,7 +227,7 @@ public partial class FusionCache
 					var value = await factory(null!, token).ConfigureAwait(false);
 					hasNewValue = true;
 
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tags?.ToArray(), options, isStale, null, null, null);
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tags, options, isStale, null, null, null);
 				}
 				else
 				{
@@ -236,7 +238,7 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
 
-					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry, FusionCacheInternalUtils.NoTags);
+					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry, tags);
 
 					// ACTIVITY
 					var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
@@ -373,9 +375,12 @@ public partial class FusionCache
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		ValidateCacheKey(key);
-		ValidateTags(tags);
 
 		MaybePreProcessCacheKey(ref key);
+
+		var tagsArray = tags.AsArray();
+
+		ValidateTags(tagsArray);
 
 		token.ThrowIfCancellationRequested();
 
@@ -390,7 +395,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, tags, factory, true, failSafeDefaultValue, options, activity, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, tagsArray, factory, true, failSafeDefaultValue, options, activity, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{
@@ -414,6 +419,10 @@ public partial class FusionCache
 
 		MaybePreProcessCacheKey(ref key);
 
+		var tagsArray = tags.AsArray();
+
+		ValidateTags(tagsArray);
+
 		token.ThrowIfCancellationRequested();
 
 		var operationId = MaybeGenerateOperationId();
@@ -424,7 +433,7 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, tags, (_, _) => Task.FromResult(defaultValue), false, default, options, activity, token).ConfigureAwait(false);
+		var entry = await GetOrSetEntryInternalAsync<TValue>(operationId, key, tagsArray, (_, _) => Task.FromResult(defaultValue), false, default, options, activity, token).ConfigureAwait(false);
 
 		if (entry is null)
 		{
@@ -458,7 +467,8 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			memoryEntry = await MaybeCascadeExpireAsync(operationId, key, memoryEntry, token).ConfigureAwait(false);
+			//memoryEntry = await MaybeCascadeExpireAsync(operationId, key, memoryEntry, token).ConfigureAwait(false);
+			(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
 			if (memoryEntry is null)
 			{
 				// EVENT
@@ -510,7 +520,8 @@ public partial class FusionCache
 		// TAGGING
 		if (distributedEntryIsValid)
 		{
-			distributedEntry = await MaybeCascadeExpireAsync(operationId, key, distributedEntry, token).ConfigureAwait(false);
+			//distributedEntry = await MaybeCascadeExpireAsync(operationId, key, distributedEntry, token).ConfigureAwait(false);
+			(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 			if (distributedEntry is null)
 			{
 				// EVENT
@@ -660,9 +671,12 @@ public partial class FusionCache
 	public async ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
 		ValidateCacheKey(key);
-		ValidateTags(tags);
 
 		MaybePreProcessCacheKey(ref key);
+
+		var tagsArray = tags.AsArray();
+
+		ValidateTags(tagsArray);
 
 		token.ThrowIfCancellationRequested();
 
@@ -677,7 +691,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tags?.ToArray(), options, false, null, null, null);
+		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tagsArray, options, false, null, null, null);
 
 		if (_mca.ShouldWrite(options))
 		{
@@ -775,84 +789,137 @@ public partial class FusionCache
 
 	// TAGGING
 
-	private async ValueTask<bool> IsEntryExpiredByTagsAsync(string operationId, string key, string[]? tags, long entryTimestamp, CancellationToken token)
+	private async ValueTask<(TEntry? Entry, bool isValid)> CheckEntrySecondaryExpirationAsync<TEntry>(string operationId, string key, TEntry? entry, bool executeCascadeAction, CancellationToken token)
+		where TEntry : class, IFusionCacheEntry
 	{
-		if (ClearTagInternalCacheKey != key && CanExecuteRawClear() == false)
-		{
-			if (ClearTimestamp < 0 || HasBackplane == false)
-			{
-				var _tmp = await GetOrSetAsync<long>(ClearTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+		if (entry is null)
+			return (null, false);
 
-				var _tmp2 = Interlocked.Exchange(ref ClearTimestamp, _tmp);
+		if (_options.DisabledTagging)
+			return (entry, true);
+
+		var entryTimestamp = entry.Timestamp;
+		var tags = entry.Tags;
+
+		// CHECK: CLEAR (REMOVE)
+		if (ClearRemoveTagInternalCacheKey != key && ClearExpireTagInternalCacheKey != key && CanExecuteRawClear() == false)
+		{
+			if (ClearRemoveTimestamp < 0 || HasBackplane == false)
+			{
+				var _tmp = await GetOrSetAsync<long>(ClearRemoveTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+
+				var _tmp2 = Interlocked.Exchange(ref ClearRemoveTimestamp, _tmp);
 
 				if (_tmp2 != _tmp)
 				{
-					// NEW CLEAR TIMESTAMP
+					// NEW CLEAR (REMOVE) TIMESTAMP
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear timestamp {ClearTimestamp} (OLD: {OldClearTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Remove) timestamp {ClearRemoveTimestamp} (OLD: {OldClearRemoveTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
 				}
 			}
 
-			if (entryTimestamp <= ClearTimestamp)
+			if (entryTimestamp <= ClearRemoveTimestamp)
 			{
-				// EXPIRED (BY CLEAR)
+				// NOT VALID, VIA CLEAR (REMOVE)
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry expired via Clear ({EntryTimestamp} <= {ClearTimestamp})", CacheName, InstanceId, operationId, key, entryTimestamp, ClearTimestamp);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry no more valid via Clear (Remove) ({EntryTimestamp} <= {ClearRemoveTimestamp})", CacheName, InstanceId, operationId, key, entryTimestamp, ClearRemoveTimestamp);
 
-				return true;
+				if (executeCascadeAction == false)
+					return (entry, false);
+
+				// REMOVE ENTRY
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cascade remove entry", CacheName, InstanceId, operationId, key);
+
+				await RemoveInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
+
+				return (null, false);
 			}
 		}
 
+		// CHECK: REMOVE BY TAG
 		if (tags is not null && tags.Length > 0)
 		{
-			//if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			//	_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): checking if entry is expired via tags ({TagsCount})", CacheName, InstanceId, operationId, key, tags.Length);
-
 			foreach (var tag in tags)
 			{
 				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 				if (entryTimestamp <= tagExpiration)
 				{
-					// EXPIRED (BY TAG)
+					// NOT VALID (VIA REMOVE BY TAG)
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry expired via tag {Tag}", CacheName, InstanceId, operationId, key, tag);
 
-					return true;
+					if (executeCascadeAction == false)
+						return (entry, false);
+
+					// EXPIRE ENTRY
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cascade expire entry", CacheName, InstanceId, operationId, key);
+
+					await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
+
+					return (entry, false);
 				}
 
 				token.ThrowIfCancellationRequested();
 			}
-
-			//if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			//	_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry not expired via tags", CacheName, InstanceId, operationId, key);
 		}
 
-		return false;
+		// CHECK: CLEAR (EXPIRE)
+		if (ClearRemoveTagInternalCacheKey != key && ClearExpireTagInternalCacheKey != key)
+		{
+			if (ClearExpireTimestamp < 0 || HasBackplane == false)
+			{
+				var _tmp = await GetOrSetAsync<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+
+				var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
+
+				if (_tmp2 != _tmp)
+				{
+					// NEW CLEAR (EXPIRE) TIMESTAMP
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				}
+			}
+
+			if (entryTimestamp <= ClearExpireTimestamp)
+			{
+				// NOT VALID, VIA CLEAR (EXPIRE)
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry no more valid via Clear (Expire) ({EntryTimestamp} <= {ClearExpireTimestamp})", CacheName, InstanceId, operationId, key, entryTimestamp, ClearExpireTimestamp);
+
+				if (executeCascadeAction == false)
+					return (entry, false);
+
+				// EXPIRE ENTRY
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cascade expire entry", CacheName, InstanceId, operationId, key);
+
+				await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
+
+				return (entry, false);
+			}
+		}
+
+		return (entry, true);
 	}
 
-	private async ValueTask<TEntry?> MaybeCascadeExpireAsync<TEntry>(string operationId, string key, TEntry? entry, CancellationToken token)
-			where TEntry : class, IFusionCacheEntry
+	private async ValueTask SetTagDataInternalAsync(string tag, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		if (entry is null)
-			return null;
-
-		var isExpired = await IsEntryExpiredByTagsAsync(operationId, key, entry.Tags, entry.Timestamp, token).ConfigureAwait(false);
-
-		if (isExpired == false)
-			return entry;
-
-		// ENTRY IS EXPIRED BECAUSE OF A TAG OR A CLEAR OPERATION -> EXPIRE IT
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry is expired, removing", CacheName, InstanceId, operationId, key);
-
-		await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
-
-		return null;
+		await SetAsync(
+			GetTagCacheKey(tag),
+			FusionCacheInternalUtils.GetCurrentTimestamp(),
+			options,
+			FusionCacheInternalUtils.NoTags,
+			token
+		);
 	}
 
 	/// <inheritdoc/>
 	public async ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckTaggingEnabled();
+
 		ValidateTag(tag);
 
 		var operationId = MaybeGenerateOperationId();
@@ -870,13 +937,7 @@ public partial class FusionCache
 			activity?.AddTag(Tags.Names.OperationTag, tag);
 		}
 
-		await SetAsync(
-			GetTagCacheKey(tag),
-			FusionCacheInternalUtils.GetCurrentTimestamp(),
-			options,
-			FusionCacheInternalUtils.NoTags,
-			token
-		);
+		await SetTagDataInternalAsync(tag, options, token).ConfigureAwait(false);
 
 		// EVENT
 		_events.OnRemoveByTag(operationId, tag);
@@ -885,8 +946,10 @@ public partial class FusionCache
 	// CLEAR
 
 	/// <inheritdoc/>
-	public async ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public async ValueTask ClearAsync(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckTaggingEnabled();
+
 		var operationId = MaybeGenerateOperationId();
 
 		options ??= _tagsDefaultEntryOptions;
@@ -897,11 +960,22 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Clear, CacheName, InstanceId, null, operationId);
 
-		Interlocked.Exchange(ref ClearTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
-
-		if (TryExecuteRawClear(operationId) == false)
+		if (allowFailSafe)
 		{
-			await RemoveByTagAsync(ClearTag, options, token);
+			// CLEAR EXPIRE
+			Interlocked.Exchange(ref ClearExpireTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
+
+			await SetTagDataInternalAsync(ClearExpireTag, options, token).ConfigureAwait(false);
+		}
+		else
+		{
+			// CLEAR REMOVE
+			Interlocked.Exchange(ref ClearRemoveTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
+
+			if (TryExecuteRawClear(operationId) == false)
+			{
+				await SetTagDataInternalAsync(ClearRemoveTag, options, token).ConfigureAwait(false);
+			}
 		}
 
 		// EVENT

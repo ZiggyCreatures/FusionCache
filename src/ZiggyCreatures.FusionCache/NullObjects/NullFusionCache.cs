@@ -7,6 +7,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
+using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -72,13 +73,13 @@ public class NullFusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return await factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
+		return await factory(FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options ?? DefaultEntryOptions, null, null, FusionCacheInternalUtils.NoTags), token);
 	}
 
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return factory(new FusionCacheFactoryExecutionContext<TValue>(options ?? DefaultEntryOptions, default, null, null, null), token);
+		return factory(FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options ?? DefaultEntryOptions, null, null, FusionCacheInternalUtils.NoTags), token);
 	}
 
 	/// <inheritdoc/>
@@ -180,13 +181,13 @@ public class NullFusionCache
 	// CLEAR
 
 	/// <inheritdoc/>
-	public ValueTask ClearAsync(FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public ValueTask ClearAsync(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		return new ValueTask();
 	}
 
 	/// <inheritdoc/>
-	public void Clear(FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	public void Clear(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		// EMPTY
 	}

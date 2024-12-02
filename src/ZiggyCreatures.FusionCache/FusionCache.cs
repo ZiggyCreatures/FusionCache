@@ -69,10 +69,16 @@ public sealed partial class FusionCache
 	private readonly bool _tagsDefaultEntryOptionsSelfManaged = false;
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
 	private readonly FusionCacheEntryOptions _cascadeRemoveByTagEntryOptions;
-	internal const string ClearTag = "*";
-	internal readonly string ClearTagCacheKey;
-	internal readonly string ClearTagInternalCacheKey;
-	internal long ClearTimestamp;
+
+	internal const string ClearRemoveTag = "**";
+	internal readonly string ClearRemoveTagCacheKey;
+	internal readonly string ClearRemoveTagInternalCacheKey;
+	internal long ClearRemoveTimestamp;
+
+	internal const string ClearExpireTag = "*";
+	internal readonly string ClearExpireTagCacheKey;
+	internal readonly string ClearExpireTagInternalCacheKey;
+	internal long ClearExpireTimestamp;
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
@@ -117,7 +123,7 @@ public sealed partial class FusionCache
 			ReThrowSerializationExceptions = true,
 		};
 
-		// EXPIRE BY TAG DEFAULT ENTRY OPTIONS
+		// TAGS DEFAULT ENTRY OPTIONS
 		_tagsMemoryCacheDurationOverride = _options.TagsMemoryCacheDurationOverride;
 		if (_options.TagsDefaultEntryOptions is not null)
 		{
@@ -144,7 +150,7 @@ public sealed partial class FusionCache
 			_tagsDefaultEntryOptions.Size = 1;
 		}
 
-		// CASCADE EXPIRE BY TAG ENTRY OPTIONS
+		// CASCADE REMOVE BY TAG ENTRY OPTIONS
 		_cascadeRemoveByTagEntryOptions = new FusionCacheEntryOptions
 		{
 			Duration = TimeSpan.FromHours(24),
@@ -210,9 +216,13 @@ public sealed partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: instance created", CacheName, InstanceId);
 
-		ClearTimestamp = -1;
-		ClearTagCacheKey = GetTagCacheKey(ClearTag);
-		ClearTagInternalCacheKey = GetTagInternalCacheKey(ClearTag);
+		ClearRemoveTimestamp = -1;
+		ClearRemoveTagCacheKey = GetTagCacheKey(ClearRemoveTag);
+		ClearRemoveTagInternalCacheKey = GetTagInternalCacheKey(ClearRemoveTag);
+
+		ClearExpireTimestamp = -1;
+		ClearExpireTagCacheKey = GetTagCacheKey(ClearExpireTag);
+		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(ClearExpireTag);
 
 		// MICRO OPTIMIZATION: WARM UP OBSERVABILITY STUFF
 		_ = Activities.Source;
@@ -277,10 +287,12 @@ public sealed partial class FusionCache
 		//	throw new ArgumentOutOfRangeException(nameof(tag), $"The tag '{ClearTag}' is reserved and cannot be used.");
 	}
 
-	private static void ValidateTags(IEnumerable<string>? tags)
+	private void ValidateTags(string[]? tags)
 	{
-		if (tags is null)
+		if (tags is null || tags.Length == 0)
 			return;
+
+		CheckTaggingEnabled();
 
 		foreach (var tag in tags)
 		{
@@ -641,6 +653,13 @@ public sealed partial class FusionCache
 	}
 
 	// TAGGING
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private void CheckTaggingEnabled()
+	{
+		if (_options.DisabledTagging)
+			throw new InvalidOperationException("This operation requires Tagging, which has been disabled via FusionCacheOptions.DisabledTagging.");
+	}
 
 	private static string GetTagCacheKey(string tag)
 	{
