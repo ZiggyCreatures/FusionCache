@@ -802,7 +802,7 @@ public partial class FusionCache
 		// CHECK: CLEAR (REMOVE)
 		if (ClearRemoveTagInternalCacheKey != key && ClearExpireTagInternalCacheKey != key && CanExecuteRawClear() == false)
 		{
-			if (ClearRemoveTimestamp < 0 || HasBackplane == false)
+			if (ClearRemoveTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 			{
 				var _tmp = GetOrSet<long>(ClearRemoveTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
 
@@ -866,7 +866,7 @@ public partial class FusionCache
 		// CHECK: CLEAR (EXPIRE)
 		if (ClearRemoveTagInternalCacheKey != key && ClearExpireTagInternalCacheKey != key)
 		{
-			if (ClearExpireTimestamp < 0 || HasBackplane == false)
+			if (ClearExpireTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 			{
 				var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
 

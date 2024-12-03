@@ -804,7 +804,7 @@ public partial class FusionCache
 		// CHECK: CLEAR (REMOVE)
 		if (ClearRemoveTagInternalCacheKey != key && ClearExpireTagInternalCacheKey != key && CanExecuteRawClear() == false)
 		{
-			if (ClearRemoveTimestamp < 0 || HasBackplane == false)
+			if (ClearRemoveTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 			{
 				var _tmp = await GetOrSetAsync<long>(ClearRemoveTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 
@@ -868,7 +868,7 @@ public partial class FusionCache
 		// CHECK: CLEAR (EXPIRE)
 		if (ClearRemoveTagInternalCacheKey != key && ClearExpireTagInternalCacheKey != key)
 		{
-			if (ClearExpireTimestamp < 0 || HasBackplane == false)
+			if (ClearExpireTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 			{
 				var _tmp = await GetOrSetAsync<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 
