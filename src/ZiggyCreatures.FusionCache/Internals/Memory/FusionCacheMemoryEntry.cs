@@ -81,13 +81,13 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static bool RequiresMetadata(FusionCacheEntryOptions options, FusionCacheEntryMetadata? meta)
+	private static bool RequiresMetadata(FusionCacheEntryOptions options, FusionCacheEntryMetadata? metadata)
 	{
 		return
-			options.IsFailSafeEnabled
-			|| options.EagerRefreshThreshold.HasValue
+			metadata is not null
+			|| options.IsFailSafeEnabled
+			|| options.EagerRefreshThreshold is not null
 			|| options.Size is not null
-			|| meta is not null
 		;
 	}
 

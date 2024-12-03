@@ -281,8 +281,8 @@ internal class Program
 		}
 
 		// GET THE LOGICAL EXPIRATION
-		var meta = (FusionCacheEntryMetadata?)entry.GetType().GetProperty("Metadata")?.GetValue(entry);
-		var logicalExpiration = meta?.LogicalExpiration;
+		var metadata = (FusionCacheEntryMetadata?)entry.GetType().GetProperty("Metadata")?.GetValue(entry);
+		var logicalExpiration = metadata?.LogicalExpiration;
 
 		// GET THE PHYSICAL EXPIRATION
 		DateTimeOffset? physicalExpiration = null;
