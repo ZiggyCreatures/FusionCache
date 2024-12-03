@@ -208,9 +208,6 @@ public partial class FusionCache
 			// TAGGING (DISTRIBUTED)
 			if (distributedEntryIsValid)
 			{
-				//if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, distributedEntry!.Timestamp, token).ConfigureAwait(false))
-				//	distributedEntryIsValid = false;
-
 				(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 			}
 

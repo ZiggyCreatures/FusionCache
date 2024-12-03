@@ -208,8 +208,6 @@ public partial class FusionCache
 			// TAGGING (DISTRIBUTED)
 			if (distributedEntryIsValid)
 			{
-				//if (IsEntryExpiredByTags(operationId, key, tagsArray, distributedEntry!.Timestamp, token))
-				//	distributedEntryIsValid = false;
 				(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 			}
 
