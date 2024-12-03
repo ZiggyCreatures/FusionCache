@@ -421,7 +421,8 @@ public class MemoryLevelTests
 	[Fact]
 	public async Task TryGetReturnsCorrectlyAsync()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 		var res1 = await cache.TryGetAsync<int>("foo");
 		await cache.SetAsync<int>("foo", 42);
 		var res2 = await cache.TryGetAsync<int>("foo");
@@ -437,7 +438,8 @@ public class MemoryLevelTests
 	[Fact]
 	public void TryGetReturnsCorrectly()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 		var res1 = cache.TryGet<int>("foo");
 		cache.Set<int>("foo", 42);
 		var res2 = cache.TryGet<int>("foo");
