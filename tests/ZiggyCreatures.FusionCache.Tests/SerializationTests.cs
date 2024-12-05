@@ -97,7 +97,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp(), []);
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -122,7 +122,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp(), []);
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = serializer.Serialize(obj);
 
@@ -146,7 +146,7 @@ public class SerializationTests
 	public async Task LoopSucceedsWithDistributedEntryAndNoMetadataAsync(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, null, FusionCacheInternalUtils.GetCurrentTimestamp(), []);
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], null, FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -165,7 +165,7 @@ public class SerializationTests
 	public void LoopSucceedsWithDistributedEntryAndNoMetadata(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, null, FusionCacheInternalUtils.GetCurrentTimestamp(), []);
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], null, FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = serializer.Serialize(obj);
 
@@ -185,7 +185,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp(), []);
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), [], new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -210,7 +210,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1), true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1), 123), FusionCacheInternalUtils.GetCurrentTimestamp(), []);
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), [], new FusionCacheEntryMetadata(now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1), true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1), 123), FusionCacheInternalUtils.GetCurrentTimestamp());
 
 		var data = serializer.Serialize(obj);
 

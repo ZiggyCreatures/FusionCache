@@ -15,10 +15,10 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// Creates a new instance.
 	/// </summary>
 	/// <param name="value">The actual value.</param>
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
-	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
-	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp, string[]? tags)
+	public FusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp)
 	{
 		Value = value;
 		Tags = tags;
@@ -33,7 +33,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
 	public FusionCacheDistributedEntry(TValue value, FusionCacheEntryMetadata? metadata, long timestamp)
-		: this(value, metadata, timestamp, FusionCacheInternalUtils.NoTags)
+		: this(value, FusionCacheInternalUtils.NoTags, metadata, timestamp)
 	{
 	}
 
@@ -85,20 +85,42 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
 	{
+		// TODO: CHECK THIS AGAIN
+		//if (FusionCacheInternalUtils.RequiresMetadata(options, isFromFailSafe, lastModified, etag) == false)
+		//{
+		//	return new FusionCacheDistributedEntry<TValue>(
+		//		value,
+		//		tags,
+		//		null,
+		//		timestamp
+		//	);
+		//}
+
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
 
 		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, exp);
 
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
+			tags,
 			new FusionCacheEntryMetadata(exp, isFromFailSafe, eagerExp, etag, lastModified, options.Size),
-			timestamp,
-			tags
+			timestamp
 		);
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
+		// TODO: CHECK THIS AGAIN
+		//if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata) == false)
+		//{
+		//	return new FusionCacheDistributedEntry<TValue>(
+		//		entry.GetValue<TValue>(),
+		//		entry.Tags,
+		//		null,
+		//		entry.Timestamp
+		//	);
+		//}
+
 		//if (options.IsFailSafeEnabled == false && entry.Metadata is null && options.EagerRefreshThreshold.HasValue == false)
 		//	return new FusionCacheDistributedEntry<TValue>(entry.GetValue<TValue>(), null);
 
@@ -119,9 +141,9 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
+			entry.Tags,
 			new FusionCacheEntryMetadata(exp, isStale, eagerExp, entry.Metadata?.ETag, entry.Metadata?.LastModified, entry.Metadata?.Size ?? options.Size),
-			entry.Timestamp,
-			entry.Tags
+			entry.Timestamp
 		);
 	}
 }
