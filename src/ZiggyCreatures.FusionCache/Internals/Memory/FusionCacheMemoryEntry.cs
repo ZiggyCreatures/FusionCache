@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -80,33 +79,9 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static bool RequiresMetadata(FusionCacheEntryOptions options, FusionCacheEntryMetadata? metadata)
-	{
-		return
-			metadata is not null
-			|| options.IsFailSafeEnabled
-			|| options.EagerRefreshThreshold is not null
-			|| options.Size is not null
-		;
-	}
-
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static bool RequiresMetadata(FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
-	{
-		return
-			options.IsFailSafeEnabled
-			|| options.EagerRefreshThreshold.HasValue
-			|| options.Size is not null
-			|| isFromFailSafe
-			|| lastModified is not null
-			|| etag is not null
-		;
-	}
-
 	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long? timestamp)
 	{
-		if (RequiresMetadata(options, isFromFailSafe, lastModified, etag) == false)
+		if (FusionCacheInternalUtils.RequiresMetadata(options, isFromFailSafe, lastModified, etag) == false)
 		{
 			return new FusionCacheMemoryEntry<TValue>(
 				value,
@@ -130,7 +105,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 	public static FusionCacheMemoryEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
-		if (RequiresMetadata(options, entry.Metadata) == false)
+		if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata) == false)
 		{
 			return new FusionCacheMemoryEntry<TValue>(
 				entry.GetValue<TValue>(),

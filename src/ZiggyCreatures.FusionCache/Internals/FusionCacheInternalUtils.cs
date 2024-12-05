@@ -471,4 +471,28 @@ internal static class FusionCacheInternalUtils
 
 		return 0L;
 	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool RequiresMetadata(FusionCacheEntryOptions options, FusionCacheEntryMetadata? metadata)
+	{
+		return
+			metadata is not null
+			|| options.IsFailSafeEnabled
+			|| options.EagerRefreshThreshold is not null
+			|| options.Size is not null
+		;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool RequiresMetadata(FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
+	{
+		return
+			options.IsFailSafeEnabled
+			|| options.EagerRefreshThreshold.HasValue
+			|| options.Size is not null
+			|| isFromFailSafe
+			|| lastModified is not null
+			|| etag is not null
+		;
+	}
 }
