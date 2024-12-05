@@ -2536,4 +2536,96 @@ public class MemoryLevelTests
 			cache.Clear();
 		});
 	}
+
+	[Fact]
+	public async Task CanHandleEagerRefreshWithTagsAsync()
+	{
+		var duration = TimeSpan.FromSeconds(4);
+		var eagerRefreshThreshold = 0.2f;
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+		// EXECUTE FACTORY
+		var v1 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+		// USE CACHED VALUE
+		var v2 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+		Assert.Equal(v1, v2);
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+		await Task.Delay(eagerDuration);
+
+		// EAGER REFRESH KICKS IN
+		var expectedValue = DateTimeOffset.UtcNow.Ticks;
+		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => expectedValue, tags: ["c", "d"]);
+
+		Assert.Equal(v2, v3);
+
+		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+		await Task.Delay(TimeSpan.FromMilliseconds(250));
+
+		// GET THE REFRESHED VALUE
+		var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+
+		Assert.Equal(expectedValue, v4);
+		Assert.True(v4 > v3);
+
+		await cache.RemoveByTagAsync("c");
+
+		// EXECUTE FACTORY AGAIN
+		var v5 = await cache.GetOrDefaultAsync<long>("foo");
+
+		Assert.Equal(0, v5);
+	}
+
+	[Fact]
+	public void CanHandleEagerRefreshWithTags()
+	{
+		var duration = TimeSpan.FromSeconds(4);
+		var eagerRefreshThreshold = 0.2f;
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+
+		// EXECUTE FACTORY
+		var v1 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+		// USE CACHED VALUE
+		var v2 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+		Assert.Equal(v1, v2);
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
+		Thread.Sleep(eagerDuration);
+
+		// EAGER REFRESH KICKS IN
+		var expectedValue = DateTimeOffset.UtcNow.Ticks;
+		var v3 = cache.GetOrSet<long>("foo", _ => expectedValue, tags: ["c", "d"]);
+
+		Assert.Equal(v2, v3);
+
+		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+		Thread.Sleep(TimeSpan.FromMilliseconds(250));
+
+		// GET THE REFRESHED VALUE
+		var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+
+		Assert.Equal(expectedValue, v4);
+		Assert.True(v4 > v3);
+
+		cache.RemoveByTag("c");
+
+		// EXECUTE FACTORY AGAIN
+		var v5 = cache.GetOrDefault<long>("foo");
+
+		Assert.Equal(0, v5);
+	}
 }

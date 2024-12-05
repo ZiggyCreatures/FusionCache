@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -78,7 +77,7 @@ public partial class FusionCache
 			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
 			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
-			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry, FusionCacheInternalUtils.NoTags);
+			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry, tags);
 
 			var factoryTask = Task.Run(() => factory(ctx, default));
 
@@ -86,7 +85,7 @@ public partial class FusionCache
 		});
 	}
 
-	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string[]? tagsArray, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
 	{
 		options ??= _options.DefaultEntryOptions;
 
@@ -103,8 +102,6 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			//if (IsEntryExpiredByTags(operationId, key, tagsArray, memoryEntry!.Timestamp, token))
-			//	memoryEntryIsValid = false;
 			(memoryEntry, memoryEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, memoryEntry, false, token);
 		}
 
@@ -128,7 +125,7 @@ public partial class FusionCache
 				else
 				{
 					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, tagsArray, factory, options, memoryEntry, memoryLockObj);
+					ExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, tags, factory, options, memoryEntry, memoryLockObj);
 				}
 			}
 
@@ -137,7 +134,7 @@ public partial class FusionCache
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry", CacheName, InstanceId, operationId, key);
 
 			// EVENT
-			_events.OnHit(operationId, key, memoryEntryIsValid == false || (memoryEntry!.IsStale()), activity);
+			_events.OnHit(operationId, key, memoryEntryIsValid == false || memoryEntry!.IsStale(), activity);
 
 			return memoryEntry;
 		}
@@ -174,8 +171,6 @@ public partial class FusionCache
 			// TAGGING
 			if (memoryEntryIsValid)
 			{
-				//if (IsEntryExpiredByTags(operationId, key, tagsArray, memoryEntry!.Timestamp, token))
-				//	memoryEntryIsValid = false;
 				(memoryEntry, memoryEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, memoryEntry, false, token);
 			}
 
@@ -224,7 +219,7 @@ public partial class FusionCache
 					var value = factory(null!, token);
 					hasNewValue = true;
 
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tagsArray, options, isStale, null, null, null);
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tags, options, isStale, null, null, null);
 				}
 				else
 				{
@@ -235,7 +230,7 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
 
-					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry, tagsArray);
+					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry, tags);
 
 					// ACTIVITY
 					var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
@@ -464,7 +459,6 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			//memoryEntry = MaybeCascadeExpire(operationId, key, memoryEntry, token);
 			(memoryEntry, memoryEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, memoryEntry, true, token);
 			if (memoryEntry is null)
 			{
@@ -517,7 +511,6 @@ public partial class FusionCache
 		// TAGGING
 		if (distributedEntryIsValid)
 		{
-			//distributedEntry = MaybeCascadeExpire(operationId, key, distributedEntry, token);
 			(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, true, token);
 			if (distributedEntry is null)
 			{
@@ -652,6 +645,7 @@ public partial class FusionCache
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", CacheName, InstanceId, operationId, key);
+
 			return defaultValue;
 		}
 
@@ -838,7 +832,7 @@ public partial class FusionCache
 		{
 			foreach (var tag in tags)
 			{
-				var tagExpiration = GetOrSet<long>(GetTagCacheKey(tag), FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
+				var tagExpiration = GetOrSet<long>(GetTagCacheKey(tag), FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
 				if (entryTimestamp <= tagExpiration)
 				{
 					// NOT VALID, VIA REMOVE BY TAG

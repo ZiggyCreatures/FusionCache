@@ -77,7 +77,7 @@ public partial class FusionCache
 			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
 			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
-			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry, FusionCacheInternalUtils.NoTags);
+			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry, tags);
 
 			var factoryTask = factory(ctx, default);
 
@@ -102,8 +102,6 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			//if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, memoryEntry!.Timestamp, token).ConfigureAwait(false))
-			//	memoryEntryIsValid = false;
 			(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
 		}
 
@@ -173,9 +171,6 @@ public partial class FusionCache
 			// TAGGING
 			if (memoryEntryIsValid)
 			{
-				//if (await IsEntryExpiredByTagsAsync(operationId, key, tagsArray, memoryEntry!.Timestamp, token).ConfigureAwait(false))
-				//	memoryEntryIsValid = false;
-
 				(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
 			}
 
@@ -464,7 +459,6 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			//memoryEntry = await MaybeCascadeExpireAsync(operationId, key, memoryEntry, token).ConfigureAwait(false);
 			(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
 			if (memoryEntry is null)
 			{
@@ -517,7 +511,6 @@ public partial class FusionCache
 		// TAGGING
 		if (distributedEntryIsValid)
 		{
-			//distributedEntry = await MaybeCascadeExpireAsync(operationId, key, distributedEntry, token).ConfigureAwait(false);
 			(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 			if (distributedEntry is null)
 			{
@@ -839,10 +832,10 @@ public partial class FusionCache
 		{
 			foreach (var tag in tags)
 			{
-				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
+				var tagExpiration = await GetOrSetAsync<long>(GetTagCacheKey(tag), FusionCacheInternalUtils.SharedTagExpirationDataFactoryAsync, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token).ConfigureAwait(false);
 				if (entryTimestamp <= tagExpiration)
 				{
-					// NOT VALID (VIA REMOVE BY TAG)
+					// NOT VALID, VIA REMOVE BY TAG
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry expired via tag {Tag}", CacheName, InstanceId, operationId, key, tag);
 
