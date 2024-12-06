@@ -14,7 +14,7 @@ Both the [distributed cache](CacheLevels.md) and the [backplane](Backplane.md) a
 
 This means that, as we know from the [Fallacies Of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing), something may go wrong while we are using them, even if only in a transient way.
 
-For example the backplane can loose the connection for some time and each (or some) of the nodes' local memory caches will become out of sync because of some missed backplane notifications. Another example is that the distributed cache can become unavailable for a while because it is restarting or because an unhandled network topology change has disrupted the connectivity for a brief moment, and a value which has been already saved in the local memory cache may not have been saved to the distributed cache.
+For example the backplane can lose the connection for some time and each (or some) of the nodes' local memory caches will become out of sync because of some missed backplane notifications. Another example is that the distributed cache can become unavailable for a while because it is restarting or because an unhandled network topology change has disrupted the connectivity for a brief moment, and a value which has been already saved in the local memory cache may not have been saved to the distributed cache.
 
 Looking at the available methods (like `Set`, `Remove`, `GetOrSet`, etc) we can say that the *intent* of our actions is clear, like *"I want to set the cache entry for this cache key to this value"*: wouldn't it be nice if FusionCache would help us is some way when transient error happens?
 
