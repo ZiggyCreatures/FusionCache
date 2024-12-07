@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Version>2.0.0-preview-3</Version>
+		<PackageId>ZiggyCreatures.FusionCache.MicrosoftHybridCache</PackageId>
+		<Description>An implementation of Microsoft's HybridCache based on FusionCache, for when you need to depend of the Microsoft abstraction, but want the power of FusionCache</Description>
+		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache</RootNamespace>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageReleaseNotes>
+			- Update: initial version
+		</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.0.0-preview.9.24556.5" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+</Project>

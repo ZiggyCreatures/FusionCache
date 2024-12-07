@@ -21,7 +21,7 @@
 		<PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
 		<PackageReference Include="LazyCache" Version="2.4.0" />
 		<PackageReference Include="xunit" Version="2.9.2" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.0.0-preview.9.24507.7" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.0.0-preview.9.24556.5" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
@@ -36,6 +36,7 @@
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.Memory\ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.MicrosoftHybridCache\ZiggyCreatures.FusionCache.MicrosoftHybridCache.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj" />

@@ -3,8 +3,10 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
+using Microsoft.Extensions.Caching.Hybrid;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
 namespace FusionCacheTests;
 
@@ -12,9 +14,11 @@ public class CacheStampedeTests
 {
 	private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
+	// AS FUSION CACHE
+
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public async Task OnlyOneFactoryGetsCalledEvenInHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	public async Task FusionHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
@@ -43,7 +47,7 @@ public class CacheStampedeTests
 
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public void OnlyOneFactoryGetsCalledEvenInHighConcurrency(MemoryLockerType memoryLockerType, int accessorsCount)
+	public void FusionHighConcurrency(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
@@ -68,7 +72,7 @@ public class CacheStampedeTests
 
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public async Task OnlyOneFactoryGetsCalledEvenInMixedHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	public async Task FusionMixedHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
@@ -104,6 +108,38 @@ public class CacheStampedeTests
 				   new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
 			   );
 			}
+		});
+
+		await Task.WhenAll(tasks);
+
+		Assert.Equal(1, factoryCallsCount);
+	}
+
+	// AS HYBRID CACHE (ASYNC-ONLY)
+
+	[Theory]
+	[ClassData(typeof(CacheStampedeClassData))]
+	public async Task FusionHybridHighConcurrencyCacheAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	{
+		using var fusionCache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var cache = new FusionHybridCache(fusionCache);
+
+		var factoryCallsCount = 0;
+
+		var tasks = new ConcurrentBag<Task>();
+		Parallel.For(0, accessorsCount, _ =>
+		{
+			var task = cache.GetOrCreateAsync<int>(
+				"foo",
+				async _ =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					await Task.Delay(FactoryDuration);
+					return 42;
+				},
+				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+			);
+			tasks.Add(task.AsTask());
 		});
 
 		await Task.WhenAll(tasks);
