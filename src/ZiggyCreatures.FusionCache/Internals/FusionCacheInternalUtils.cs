@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -55,7 +57,7 @@ internal static class FusionCacheInternalUtils
 	private const string DateTimeOffsetFormatString = "yyyy-MM-ddTHH:mm:ss.ffffff";
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 	private static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
-	internal static readonly string[]? NoTags = null;
+	public static readonly string[]? NoTags = null;
 
 	public static T[]? AsArray<T>(this IEnumerable<T>? items)
 	{
@@ -494,5 +496,38 @@ internal static class FusionCacheInternalUtils
 			|| lastModified is not null
 			|| etag is not null
 		;
+	}
+
+	// SOURCE: https://github.com/dotnet/extensions/blob/main/src/Libraries/Microsoft.Extensions.Caching.Hybrid/Internal/ImmutableTypeCache.cs
+	// COPIED AS-IS FOR MAXIMUM COMPATIBILITY WITH HybridCache
+	public static bool IsTypeImmutable(Type type)
+	{
+		// check for known types
+		if (type == typeof(string))
+		{
+			return true;
+		}
+
+		if (type.IsValueType)
+		{
+			// switch from Foo? to Foo if necessary
+			if (Nullable.GetUnderlyingType(type) is { } nullable)
+			{
+				type = nullable;
+			}
+		}
+
+		if (type.IsValueType || (type.IsClass & type.IsSealed))
+		{
+			// check for [ImmutableObject(true)]; note we're looking at this as a statement about
+			// the overall nullability; for example, a type could contain a private int[] field,
+			// where the field is mutable and the list is mutable; but if the type is annotated:
+			// we're trusting that the API and use-case is such that the type is immutable
+			return type.GetCustomAttribute<ImmutableObjectAttribute>() is { Immutable: true };
+		}
+
+		// don't trust interfaces and non-sealed types; we might have any concrete
+		// type that has different behaviour
+		return false;
 	}
 }

@@ -2018,15 +2018,18 @@ public class MemoryLevelTests
 		Assert.Equal(-1, foo.PropInt);
 
 		Assert.NotNull(foo1);
-		Assert.False(object.ReferenceEquals(foo, foo1));
+		Assert.NotSame(foo, foo1);
 		Assert.Equal(1, foo1.PropInt);
 
 		Assert.NotNull(foo2);
-		Assert.False(object.ReferenceEquals(foo, foo2));
+		Assert.NotSame(foo, foo2);
+		Assert.NotSame(foo1, foo2);
 		Assert.Equal(2, foo2.PropInt);
 
 		Assert.NotNull(foo3);
-		Assert.False(object.ReferenceEquals(foo, foo3));
+		Assert.NotSame(foo, foo3);
+		Assert.NotSame(foo1, foo3);
+		Assert.NotSame(foo2, foo3);
 		Assert.Equal(3, foo3.PropInt);
 	}
 
@@ -2069,6 +2072,58 @@ public class MemoryLevelTests
 		Assert.NotNull(foo3);
 		Assert.False(object.ReferenceEquals(foo, foo3));
 		Assert.Equal(3, foo3.PropInt);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task AutoCloneSkipsImmutableObjectsAsync(SerializerType serializerType)
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		options.DefaultEntryOptions.EnableAutoClone = true;
+		using var cache = new FusionCache(options);
+
+		cache.SetupSerializer(TestsUtils.GetSerializer(serializerType));
+
+		var imm = new SimpleImmutableObject
+		{
+			Name = "Imm",
+			Age = 123
+		};
+
+		await cache.SetAsync("imm", imm);
+
+		var imm1 = (await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm"))!;
+		var imm2 = (await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm"))!;
+
+		Assert.Same(imm, imm1);
+		Assert.Same(imm, imm2);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void AutoCloneSkipsImmutableObjects(SerializerType serializerType)
+	{
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		options.DefaultEntryOptions.EnableAutoClone = true;
+		using var cache = new FusionCache(options);
+
+		cache.SetupSerializer(TestsUtils.GetSerializer(serializerType));
+
+		var imm = new SimpleImmutableObject
+		{
+			Name = "Imm",
+			Age = 123
+		};
+
+		cache.Set("imm", imm);
+
+		var imm1 = cache.GetOrDefault<SimpleImmutableObject>("imm")!;
+		var imm2 = cache.GetOrDefault<SimpleImmutableObject>("imm")!;
+
+		Assert.Same(imm, imm1);
+		Assert.Same(imm, imm2);
 	}
 
 	[Fact]

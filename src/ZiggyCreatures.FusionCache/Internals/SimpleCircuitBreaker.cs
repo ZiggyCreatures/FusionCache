@@ -6,7 +6,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// <summary>
 /// A simple, reusable circuit-breaker.
 /// </summary>
-public sealed class SimpleCircuitBreaker
+internal sealed class SimpleCircuitBreaker
 {
 	private const int CircuitStateClosed = 0;
 	private const int CircuitStateOpen = 1;

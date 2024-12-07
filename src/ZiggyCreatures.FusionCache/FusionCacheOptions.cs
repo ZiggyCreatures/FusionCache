@@ -62,6 +62,8 @@ public class FusionCacheOptions
 
 		TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(30);
 
+		SkipAutoCloneForImmutableObjects = true;
+
 		// AUTO-RECOVERY
 		EnableAutoRecovery = true;
 		AutoRecoveryMaxItems = null;
@@ -217,6 +219,13 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
 	public bool IgnoreIncomingBackplaneNotifications { get; set; }
+
+	/// <summary>
+	/// When AutoClone is enabled, skips it anyway for immutable objects.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoClone.md"/>
+	/// </summary>
+	public bool SkipAutoCloneForImmutableObjects { get; set; }
 
 	/// <summary>
 	/// DEPRECATED: please use EnableAutoRecovery.
@@ -525,6 +534,8 @@ public class FusionCacheOptions
 			IncludeTagsInMetrics = IncludeTagsInMetrics,
 
 			DisabledTagging = DisabledTagging,
+
+			SkipAutoCloneForImmutableObjects = SkipAutoCloneForImmutableObjects,
 
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = IncoherentOptionsNormalizationLogLevel,

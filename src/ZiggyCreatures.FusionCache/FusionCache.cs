@@ -1154,6 +1154,9 @@ public sealed partial class FusionCache
 		if (entry.Value is null)
 			return entry.GetValue<TValue>();
 
+		if (_options.SkipAutoCloneForImmutableObjects && ImmutableTypeCache<TValue>.IsImmutable)
+			return entry.GetValue<TValue>();
+
 		byte[] serializedValue;
 		try
 		{
