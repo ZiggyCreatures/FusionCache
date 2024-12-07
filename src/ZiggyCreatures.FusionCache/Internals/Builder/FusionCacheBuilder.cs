@@ -34,6 +34,8 @@ internal sealed class FusionCacheBuilder
 		PluginsFactories = [];
 	}
 
+	private IFusionCache? _cache;
+
 	public string CacheName { get; }
 
 	public IServiceCollection Services { get; }
@@ -95,6 +97,9 @@ internal sealed class FusionCacheBuilder
 	{
 		if (serviceProvider is null)
 			throw new ArgumentNullException(nameof(serviceProvider));
+
+		if (_cache is not null)
+			return _cache;
 
 		// OPTIONS
 		FusionCacheOptions? options = null;
@@ -393,6 +398,8 @@ internal sealed class FusionCacheBuilder
 
 		// CUSTOM SETUP ACTION
 		PostSetupAction?.Invoke(serviceProvider, cache);
+
+		_cache ??= cache;
 
 		return cache;
 	}

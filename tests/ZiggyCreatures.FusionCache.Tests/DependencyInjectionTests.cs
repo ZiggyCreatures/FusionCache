@@ -1480,7 +1480,7 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
-	public void FusionAndFusionHybridCacheUseTheSameInstance()
+	public void CanUseAsHybridCache()
 	{
 		var services = new ServiceCollection();
 
@@ -1505,7 +1505,7 @@ public class DependencyInjectionTests
 		Assert.NotNull(fusionHybridCache2);
 		Assert.IsType<FusionHybridCache>(hybridCache1);
 		Assert.IsType<FusionHybridCache>(hybridCache2);
-		Assert.Same(hybridCache1, hybridCache2);
+		Assert.NotSame(hybridCache1, hybridCache2);
 		Assert.Same(fusionCache, fusionHybridCache1.InnerFusionCache);
 		Assert.Same(fusionCache, fusionHybridCache2.InnerFusionCache);
 	}
