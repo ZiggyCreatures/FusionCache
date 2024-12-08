@@ -722,7 +722,6 @@ public sealed partial class FusionCache
 		return true;
 	}
 
-	// TODO: USE THIS ONLY WITH AN ACTUAL CLEAR (EG: REMOVE INSTEAD OF EXPIRE)
 	internal bool TryExecuteRawClear(string operationId)
 	{
 		if (CanExecuteRawClear() == false)
