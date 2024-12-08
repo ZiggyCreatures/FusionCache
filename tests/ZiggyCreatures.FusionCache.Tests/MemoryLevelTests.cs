@@ -2138,7 +2138,11 @@ public class MemoryLevelTests
 
 		var foo1 = await cache.GetOrSetAsync<int>("foo", async (_, _) => 11, tags: ["x", "y"]);
 		var bar1 = await cache.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
-		var baz1 = await cache.GetOrSetAsync<int>("baz", async (_, _) => 33, tags: ["x", "z"]);
+		var baz1 = await cache.GetOrSetAsync<int>("baz", async (ctx, _) =>
+		{
+			ctx.Tags = ["x", "z"];
+			return 33;
+		});
 
 		Assert.Equal(1, foo1);
 		Assert.Equal(2, bar1);
@@ -2177,7 +2181,11 @@ public class MemoryLevelTests
 
 		var foo1 = cache.GetOrSet<int>("foo", (_, _) => 11, tags: ["x", "y"]);
 		var bar1 = cache.GetOrSet<int>("bar", (_, _) => 22, tags: ["y", "z"]);
-		var baz1 = cache.GetOrSet<int>("baz", (_, _) => 33, tags: ["x", "z"]);
+		var baz1 = cache.GetOrSet<int>("baz", (ctx, _) =>
+		{
+			ctx.Tags = ["x", "z"];
+			return 33;
+		});
 
 		cache.RemoveByTag("x");
 

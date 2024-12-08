@@ -1512,6 +1512,172 @@ public class DistributedCacheLevelTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanRemoveByTagAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var duration = TimeSpan.FromSeconds(2);
+		var durationOverride = TimeSpan.FromMilliseconds(500);
+
+		var distributedCache = CreateDistributedCache();
+		var options1 = new FusionCacheOptions
+		{
+			CacheName = cacheName,
+			CacheKeyPrefix = cacheName + ":",
+			TagsMemoryCacheDurationOverride = durationOverride,
+			DefaultEntryOptions = new FusionCacheEntryOptions
+			{
+				Duration = duration
+			}
+		};
+		options1.SetInstanceId("C1");
+		using var cache1 = new FusionCache(options1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		var options2 = new FusionCacheOptions
+		{
+			CacheName = cacheName,
+			CacheKeyPrefix = cacheName + ":",
+			TagsMemoryCacheDurationOverride = durationOverride,
+			DefaultEntryOptions = new FusionCacheEntryOptions
+			{
+				Duration = duration
+			}
+		};
+		options2.SetInstanceId("C2");
+		using var cache2 = new FusionCache(options2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
+		await cache1.SetAsync<int>("bar", 2, tags: ["y", "z"]);
+		await cache2.GetOrSetAsync<int>("baz", async (_, _) => 3, tags: ["x", "z"]);
+
+		var foo1 = await cache2.GetOrSetAsync<int>("foo", async (_, _) => 11, tags: ["x", "y"]);
+		var bar1 = await cache2.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
+		var baz1 = await cache1.GetOrSetAsync<int>("baz", async (ctx, _) =>
+		{
+			ctx.Tags = ["x", "z"];
+			return 33;
+		});
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		await cache1.RemoveByTagAsync("x");
+
+		await Task.Delay(durationOverride);
+
+		var foo2 = await cache1.GetOrDefaultAsync<int>("foo");
+		var bar2 = await cache1.GetOrSetAsync<int>("bar", async (_, _) => 222, tags: ["y", "z"]);
+		var baz2 = await cache2.GetOrSetAsync<int>("baz", async (_, _) => 333, tags: ["x", "z"]);
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(333, baz2);
+
+		await cache2.RemoveByTagAsync("y");
+
+		await Task.Delay(durationOverride);
+
+		var foo3 = await cache2.GetOrSetAsync<int>("foo", async (_, _) => 1111, tags: ["x", "y"]);
+		var bar3 = await cache2.GetOrSetAsync<int>("bar", async (_, _) => 2222, tags: ["y", "z"]);
+		var baz3 = await cache1.GetOrSetAsync<int>("baz", async (_, _) => 3333, tags: ["x", "z"]);
+
+		Assert.Equal(1111, foo3);
+		Assert.Equal(2222, bar3);
+		Assert.Equal(333, baz3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanRemoveByTag(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var duration = TimeSpan.FromSeconds(2);
+		var durationOverride = TimeSpan.FromMilliseconds(500);
+
+		var distributedCache = CreateDistributedCache();
+		var options1 = new FusionCacheOptions
+		{
+			CacheName = cacheName,
+			CacheKeyPrefix = cacheName + ":",
+			TagsMemoryCacheDurationOverride = durationOverride,
+			DefaultEntryOptions = new FusionCacheEntryOptions
+			{
+				Duration = duration
+			}
+		};
+		options1.SetInstanceId("C1");
+		using var cache1 = new FusionCache(options1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		var options2 = new FusionCacheOptions
+		{
+			CacheName = cacheName,
+			CacheKeyPrefix = cacheName + ":",
+			TagsMemoryCacheDurationOverride = durationOverride,
+			DefaultEntryOptions = new FusionCacheEntryOptions
+			{
+				Duration = duration
+			}
+		};
+		options2.SetInstanceId("C2");
+		using var cache2 = new FusionCache(options2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		cache1.Set<int>("foo", 1, tags: ["x", "y"]);
+		cache1.Set<int>("bar", 2, tags: ["y", "z"]);
+		cache2.GetOrSet<int>("baz", (_, _) => 3, tags: ["x", "z"]);
+
+		var foo1 = cache2.GetOrSet<int>("foo", (_, _) => 11, tags: ["x", "y"]);
+		var bar1 = cache2.GetOrSet<int>("bar", (_, _) => 22, tags: ["y", "z"]);
+		var baz1 = cache1.GetOrSet<int>("baz", (ctx, _) =>
+		{
+			ctx.Tags = ["x", "z"];
+			return 33;
+		});
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		cache1.RemoveByTag("x");
+
+		Thread.Sleep(durationOverride);
+
+		var foo2 = cache1.GetOrDefault<int>("foo");
+		var bar2 = cache1.GetOrSet<int>("bar", (_, _) => 222, tags: ["y", "z"]);
+		var baz2 = cache2.GetOrSet<int>("baz", (_, _) => 333, tags: ["x", "z"]);
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(333, baz2);
+
+		cache2.RemoveByTag("y");
+
+		Thread.Sleep(durationOverride);
+
+		var foo3 = cache2.GetOrSet<int>("foo", (_, _) => 1111, tags: ["x", "y"]);
+		var bar3 = cache2.GetOrSet<int>("bar", (_, _) => 2222, tags: ["y", "z"]);
+		var baz3 = cache1.GetOrSet<int>("baz", (_, _) => 3333, tags: ["x", "z"]);
+
+		Assert.Equal(1111, foo3);
+		Assert.Equal(2222, bar3);
+		Assert.Equal(333, baz3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanClearAsync(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
