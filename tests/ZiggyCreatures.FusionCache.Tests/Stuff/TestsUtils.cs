@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.IO;
@@ -172,5 +175,15 @@ public static class TestsUtils
 	{
 		// NOTE: for the extra 5ms, see here https://github.com/dotnet/runtime/issues/100455
 		return sw.Elapsed + StopwatchExtraPadding;
+	}
+
+	public static async ValueTask<TValue> GetOrDefaultAsync<TValue>(this HybridCache cache, string key, TValue defaultValue, CancellationToken ct = default)
+	{
+		return await cache.GetOrCreateAsync<TValue>(key, _ => new ValueTask<TValue>(defaultValue), new HybridCacheEntryOptions { Flags = HybridCacheEntryFlags.DisableLocalCacheWrite | HybridCacheEntryFlags.DisableDistributedCacheWrite }, cancellationToken: ct);
+	}
+
+	public static async ValueTask<TValue> GetOrDefaultAsync<TValue>(this HybridCache cache, string key, CancellationToken ct = default)
+	{
+		return await cache.GetOrCreateAsync<TValue>(key, null!, new HybridCacheEntryOptions { Flags = HybridCacheEntryFlags.DisableLocalCacheWrite | HybridCacheEntryFlags.DisableDistributedCacheWrite | HybridCacheEntryFlags.DisableUnderlyingData }, cancellationToken: ct);
 	}
 }
