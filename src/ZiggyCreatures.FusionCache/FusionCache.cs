@@ -657,8 +657,8 @@ public sealed partial class FusionCache
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void CheckTaggingEnabled()
 	{
-		if (_options.DisabledTagging)
-			throw new InvalidOperationException("This operation requires Tagging, which has been disabled via FusionCacheOptions.DisabledTagging.");
+		if (_options.DisableTagging)
+			throw new InvalidOperationException("This operation requires Tagging, which has been disabled via FusionCacheOptions.DisableTagging.");
 	}
 
 	private static string GetTagCacheKey(string tag)

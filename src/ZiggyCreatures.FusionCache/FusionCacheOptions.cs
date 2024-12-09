@@ -395,7 +395,7 @@ public class FusionCacheOptions
 	/// <br/>
 	/// <strong>NOTE:</strong> this may get to a little performance improvement, but if you'll try to call one of the above methods an <see cref="InvalidOperationException"></see> will be thrown.
 	/// </summary>
-	public bool DisabledTagging { get; set; }
+	public bool DisableTagging { get; set; }
 
 	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
@@ -533,7 +533,7 @@ public class FusionCacheOptions
 			IncludeTagsInTraces = IncludeTagsInTraces,
 			IncludeTagsInMetrics = IncludeTagsInMetrics,
 
-			DisabledTagging = DisabledTagging,
+			DisableTagging = DisableTagging,
 
 			SkipAutoCloneForImmutableObjects = SkipAutoCloneForImmutableObjects,
 

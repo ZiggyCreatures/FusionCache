@@ -2,16 +2,26 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
-		<Version>2.0.0-preview-2</Version>
+		<Version>2.0.0-preview-3</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Add: Tagging support (preview)
-			- Add: Clear() support (preview)
+			- Add: Tagging support
+			- Add: Clear support
+			- Add: native support for Microsoft's new HybridCache (via the new ZiggyCreatures.FusionCache.MicrosoftHybridCache package)
+			- Fix: soft-fails in a factory (eg: ctx.Fail("Oops")) is now supported for with background factory completion
+			- Change: better Expire, more predictable
+			- Change: ReThrowSerializationExceptions does not affect serialization, only deserialization
+			- Add: support for immutable objects when using Auto-Clone
+			- Add: support for Tagging/Clear in events
 			- Add: new IncludeTagsInLogs option
+			- Add: new IncludeTagsInTraces option
+			- Add: new IncludeTagsInMetrics option
+			- Change: the auto-generated InstanceId for each cache is now shorter (saves space in logs and traces)
+			- Update: all [Obsolete] members has been marked as errors
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--
@@ -31,7 +41,7 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
 		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
-		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" />
 		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
 	</ItemGroup>
 

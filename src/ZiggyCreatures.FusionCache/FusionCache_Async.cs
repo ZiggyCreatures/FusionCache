@@ -785,7 +785,7 @@ public partial class FusionCache
 		if (entry is null)
 			return (null, false);
 
-		if (_options.DisabledTagging)
+		if (_options.DisableTagging)
 			return (entry, true);
 
 		var entryTimestamp = entry.Timestamp;

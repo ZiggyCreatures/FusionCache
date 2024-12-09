@@ -2528,7 +2528,7 @@ public class MemoryLevelTests
 	public async Task CanDisableTaggingAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
-		using var cache = new FusionCache(new FusionCacheOptions() { DisabledTagging = true }, logger: logger);
+		using var cache = new FusionCache(new FusionCacheOptions() { DisableTagging = true }, logger: logger);
 
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
 		{
@@ -2566,7 +2566,7 @@ public class MemoryLevelTests
 	public void CanDisableTagging()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
-		using var cache = new FusionCache(new FusionCacheOptions() { DisabledTagging = true }, logger: logger);
+		using var cache = new FusionCache(new FusionCacheOptions() { DisableTagging = true }, logger: logger);
 
 		Assert.Throws<InvalidOperationException>(() =>
 		{
