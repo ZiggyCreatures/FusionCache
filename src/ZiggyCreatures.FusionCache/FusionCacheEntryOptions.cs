@@ -108,7 +108,9 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan LockTimeout { get; set; }
 
 	/// <summary>
-	/// The maximum amount of extra duration to add to the normal <see cref="Duration"/> to allow for more variable expirations.
+	/// The maximum amount of extra duration to add to the normal <see cref="Duration"/> in a randomized way, to allow for more variable expirations.
+	/// <br/>
+	/// This may be useful in a horizontal scalable scenario(eg: multi-node scenario).
 	/// </summary>
 	public TimeSpan JitterMaxDuration { get; set; }
 
@@ -136,9 +138,9 @@ public sealed class FusionCacheEntryOptions
 	/// <br/><br/>
 	/// Specifically:
 	/// <br/>
-	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified Duration: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems;
+	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="true"/>, an entry will apparently expire normally after the specified <see cref="Duration"/>: behind the scenes though it will also be kept around for this (usually long) amount of time, so it may be used as a fallback value in case of problems
 	/// <br/>
-	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored;
+	/// - if <see cref="IsFailSafeEnabled"/> is set to <see langword="false"/>, this is ignored
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
 	/// </summary>
