@@ -32,28 +32,13 @@ public static class TestsUtils
 			case SerializerType.NewtonsoftJson:
 				return new FusionCacheNewtonsoftJsonSerializer();
 			case SerializerType.SystemTextJson:
-				// NOTE: WE USE THE VERSION WITH THE RecyclableMemoryStreamManager BECAUSE
-				// IF THIS WORKS, THEN IT WORKS THE "BASIC" ONE FOR SURE
-				return new FusionCacheSystemTextJsonSerializer(new FusionCacheSystemTextJsonSerializer.Options
-				{
-					StreamManager = new RecyclableMemoryStreamManager()
-				});
+				return new FusionCacheSystemTextJsonSerializer();
 			case SerializerType.ServiceStackJson:
-				// NOTE: WE USE THE VERSION WITH THE RecyclableMemoryStreamManager BECAUSE
-				// IF THIS WORKS, THEN IT WORKS THE "BASIC" ONE FOR SURE
-				return new FusionCacheServiceStackJsonSerializer(new FusionCacheServiceStackJsonSerializer.Options
-				{
-					StreamManager = new RecyclableMemoryStreamManager()
-				});
+				return new FusionCacheServiceStackJsonSerializer();
 			case SerializerType.NeueccMessagePack:
 				return new FusionCacheNeueccMessagePackSerializer();
 			case SerializerType.ProtoBufNet:
-				// NOTE: WE USE THE VERSION WITH THE RecyclableMemoryStreamManager BECAUSE
-				// IF THIS WORKS, THEN IT WORKS THE "BASIC" ONE FOR SURE
-				return new FusionCacheProtoBufNetSerializer(new FusionCacheProtoBufNetSerializer.Options
-				{
-					StreamManager = new RecyclableMemoryStreamManager()
-				});
+				return new FusionCacheProtoBufNetSerializer();
 			case SerializerType.CysharpMemoryPack:
 				return new FusionCacheCysharpMemoryPackSerializer();
 			default:

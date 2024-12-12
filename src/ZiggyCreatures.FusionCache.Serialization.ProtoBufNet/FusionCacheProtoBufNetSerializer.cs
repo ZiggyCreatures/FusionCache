@@ -2,9 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.IO;
+
+using ProtoBuf;
 using ProtoBuf.Meta;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -27,11 +30,6 @@ public class FusionCacheProtoBufNetSerializer
 		/// The optional <see cref="RuntimeTypeModel"/> object to use.
 		/// </summary>
 		public RuntimeTypeModel? Model { get; set; }
-
-		/// <summary>
-		/// The optional <see cref="RecyclableMemoryStreamManager"/> object to use.
-		/// </summary>
-		public RecyclableMemoryStreamManager? StreamManager { get; set; }
 	}
 
 	/// <summary>
@@ -41,85 +39,42 @@ public class FusionCacheProtoBufNetSerializer
 	public FusionCacheProtoBufNetSerializer(RuntimeTypeModel? model = null)
 	{
 		_model = model ?? RuntimeTypeModel.Default;
-
-		RegisterMetadataModel();
+		_modelsCache.GetOrAdd(_model, static (model) =>
+		{
+			lock (model)
+			{
+				model.Add(typeof(FusionCacheEntryMetadata), false).SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate));
+				return [_metadataType];
+			}
+		});
 	}
 
 	/// <summary>
 	/// Create a new instance of a <see cref="FusionCacheProtoBufNetSerializer"/> object.
 	/// </summary>
 	/// <param name="options">The optional <see cref="Options"/> object to use.</param>
-	public FusionCacheProtoBufNetSerializer(Options? options)
-		: this(options?.Model)
+	public FusionCacheProtoBufNetSerializer(Options options)
+		: this(options.Model)
 	{
-		_streamManager = options?.StreamManager;
 	}
 
 	private static readonly ConcurrentDictionary<RuntimeTypeModel, HashSet<Type>> _modelsCache = [];
+	private static readonly ConcurrentDictionary<Type, bool> _suitableTypeCache = [];
 	private static readonly Type _metadataType = typeof(FusionCacheEntryMetadata);
 	private static readonly Type _distributedEntryOpenGenericType = typeof(FusionCacheDistributedEntry<>);
-
 	private readonly RuntimeTypeModel _model;
-	private readonly RecyclableMemoryStreamManager? _streamManager;
 
-	private MemoryStream GetMemoryStream()
-	{
-		return _streamManager?.GetStream() ?? new MemoryStream();
-	}
-
-	private MemoryStream GetMemoryStream(byte[] buffer)
-	{
-		return _streamManager?.GetStream(buffer) ?? new MemoryStream(buffer);
-	}
-
-	private void RegisterMetadataModel()
-	{
-		if (_modelsCache.TryGetValue(_model, out var tmp) == false)
-		{
-			lock (_modelsCache)
-			{
-				tmp = _modelsCache.GetOrAdd(_model, _ => []);
-			}
-		}
-
-		// ENSURE MODEL REGISTRATION FOR FusionCacheEntryMetadata
-		if (tmp.Contains(_metadataType))
-			return;
-
-		lock (tmp)
-		{
-			if (tmp.Contains(_metadataType))
-				return;
-
-			try
-			{
-				_model.Add(typeof(FusionCacheEntryMetadata), false)
-					.SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate))
-				;
-
-				tmp.Add(_metadataType);
-			}
-			catch
-			{
-				// EMPTY
-			}
-		}
-	}
-
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private void MaybeRegisterDistributedEntryModel<T>()
 	{
 		var t = typeof(T);
 
-		if (t.IsGenericType == false || t.GetGenericTypeDefinition() != _distributedEntryOpenGenericType)
+		var isSuitableType = _suitableTypeCache.GetOrAdd(t, static (type) => type.IsGenericType && type.GetGenericTypeDefinition() == _distributedEntryOpenGenericType);
+
+		if (!isSuitableType)
 			return;
 
-		if (_modelsCache.TryGetValue(_model, out var tmp) == false)
-		{
-			lock (_modelsCache)
-			{
-				tmp = _modelsCache.GetOrAdd(_model, _ => []);
-			}
-		}
+		var tmp = _modelsCache[_model];
 
 		// ENSURE MODEL REGISTRATION FOR FusionCacheDistributedEntry<T>
 		if (tmp.Contains(t))
@@ -127,9 +82,6 @@ public class FusionCacheProtoBufNetSerializer
 
 		lock (tmp)
 		{
-			if (tmp.Contains(t))
-				return;
-
 			try
 			{
 				// NOTE: USING FusionCacheDistributedEntry<bool> HERE SINCE IT WILL
@@ -153,11 +105,9 @@ public class FusionCacheProtoBufNetSerializer
 	public byte[] Serialize<T>(T? obj)
 	{
 		MaybeRegisterDistributedEntryModel<T>();
-
-		using var stream = GetMemoryStream();
-
+		using var stream = new ArrayPoolWritableStream();
 		_model.Serialize(stream, obj);
-		return stream.ToArray();
+		return stream.GetBytes();
 	}
 
 	/// <inheritdoc />
@@ -168,9 +118,7 @@ public class FusionCacheProtoBufNetSerializer
 
 		MaybeRegisterDistributedEntryModel<T>();
 
-		using var stream = GetMemoryStream(data);
-
-		return _model.Deserialize<T?>(stream);
+		return _model.Deserialize<T?>((ReadOnlySpan<byte>)data);
 	}
 
 	/// <inheritdoc />
@@ -186,5 +134,5 @@ public class FusionCacheProtoBufNetSerializer
 	}
 
 	/// <inheritdoc />
-	public override string ToString() => $"{(_streamManager != null ? "Recyclable" : "")}{GetType().Name}";
+	public override string ToString() => GetType().Name;
 }
