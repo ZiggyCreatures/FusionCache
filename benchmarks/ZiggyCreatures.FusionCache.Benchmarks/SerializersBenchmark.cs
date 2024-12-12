@@ -5,144 +5,136 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Order;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
+
+using MemoryPack;
+
+using MessagePack;
+
 using Microsoft.IO;
+
 using ZiggyCreatures.Caching.Fusion.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
+using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
+using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 using ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet;
+using ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 
-public abstract class AbstractSerializersBenchmark
+[DataContract]
+[MessagePackObject]
+[MemoryPackable]
+public partial class SampleModel
 {
-	protected static Random _MyRandom = new Random(2110);
+	private static readonly Random _MyRandom = new(2110);
 
-	[DataContract]
-	protected class SampleModel
+	[DataMember(Order = 1)]
+	[Key(0)]
+	public string? Name { get; set; }
+	[DataMember(Order = 2)]
+	[Key(1)]
+	public int Age { get; set; }
+	[DataMember(Order = 3)]
+	[Key(2)]
+	public DateTime Date { get; set; }
+	[DataMember(Order = 4)]
+	[Key(3)]
+	public List<int> FavoriteNumbers { get; set; } = [];
+
+	public static SampleModel GenerateRandom()
 	{
-		[DataMember(Order = 1)]
-		public string? Name { get; set; }
-		[DataMember(Order = 2)]
-		public int Age { get; set; }
-		[DataMember(Order = 3)]
-		public DateTime Date { get; set; }
-		[DataMember(Order = 4)]
-		public List<int> FavoriteNumbers { get; set; } = [];
-
-		public static SampleModel GenerateRandom()
+		var model = new SampleModel
 		{
-			var model = new SampleModel
-			{
-				Name = Guid.NewGuid().ToString("N"),
-				Age = _MyRandom.Next(1, 100),
-				Date = DateTime.UtcNow,
-			};
-			for (int i = 0; i < 10; i++)
-			{
-				model.FavoriteNumbers.Add(_MyRandom.Next(1, 1000));
-			}
-			return model;
+			Name = Guid.NewGuid().ToString("N"),
+			Age = _MyRandom.Next(1, 100),
+			Date = DateTime.UtcNow,
+		};
+		for (int i = 0; i < 10; i++)
+		{
+			model.FavoriteNumbers.Add(_MyRandom.Next(1, 1000));
 		}
+		return model;
 	}
+}
 
-	protected class Config : ManualConfig
+[Config(typeof(Config))]
+public class SerializersBenchmark
+{
+	public class Config : ManualConfig
 	{
 		public Config()
 		{
 			AddColumn(StatisticColumn.P95);
+			AddDiagnoser(MemoryDiagnoser.Default);
+			AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByMethod);
+			AddJob(Job.ShortRun.WithToolchain(InProcessEmitToolchain.Instance));
+			WithOrderer(new DefaultOrderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest));
+			WithSummaryStyle(BenchmarkDotNet.Reports.SummaryStyle.Default.WithMaxParameterColumnWidth(50));
 		}
 	}
 
-	protected IFusionCacheSerializer _Normal = null!;
-	protected IFusionCacheSerializer _Recyclable = null!;
+	[ParamsSource(nameof(GetSerializers))]
+	public IFusionCacheSerializer Serializer = null!;
 	protected List<SampleModel> _Models = [];
 	protected byte[] _Blob = null!;
-
-	[Params(1, 100, 1_000)]
-	public int Size;
 
 	[GlobalSetup]
 	public void Setup()
 	{
-		for (int i = 0; i < Size; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			_Models.Add(SampleModel.GenerateRandom());
 		}
-		_Blob = _Normal.Serialize(_Models);
-	}
 
-	[Benchmark(Baseline = true)]
-	public void Serialize_Normal()
-	{
-		_Normal.Serialize(_Models);
+		_Blob = Serializer.Serialize(_Models);
 	}
 
 	[Benchmark]
-	public void Serialize_Recyclable()
+	public void Serialize()
 	{
-		_Recyclable.Serialize(_Models);
+		Serializer.Serialize(_Models);
 	}
 
 	[Benchmark]
-	public void Deserialize_Normal()
+	public void Deserialize()
 	{
-		_Normal.Deserialize<List<SampleModel>>(_Blob);
+		Serializer.Deserialize<List<SampleModel>>(_Blob);
 	}
 
 	[Benchmark]
-	public void Deserialize_Recyclable()
+	public async Task SerializeAsync()
 	{
-		_Recyclable.Deserialize<List<SampleModel>>(_Blob);
+		await Serializer.SerializeAsync(_Models).ConfigureAwait(false);
 	}
 
 	[Benchmark]
-	public async Task SerializeAsync_Normal()
+	public async Task DeserializeAsync()
 	{
-		await _Normal.SerializeAsync(_Models).ConfigureAwait(false);
+		await Serializer.DeserializeAsync<List<SampleModel>>(_Blob).ConfigureAwait(false);
 	}
 
-	[Benchmark]
-	public async Task SerializeAsync_Recyclable()
+	public static IEnumerable<IFusionCacheSerializer> GetSerializers()
 	{
-		await _Recyclable.SerializeAsync(_Models).ConfigureAwait(false);
-	}
-
-	[Benchmark]
-	public async Task DeserializeAsync_Normal()
-	{
-		await _Normal.DeserializeAsync<List<SampleModel>>(_Blob).ConfigureAwait(false);
-	}
-
-	[Benchmark]
-	public async Task DeserializeAsync_Recyclable()
-	{
-		await _Recyclable.DeserializeAsync<List<SampleModel>>(_Blob).ConfigureAwait(false);
-	}
-}
-
-[MemoryDiagnoser]
-[Config(typeof(Config))]
-public class SystemTextJsonSerializerBenchmark
-	: AbstractSerializersBenchmark
-{
-	public SystemTextJsonSerializerBenchmark()
-	{
-		_Normal = new FusionCacheSystemTextJsonSerializer();
-		_Recyclable = new FusionCacheSystemTextJsonSerializer(new FusionCacheSystemTextJsonSerializer.Options
+		yield return new FusionCacheCysharpMemoryPackSerializer();
+		yield return new FusionCacheNeueccMessagePackSerializer();
+		yield return new FusionCacheNewtonsoftJsonSerializer();
+		yield return new FusionCacheProtoBufNetSerializer();
+		yield return new FusionCacheProtoBufNetSerializer(new FusionCacheProtoBufNetSerializer.Options
 		{
 			StreamManager = new RecyclableMemoryStreamManager()
 		});
-	}
-}
-
-[MemoryDiagnoser]
-[Config(typeof(Config))]
-public class ProtobufSerializerBenchmark
-	: AbstractSerializersBenchmark
-{
-	public ProtobufSerializerBenchmark()
-	{
-		_Normal = new FusionCacheProtoBufNetSerializer();
-		_Recyclable = new FusionCacheProtoBufNetSerializer(new FusionCacheProtoBufNetSerializer.Options
+		yield return new FusionCacheServiceStackJsonSerializer();
+		yield return new FusionCacheServiceStackJsonSerializer(new FusionCacheServiceStackJsonSerializer.Options
+		{
+			StreamManager = new RecyclableMemoryStreamManager()
+		});
+		yield return new FusionCacheSystemTextJsonSerializer();
+		yield return new FusionCacheSystemTextJsonSerializer(new FusionCacheSystemTextJsonSerializer.Options
 		{
 			StreamManager = new RecyclableMemoryStreamManager()
 		});

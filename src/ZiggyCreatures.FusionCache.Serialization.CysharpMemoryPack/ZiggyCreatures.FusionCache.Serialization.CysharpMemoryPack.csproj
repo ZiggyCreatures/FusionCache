@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.1;net7.0</TargetFrameworks>
+		<TargetFramework>net8.0</TargetFramework>
 		<Version>1.4.1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack</PackageId>
 		<Description>FusionCache serializer based on Cysharp's MemoryPack serializer</Description>
@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MemoryPack" Version="1.21.1" />
+		<PackageReference Include="MemoryPack" Version="1.21.3" />
 	</ItemGroup>
 
 	<ItemGroup>
