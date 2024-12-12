@@ -11,7 +11,7 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests;
 
-public class SerializationTests
+public partial class SerializationTests
 	: AbstractTests
 {
 	public SerializationTests(ITestOutputHelper output)
@@ -19,7 +19,7 @@ public class SerializationTests
 	{
 	}
 
-	private static readonly Regex __re_VersionExtractor = new Regex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled);
+	private static readonly Regex __re_VersionExtractor = VersionExtractorRegEx();
 
 	private const string SampleString = "Supercalifragilisticexpialidocious";
 
@@ -266,7 +266,7 @@ public class SerializationTests
 
 		var assembly = serializer.GetType().Assembly;
 		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? currentVersion = fvi.FileVersion!.Substring(0, fvi.FileVersion.LastIndexOf('.'));
+		string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
@@ -294,7 +294,7 @@ public class SerializationTests
 
 		var assembly = serializer.GetType().Assembly;
 		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? currentVersion = fvi.FileVersion!.Substring(0, fvi.FileVersion.LastIndexOf('.'));
+		string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
 
 		var filePrefix = $"{serializer.GetType().Name}__";
 
@@ -313,4 +313,7 @@ public class SerializationTests
 			TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
 		}
 	}
+
+	[GeneratedRegex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled)]
+	private static partial Regex VersionExtractorRegEx();
 }
