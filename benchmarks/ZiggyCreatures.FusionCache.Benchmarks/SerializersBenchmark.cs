@@ -72,7 +72,7 @@ public class SerializersBenchmark
 			AddColumn(StatisticColumn.P95);
 			AddDiagnoser(MemoryDiagnoser.Default);
 			AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByMethod);
-			AddJob(Job.ShortRun.WithToolchain(InProcessEmitToolchain.Instance));
+			AddJob(Job.Default.WithToolchain(InProcessEmitToolchain.Instance));
 			WithOrderer(new DefaultOrderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest));
 			WithSummaryStyle(BenchmarkDotNet.Reports.SummaryStyle.Default.WithMaxParameterColumnWidth(50));
 		}
