@@ -42,7 +42,7 @@ public class XUnitLogger<T>
 		{
 			_helper.WriteLine(
 				(logLevel >= LogLevel.Warning ? Environment.NewLine : "")
-				+ $"{logLevel.ToString().Substring(0, 4).ToUpper()} {DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)}: "
+				+ $"{logLevel.ToString()[..4].ToUpper()} {DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)}: "
 				+ formatter(state, exception)
 				+ (exception is null
 					? ""
