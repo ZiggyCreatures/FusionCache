@@ -1,8 +1,10 @@
-﻿using System.IO;
+﻿using System.Collections.Concurrent;
+using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.IO;
+
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
@@ -21,11 +23,6 @@ public class FusionCacheSystemTextJsonSerializer
 		/// The optional <see cref="JsonSerializerOptions"/> object to use.
 		/// </summary>
 		public JsonSerializerOptions? SerializerOptions { get; set; }
-
-		/// <summary>
-		/// The optional <see cref="RecyclableMemoryStreamManager"/> object to use.
-		/// </summary>
-		public RecyclableMemoryStreamManager? StreamManager { get; set; }
 	}
 
 	/// <summary>
@@ -44,21 +41,9 @@ public class FusionCacheSystemTextJsonSerializer
 	public FusionCacheSystemTextJsonSerializer(Options? options)
 		: this(options?.SerializerOptions)
 	{
-		_streamManager = options?.StreamManager;
 	}
 
 	private readonly JsonSerializerOptions? _serializerOptions;
-	private readonly RecyclableMemoryStreamManager? _streamManager;
-
-	private MemoryStream GetMemoryStream()
-	{
-		return _streamManager?.GetStream() ?? new MemoryStream();
-	}
-
-	private MemoryStream GetMemoryStream(byte[] buffer)
-	{
-		return _streamManager?.GetStream(buffer) ?? new MemoryStream(buffer);
-	}
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
@@ -73,17 +58,17 @@ public class FusionCacheSystemTextJsonSerializer
 	}
 
 	/// <inheritdoc />
-	public async ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
+	public ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
-		using var stream = GetMemoryStream();
-		await JsonSerializer.SerializeAsync<T?>(stream, obj, _serializerOptions, token);
-		return stream.ToArray();
+		return new ValueTask<byte[]>(Serialize(obj));
 	}
 
 	/// <inheritdoc />
-	public async ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
+	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
-		using var stream = GetMemoryStream(data);
-		return await JsonSerializer.DeserializeAsync<T>(stream, _serializerOptions, token);
+		return new ValueTask<T?>(Deserialize<T>(data));
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => GetType().Name;
 }

@@ -1,8 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.Buffers;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ServiceStack.Text;
-using IORSM = Microsoft.IO.RecyclableMemoryStreamManager;
+
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 
@@ -12,17 +15,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 public class FusionCacheServiceStackJsonSerializer
 	: IFusionCacheSerializer
 {
-	/// <summary>
-	/// The options class for the <see cref="FusionCacheServiceStackJsonSerializer"/> class.
-	/// </summary>
-	public class Options
-	{
-		/// <summary>
-		/// The optional <see cref="IORSM"/> object to use.
-		/// </summary>
-		public IORSM? StreamManager { get; set; }
-	}
-
 	static FusionCacheServiceStackJsonSerializer()
 	{
 		JsConfig.Init(new Config
@@ -34,37 +26,32 @@ public class FusionCacheServiceStackJsonSerializer
 	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheServiceStackJsonSerializer"/> object.
 	/// </summary>
-	/// <param name="options">The optional <see cref="Options"/> object to use.</param>
-	public FusionCacheServiceStackJsonSerializer(Options? options = null)
+	public FusionCacheServiceStackJsonSerializer()
 	{
-		_streamManager = options?.StreamManager;
-	}
-
-	private readonly IORSM? _streamManager;
-
-	private MemoryStream GetMemoryStream()
-	{
-		return _streamManager?.GetStream() ?? new MemoryStream();
-	}
-
-	private MemoryStream GetMemoryStream(byte[] buffer)
-	{
-		return _streamManager?.GetStream(buffer) ?? new MemoryStream(buffer);
 	}
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		using var stream = GetMemoryStream();
+		using var stream = new ArrayPoolWritableStream();
 		JsonSerializer.SerializeToStream<T?>(obj, stream);
-		return stream.ToArray();
+		return stream.GetBytes();
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		using var stream = GetMemoryStream(data);
-		return JsonSerializer.DeserializeFromStream<T?>(stream);
+		int numChars = Encoding.UTF8.GetCharCount(data);
+		var chars = ArrayPool<char>.Shared.Rent(numChars);
+		try
+		{
+			Encoding.UTF8.GetChars(data, 0, data.Length, chars, 0);
+			return JsonSerializer.DeserializeFromSpan<T?>(chars.AsSpan(0, numChars));
+		}
+		finally
+		{
+			ArrayPool<char>.Shared.Return(chars);
+		}
 	}
 
 	/// <inheritdoc />
@@ -87,4 +74,7 @@ public class FusionCacheServiceStackJsonSerializer
 		//using var stream = new MemoryStream(data);
 		//return await JsonSerializer.DeserializeFromStreamAsync<T?>(stream);
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => GetType().Name;
 }

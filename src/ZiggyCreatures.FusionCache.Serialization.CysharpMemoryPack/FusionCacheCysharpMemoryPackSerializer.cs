@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -52,26 +53,43 @@ public class FusionCacheCysharpMemoryPackSerializer
 	private readonly MemoryPackSerializerOptions? _serializerOptions;
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public byte[] Serialize<T>(T? obj)
 	{
-		return MemoryPackSerializer.Serialize<T>(obj, _serializerOptions);
+		var buffer = ArrayPoolBufferWriter.Rent();
+		MemoryPackWriter<ArrayPoolBufferWriter> writer = new(ref buffer, MemoryPackWriterOptionalStatePool.Rent(_serializerOptions));
+		try
+		{
+			MemoryPackSerializer.Serialize(ref writer, obj);
+			return buffer.ToArray();
+		}
+		finally
+		{
+			ArrayPoolBufferWriter.Return(buffer);
+		}
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public T? Deserialize<T>(byte[] data)
 	{
 		return MemoryPackSerializer.Deserialize<T?>(data, _serializerOptions);
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		return new ValueTask<byte[]>(Serialize(obj));
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => $"{GetType().Name}";
 }
