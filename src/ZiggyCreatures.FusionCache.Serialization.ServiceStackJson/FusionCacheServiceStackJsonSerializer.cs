@@ -87,4 +87,7 @@ public class FusionCacheServiceStackJsonSerializer
 		//using var stream = new MemoryStream(data);
 		//return await JsonSerializer.DeserializeFromStreamAsync<T?>(stream);
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => $"{(_streamManager != null ? "Recyclable" : "")}{GetType().Name}";
 }
