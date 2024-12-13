@@ -42,7 +42,7 @@ public class FusionCacheServiceStackJsonSerializer
 	public T? Deserialize<T>(byte[] data)
 	{
 		int numChars = Encoding.UTF8.GetCharCount(data);
-		var chars = ArrayPool<char>.Shared.Rent(data.Length);
+		var chars = ArrayPool<char>.Shared.Rent(numChars);
 		try
 		{
 			Encoding.UTF8.GetChars(data, 0, data.Length, chars, 0);

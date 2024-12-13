@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -12,6 +13,21 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 	/// </summary>
 	public class ArrayPoolBufferWriter : IBufferWriter<byte>
 	{
+		private static readonly ConcurrentStack<ArrayPoolBufferWriter> PooledWriters = new();
+		
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static ArrayPoolBufferWriter Rent()
+		{
+			return PooledWriters.TryPop(out var writer) ? writer : new ArrayPoolBufferWriter();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static void Return(ArrayPoolBufferWriter writer)
+		{
+			writer.Reset();
+			PooledWriters.Push(writer);
+		}
+
 		private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Create();
 		private byte[] _buffer;
 		private int _bytesWritten = 0;
@@ -28,7 +44,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// <summary>
 		/// Creates a new instance of the <see cref="ArrayPoolBufferWriter"/> class.
 		/// </summary>
-		public ArrayPoolBufferWriter()
+		private ArrayPoolBufferWriter()
 		{
 			_buffer = _arrayPool.Rent(4096);
 		}
@@ -49,7 +65,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// Resets the buffer writer.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void Reset()
+		private void Reset()
 		{
 			_bytesWritten = 0;
 		}
