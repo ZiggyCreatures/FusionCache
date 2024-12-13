@@ -10,7 +10,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Honeycomb.OpenTelemetry" Version="1.5.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.0" />
 		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.10.0" />
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.0" />
 		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
