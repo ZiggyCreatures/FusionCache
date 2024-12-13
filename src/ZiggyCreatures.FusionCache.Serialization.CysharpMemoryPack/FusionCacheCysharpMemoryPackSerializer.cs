@@ -74,4 +74,7 @@ public class FusionCacheCysharpMemoryPackSerializer
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => $"{GetType().Name}";
 }
