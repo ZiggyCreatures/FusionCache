@@ -139,12 +139,18 @@ public static class FusionCacheServiceCollectionExtensions
 		if (cacheName is null)
 			throw new ArgumentNullException(nameof(cacheName));
 
-		services.AddOptions();
-
-		services.Configure<FusionCacheOptions>(cacheName, opt =>
-		{
-			opt.CacheName = cacheName;
-		});
+		services.AddOptions<FusionCacheOptions>(cacheName)
+			.Configure(opt =>
+			{
+				opt.CacheName = cacheName;
+			})
+			.PostConfigure(opt =>
+			{
+				if (opt.CacheKeyPrefix is not null && !opt.CacheKeyPrefix.EndsWith(":"))
+				{
+					opt.CacheKeyPrefix += ":";
+				}
+			});
 
 		services.AddFusionCacheProvider();
 
