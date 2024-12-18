@@ -185,4 +185,7 @@ public class FusionCacheProtoBufNetSerializer
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => $"{(_streamManager != null ? "Recyclable" : "")}{GetType().Name}";
 }
