@@ -11,8 +11,6 @@ using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using MemoryPack;
 using MessagePack;
-using Microsoft.IO;
-
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
