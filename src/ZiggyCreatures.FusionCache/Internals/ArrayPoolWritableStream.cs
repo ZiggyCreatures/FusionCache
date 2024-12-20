@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Buffers;
-using System.Collections.Concurrent;
 using System.IO;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals

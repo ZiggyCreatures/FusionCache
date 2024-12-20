@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Buffers;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals
 {
@@ -22,7 +19,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// Gets the number of bytes written to the buffer.
 		/// </summary>
 		public int BytesWritten => _bytesWritten;
-		
+
 		/// <summary>
 		/// Gets the size of the buffer.
 		/// </summary>
