@@ -70,5 +70,5 @@ public class FusionCacheSystemTextJsonSerializer
 	}
 
 	/// <inheritdoc />
-	public override string ToString() => $"{(_streamManager != null ? "Recyclable" : "")}{GetType().Name}";
+	public override string ToString() => GetType().Name;
 }
