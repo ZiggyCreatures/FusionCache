@@ -53,17 +53,9 @@ public class FusionCacheNeueccMessagePackSerializer
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public byte[] Serialize<T>(T? obj)
 	{
-		var writer = ArrayPoolBufferWriter.Rent();
-
-		try
-		{
-			MessagePackSerializer.Serialize(writer, obj, _serializerOptions);
-			return writer.ToArray();
-		}
-		finally
-		{
-			ArrayPoolBufferWriter.Return(writer);
-		}
+		using var writer = new ArrayPoolBufferWriter();
+		MessagePackSerializer.Serialize(writer, obj, _serializerOptions);
+		return writer.ToArray();
 	}
 
 	/// <inheritdoc />

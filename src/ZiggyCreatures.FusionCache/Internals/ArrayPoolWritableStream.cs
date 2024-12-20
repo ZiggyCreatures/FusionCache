@@ -17,7 +17,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// </summary>
 		public ArrayPoolWritableStream()
 		{
-			_buffer = ArrayPoolBufferWriter.Rent();
+			_buffer = new ArrayPoolBufferWriter();
 		}
 
 		/// <inheritdoc/>
@@ -89,7 +89,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		{
 			if (disposing)
 			{
-				ArrayPoolBufferWriter.Return(_buffer);
+				_buffer.Dispose();
 			}
 		}
 	}

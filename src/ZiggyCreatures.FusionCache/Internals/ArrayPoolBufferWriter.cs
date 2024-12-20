@@ -11,26 +11,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 	/// <summary>
 	/// The <see cref="ArrayPoolBufferWriter"/> class is an implementation of <see cref="T:IBufferWriter{byte}"/> that uses an <see cref="T:ArrayPool{byte}"/> to rent and return buffers.
 	/// </summary>
-	public class ArrayPoolBufferWriter : IBufferWriter<byte>
+	public class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	{
-		private static readonly ConcurrentStack<ArrayPoolBufferWriter> PooledWriters = new();
-		
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static ArrayPoolBufferWriter Rent()
-		{
-			return PooledWriters.TryPop(out var writer) ? writer : new ArrayPoolBufferWriter();
-		}
-
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public static void Return(ArrayPoolBufferWriter writer)
-		{
-			writer.Reset();
-			PooledWriters.Push(writer);
-		}
-
 		private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Create();
 		private byte[] _buffer;
 		private int _bytesWritten = 0;
+		private bool disposedValue;
+
 		/// <summary>
 		/// Gets the number of bytes written to the buffer.
 		/// </summary>
@@ -44,7 +31,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		/// <summary>
 		/// Creates a new instance of the <see cref="ArrayPoolBufferWriter"/> class.
 		/// </summary>
-		private ArrayPoolBufferWriter()
+		public ArrayPoolBufferWriter()
 		{
 			_buffer = _arrayPool.Rent(4096);
 		}
@@ -115,6 +102,26 @@ namespace ZiggyCreatures.Caching.Fusion.Internals
 		private static void ThrowInvalidOperationException()
 		{
 			throw new InvalidOperationException("Cannot advance past the end of the buffer.");
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					_arrayPool.Return(_buffer);
+				}
+
+				disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
 		}
 	}
 }

@@ -56,7 +56,7 @@ public class FusionCacheCysharpMemoryPackSerializer
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public byte[] Serialize<T>(T? obj)
 	{
-		var buffer = ArrayPoolBufferWriter.Rent();
+		var buffer = new ArrayPoolBufferWriter();
 		MemoryPackWriter<ArrayPoolBufferWriter> writer = new(ref buffer, MemoryPackWriterOptionalStatePool.Rent(_serializerOptions));
 		try
 		{
@@ -65,7 +65,7 @@ public class FusionCacheCysharpMemoryPackSerializer
 		}
 		finally
 		{
-			ArrayPoolBufferWriter.Return(buffer);
+			buffer.Dispose();
 		}
 	}
 
