@@ -11,7 +11,6 @@ using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using MemoryPack;
 using MessagePack;
-using Microsoft.IO;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
@@ -120,19 +119,7 @@ public class SerializersBenchmark
 		yield return new FusionCacheNeueccMessagePackSerializer();
 		yield return new FusionCacheNewtonsoftJsonSerializer();
 		yield return new FusionCacheProtoBufNetSerializer();
-		yield return new FusionCacheProtoBufNetSerializer(new FusionCacheProtoBufNetSerializer.Options
-		{
-			StreamManager = new RecyclableMemoryStreamManager()
-		});
 		yield return new FusionCacheServiceStackJsonSerializer();
-		yield return new FusionCacheServiceStackJsonSerializer(new FusionCacheServiceStackJsonSerializer.Options
-		{
-			StreamManager = new RecyclableMemoryStreamManager()
-		});
 		yield return new FusionCacheSystemTextJsonSerializer();
-		yield return new FusionCacheSystemTextJsonSerializer(new FusionCacheSystemTextJsonSerializer.Options
-		{
-			StreamManager = new RecyclableMemoryStreamManager()
-		});
 	}
 }

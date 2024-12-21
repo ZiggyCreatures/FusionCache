@@ -24,7 +24,7 @@ public class LoggingTests
 	}
 
 	[Fact]
-	public async Task CommonLogLevelsWork()
+	public void CommonLogLevelsWork()
 	{
 		var logger = CreateListLogger<FusionCache>(LogLevel.Debug);
 		using (var cache = new FusionCache(new FusionCacheOptions(), logger: logger))
@@ -44,7 +44,7 @@ public class LoggingTests
 	}
 
 	[Fact]
-	public async Task PluginsInfoWork()
+	public void PluginsInfoWork()
 	{
 		var logger = CreateListLogger<FusionCache>(LogLevel.Information);
 		var options = new FusionCacheOptions();
@@ -69,7 +69,7 @@ public class LoggingTests
 	}
 
 	[Fact]
-	public async Task EventsErrorsLogLevelsWork()
+	public void EventsErrorsLogLevelsWork()
 	{
 		var logger = CreateListLogger<FusionCache>(LogLevel.Information);
 		var options = new FusionCacheOptions
