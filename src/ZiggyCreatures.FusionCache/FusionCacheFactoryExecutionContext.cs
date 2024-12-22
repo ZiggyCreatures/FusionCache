@@ -147,11 +147,14 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	/// <param name="value">The new value.</param>
 	/// <param name="etag">The new value for the <see cref="ETag"/> property.</param>
 	/// <param name="lastModified">The new value for the <see cref="LastModified"/> property.</param>
+	/// <param name="tags">The set of tags.</param>
 	/// <returns>The new value to be cached.</returns>
-	public TValue Modified(TValue value, string? etag = null, DateTimeOffset? lastModified = null)
+	public TValue Modified(TValue value, string? etag = null, DateTimeOffset? lastModified = null, string[]? tags = null)
 	{
 		ETag = etag;
 		LastModified = lastModified;
+		if (tags is not null)
+			Tags = tags;
 		return value;
 	}
 

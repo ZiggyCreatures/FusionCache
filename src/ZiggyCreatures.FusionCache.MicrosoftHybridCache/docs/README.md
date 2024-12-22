@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package is an implementation of Microsoft's HybridCache based on FusionCache, for when you need to depend on the Microsoft abstraction, but want the power of FusionCache.
+⚠️ IMPORTANT: this package has been deprecated since the related code has been moved into the main FusionCache package.

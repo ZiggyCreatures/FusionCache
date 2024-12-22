@@ -9,7 +9,7 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Update: initial version
+			- Deprecation: this package is now empty: all related code moved to the main FusionCache package
 		</PackageReleaseNotes>
 	</PropertyGroup>
 

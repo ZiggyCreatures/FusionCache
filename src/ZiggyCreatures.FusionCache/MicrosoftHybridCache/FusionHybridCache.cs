@@ -1,23 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Hybrid;
 
 namespace ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache
 {
-	internal sealed class FusionHybridCache
+	/// <summary>
+	/// An adapter that bridges the world of HybridCache from Microsoft and FusionCache.
+	/// </summary>
+	[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
+	public sealed class FusionHybridCache
 		: HybridCache
 	{
 		private const FusionCacheEntryOptions? NoEntryOptions = null;
 
 		private readonly IFusionCache _fusionCache;
 
+		/// <summary>
+		/// Creates a new <see cref="FusionHybridCache"/> instance that acts as an adapter to the provided <paramref name="fusionCache"/>.
+		/// </summary>
+		/// <param name="fusionCache"></param>
 		public FusionHybridCache(IFusionCache fusionCache)
 		{
 			_fusionCache = fusionCache;
 		}
 
+		/// <summary>
+		/// A reference to the inner <see cref="IFusionCache"/> instance.
+		/// </summary>
 		public IFusionCache InnerFusionCache
 		{
 			get { return _fusionCache; }
@@ -56,6 +68,7 @@ namespace ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache
 			return res;
 		}
 
+		/// <inheritdoc/>
 		public override async ValueTask<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, ValueTask<T>> factory, HybridCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken cancellationToken = default)
 		{
 			var feo = CreateFusionEntryOptions(options, out var allowFactory);
@@ -81,19 +94,27 @@ namespace ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache
 			return await _fusionCache.GetOrSetAsync<T>(key, async (_, ct) => await factory(state, ct), default, feo, tags, cancellationToken);
 		}
 
+		/// <inheritdoc/>
 		public override ValueTask RemoveAsync(string key, CancellationToken cancellationToken = default)
 		{
 			return _fusionCache.RemoveAsync(key, NoEntryOptions, cancellationToken);
 		}
 
+		/// <inheritdoc/>
 		public override ValueTask RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
 		{
 			return _fusionCache.RemoveByTagAsync(tag, NoEntryOptions, cancellationToken);
 		}
 
+		/// <inheritdoc/>
 		public override ValueTask SetAsync<T>(string key, T value, HybridCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken cancellationToken = default)
 		{
 			return _fusionCache.SetAsync(key, value, CreateFusionEntryOptions(options, out _), tags, cancellationToken);
+		}
+
+		private string GetDebuggerDisplay()
+		{
+			return $"HybridCache Adapter for FusionCache with name {InnerFusionCache.CacheName}";
 		}
 	}
 }
