@@ -393,7 +393,7 @@ public class FusionCacheOptions
 	/// <summary>
 	/// If set to <see langword="true"/>, disables the entire tagging system, meaning both RemoveByTag and Clear.
 	/// <br/>
-	/// <strong>NOTE:</strong> this may get to a little performance improvement, but if you'll try to call one of the above methods an <see cref="InvalidOperationException"></see> will be thrown.
+	/// <strong>NOTE:</strong> this may get to a little performance improvement, but if you'll try to call a method that has anything to do with tags an <see cref="InvalidOperationException"/> will be thrown.
 	/// </summary>
 	public bool DisableTagging { get; set; }
 
