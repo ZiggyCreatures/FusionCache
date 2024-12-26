@@ -540,9 +540,9 @@ public partial class FusionCache
 			return memoryEntry;
 		}
 
-		if (options.IsFailSafeEnabled)
+		if (options.AllowStaleOnReadOnly)
 		{
-			// FAIL-SAFE IS ENABLED -> CAN USE STALE ENTRY
+			// CAN USE STALE ENTRY
 
 			// IF DISTRIBUTED ENTRY IS THERE -> USE IT
 			if (distributedEntry is not null)

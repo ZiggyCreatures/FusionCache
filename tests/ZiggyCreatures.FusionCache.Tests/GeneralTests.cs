@@ -146,6 +146,8 @@ public class GeneralTests
 
 			EagerRefreshThreshold = 0.456f,
 
+			AllowStaleOnReadOnly = true,
+
 			IsFailSafeEnabled = !FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled,
 			FailSafeMaxDuration = TimeSpan.FromSeconds(4),
 			FailSafeThrottleDuration = TimeSpan.FromSeconds(5),

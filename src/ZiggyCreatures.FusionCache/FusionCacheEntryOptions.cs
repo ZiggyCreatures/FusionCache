@@ -127,6 +127,13 @@ public sealed class FusionCacheEntryOptions
 	public CacheItemPriority Priority { get; set; }
 
 	/// <summary>
+	/// Returns a stale (expired) value even in read-only operations (eg: TryGet/GetOrDefault).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
+	/// </summary>
+	public bool AllowStaleOnReadOnly { get; set; }
+
+	/// <summary>
 	/// Enable the fail-safe mechanism, which will be activated if and when something goes wrong while calling a factory or getting data from a distributed cache.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md"/>
@@ -544,6 +551,17 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Allows stale values on read-only operations like TryGet/GetOrDefault.
+	/// </summary>
+	/// <param name="allowStale">Enable or disable the fail-safe mechanism.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetAllowStaleOnReadOnly(bool allowStale = true)
+	{
+		AllowStaleOnReadOnly = allowStale;
+		return this;
+	}
+
+	/// <summary>
 	/// Set various options related to the fail-safe mechanism.
 	/// </summary>
 	/// <param name="isEnabled">Enable or disable the fail-safe mechanism.</param>
@@ -939,6 +957,8 @@ public sealed class FusionCacheEntryOptions
 
 			// NOTE: PERF MICRO-OPT
 			_eagerRefreshThreshold = _eagerRefreshThreshold,
+
+			AllowStaleOnReadOnly = AllowStaleOnReadOnly,
 
 			IsFailSafeEnabled = IsFailSafeEnabled,
 			FailSafeMaxDuration = FailSafeMaxDuration,

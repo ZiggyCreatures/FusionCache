@@ -396,15 +396,15 @@ public class BackplaneTests
 		TestOutput.WriteLine($"BEFORE");
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
-		var maybeFooA3 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFooA3 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
 		TestOutput.WriteLine($"AFTER");
 
 		// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
-		var maybeFooB3 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFooB3 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
 
 		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
-		var maybeFooC3 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFooC3 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
 
 		await Task.Delay(TimeSpan.FromMilliseconds(200));
 
@@ -496,15 +496,15 @@ public class BackplaneTests
 		TestOutput.WriteLine($"BEFORE");
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
-		var maybeFooA3 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFooA3 = cacheA.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
 		TestOutput.WriteLine($"AFTER");
 
 		// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
-		var maybeFooB3 = cacheB.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFooB3 = cacheB.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
 		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
-		var maybeFooC3 = cacheC.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFooC3 = cacheC.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(200));
 

@@ -647,8 +647,10 @@ public class DistributedCacheLevelTests
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		await fusionCache.SetAsync<int>(keyFoo, 21, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(2)).SetDistributedCacheFailSafeOptions(TimeSpan.FromMinutes(10)));
 		await Task.Delay(TimeSpan.FromSeconds(2));
-		var value = await fusionCache.GetOrDefaultAsync<int>(keyFoo, opt => opt.SetFailSafe(true));
-		Assert.Equal(21, value);
+		var value1 = await fusionCache.GetOrDefaultAsync<int>(keyFoo, opt => opt.SetAllowStaleOnReadOnly());
+		Assert.Equal(21, value1);
+		var value2 = await fusionCache.GetOrDefaultAsync<int>(keyFoo);
+		Assert.Equal(0, value2);
 	}
 
 	[Theory]
@@ -661,8 +663,10 @@ public class DistributedCacheLevelTests
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		fusionCache.Set<int>(keyFoo, 21, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(2)).SetDistributedCacheFailSafeOptions(TimeSpan.FromMinutes(10)));
 		Thread.Sleep(TimeSpan.FromSeconds(2));
-		var value = fusionCache.GetOrDefault<int>(keyFoo, opt => opt.SetFailSafe(true));
-		Assert.Equal(21, value);
+		var value1 = fusionCache.GetOrDefault<int>(keyFoo, opt => opt.SetAllowStaleOnReadOnly());
+		Assert.Equal(21, value1);
+		var value2 = fusionCache.GetOrDefault<int>(keyFoo);
+		Assert.Equal(0, value2);
 	}
 
 	[Theory]
