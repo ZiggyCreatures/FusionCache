@@ -108,7 +108,7 @@ public sealed partial class FusionCache
 			throw new ArgumentNullException(nameof(optionsAccessor));
 
 		// OPTIONS
-		_options = optionsAccessor.Value ?? throw new ArgumentNullException(nameof(optionsAccessor.Value));
+		_options = optionsAccessor.Value ?? throw new NullReferenceException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
 
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
@@ -223,6 +223,13 @@ public sealed partial class FusionCache
 		ClearExpireTimestamp = -1;
 		ClearExpireTagCacheKey = GetTagCacheKey(ClearExpireTag);
 		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(ClearExpireTag);
+
+		// CHECK FOR CACHE KEY PREFIX
+		if (memoryCache is not null && CacheName != FusionCacheOptions.DefaultCacheName && string.IsNullOrWhiteSpace(_options.CacheKeyPrefix))
+		{
+			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
+				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
+		}
 
 		// MICRO OPTIMIZATION: WARM UP OBSERVABILITY STUFF
 		_ = Activities.Source;

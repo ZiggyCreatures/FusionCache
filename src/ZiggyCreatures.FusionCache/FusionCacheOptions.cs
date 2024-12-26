@@ -83,6 +83,7 @@ public class FusionCacheOptions
 		BackplaneErrorsLogLevel = LogLevel.Warning;
 		PluginsInfoLogLevel = LogLevel.Information;
 		PluginsErrorsLogLevel = LogLevel.Error;
+		MissingCacheKeyPrefixWarningLogLevel = LogLevel.Warning;
 	}
 
 	/// <summary>
@@ -487,6 +488,13 @@ public class FusionCacheOptions
 	/// </summary>
 	public LogLevel PluginsErrorsLogLevel { get; set; }
 
+	/// <summary>
+	/// Specify the <see cref="LogLevel"/> to use when using a named cache without a <see cref="CacheKeyPrefix"/>.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
+	/// </summary>
+	public LogLevel MissingCacheKeyPrefixWarningLogLevel { get; set; }
+
 	FusionCacheOptions IOptions<FusionCacheOptions>.Value
 	{
 		get { return this; }
@@ -555,6 +563,8 @@ public class FusionCacheOptions
 
 			PluginsErrorsLogLevel = PluginsErrorsLogLevel,
 			PluginsInfoLogLevel = PluginsInfoLogLevel,
+
+			MissingCacheKeyPrefixWarningLogLevel = MissingCacheKeyPrefixWarningLogLevel,
 		};
 
 		return res;
