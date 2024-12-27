@@ -18,7 +18,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.MicrosoftHybridCache\ZiggyCreatures.FusionCache.MicrosoftHybridCache.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj" />
