@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -14,6 +16,18 @@ namespace FusionCacheTests;
 public partial class SerializationTests
 	: AbstractTests
 {
+	private static readonly ComplexType[] BigData;
+
+	static SerializationTests()
+	{
+		var len = 1024 * 1024;
+		BigData = new ComplexType[len];
+		for (int i = 0; i < len; i++)
+		{
+			BigData[i] = ComplexType.CreateSample();
+		}
+	}
+
 	public SerializationTests(ITestOutputHelper output)
 			: base(output, null)
 	{
@@ -75,32 +89,20 @@ public partial class SerializationTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task LoopSucceedsWitComplexTypesArrayAsync(SerializerType serializerType)
+	public async Task LoopSucceedsWithComplexTypesArrayAsync(SerializerType serializerType)
 	{
-		var data = new ComplexType[1024 * 1024];
-		for(int i = 0; i < data.Length; i++)
-		{
-			data[i] = ComplexType.CreateSample();
-		}
-
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var looped = await LoopDeLoopAsync(serializer, data);
-		Assert.Equal(data, looped);
+		var looped = await LoopDeLoopAsync(serializer, BigData);
+		Assert.Equal(BigData, looped);
 	}
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
 	public void LoopSucceedsWithComplexTypesArray(SerializerType serializerType)
 	{
-		var data = new ComplexType[1024 * 1024];
-		for (int i = 0; i < data.Length; i++)
-		{
-			data[i] = ComplexType.CreateSample();
-		}
-
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var looped = LoopDeLoop(serializer, data);
-		Assert.Equal(data, looped);
+		var looped = LoopDeLoop(serializer, BigData);
+		Assert.Equal(BigData, looped);
 	}
 
 	[Theory]
@@ -316,4 +318,54 @@ public partial class SerializationTests
 
 	[GeneratedRegex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled)]
 	private static partial Regex VersionExtractorRegEx();
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanWorkWithByteArraysAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<bool>();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		var sourceString = new String('x', 1_000);
+		logger.LogInformation("SOURCE STRING: {chars} chars", sourceString.Length);
+
+		var sourceData = Encoding.UTF8.GetBytes(sourceString);
+		logger.LogInformation("SOURCE DATA: {bytes} bytes", sourceData.Length);
+
+		var serializedData = await serializer.SerializeAsync(sourceData);
+		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
+
+		var targetData = await serializer.DeserializeAsync<byte[]>(serializedData);
+		logger.LogInformation("TARGET DATA: {bytes} bytes", targetData!.Length);
+
+		var targetString = Encoding.UTF8.GetString(targetData!);
+		logger.LogInformation("TARGET STRING: {chars} chars", targetString.Length);
+
+		Assert.Equal(sourceString, targetString);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanWorkWithByteArrays(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<bool>();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		var sourceString = new String('x', 1_000);
+		logger.LogInformation("SOURCE STRING: {chars} chars", sourceString.Length);
+
+		var sourceData = Encoding.UTF8.GetBytes(sourceString);
+		logger.LogInformation("SOURCE DATA: {bytes} bytes", sourceData.Length);
+
+		var serializedData = serializer.Serialize(sourceData);
+		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
+
+		var targetData = serializer.Deserialize<byte[]>(serializedData);
+		logger.LogInformation("TARGET DATA: {bytes} bytes", targetData!.Length);
+
+		var targetString = Encoding.UTF8.GetString(targetData!);
+		logger.LogInformation("TARGET STRING: {chars} chars", targetString.Length);
+
+		Assert.Equal(sourceString, targetString);
+	}
 }
