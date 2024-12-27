@@ -8,7 +8,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| When we want to ease cold starts but don't want need multi-nodes support, we can use an implementation of `IDistributedCache` based on SQLite to achieve that. |
+| When we want to ease cold starts but don't want or need multi-nodes support, we can use an implementation of `IDistributedCache` based on SQLite to achieve that. |
 
 In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it. A good example of that may be a mobile app, where everything should be self contained.
 
