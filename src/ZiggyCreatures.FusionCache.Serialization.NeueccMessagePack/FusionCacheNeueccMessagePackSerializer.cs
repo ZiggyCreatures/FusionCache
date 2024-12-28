@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
 public class FusionCacheNeueccMessagePackSerializer
 	: IFusionCacheSerializer
 {
-/// <summary>
+	/// <summary>
 	/// The options class for the <see cref="FusionCacheNeueccMessagePackSerializer"/> class.
 	/// </summary>
 	public class Options

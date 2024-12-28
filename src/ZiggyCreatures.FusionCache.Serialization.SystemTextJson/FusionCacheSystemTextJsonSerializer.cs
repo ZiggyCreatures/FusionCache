@@ -1,10 +1,6 @@
-﻿using System.Collections.Concurrent;
-using System.IO;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-
-using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
