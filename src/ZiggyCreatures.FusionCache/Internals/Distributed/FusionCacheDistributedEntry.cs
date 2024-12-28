@@ -134,7 +134,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		}
 		else
 		{
-			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isStale ? options.FailSafeThrottleDuration : options.Duration, options, true);
+			exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(isStale ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, true);
 		}
 
 		var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isStale, options.EagerRefreshThreshold, exp);
