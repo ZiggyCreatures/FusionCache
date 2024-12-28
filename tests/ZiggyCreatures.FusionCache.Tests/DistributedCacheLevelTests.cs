@@ -12,6 +12,7 @@ using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
+using ZiggyCreatures.Caching.Fusion.DangerZone;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
@@ -1837,4 +1838,96 @@ public class DistributedCacheLevelTests
 		Assert.Equal(0, bar2_3);
 		Assert.Equal(0, baz2_3);
 	}
+
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public async Task SpecificMemoryCacheDurationWorksAsync(SerializerType serializerType)
+	//{
+	//	var cacheName = Guid.NewGuid().ToString("N");
+
+	//	var distributedCache = CreateDistributedCache();
+
+	//	using var cacheA = new FusionCache(CreateFusionCacheOptions(cacheName));
+	//	cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+	//	using var cacheB = new FusionCache(CreateFusionCacheOptions(cacheName));
+	//	cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+	//	var duration = TimeSpan.FromSeconds(60);
+	//	var memoryDuration = TimeSpan.FromSeconds(1);
+	//	var entryOptions = cacheA.CreateEntryOptions().SetDuration(duration).SetMemoryCacheDuration(memoryDuration);
+
+
+	//	await cacheA.SetAsync<int>(
+	//		"foo",
+	//		1,
+	//		entryOptions
+	//	);
+
+	//	var valueA1 = await cacheA.GetOrDefaultAsync<int>("foo", options: entryOptions);
+	//	Assert.Equal(1, valueA1);
+
+	//	var valueB1 = await cacheB.GetOrDefaultAsync<int>("foo", options: entryOptions);
+	//	Assert.Equal(1, valueB1);
+
+	//	await cacheA.SetAsync<int>(
+	//		"foo",
+	//		2,
+	//		entryOptions
+	//	);
+
+	//	await Task.Delay(memoryDuration.PlusALittleBit());
+
+	//	var valueA2 = await cacheA.GetOrDefaultAsync<int>("foo", options: entryOptions);
+	//	Assert.Equal(2, valueA2);
+
+	//	var valueB2 = await cacheB.GetOrDefaultAsync<int>("foo", options: entryOptions);
+	//	Assert.Equal(2, valueB2);
+	//}
+
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public void SpecificMemoryCacheDurationWorks(SerializerType serializerType)
+	//{
+	//	var cacheName = Guid.NewGuid().ToString("N");
+
+	//	var distributedCache = CreateDistributedCache();
+
+	//	using var cacheA = new FusionCache(CreateFusionCacheOptions(cacheName));
+	//	cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+	//	using var cacheB = new FusionCache(CreateFusionCacheOptions(cacheName));
+	//	cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+	//	var duration = TimeSpan.FromSeconds(60);
+	//	var memoryDuration = TimeSpan.FromSeconds(1);
+	//	var entryOptions = cacheA.CreateEntryOptions().SetDuration(duration).SetMemoryCacheDuration(memoryDuration);
+
+
+	//	cacheA.Set<int>(
+	//		"foo",
+	//		1,
+	//		entryOptions
+	//	);
+
+	//	var valueA1 = cacheA.GetOrDefault<int>("foo", options: entryOptions);
+	//	Assert.Equal(1, valueA1);
+
+	//	var valueB1 = cacheB.GetOrDefault<int>("foo", options: entryOptions);
+	//	Assert.Equal(1, valueB1);
+
+	//	cacheA.Set<int>(
+	//		"foo",
+	//		2,
+	//		entryOptions
+	//	);
+
+	//	Thread.Sleep(memoryDuration.PlusALittleBit());
+
+	//	var valueA2 = cacheA.GetOrDefault<int>("foo", options: entryOptions);
+	//	Assert.Equal(2, valueA2);
+
+	//	var valueB2 = cacheB.GetOrDefault<int>("foo", options: entryOptions);
+	//	Assert.Equal(2, valueB2);
+	//}
 }

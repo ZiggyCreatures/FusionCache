@@ -113,13 +113,7 @@ public class FusionCacheOptions
 	/// </summary>
 	public string? InstanceId { get; private set; }
 
-	/// <summary>
-	/// Set the InstanceId of the cache, but please don't use this.
-	/// <br/><br/>
-	/// <strong>⚠ WARNING:</strong> again, this should NOT be set, basically never ever, unless you really know what you are doing. For example by using the same value for two different cache instances they will be considered as the same cache, and this will lead to critical errors. So again, really: you should not use this.
-	/// </summary>
-	/// <param name="instanceId"></param>
-	public void SetInstanceId(string instanceId)
+	internal void SetInstanceIdInternal(string instanceId)
 	{
 		InstanceId = instanceId;
 	}
@@ -359,6 +353,8 @@ public class FusionCacheOptions
 
 	/// <summary>
 	/// Specify that, even when calling async code, the sync version of the serialization methods should be preferred.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
 	public bool PreferSyncSerialization { get; set; }
 
@@ -386,7 +382,7 @@ public class FusionCacheOptions
 	/// <strong>NOTE:</strong> also, typically metrics are better NOT to have tags with high-cardinality, meaning with a lot of different values, so please be extra careful.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/OpenTelemetry.md"/>
-	/// <br/><br/>
+	/// <br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	public bool IncludeTagsInMetrics { get; set; }
@@ -395,6 +391,8 @@ public class FusionCacheOptions
 	/// If set to <see langword="true"/>, disables the entire tagging system, meaning both RemoveByTag and Clear.
 	/// <br/>
 	/// <strong>NOTE:</strong> this may get to a little performance improvement, but if you'll try to call a method that has anything to do with tags an <see cref="InvalidOperationException"/> will be thrown.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
 	public bool DisableTagging { get; set; }
 

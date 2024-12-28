@@ -175,7 +175,7 @@ public sealed partial class FusionCache
 		if (string.IsNullOrWhiteSpace(_options.InstanceId))
 		{
 			//_options.SetInstanceId(Guid.NewGuid().ToString("N"));
-			_options.SetInstanceId(FusionCacheInternalUtils.GenerateOperationId());
+			_options.SetInstanceIdInternal(FusionCacheInternalUtils.GenerateOperationId());
 		}
 		InstanceId = _options.InstanceId!;
 
