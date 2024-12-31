@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios;
 
@@ -32,6 +36,9 @@ public static class ScratchpadScenario
 		};
 
 		var cache = new FusionCache(options);
+		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var serializer = new FusionCacheNewtonsoftJsonSerializer();
+		cache.SetupDistributedCache(distributedCache, serializer);
 
 		const string Key = "test key";
 		const string Value = "test value";

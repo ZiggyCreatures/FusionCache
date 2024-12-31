@@ -54,6 +54,7 @@ internal static class FusionCacheInternalUtils
 	}
 
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
+	private static readonly long DateTimeOffsetMaxValueTicks = DateTimeOffset.MaxValue.UtcTicks;
 	private const string DateTimeOffsetFormatString = "yyyy-MM-ddTHH:mm:ss.ffffff";
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 	private static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
@@ -101,10 +102,31 @@ internal static class FusionCacheInternalUtils
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsLogicallyExpired(this IFusionCacheEntry? entry)
 	{
+		if (entry is null)
+			return false;
+
+		return entry.LogicalExpirationTimestamp < DateTimeOffset.UtcNow.UtcTicks;
+	}
+
+	/// <summary>
+	/// Checks if an eager refresh should happen.
+	/// </summary>
+	/// <returns>A <see cref="bool"/> indicating an eager refresh should happen.</returns>
+	public static bool ShouldEagerlyRefresh(this IFusionCacheEntry? entry)
+	{
 		if (entry?.Metadata is null)
 			return false;
 
-		return entry.Metadata.IsLogicallyExpired();
+		if (entry.Metadata.EagerExpiration.HasValue == false)
+			return false;
+
+		if (entry.Metadata.EagerExpiration.Value >= DateTimeOffset.UtcNow)
+			return false;
+
+		if (entry.IsLogicallyExpired())
+			return false;
+
+		return true;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -190,6 +212,8 @@ internal static class FusionCacheInternalUtils
 	{
 		if (entry is null)
 			return null;
+
+		// TODO: ADD , LEXP={LogicalExpiration.ToLogString_Expiration()}
 
 		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})@{new DateTimeOffset(entry.Timestamp, TimeSpan.Zero).ToLogString()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}{entry.Metadata?.ToString() ?? "[]"}";
 
@@ -337,17 +361,17 @@ internal static class FusionCacheInternalUtils
 		return $"{prefix}.Backplane{FusionCacheOptions.BackplaneWireFormatSeparator}{FusionCacheOptions.BackplaneWireFormatVersion}";
 	}
 
-	public static DateTimeOffset GetNormalizedAbsoluteExpiration(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
+	public static long GetNormalizedAbsoluteExpirationTimestamp(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
 	{
 		// EARLY RETURN: COMMON CASE FOR WHEN USERS DO NOT WANT EXPIRATION
 		if (duration == TimeSpanMaxValue)
-			return DateTimeOffsetMaxValue;
+			return DateTimeOffsetMaxValueTicks;
 
 		if (allowJittering && options.JitterMaxDuration > TimeSpan.Zero)
 		{
 			// EARLY RETURN: WHEN THE VALUES ARE NOT THE LIMITS BUT ARE STRETCHED VERY NEAR THEM
 			if (duration > (TimeSpanMaxValue - options.JitterMaxDuration))
-				return DateTimeOffsetMaxValue;
+				return DateTimeOffsetMaxValueTicks;
 
 			// ADD JITTERING
 			duration += TimeSpan.FromMilliseconds(options.GetJitterDurationMs());
@@ -356,11 +380,12 @@ internal static class FusionCacheInternalUtils
 		// EARLY RETURN: WHEN OVERFLOWING DateTimeOffset.MaxValue
 		var now = DateTimeOffset.UtcNow;
 		if (duration > (DateTimeOffsetMaxValue - now))
-			return DateTimeOffsetMaxValue;
+			return DateTimeOffsetMaxValueTicks;
 
-		return now.Add(duration);
+		return now.Add(duration).UtcTicks;
 	}
 
+	// TODO: TIMESTAMP HERE
 	public static DateTimeOffset? GetNormalizedEagerExpiration(bool isFromFailSafe, float? eagerRefreshThreshold, DateTimeOffset normalizedExpiration)
 	{
 		if (isFromFailSafe)
@@ -372,6 +397,22 @@ internal static class FusionCacheInternalUtils
 		var now = DateTimeOffset.UtcNow;
 
 		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
+	}
+
+	public static long? GetNormalizedEagerExpirationTimestamp(bool isFromFailSafe, float? eagerRefreshThreshold, long normalizedExpiration)
+	{
+		if (isFromFailSafe)
+			return null;
+
+		var now = DateTimeOffset.UtcNow.UtcTicks;
+
+		if (normalizedExpiration < now)
+			return null;
+
+		if (eagerRefreshThreshold.HasValue == false)
+			return null;
+
+		return now + (long)((normalizedExpiration - now) * eagerRefreshThreshold.Value);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]

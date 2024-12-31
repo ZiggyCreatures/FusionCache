@@ -64,7 +64,9 @@ public class BackplaneTests
 		if (string.IsNullOrWhiteSpace(cacheInstanceId) == false)
 			options.SetInstanceId(cacheInstanceId!);
 
-		options.CacheName = cacheName!;
+		if (string.IsNullOrWhiteSpace(cacheName) == false)
+			options.CacheName = cacheName;
+
 		options.EnableSyncEventHandlersExecution = true;
 
 		setupAction?.Invoke(options);
@@ -196,9 +198,9 @@ public class BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var key = Guid.NewGuid().ToString("N");
-		using var cache1 = CreateFusionCache("C1", null, null, CreateBackplane(backplaneConnectionId));
-		using var cache2 = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId));
-		using var cache2bis = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId));
+		using var cache1 = CreateFusionCache("C1", null, null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
+		using var cache2bis = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
 
 		await Task.Delay(1_000);
 
@@ -231,14 +233,14 @@ public class BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var key = Guid.NewGuid().ToString("N");
-		using var cache1 = CreateFusionCache("C1", null, null, CreateBackplane(backplaneConnectionId));
-		using var cache2 = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId));
-		using var cache2bis = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId));
+		using var cache1 = CreateFusionCache("C1", null, null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
+		using var cache2bis = CreateFusionCache("C2", null, null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
 
 		Thread.Sleep(1_000);
 
-		cache1.GetOrSet(key, _ => 1, TimeSpan.FromMinutes(10));
-		cache2.GetOrSet(key, _ => 2, TimeSpan.FromMinutes(10));
+		cache1.GetOrSetAsync(key, async _ => 1, TimeSpan.FromMinutes(10));
+		cache2.GetOrSetAsync(key, async _ => 2, TimeSpan.FromMinutes(10));
 		Thread.Sleep(1_000);
 		cache2bis.GetOrSet(key, _ => 2, TimeSpan.FromMinutes(10));
 		Thread.Sleep(1_000);

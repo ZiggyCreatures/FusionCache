@@ -1839,6 +1839,134 @@ public class DistributedCacheLevelTests
 		Assert.Equal(0, baz2_3);
 	}
 
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanUseMultiNodeCachesWithSizeLimitAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var key1 = Guid.NewGuid().ToString("N");
+		var key2 = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var memoryCache1 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache2 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache3 = new MemoryCache(new MemoryCacheOptions()
+		{
+			//SizeLimit = 10
+		});
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions(configure: opt => opt.DefaultEntryOptions.SetSize(1)), memoryCache1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cache2 = new FusionCache(CreateFusionCacheOptions(), memoryCache2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cache3 = new FusionCache(CreateFusionCacheOptions(), memoryCache3, logger: logger);
+		cache3.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		await cache1.SetAsync(key1, 1, options => options.SetSize(1));
+
+		await Task.Delay(1_000);
+
+		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
+		var maybe2 = await cache2.TryGetAsync<int>(key1);
+
+		Assert.True(maybe2.HasValue);
+		Assert.Equal(1, maybe2.Value);
+
+		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
+		await cache3.SetAsync(key2, 2);
+
+		await Task.Delay(1_000);
+
+		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		// -> FALLBACK TO THE SIZE IN THE DEFAULT ENTRY OPTIONS
+		var maybe1 = await cache1.TryGetAsync<int>(key2/*, options => options.SetSize(1)*/);
+
+		Assert.True(maybe1.HasValue);
+		Assert.Equal(2, maybe1.Value);
+
+		// GET THE ENTRY (WITH NO SIZE) ON CACHE 2 (WITH SIZE LIMIT)
+		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
+		var maybe2bis = await cache2.TryGetAsync<int>(key2, options => options.SetSize(1));
+
+		Assert.True(maybe2bis.HasValue);
+		Assert.Equal(2, maybe2bis.Value);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanUseMultiNodeCachesWithSizeLimit(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var key1 = Guid.NewGuid().ToString("N");
+		var key2 = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var memoryCache1 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache2 = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 10
+		});
+		using var memoryCache3 = new MemoryCache(new MemoryCacheOptions()
+		{
+			//SizeLimit = 10
+		});
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions(configure: opt => opt.DefaultEntryOptions.SetSize(1)), memoryCache1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cache2 = new FusionCache(CreateFusionCacheOptions(), memoryCache2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cache3 = new FusionCache(CreateFusionCacheOptions(), memoryCache3, logger: logger);
+		cache3.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		cache1.Set(key1, 1, options => options.SetSize(1));
+
+		Thread.Sleep(1_000);
+
+		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
+		var maybe2 = cache2.TryGet<int>(key1);
+
+		Assert.True(maybe2.HasValue);
+		Assert.Equal(1, maybe2.Value);
+
+		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
+		cache3.Set(key2, 2);
+
+		Thread.Sleep(1_000);
+
+		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
+		// -> FALLBACK TO THE SIZE IN THE DEFAULT ENTRY OPTIONS
+		var maybe1 = cache1.TryGet<int>(key2/*, options => options.SetSize(1)*/);
+
+		Assert.True(maybe1.HasValue);
+		Assert.Equal(2, maybe1.Value);
+
+		// GET THE ENTRY (WITH NO SIZE) ON CACHE 2 (WITH SIZE LIMIT)
+		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
+		var maybe2bis = cache2.TryGet<int>(key2, options => options.SetSize(1));
+
+		Assert.True(maybe2bis.HasValue);
+		Assert.Equal(2, maybe2bis.Value);
+	}
+
 	//[Theory]
 	//[ClassData(typeof(SerializerTypesClassData))]
 	//public async Task SpecificMemoryCacheDurationWorksAsync(SerializerType serializerType)

@@ -7,9 +7,6 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.Internals;
 [ProtoContract]
 internal class FusionCacheEntryMetadataSurrogate
 {
-	[ProtoMember(1)]
-	public long LogicalExpirationUtcTicks { get; set; }
-
 	[ProtoMember(2)]
 	public bool IsFromFailSafe { get; set; }
 
@@ -32,7 +29,6 @@ internal class FusionCacheEntryMetadataSurrogate
 
 		return new FusionCacheEntryMetadataSurrogate
 		{
-			LogicalExpirationUtcTicks = value.LogicalExpiration.UtcTicks,
 			IsFromFailSafe = value.IsFromFailSafe,
 			EagerExpirationUtcTicks = value.EagerExpiration?.UtcTicks,
 			ETag = value.ETag,
@@ -47,7 +43,6 @@ internal class FusionCacheEntryMetadataSurrogate
 			return null;
 
 		return new FusionCacheEntryMetadata(
-			new DateTimeOffset(value.LogicalExpirationUtcTicks, TimeSpan.Zero),
 			value.IsFromFailSafe,
 			value.EagerExpirationUtcTicks.HasValue ? new DateTimeOffset(value.EagerExpirationUtcTicks.Value, TimeSpan.Zero) : null,
 			value.ETag,

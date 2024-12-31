@@ -129,7 +129,7 @@ public partial class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9), "abc123", now, 123), now.UtcTicks, now.AddSeconds(10).UtcTicks);
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -140,8 +140,8 @@ public partial class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
@@ -154,7 +154,7 @@ public partial class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9), "abc123", now, 123), now.UtcTicks, now.AddSeconds(10).UtcTicks);
 
 		var data = serializer.Serialize(obj);
 
@@ -165,8 +165,8 @@ public partial class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
@@ -178,7 +178,8 @@ public partial class SerializationTests
 	public async Task LoopSucceedsWithDistributedEntryAndNoMetadataAsync(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], null, FusionCacheInternalUtils.GetCurrentTimestamp());
+		var now = DateTimeOffset.UtcNow;
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], null, now.UtcTicks, now.AddSeconds(10).UtcTicks);
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -189,6 +190,7 @@ public partial class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Null(looped!.Metadata);
 	}
 
@@ -197,7 +199,8 @@ public partial class SerializationTests
 	public void LoopSucceedsWithDistributedEntryAndNoMetadata(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], null, FusionCacheInternalUtils.GetCurrentTimestamp());
+		var now = DateTimeOffset.UtcNow;
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, [], null, now.UtcTicks, now.AddSeconds(10).UtcTicks);
 
 		var data = serializer.Serialize(obj);
 
@@ -208,6 +211,7 @@ public partial class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Null(looped!.Metadata);
 	}
 
@@ -217,7 +221,7 @@ public partial class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), [], new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1), 123), now.UtcTicks, now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1).UtcTicks);
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -228,8 +232,8 @@ public partial class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
@@ -242,7 +246,7 @@ public partial class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), [], new FusionCacheEntryMetadata(now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1), true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1), 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1), 123), now.UtcTicks, now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1).UtcTicks);
 
 		var data = serializer.Serialize(obj);
 
@@ -253,8 +257,8 @@ public partial class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
 		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);

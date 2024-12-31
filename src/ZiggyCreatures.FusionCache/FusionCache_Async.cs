@@ -110,7 +110,7 @@ public partial class FusionCache
 			// VALID CACHE ENTRY
 
 			// CHECK FOR EAGER REFRESH
-			if (isRealFactory && (memoryEntry!.Metadata?.ShouldEagerlyRefresh() ?? false))
+			if (isRealFactory && memoryEntry.ShouldEagerlyRefresh())
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): should eagerly refresh", CacheName, InstanceId, operationId, key);
@@ -124,8 +124,12 @@ public partial class FusionCache
 				}
 				else
 				{
+					// RESET EAGER REFRESH
+					if (memoryEntry!.Metadata is not null)
+						memoryEntry.Metadata.EagerExpiration = null;
+
 					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, tags, factory, options, memoryEntry, memoryLockObj);
+					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, tags, factory, options, memoryEntry!, memoryLockObj);
 				}
 			}
 

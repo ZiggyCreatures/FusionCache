@@ -994,7 +994,7 @@ public class AutoRecoveryTests
 	}
 
 	[Fact]
-	public async Task CanHandleIssuesWithOnlyAndBackplaneAsync()
+	public async Task CanHandleIssuesWithOnlyMemoryCacheAndBackplaneAsync()
 	{
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
@@ -1067,7 +1067,7 @@ public class AutoRecoveryTests
 	}
 
 	[Fact]
-	public void CanHandleIssuesWithOnlyAndBackplane()
+	public void CanHandleIssuesWithOnlyMemoryCacheAndBackplane()
 	{
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 

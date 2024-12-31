@@ -11,9 +11,6 @@ internal partial class SerializableFusionCacheEntryMetadata
 	public readonly FusionCacheEntryMetadata? Metadata;
 
 	[MemoryPackInclude]
-	public DateTimeOffset LogicalExpiration => Metadata?.LogicalExpiration ?? default;
-
-	[MemoryPackInclude]
 	public bool IsFromFailSafe => Metadata?.IsFromFailSafe ?? default;
 
 	[MemoryPackInclude]
@@ -29,9 +26,9 @@ internal partial class SerializableFusionCacheEntryMetadata
 	public long? Size => Metadata?.Size;
 
 	[MemoryPackConstructor]
-	SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? eagerExpiration, string? etag, DateTimeOffset? lastModified, long? size)
+	SerializableFusionCacheEntryMetadata(bool isFromFailSafe, DateTimeOffset? eagerExpiration, string? etag, DateTimeOffset? lastModified, long? size)
 	{
-		Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe, eagerExpiration, etag, lastModified, size);
+		Metadata = new FusionCacheEntryMetadata(isFromFailSafe, eagerExpiration, etag, lastModified, size);
 	}
 
 	public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)

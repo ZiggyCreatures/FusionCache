@@ -196,13 +196,16 @@ internal sealed class MemoryCacheAccessor
 			return false;
 		}
 
-		if (entry.Metadata is not null && entry.Metadata.IsLogicallyExpired() == false)
+		if (entry.Metadata is not null && entry.IsLogicallyExpired() == false)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
 
 			// MAKE THE ENTRY LOGICALLY EXPIRE
-			entry.Metadata.LogicalExpiration = DateTimeOffset.UtcNow.AddMilliseconds(-10);
+			//entry.LogicalExpirationTimestamp = DateTimeOffset.UtcNow.AddMilliseconds(-10).UtcTicks;
+			entry.LogicalExpirationTimestamp = 0L;
+			entry.Metadata.IsFromFailSafe = true;
+			entry.Metadata.EagerExpiration = null;
 
 			// EVENT
 			_events.OnExpire(operationId, key);

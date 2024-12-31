@@ -937,7 +937,7 @@ public sealed class FusionCacheEntryOptions
 		}
 
 		// ABSOLUTE EXPIRATION
-		return FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, true);
+		return new DateTimeOffset(FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(physicalDuration, this, true), TimeSpan.Zero);
 	}
 
 	internal (MemoryCacheEntryOptions? memoryEntryOptions, DateTimeOffset? absoluteExpiration) ToMemoryCacheEntryOptionsOrAbsoluteExpiration(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key, long? size)
@@ -1013,7 +1013,7 @@ public sealed class FusionCacheEntryOptions
 			}
 		}
 
-		res.AbsoluteExpiration = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(physicalDuration, this, false);
+		res.AbsoluteExpiration = new DateTimeOffset(FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(physicalDuration, this, false), TimeSpan.Zero);
 
 		return res;
 	}

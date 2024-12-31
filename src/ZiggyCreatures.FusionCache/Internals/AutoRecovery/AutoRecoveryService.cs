@@ -100,7 +100,7 @@ internal sealed class AutoRecoveryService
 			duration = options.DistributedCacheDuration.GetValueOrDefault(options.Duration);
 		}
 
-		var expirationTicks = FusionCacheInternalUtils.GetNormalizedAbsoluteExpiration(duration, options, false).Ticks;
+		var expirationTicks = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(duration, options, false);
 
 		if (_queue.Count >= _maxItems && _queue.ContainsKey(cacheKey) == false)
 		{
