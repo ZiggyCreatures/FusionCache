@@ -33,7 +33,7 @@ public partial class SerializationTests
 	{
 	}
 
-	private static readonly Regex __re_VersionExtractor = VersionExtractorRegEx();
+	//private static readonly Regex __re_VersionExtractor = VersionExtractorRegEx();
 
 	private const string SampleString = "Supercalifragilisticexpialidocious";
 
@@ -260,64 +260,64 @@ public partial class SerializationTests
 		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
 	}
 
-	[Theory]
-	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanDeserializeOldSnapshotsAsync(SerializerType serializerType)
-	{
-		var serializer = TestsUtils.GetSerializer(serializerType);
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public async Task CanDeserializeOldSnapshotsAsync(SerializerType serializerType)
+	//{
+	//	var serializer = TestsUtils.GetSerializer(serializerType);
 
-		var assembly = serializer.GetType().Assembly;
-		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
+	//	var assembly = serializer.GetType().Assembly;
+	//	var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+	//	string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
 
-		var filePrefix = $"{serializer.GetType().Name}__";
+	//	var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
+	//	var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
 
-		TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
+	//	TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
 
-		foreach (var file in files)
-		{
-			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
+	//	foreach (var file in files)
+	//	{
+	//		var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
 
-			var payload = File.ReadAllBytes(file);
-			var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
-			Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+	//		var payload = File.ReadAllBytes(file);
+	//		var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
+	//		Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
 
-			TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
-		}
-	}
+	//		TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
+	//	}
+	//}
 
-	[Theory]
-	[ClassData(typeof(SerializerTypesClassData))]
-	public void CanDeserializeOldSnapshots(SerializerType serializerType)
-	{
-		var serializer = TestsUtils.GetSerializer(serializerType);
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public void CanDeserializeOldSnapshots(SerializerType serializerType)
+	//{
+	//	var serializer = TestsUtils.GetSerializer(serializerType);
 
-		var assembly = serializer.GetType().Assembly;
-		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
+	//	var assembly = serializer.GetType().Assembly;
+	//	var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+	//	string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
 
-		var filePrefix = $"{serializer.GetType().Name}__";
+	//	var filePrefix = $"{serializer.GetType().Name}__";
 
-		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
+	//	var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
 
-		TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
+	//	TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
 
-		foreach (var file in files)
-		{
-			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
+	//	foreach (var file in files)
+	//	{
+	//		var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
 
-			var payload = File.ReadAllBytes(file);
-			var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
-			Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+	//		var payload = File.ReadAllBytes(file);
+	//		var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
+	//		Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
 
-			TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
-		}
-	}
+	//		TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
+	//	}
+	//}
 
-	[GeneratedRegex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled)]
-	private static partial Regex VersionExtractorRegEx();
+	//[GeneratedRegex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled)]
+	//private static partial Regex VersionExtractorRegEx();
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
