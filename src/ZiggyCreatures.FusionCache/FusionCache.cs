@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -20,7 +19,6 @@ using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
-using ZiggyCreatures.Caching.Fusion.Reactors;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion;
@@ -79,21 +77,6 @@ public sealed partial class FusionCache
 	internal readonly string ClearExpireTagCacheKey;
 	internal readonly string ClearExpireTagInternalCacheKey;
 	internal long ClearExpireTimestamp;
-
-	/// <summary>
-	/// Creates a new <see cref="FusionCache"/> instance.
-	/// </summary>
-	/// <param name="optionsAccessor">The set of cache-wide options to use with this instance of <see cref="FusionCache"/>.</param>
-	/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
-	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
-	/// <param name="reactor">The <see cref="IFusionCacheReactor"/> instance to use (advanced). If null, a standard one will be automatically created and managed.</param>
-	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please stop using this constructor, it will be removed in future versions.", true)]
-	public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache, ILogger<FusionCache>? logger, IFusionCacheReactor? reactor)
-		: this(optionsAccessor, memoryCache, logger, (IFusionCacheMemoryLocker?)null)
-	{
-		// EMPTY
-	}
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCache"/> instance.
