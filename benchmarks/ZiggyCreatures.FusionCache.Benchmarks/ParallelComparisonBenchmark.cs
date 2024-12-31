@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using CacheTower;
 using CacheTower.Extensions;
 using CacheTower.Providers.Memory;
@@ -27,9 +30,12 @@ public class ParallelComparisonBenchmark
 	{
 		public Config()
 		{
-			AddColumn(
-				StatisticColumn.P95
-			);
+			AddColumn(StatisticColumn.P95);
+			AddDiagnoser(MemoryDiagnoser.Default);
+			//AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByMethod);
+			AddJob(Job.Default.WithToolchain(InProcessEmitToolchain.Instance));
+			//WithOrderer(new DefaultOrderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest));
+			WithSummaryStyle(BenchmarkDotNet.Reports.SummaryStyle.Default.WithMaxParameterColumnWidth(50));
 		}
 	}
 
@@ -223,142 +229,142 @@ public class ParallelComparisonBenchmark
 	//	cache.Clear();
 	//}
 
-	[Benchmark]
-	public async Task CacheTower()
-	{
-		var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
+	//[Benchmark]
+	//public async Task CacheTower()
+	//{
+	//	var cacheSettings = new CacheSettings(CacheDuration, CacheDuration);
 
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
+	//	for (int i = 0; i < Rounds; i++)
+	//	{
+	//		var tasks = new ConcurrentBag<Task>();
 
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _CacheTower.GetOrSetAsync<SamplePayload>(
-						key,
-						async (old) =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						},
-						cacheSettings
-					);
-					tasks.Add(t.AsTask());
-				});
-			});
+	//		Parallel.ForEach(Keys, key =>
+	//		{
+	//			Parallel.For(0, Accessors, _ =>
+	//			{
+	//				var t = _CacheTower.GetOrSetAsync<SamplePayload>(
+	//					key,
+	//					async (old) =>
+	//					{
+	//						await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+	//						return new SamplePayload();
+	//					},
+	//					cacheSettings
+	//				);
+	//				tasks.Add(t.AsTask());
+	//			});
+	//		});
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
+	//		await Task.WhenAll(tasks).ConfigureAwait(false);
+	//	}
+	//}
 
-	[Benchmark]
-	public async Task EasyCaching()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
+	//[Benchmark]
+	//public async Task EasyCaching()
+	//{
+	//	for (int i = 0; i < Rounds; i++)
+	//	{
+	//		var tasks = new ConcurrentBag<Task>();
 
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _EasyCaching.GetAsync<SamplePayload>(
-						key,
-						async () =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						},
-						CacheDuration
-					);
-					tasks.Add(t);
-				});
-			});
+	//		Parallel.ForEach(Keys, key =>
+	//		{
+	//			Parallel.For(0, Accessors, _ =>
+	//			{
+	//				var t = _EasyCaching.GetAsync<SamplePayload>(
+	//					key,
+	//					async () =>
+	//					{
+	//						await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+	//						return new SamplePayload();
+	//					},
+	//					CacheDuration
+	//				);
+	//				tasks.Add(t);
+	//			});
+	//		});
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
+	//		await Task.WhenAll(tasks).ConfigureAwait(false);
+	//	}
+	//}
 
-	[Benchmark]
-	public async Task LazyCache()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
+	//[Benchmark]
+	//public async Task LazyCache()
+	//{
+	//	for (int i = 0; i < Rounds; i++)
+	//	{
+	//		var tasks = new ConcurrentBag<Task>();
 
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _LazyCache.GetOrAddAsync<SamplePayload>(
-						key,
-						async () =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						}
-					);
-					tasks.Add(t);
-				});
-			});
+	//		Parallel.ForEach(Keys, key =>
+	//		{
+	//			Parallel.For(0, Accessors, _ =>
+	//			{
+	//				var t = _LazyCache.GetOrAddAsync<SamplePayload>(
+	//					key,
+	//					async () =>
+	//					{
+	//						await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+	//						return new SamplePayload();
+	//					}
+	//				);
+	//				tasks.Add(t);
+	//			});
+	//		});
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
+	//		await Task.WhenAll(tasks).ConfigureAwait(false);
+	//	}
+	//}
 
-	[Benchmark]
-	public async Task HybridCache()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
+	//[Benchmark]
+	//public async Task HybridCache()
+	//{
+	//	for (int i = 0; i < Rounds; i++)
+	//	{
+	//		var tasks = new ConcurrentBag<Task>();
 
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _HybridCache.GetOrCreateAsync<SamplePayload>(
-						key,
-						async _ =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						}
-					);
-					tasks.Add(t.AsTask());
-				});
-			});
+	//		Parallel.ForEach(Keys, key =>
+	//		{
+	//			Parallel.For(0, Accessors, _ =>
+	//			{
+	//				var t = _HybridCache.GetOrCreateAsync<SamplePayload>(
+	//					key,
+	//					async _ =>
+	//					{
+	//						await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+	//						return new SamplePayload();
+	//					}
+	//				);
+	//				tasks.Add(t.AsTask());
+	//			});
+	//		});
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
+	//		await Task.WhenAll(tasks).ConfigureAwait(false);
+	//	}
+	//}
 
-	[Benchmark]
-	public async Task FusionHybridCache()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
+	//[Benchmark]
+	//public async Task FusionHybridCache()
+	//{
+	//	for (int i = 0; i < Rounds; i++)
+	//	{
+	//		var tasks = new ConcurrentBag<Task>();
 
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _FusionHybridCache.GetOrCreateAsync<SamplePayload>(
-						key,
-						async _ =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						}
-					);
-					tasks.Add(t.AsTask());
-				});
-			});
+	//		Parallel.ForEach(Keys, key =>
+	//		{
+	//			Parallel.For(0, Accessors, _ =>
+	//			{
+	//				var t = _FusionHybridCache.GetOrCreateAsync<SamplePayload>(
+	//					key,
+	//					async _ =>
+	//					{
+	//						await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+	//						return new SamplePayload();
+	//					}
+	//				);
+	//				tasks.Add(t.AsTask());
+	//			});
+	//		});
 
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
+	//		await Task.WhenAll(tasks).ConfigureAwait(false);
+	//	}
+	//}
 }
