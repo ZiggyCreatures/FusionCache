@@ -1957,6 +1957,120 @@ public class L1L2Tests
 		Assert.Equal(2, maybe2bis.Value);
 	}
 
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanUseMultiNodeCachesWithPriorityAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var key1 = Guid.NewGuid().ToString("N");
+		var key2 = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var memoryCache1 = new MemoryCache(new MemoryCacheOptions());
+		using var memoryCache2 = new MemoryCache(new MemoryCacheOptions());
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions(configure: opt => opt.DisableTagging = true), memoryCache1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cache2 = new FusionCache(CreateFusionCacheOptions(configure: opt => opt.DisableTagging = true), memoryCache2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		// SET ENTRY WITH Low PRIORITY
+		await cache1.SetAsync(key1, 1, options => options.SetPriority(CacheItemPriority.Low));
+		// SET ENTRY WITH NeverRemove PRIORITY
+		await cache1.SetAsync(key2, 1, options => options.SetPriority(CacheItemPriority.NeverRemove));
+
+		// CACHE2 HERE DOES NOT HAVE ENTRIES YET
+		Assert.Equal(2, memoryCache1.Count);
+		Assert.Equal(0, memoryCache2.Count);
+
+		await cache2.TryGetAsync<int>(key1);
+		await cache2.TryGetAsync<int>(key2);
+
+		// NOW BOTH CACHES HERE HAVE 2 ENTRIES
+		Assert.Equal(2, memoryCache1.Count);
+		Assert.Equal(2, memoryCache2.Count);
+
+		await cache1.TryGetAsync<int>(key1);
+		await cache1.TryGetAsync<int>(key2);
+
+		// SAME AS BEFORE
+		Assert.Equal(2, memoryCache1.Count);
+		Assert.Equal(2, memoryCache2.Count);
+
+		memoryCache1.Compact(1);
+		memoryCache2.Compact(1);
+
+		// NOW BOTH CACHES HERE HAVE ONLY 1 ENTRY
+		Assert.Equal(1, memoryCache1.Count);
+		Assert.Equal(1, memoryCache2.Count);
+
+		await cache2.TryGetAsync<int>(key1);
+		await cache2.TryGetAsync<int>(key2);
+
+		// NOW CACHE2 HAS 2 ENTRIES AGAIN, CACHE1 ONLY 1
+		Assert.Equal(1, memoryCache1.Count);
+		Assert.Equal(2, memoryCache2.Count);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanUseMultiNodeCachesWithPriority(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var key1 = Guid.NewGuid().ToString("N");
+		var key2 = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var memoryCache1 = new MemoryCache(new MemoryCacheOptions());
+		using var memoryCache2 = new MemoryCache(new MemoryCacheOptions());
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions(configure: opt => opt.DisableTagging = true), memoryCache1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cache2 = new FusionCache(CreateFusionCacheOptions(configure: opt => opt.DisableTagging = true), memoryCache2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		// SET ENTRY WITH Low PRIORITY
+		cache1.Set(key1, 1, options => options.SetPriority(CacheItemPriority.Low));
+		// SET ENTRY WITH NeverRemove PRIORITY
+		cache1.Set(key2, 1, options => options.SetPriority(CacheItemPriority.NeverRemove));
+
+		// CACHE2 HERE DOES NOT HAVE ENTRIES YET
+		Assert.Equal(2, memoryCache1.Count);
+		Assert.Equal(0, memoryCache2.Count);
+
+		cache2.TryGet<int>(key1);
+		cache2.TryGet<int>(key2);
+
+		// NOW BOTH CACHES HERE HAVE 2 ENTRIES
+		Assert.Equal(2, memoryCache1.Count);
+		Assert.Equal(2, memoryCache2.Count);
+
+		cache1.TryGet<int>(key1);
+		cache1.TryGet<int>(key2);
+
+		// SAME AS BEFORE
+		Assert.Equal(2, memoryCache1.Count);
+		Assert.Equal(2, memoryCache2.Count);
+
+		memoryCache1.Compact(1);
+		memoryCache2.Compact(1);
+
+		// NOW BOTH CACHES HERE HAVE ONLY 1 ENTRY
+		Assert.Equal(1, memoryCache1.Count);
+		Assert.Equal(1, memoryCache2.Count);
+
+		cache2.TryGet<int>(key1);
+		cache2.TryGet<int>(key2);
+
+		// NOW CACHE2 HAS 2 ENTRIES AGAIN, CACHE1 ONLY 1
+		Assert.Equal(1, memoryCache1.Count);
+		Assert.Equal(2, memoryCache2.Count);
+	}
+
 	//[Theory]
 	//[ClassData(typeof(SerializerTypesClassData))]
 	//public async Task SpecificMemoryCacheDurationWorksAsync(SerializerType serializerType)
