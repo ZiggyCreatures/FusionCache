@@ -214,8 +214,6 @@ internal static class FusionCacheInternalUtils
 		if (entry is null)
 			return null;
 
-		// TODO: ADD , LEXP={LogicalExpiration.ToLogString_Expiration()}
-
 		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})[T={new DateTimeOffset(entry.Timestamp, TimeSpan.Zero).ToLogString()}, LEXP={new DateTimeOffset(entry.LogicalExpirationTimestamp, TimeSpan.Zero).ToLogString()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}]{entry.Metadata?.ToString() ?? "[]"}";
 
 		static string GetTagsLogString(string[]? tags)
