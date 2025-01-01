@@ -510,6 +510,7 @@ internal static class FusionCacheInternalUtils
 			|| options.IsFailSafeEnabled
 			|| options.EagerRefreshThreshold is not null
 			|| options.Size is not null
+			|| options.Priority != CacheItemPriority.Normal
 		;
 	}
 
@@ -521,6 +522,7 @@ internal static class FusionCacheInternalUtils
 			|| options.IsFailSafeEnabled
 			|| options.EagerRefreshThreshold is not null
 			|| options.Size is not null
+			|| options.Priority != CacheItemPriority.Normal
 			|| lastModifiedTimestamp is not null
 			|| etag is not null
 		;
