@@ -2,13 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.0.0-preview-3</Version>
+		<Version>2.0.0-preview-4</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</PackageId>
 		<Description>FusionCache serializer based on protobuf-net</Description>
 		<PackageTags>protobuf;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- Perf: better perf thanks to native array buffers/array pools
+			- Change: removed RecyclableMemoryStreamManager support (not needed anymore)
 			- Add: Tagging support (preview)
 			- Update: package dependencies
 		</PackageReleaseNotes>
