@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
@@ -100,11 +101,13 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
 	{
+		var isStale = entry.IsStale();
+		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isStale ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false, new DateTimeOffset(entry.Timestamp, TimeSpan.Zero));
+
 		FusionCacheEntryMetadata? metadata = null;
 		if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata))
 		{
-			var isStale = entry.IsStale();
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp);
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp, entry.Timestamp);
 
 			metadata = new FusionCacheEntryMetadata(
 				isStale,
@@ -119,7 +122,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
 			entry.Timestamp,
-			entry.LogicalExpirationTimestamp,
+			exp,
 			entry.Tags,
 			metadata
 		);

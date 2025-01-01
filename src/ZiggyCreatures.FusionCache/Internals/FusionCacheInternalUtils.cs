@@ -298,9 +298,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheDistributedEntry<TValue> entry1)
 			return entry1;
 
-		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Timestamp, entry.Tags, options, entry.IsStale(), entry.Metadata?.LastModifiedTimestamp, entry.Metadata?.ETag);
-		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
 	public static FusionCacheMemoryEntry<TValue> AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -360,7 +358,7 @@ internal static class FusionCacheInternalUtils
 		return $"{prefix}.Backplane{FusionCacheOptions.BackplaneWireFormatSeparator}{FusionCacheOptions.BackplaneWireFormatVersion}";
 	}
 
-	public static long GetNormalizedAbsoluteExpirationTimestamp(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
+	public static long GetNormalizedAbsoluteExpirationTimestamp(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering, DateTimeOffset? startAt = null)
 	{
 		// EARLY RETURN: COMMON CASE FOR WHEN USERS DO NOT WANT EXPIRATION
 		if (duration == TimeSpanMaxValue)
@@ -377,19 +375,19 @@ internal static class FusionCacheInternalUtils
 		}
 
 		// EARLY RETURN: WHEN OVERFLOWING DateTimeOffset.MaxValue
-		var now = DateTimeOffset.UtcNow;
+		var now = startAt ?? DateTimeOffset.UtcNow;
 		if (duration > (DateTimeOffsetMaxValue - now))
 			return DateTimeOffsetMaxValueTicks;
 
 		return now.Add(duration).UtcTicks;
 	}
 
-	public static long? GetNormalizedEagerExpirationTimestamp(bool isStale, float? eagerRefreshThreshold, long normalizedExpiration)
+	public static long? GetNormalizedEagerExpirationTimestamp(bool isStale, float? eagerRefreshThreshold, long normalizedExpiration, long? startAt = null)
 	{
 		if (isStale)
 			return null;
 
-		var now = DateTimeOffset.UtcNow.UtcTicks;
+		var now = startAt ?? DateTimeOffset.UtcNow.UtcTicks;
 
 		if (normalizedExpiration < now)
 			return null;
