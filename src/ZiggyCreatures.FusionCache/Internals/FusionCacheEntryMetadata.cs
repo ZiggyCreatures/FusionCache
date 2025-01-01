@@ -33,7 +33,7 @@ public sealed class FusionCacheEntryMetadata
 	}
 
 	/// <summary>
-	/// Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.
+	/// Indicates if the cache entry i stale, typically because of a fail-safe activation during a refresh (factory execution).
 	/// </summary>
 	[DataMember(Name = "s", EmitDefaultValue = false)]
 	public bool IsStale { get; set; }
