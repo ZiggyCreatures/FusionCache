@@ -113,7 +113,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 				eagerExp,
 				entry.Metadata?.ETag,
 				entry.Metadata?.LastModified,
-				entry.Metadata?.Size /*?? options.Size*/
+				entry.Metadata?.Size
 			);
 		}
 

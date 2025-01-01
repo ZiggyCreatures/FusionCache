@@ -117,7 +117,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 				eagerExp,
 				entry.Metadata?.ETag,
 				entry.Metadata?.LastModified,
-				entry.Metadata?.Size /*?? options.Size*/
+				entry.Metadata?.Size
 			);
 		}
 
