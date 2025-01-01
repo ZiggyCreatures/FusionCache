@@ -79,16 +79,16 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
-	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, long timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, DateTimeOffset? lastModified, string? etag)
+	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, long timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, long? lastModifiedTimestamp, string? etag)
 	{
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isStale ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
 
 		FusionCacheEntryMetadata? metadata = null;
-		if (FusionCacheInternalUtils.RequiresMetadata(options, isStale, lastModified, etag))
+		if (FusionCacheInternalUtils.RequiresMetadata(options, isStale, lastModifiedTimestamp, etag))
 		{
 			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, exp);
 
-			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModified, options.Size);
+			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModifiedTimestamp, options.Size);
 		}
 
 		return new FusionCacheDistributedEntry<TValue>(
@@ -112,7 +112,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 				isStale,
 				eagerExp,
 				entry.Metadata?.ETag,
-				entry.Metadata?.LastModified,
+				entry.Metadata?.LastModifiedTimestamp,
 				entry.Metadata?.Size
 			);
 		}
@@ -120,8 +120,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
 			entry.Timestamp,
-			entry.LogicalExpirationTimestamp
-,
+			entry.LogicalExpirationTimestamp,
 			entry.Tags,
 			metadata);
 	}

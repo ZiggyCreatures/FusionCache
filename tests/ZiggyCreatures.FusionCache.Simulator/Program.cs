@@ -253,68 +253,6 @@ internal class Program
 		services.AddLogging(configure => configure.AddSerilog());
 	}
 
-	private static DateTimeOffset? ExtractCacheEntryExpiration(IFusionCache cache, string cacheKey)
-	{
-		var mca = cache.GetType().GetField("_mca", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(cache);
-
-		if (mca is null)
-		{
-			Debug.WriteLine("MEMORY CACHE ACCESSOR IS NULL");
-			return null;
-		}
-
-		var memoryCache = (IMemoryCache?)mca.GetType().GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(mca);
-
-		if (memoryCache is null)
-		{
-			Debug.WriteLine("MEMORY CACHE IS NULL");
-			return null;
-		}
-
-		var entry = memoryCache?.Get(cacheKey);
-
-		if (entry is null)
-		{
-			Debug.WriteLine("ENTRY IS NULL");
-			return null;
-		}
-
-		//// GET THE LOGICAL EXPIRATION
-		//var metadata = (FusionCacheEntryMetadata?)entry.GetType().GetProperty("Metadata")?.GetValue(entry);
-		//var logicalExpiration = metadata?.LogicalExpiration;
-
-		// GET THE LOGICAL EXPIRATION
-		var logicalExpirationTicks = (long?)entry.GetType().GetProperty(nameof(FusionCacheDistributedEntry<bool>.LogicalExpirationTimestamp))?.GetValue(entry);
-		DateTimeOffset? logicalExpiration = null;
-		if (logicalExpirationTicks is not null)
-			logicalExpiration = new DateTimeOffset(logicalExpirationTicks.Value, TimeSpan.Zero);
-
-		// GET THE PHYSICAL EXPIRATION
-		DateTimeOffset? physicalExpiration = null;
-		try
-		{
-			physicalExpiration = (DateTimeOffset?)entry.GetType().GetProperty("PhysicalExpiration")?.GetValue(entry);
-		}
-		catch (Exception exc)
-		{
-			Debug.WriteLine($"ERROR: {exc.Message}");
-		}
-
-		// WE HAVE BOTH: TAKE THE LOWER ONE
-		if (logicalExpiration is not null && physicalExpiration is not null)
-			return logicalExpiration.Value < physicalExpiration.Value ? logicalExpiration : physicalExpiration;
-
-		// USE THE LOGICAL
-		if (logicalExpiration is not null)
-			return logicalExpiration;
-
-		// USE THE PHYSICAL
-		if (physicalExpiration is not null)
-			return physicalExpiration;
-
-		return null;
-	}
-
 	private static void SetupClusters(IServiceProvider serviceProvider, ILogger<FusionCache>? logger)
 	{
 		AnsiConsole.MarkupLine("[deepskyblue1]SETUP[/]");

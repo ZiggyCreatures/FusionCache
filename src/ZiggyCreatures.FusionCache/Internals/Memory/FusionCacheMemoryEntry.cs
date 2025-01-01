@@ -48,9 +48,6 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 	public FusionCacheEntryMetadata? Metadata { get; private set; }
 
-	// TODO: STILL USEFUL ?
-	public DateTimeOffset PhysicalExpiration { get; set; }
-
 	public byte[] GetSerializedValue(IFusionCacheSerializer serializer)
 	{
 		byte[]? serializedValue = _serializedValue;
@@ -83,16 +80,16 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
-	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, long? timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, DateTimeOffset? lastModified, string? etag)
+	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, long? timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, long? lastModifiedTimestamp, string? etag)
 	{
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isStale ? options.FailSafeThrottleDuration : options.Duration, options, true);
 
 		FusionCacheEntryMetadata? metadata = null;
-		if (FusionCacheInternalUtils.RequiresMetadata(options, isStale, lastModified, etag))
+		if (FusionCacheInternalUtils.RequiresMetadata(options, isStale, lastModifiedTimestamp, etag))
 		{
 			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, exp);
 
-			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModified, options.Size);
+			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModifiedTimestamp, options.Size);
 		}
 
 		return new FusionCacheMemoryEntry<TValue>(
@@ -116,7 +113,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 				isStale,
 				eagerExp,
 				entry.Metadata?.ETag,
-				entry.Metadata?.LastModified,
+				entry.Metadata?.LastModifiedTimestamp,
 				entry.Metadata?.Size
 			);
 		}
@@ -124,8 +121,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
 			entry.Timestamp,
-			entry.LogicalExpirationTimestamp
-,
+			entry.LogicalExpirationTimestamp,
 			entry.Tags,
 			metadata);
 	}

@@ -68,13 +68,13 @@ internal sealed class MemoryCacheAccessor
 
 		if (memoryEntryOptions is not null)
 		{
-			entry.PhysicalExpiration = memoryEntryOptions.AbsoluteExpiration!.Value;
+			//entry.PhysicalExpiration = memoryEntryOptions.AbsoluteExpiration!.Value;
 
 			_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryEntryOptions);
 		}
 		else if (absoluteExpiration is not null)
 		{
-			entry.PhysicalExpiration = absoluteExpiration.Value;
+			//entry.PhysicalExpiration = absoluteExpiration.Value;
 
 			_cache.Set<IFusionCacheMemoryEntry>(key, entry, absoluteExpiration.Value);
 		}

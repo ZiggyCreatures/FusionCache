@@ -300,7 +300,7 @@ internal static class FusionCacheInternalUtils
 			return entry1;
 
 		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Timestamp, entry.Tags, options, entry.IsStale(), entry.Metadata?.LastModified, entry.Metadata?.ETag);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Timestamp, entry.Tags, options, entry.IsStale(), entry.Metadata?.LastModifiedTimestamp, entry.Metadata?.ETag);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
@@ -513,14 +513,14 @@ internal static class FusionCacheInternalUtils
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool RequiresMetadata(FusionCacheEntryOptions options, bool isStale, DateTimeOffset? lastModified, string? etag)
+	public static bool RequiresMetadata(FusionCacheEntryOptions options, bool isStale, long? lastModifiedTimestamp, string? etag)
 	{
 		return
 			isStale
 			|| options.IsFailSafeEnabled
 			|| options.EagerRefreshThreshold is not null
 			|| options.Size is not null
-			|| lastModified is not null
+			|| lastModifiedTimestamp is not null
 			|| etag is not null
 		;
 	}

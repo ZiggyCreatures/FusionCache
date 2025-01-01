@@ -12,7 +12,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal interface IFusionCacheMemoryEntry
 	: IFusionCacheEntry
 {
-	DateTimeOffset PhysicalExpiration { get; set; }
 	object? Value { get; set; }
 
 	byte[] GetSerializedValue(IFusionCacheSerializer serializer);

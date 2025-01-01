@@ -20,15 +20,15 @@ internal partial class SerializableFusionCacheEntryMetadata
 	public string? ETag => Metadata?.ETag;
 
 	[MemoryPackInclude]
-	public DateTimeOffset? LastModified => Metadata?.LastModified;
+	public long? LastModifiedTimestamp => Metadata?.LastModifiedTimestamp;
 
 	[MemoryPackInclude]
 	public long? Size => Metadata?.Size;
 
 	[MemoryPackConstructor]
-	SerializableFusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, DateTimeOffset? lastModified, long? size)
+	SerializableFusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size)
 	{
-		Metadata = new FusionCacheEntryMetadata(isStale, eagerExpirationTimestamp, etag, lastModified, size);
+		Metadata = new FusionCacheEntryMetadata(isStale, eagerExpirationTimestamp, etag, lastModifiedTimestamp, size);
 	}
 
 	public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)

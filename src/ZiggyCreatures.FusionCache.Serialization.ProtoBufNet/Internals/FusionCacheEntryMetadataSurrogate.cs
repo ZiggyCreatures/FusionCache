@@ -11,7 +11,7 @@ internal class FusionCacheEntryMetadataSurrogate
 	public bool IsStale { get; set; }
 
 	[ProtoMember(3)]
-	public long? LastModifiedUtcTicks { get; set; }
+	public long? LastModifiedTimestamp { get; set; }
 
 	[ProtoMember(4)]
 	public string? ETag { get; set; }
@@ -32,7 +32,7 @@ internal class FusionCacheEntryMetadataSurrogate
 			IsStale = value.IsStale,
 			EagerExpirationTimestamp = value.EagerExpirationTimestamp,
 			ETag = value.ETag,
-			LastModifiedUtcTicks = value.LastModified?.UtcTicks,
+			LastModifiedTimestamp = value.LastModifiedTimestamp,
 			Size = value.Size
 		};
 	}
@@ -46,7 +46,7 @@ internal class FusionCacheEntryMetadataSurrogate
 			value.IsStale,
 			value.EagerExpirationTimestamp,
 			value.ETag,
-			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null,
+			value.LastModifiedTimestamp,
 			value.Size
 		);
 	}

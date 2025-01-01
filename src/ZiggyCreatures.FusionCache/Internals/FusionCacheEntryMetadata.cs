@@ -15,14 +15,14 @@ public sealed class FusionCacheEntryMetadata
 	/// <param name="isStale">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
 	/// <param name="eagerExpirationTimestamp">The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.</param>
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	/// <param name="size">Ifprovided, it's the Size of the cache entry.</param>
-	public FusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, DateTimeOffset? lastModified, long? size)
+	/// <param name="lastModifiedTimestamp">If provided, it's the last modified date of the entry, expressed as a timestamp (UtcTicks): this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	/// <param name="size">The Size of the cache entry.</param>
+	public FusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size)
 	{
 		IsStale = isStale;
 		EagerExpirationTimestamp = eagerExpirationTimestamp;
 		ETag = etag;
-		LastModified = lastModified;
+		LastModifiedTimestamp = lastModifiedTimestamp;
 		Size = size;
 	}
 
@@ -51,10 +51,10 @@ public sealed class FusionCacheEntryMetadata
 	public string? ETag { get; set; }
 
 	/// <summary>
-	/// If provided, it's the Last-Modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// If provided, it's the Last-Modified date of the entry, expressed as a timestamp (UtcTicks): this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
 	[DataMember(Name = "m", EmitDefaultValue = false)]
-	public DateTimeOffset? LastModified { get; set; }
+	public long? LastModifiedTimestamp { get; set; }
 
 	/// <summary>
 	/// The size of the entry.
@@ -65,6 +65,6 @@ public sealed class FusionCacheEntryMetadata
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[S={IsStale.ToStringYN()}, EEXP={(EagerExpirationTimestamp is null ? "/" : new DateTimeOffset(EagerExpirationTimestamp.Value, TimeSpan.Zero).ToString())}, LM={LastModified.ToLogString()}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={(Size.HasValue ? Size.Value.ToString() : "/")}]";
+		return $"[S={IsStale.ToStringYN()}, EEXP={(EagerExpirationTimestamp is null ? "/" : new DateTimeOffset(EagerExpirationTimestamp.Value, TimeSpan.Zero).ToLogString())}, LM={(LastModifiedTimestamp is null ? "/" : new DateTimeOffset(LastModifiedTimestamp.Value, TimeSpan.Zero).ToLogString())}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={(Size.HasValue ? Size.Value.ToString() : "/")}]";
 	}
 }

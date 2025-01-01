@@ -186,7 +186,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 			etag = distributedEntry.Metadata?.ETag;
 			if (distributedEntry.Tags is not null)
 				tags = distributedEntry.Tags;
-			lastModified = distributedEntry.Metadata?.LastModified;
+			lastModified = distributedEntry.Metadata?.LastModifiedTimestamp is null ? null : new DateTimeOffset(distributedEntry.Metadata.LastModifiedTimestamp.Value, TimeSpan.Zero);
 		}
 		else if (memoryEntry is not null)
 		{
@@ -194,7 +194,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 			etag = memoryEntry.Metadata?.ETag;
 			if (memoryEntry.Tags is not null)
 				tags = memoryEntry.Tags;
-			lastModified = memoryEntry.Metadata?.LastModified;
+			lastModified = memoryEntry.Metadata?.LastModifiedTimestamp is null ? null : new DateTimeOffset(memoryEntry.Metadata.LastModifiedTimestamp.Value, TimeSpan.Zero);
 		}
 		else
 		{

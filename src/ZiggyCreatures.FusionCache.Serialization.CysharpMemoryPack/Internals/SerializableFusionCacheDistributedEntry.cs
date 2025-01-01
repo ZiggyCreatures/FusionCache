@@ -7,16 +7,11 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internal
 [MemoryPackable]
 internal partial class SerializableFusionCacheDistributedEntry<TValue>
 {
-	// TODO: REORDER
-
 	[MemoryPackIgnore]
 	public readonly FusionCacheDistributedEntry<TValue>? Entry;
 
 	[MemoryPackInclude]
 	public TValue? Value => Entry is not null ? Entry.Value : default;
-
-	[MemoryPackAllowSerialize]
-	public FusionCacheEntryMetadata? Metadata => Entry?.Metadata;
 
 	[MemoryPackInclude]
 	public long Timestamp => Entry?.Timestamp ?? 0L;
@@ -27,8 +22,11 @@ internal partial class SerializableFusionCacheDistributedEntry<TValue>
 	[MemoryPackInclude]
 	public string[]? Tags => Entry is not null ? Entry.Tags : default;
 
+	[MemoryPackAllowSerialize]
+	public FusionCacheEntryMetadata? Metadata => Entry?.Metadata;
+
 	[MemoryPackConstructor]
-	SerializableFusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp, long logicalExpirationTimestamp)
+	SerializableFusionCacheDistributedEntry(TValue value, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata)
 	{
 		this.Entry = new FusionCacheDistributedEntry<TValue>(value, timestamp, logicalExpirationTimestamp, tags, metadata);
 	}

@@ -286,7 +286,7 @@ public partial class FusionCache
 
 							UpdateAdaptiveOptions(ctx, ref options);
 
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, ctx.Tags, options, isStale, ctx.LastModified, ctx.ETag);
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
 
 							// EVENTS
 							_events.OnFactorySuccess(operationId, key);
