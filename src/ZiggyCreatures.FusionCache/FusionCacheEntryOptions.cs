@@ -940,9 +940,10 @@ public sealed class FusionCacheEntryOptions
 		return new DateTimeOffset(FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(physicalDuration, this, true), TimeSpan.Zero);
 	}
 
-	internal (MemoryCacheEntryOptions? memoryEntryOptions, DateTimeOffset? absoluteExpiration) ToMemoryCacheEntryOptionsOrAbsoluteExpiration(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key, long? size)
+	internal (MemoryCacheEntryOptions? memoryEntryOptions, DateTimeOffset? absoluteExpiration) ToMemoryCacheEntryOptionsOrAbsoluteExpiration(FusionCacheMemoryEventsHub events, FusionCacheOptions options, ILogger? logger, string operationId, string key, long? size, byte? priority)
 	{
 		size ??= Size;
+		priority ??= (byte)Priority;
 
 		var absoluteExpiration = GetMemoryAbsoluteExpiration(out var incoherentFailSafeMaxDuration);
 
@@ -953,7 +954,7 @@ public sealed class FusionCacheEntryOptions
 				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {FailSafeMaxDuration} was lower than the Duration {Duration} on {Options}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString());
 		}
 
-		if (size is null && Priority == CacheItemPriority.Normal && events.HasEvictionSubscribers() == false)
+		if (size is null && priority.GetValueOrDefault(FusionCacheInternalUtils.CacheItemPriority_DefaultValue) == FusionCacheInternalUtils.CacheItemPriority_DefaultValue && events.HasEvictionSubscribers() == false)
 		{
 			return (null, absoluteExpiration);
 		}
@@ -961,7 +962,7 @@ public sealed class FusionCacheEntryOptions
 		var res = new MemoryCacheEntryOptions
 		{
 			Size = size,
-			Priority = Priority,
+			Priority = (CacheItemPriority)priority.GetValueOrDefault(FusionCacheInternalUtils.CacheItemPriority_DefaultValue),
 			AbsoluteExpiration = absoluteExpiration
 		};
 

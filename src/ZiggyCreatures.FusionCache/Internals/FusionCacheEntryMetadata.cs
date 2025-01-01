@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -17,13 +18,17 @@ public sealed class FusionCacheEntryMetadata
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="lastModifiedTimestamp">If provided, it's the last modified date of the entry, expressed as a timestamp (UtcTicks): this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
 	/// <param name="size">The Size of the cache entry.</param>
-	public FusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size)
+	/// <param name="priority">The Priority of the cache entry, or null for the default value.</param>
+	public FusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size, byte? priority)
 	{
 		IsStale = isStale;
 		EagerExpirationTimestamp = eagerExpirationTimestamp;
 		ETag = etag;
 		LastModifiedTimestamp = lastModifiedTimestamp;
 		Size = size;
+		Priority = priority;
+		if (Priority == FusionCacheInternalUtils.CacheItemPriority_DefaultValue)
+			Priority = null;
 	}
 
 	// USED BY SOME SERIALIZERS
@@ -33,7 +38,7 @@ public sealed class FusionCacheEntryMetadata
 	}
 
 	/// <summary>
-	/// Indicates if the cache entry i stale, typically because of a fail-safe activation during a refresh (factory execution).
+	/// Indicates if the cache entry is stale, typically because of a fail-safe activation during a refresh (factory execution).
 	/// </summary>
 	[DataMember(Name = "s", EmitDefaultValue = false)]
 	public bool IsStale { get; set; }
@@ -62,9 +67,15 @@ public sealed class FusionCacheEntryMetadata
 	[DataMember(Name = "z", EmitDefaultValue = false)]
 	public long? Size { get; set; }
 
+	/// <summary>
+	/// The size of the entry.
+	/// </summary>
+	[DataMember(Name = "p", EmitDefaultValue = false)]
+	public byte? Priority { get; set; }
+
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[S={IsStale.ToStringYN()}, EEXP={(EagerExpirationTimestamp is null ? "/" : new DateTimeOffset(EagerExpirationTimestamp.Value, TimeSpan.Zero).ToLogString())}, LM={(LastModifiedTimestamp is null ? "/" : new DateTimeOffset(LastModifiedTimestamp.Value, TimeSpan.Zero).ToLogString())}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={(Size.HasValue ? Size.Value.ToString() : "/")}]";
+		return $"[S={IsStale.ToStringYN()}, EEXP={(EagerExpirationTimestamp is null ? "/" : new DateTimeOffset(EagerExpirationTimestamp.Value, TimeSpan.Zero).ToLogString())}, LM={(LastModifiedTimestamp is null ? "/" : new DateTimeOffset(LastModifiedTimestamp.Value, TimeSpan.Zero).ToLogString())}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={(Size.HasValue ? Size.Value.ToString() : "/")}, P={(CacheItemPriority)Priority.GetValueOrDefault(1)}]";
 	}
 }

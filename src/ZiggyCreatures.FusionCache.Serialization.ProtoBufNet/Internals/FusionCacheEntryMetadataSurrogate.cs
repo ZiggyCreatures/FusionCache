@@ -22,6 +22,9 @@ internal class FusionCacheEntryMetadataSurrogate
 	[ProtoMember(6)]
 	public long? Size { get; set; }
 
+	[ProtoMember(7)]
+	public byte? Priority { get; set; }
+
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
 	{
 		if (value is null)
@@ -33,7 +36,8 @@ internal class FusionCacheEntryMetadataSurrogate
 			EagerExpirationTimestamp = value.EagerExpirationTimestamp,
 			ETag = value.ETag,
 			LastModifiedTimestamp = value.LastModifiedTimestamp,
-			Size = value.Size
+			Size = value.Size,
+			Priority = value.Priority
 		};
 	}
 
@@ -47,7 +51,8 @@ internal class FusionCacheEntryMetadataSurrogate
 			value.EagerExpirationTimestamp,
 			value.ETag,
 			value.LastModifiedTimestamp,
-			value.Size
+			value.Size,
+			value.Priority
 		);
 	}
 }

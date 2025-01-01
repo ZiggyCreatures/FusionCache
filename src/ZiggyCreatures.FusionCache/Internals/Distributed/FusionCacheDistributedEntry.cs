@@ -1,6 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
-using ZiggyCreatures.Caching.Fusion.Internals.Memory;
+﻿using System.Runtime.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
@@ -88,16 +86,16 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		{
 			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, exp);
 
-			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModifiedTimestamp, options.Size);
+			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModifiedTimestamp, options.Size, (byte)options.Priority);
 		}
 
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
 			timestamp,
-			exp
-,
+			exp,
 			tags,
-			metadata);
+			metadata
+		);
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -113,7 +111,8 @@ public sealed class FusionCacheDistributedEntry<TValue>
 				eagerExp,
 				entry.Metadata?.ETag,
 				entry.Metadata?.LastModifiedTimestamp,
-				entry.Metadata?.Size
+				entry.Metadata?.Size,
+				entry.Metadata?.Priority
 			);
 		}
 
@@ -122,6 +121,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 			entry.Timestamp,
 			entry.LogicalExpirationTimestamp,
 			entry.Tags,
-			metadata);
+			metadata
+		);
 	}
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using MemoryPack;
+﻿using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internals;
@@ -25,10 +24,13 @@ internal partial class SerializableFusionCacheEntryMetadata
 	[MemoryPackInclude]
 	public long? Size => Metadata?.Size;
 
+	[MemoryPackInclude]
+	public byte? Priority => Metadata?.Priority;
+
 	[MemoryPackConstructor]
-	SerializableFusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size)
+	SerializableFusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size, byte? priority)
 	{
-		Metadata = new FusionCacheEntryMetadata(isStale, eagerExpirationTimestamp, etag, lastModifiedTimestamp, size);
+		Metadata = new FusionCacheEntryMetadata(isStale, eagerExpirationTimestamp, etag, lastModifiedTimestamp, size, priority);
 	}
 
 	public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)

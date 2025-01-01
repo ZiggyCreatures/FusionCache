@@ -59,6 +59,7 @@ internal static class FusionCacheInternalUtils
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
 	private static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
 	public static readonly string[]? NoTags = null;
+	public static readonly byte CacheItemPriority_DefaultValue = 1;
 
 	public static T[]? AsArray<T>(this IEnumerable<T>? items)
 	{
