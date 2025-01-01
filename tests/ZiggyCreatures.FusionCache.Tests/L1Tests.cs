@@ -12,10 +12,10 @@ using ZiggyCreatures.Caching.Fusion.NullObjects;
 
 namespace FusionCacheTests;
 
-public class MemoryLevelTests
+public class L1Tests
 	: AbstractTests
 {
-	public MemoryLevelTests(ITestOutputHelper output)
+	public L1Tests(ITestOutputHelper output)
 		: base(output, null)
 	{
 	}

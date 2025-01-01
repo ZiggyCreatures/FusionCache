@@ -17,13 +17,13 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
 
-public class DistributedCacheLevelTests
+public class L1L2Tests
 	: AbstractTests
 {
 	private static readonly bool UseRedis = false;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
 
-	public DistributedCacheLevelTests(ITestOutputHelper output)
+	public L1L2Tests(ITestOutputHelper output)
 		: base(output, "MyCache:")
 	{
 	}
@@ -1523,8 +1523,6 @@ public class DistributedCacheLevelTests
 
 		var cacheName = Guid.NewGuid().ToString("N");
 
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
 		var duration = TimeSpan.FromSeconds(2);
 		var durationOverride = TimeSpan.FromMilliseconds(500);
 
@@ -1605,8 +1603,6 @@ public class DistributedCacheLevelTests
 		var logger = CreateXUnitLogger<FusionCache>();
 
 		var cacheName = Guid.NewGuid().ToString("N");
-
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var duration = TimeSpan.FromSeconds(2);
 		var durationOverride = TimeSpan.FromMilliseconds(500);
@@ -1689,8 +1685,6 @@ public class DistributedCacheLevelTests
 
 		var cacheName = Guid.NewGuid().ToString("N");
 
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
 		var keyFoo = CreateRandomCacheKey("foo");
 
 		var firstDuration = TimeSpan.FromSeconds(4);
@@ -1768,8 +1762,6 @@ public class DistributedCacheLevelTests
 
 		var cacheName = Guid.NewGuid().ToString("N");
 
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
-
 		var keyFoo = CreateRandomCacheKey("foo");
 
 		var firstDuration = TimeSpan.FromSeconds(4);
@@ -1845,7 +1837,6 @@ public class DistributedCacheLevelTests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 		var key1 = Guid.NewGuid().ToString("N");
 		var key2 = Guid.NewGuid().ToString("N");
 
@@ -1909,7 +1900,6 @@ public class DistributedCacheLevelTests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 		var key1 = Guid.NewGuid().ToString("N");
 		var key2 = Guid.NewGuid().ToString("N");
 
