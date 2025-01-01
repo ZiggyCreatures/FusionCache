@@ -126,7 +126,7 @@ public partial class FusionCache
 				{
 					// RESET EAGER REFRESH
 					if (memoryEntry!.Metadata is not null)
-						memoryEntry.Metadata.EagerExpiration = null;
+						memoryEntry.Metadata.EagerExpirationTimestamp = null;
 
 					// EXECUTE EAGER REFRESH
 					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, tags, factory, options, memoryEntry!, memoryLockObj);
@@ -223,7 +223,7 @@ public partial class FusionCache
 					var value = await factory(null!, token).ConfigureAwait(false);
 					hasNewValue = true;
 
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tags, options, isStale, null, null, null);
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tags, options, isStale, null, null);
 				}
 				else
 				{
@@ -286,7 +286,7 @@ public partial class FusionCache
 
 							UpdateAdaptiveOptions(ctx, ref options);
 
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, ctx.Tags, options, isStale, ctx.LastModified, ctx.ETag, null);
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, ctx.Tags, options, isStale, ctx.LastModified, ctx.ETag);
 
 							// EVENTS
 							_events.OnFactorySuccess(operationId, key);
@@ -685,7 +685,7 @@ public partial class FusionCache
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
 
 		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, tagsArray, options, false, null, null, null);
+		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tagsArray, options, false, null, null);
 
 		if (_mca.ShouldWrite(options))
 		{

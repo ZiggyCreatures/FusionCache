@@ -204,8 +204,8 @@ internal sealed class MemoryCacheAccessor
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			//entry.LogicalExpirationTimestamp = DateTimeOffset.UtcNow.AddMilliseconds(-10).UtcTicks;
 			entry.LogicalExpirationTimestamp = 0L;
-			entry.Metadata.IsFromFailSafe = true;
-			entry.Metadata.EagerExpiration = null;
+			entry.Metadata.IsStale = true;
+			entry.Metadata.EagerExpirationTimestamp = null;
 
 			// EVENT
 			_events.OnExpire(operationId, key);

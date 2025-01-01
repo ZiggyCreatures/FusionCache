@@ -349,7 +349,7 @@ public sealed partial class FusionCache
 				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", CacheName, InstanceId, operationId, key);
 
 			//entry = FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry, options);
-			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(distributedEntry.GetValue<TValue>(), distributedEntry.Tags, options, true, distributedEntry.Metadata?.LastModified, distributedEntry.Metadata?.ETag, distributedEntry.Timestamp);
+			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(distributedEntry.GetValue<TValue>(), distributedEntry.Timestamp, distributedEntry.Tags, options, true, distributedEntry.Metadata?.LastModified, distributedEntry.Metadata?.ETag);
 		}
 		else if (memoryEntry is not null && memoryEntry.Metadata is not null)
 		{
@@ -362,9 +362,9 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger?.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): SHIFTING A MEMORY ENTRY FROM {OldExp} TO {NewExp} ({Diff} DIFF)", CacheName, InstanceId, operationId, key, new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero) - new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero));
 
-			memoryEntry.Metadata.IsFromFailSafe = true;
+			memoryEntry.Metadata.IsStale = true;
 			memoryEntry.LogicalExpirationTimestamp = exp;
-			memoryEntry.Metadata.EagerExpiration = null;
+			memoryEntry.Metadata.EagerExpirationTimestamp = null;
 			entry = memoryEntry;
 		}
 		else if (failSafeDefaultValue.HasValue)
@@ -373,7 +373,7 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
 				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from fail-safe default value)", CacheName, InstanceId, operationId, key);
 
-			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(failSafeDefaultValue.Value, null, options, true, null, null, null);
+			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(failSafeDefaultValue.Value, null, null, options, true, null, null);
 		}
 
 		if (entry is not null)
@@ -497,7 +497,7 @@ public sealed partial class FusionCache
 					options.ReThrowBackplaneExceptions = false;
 
 					// ADAPTIVE CACHING UPDATE
-					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.GetAwaiter().GetResult(), ctx.Tags, options, false, ctx.LastModified, ctx.ETag, null);
+					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.GetAwaiter().GetResult(), null, ctx.Tags, options, false, ctx.LastModified, ctx.ETag);
 
 					if (_mca.ShouldWrite(options))
 					{
@@ -1076,7 +1076,7 @@ public sealed partial class FusionCache
 					return (false, false, false);
 				}
 
-				if (/*distributedEntry.Timestamp is not null &&*/ distributedEntry.Timestamp == memoryEntry.Timestamp)
+				if (distributedEntry.Timestamp == memoryEntry.Timestamp)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry same as distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);

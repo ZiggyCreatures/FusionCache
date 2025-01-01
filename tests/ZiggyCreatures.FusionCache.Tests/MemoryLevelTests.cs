@@ -595,7 +595,7 @@ public class MemoryLevelTests
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var duration = TimeSpan.FromSeconds(1);
-		var throttleDuration = TimeSpan.FromSeconds(3);
+		var throttleDuration = TimeSpan.FromSeconds(2);
 
 		// SET THE VALUE (WITH FAIL-SAFE ENABLED)
 		await cache.SetAsync("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));
@@ -628,7 +628,7 @@ public class MemoryLevelTests
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var duration = TimeSpan.FromSeconds(1);
-		var throttleDuration = TimeSpan.FromSeconds(3);
+		var throttleDuration = TimeSpan.FromSeconds(2);
 
 		// SET THE VALUE (WITH FAIL-SAFE ENABLED)
 		cache.Set("foo", 42, opt => opt.SetDuration(duration).SetFailSafe(true, throttleDuration: throttleDuration));

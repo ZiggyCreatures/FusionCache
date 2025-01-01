@@ -28,17 +28,6 @@ internal interface IFusionCacheEntry
 	/// <param name="value">The value.</param>
 	void SetValue<TValue>(TValue value);
 
-
-	/// <summary>
-	/// The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.
-	/// </summary>
-	string[]? Tags { get; set; }
-
-	/// <summary>
-	/// Metadata about the cache entry.
-	/// </summary>
-	FusionCacheEntryMetadata? Metadata { get; }
-
 	/// <summary>
 	/// The timestamp (in ticks) at which the cached value has been originally created: memory cache entries created from distributed cache entries will have the exact same timestamp.
 	/// </summary>
@@ -50,4 +39,14 @@ internal interface IFusionCacheEntry
 	/// When fail-safe is enabled the entry is cached with a higher duration (<see cref="FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
 	/// </summary>
 	long LogicalExpirationTimestamp { get; set; }
+
+	/// <summary>
+	/// The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.
+	/// </summary>
+	string[]? Tags { get; set; }
+
+	/// <summary>
+	/// Metadata about the cache entry.
+	/// </summary>
+	FusionCacheEntryMetadata? Metadata { get; }
 }

@@ -117,10 +117,10 @@ internal static class FusionCacheInternalUtils
 		if (entry?.Metadata is null)
 			return false;
 
-		if (entry.Metadata.EagerExpiration.HasValue == false)
+		if (entry.Metadata.EagerExpirationTimestamp.HasValue == false)
 			return false;
 
-		if (entry.Metadata.EagerExpiration.Value >= DateTimeOffset.UtcNow)
+		if (entry.Metadata.EagerExpirationTimestamp.Value >= DateTimeOffset.UtcNow.UtcTicks)
 			return false;
 
 		if (entry.IsLogicallyExpired())
@@ -132,7 +132,7 @@ internal static class FusionCacheInternalUtils
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsStale(this IFusionCacheEntry entry)
 	{
-		return entry.Metadata?.IsFromFailSafe ?? false;
+		return entry.Metadata?.IsStale ?? false;
 	}
 
 	public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
@@ -215,16 +215,16 @@ internal static class FusionCacheInternalUtils
 
 		// TODO: ADD , LEXP={LogicalExpiration.ToLogString_Expiration()}
 
-		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})@{new DateTimeOffset(entry.Timestamp, TimeSpan.Zero).ToLogString()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}{entry.Metadata?.ToString() ?? "[]"}";
+		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})[T={new DateTimeOffset(entry.Timestamp, TimeSpan.Zero).ToLogString()}, LEXP={new DateTimeOffset(entry.LogicalExpirationTimestamp, TimeSpan.Zero).ToLogString()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}]{entry.Metadata?.ToString() ?? "[]"}";
 
 		static string GetTagsLogString(string[]? tags)
 		{
 			if (tags is null || tags.Length == 0)
 			{
-				return "[T=]";
+				return ", T=";
 			}
 
-			return $"[T={string.Join(",", tags)}]";
+			return $", T={string.Join(",", tags)}";
 		}
 	}
 
@@ -300,7 +300,7 @@ internal static class FusionCacheInternalUtils
 			return entry1;
 
 		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Tags, options, entry.IsStale(), entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), entry.Timestamp, entry.Tags, options, entry.IsStale(), entry.Metadata?.LastModified, entry.Metadata?.ETag);
 		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
@@ -385,23 +385,9 @@ internal static class FusionCacheInternalUtils
 		return now.Add(duration).UtcTicks;
 	}
 
-	// TODO: TIMESTAMP HERE
-	public static DateTimeOffset? GetNormalizedEagerExpiration(bool isFromFailSafe, float? eagerRefreshThreshold, DateTimeOffset normalizedExpiration)
+	public static long? GetNormalizedEagerExpirationTimestamp(bool isStale, float? eagerRefreshThreshold, long normalizedExpiration)
 	{
-		if (isFromFailSafe)
-			return null;
-
-		if (eagerRefreshThreshold.HasValue == false)
-			return null;
-
-		var now = DateTimeOffset.UtcNow;
-
-		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
-	}
-
-	public static long? GetNormalizedEagerExpirationTimestamp(bool isFromFailSafe, float? eagerRefreshThreshold, long normalizedExpiration)
-	{
-		if (isFromFailSafe)
+		if (isStale)
 			return null;
 
 		var now = DateTimeOffset.UtcNow.UtcTicks;
@@ -527,13 +513,13 @@ internal static class FusionCacheInternalUtils
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static bool RequiresMetadata(FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag)
+	public static bool RequiresMetadata(FusionCacheEntryOptions options, bool isStale, DateTimeOffset? lastModified, string? etag)
 	{
 		return
-			options.IsFailSafeEnabled
-			|| options.EagerRefreshThreshold.HasValue
+			isStale
+			|| options.IsFailSafeEnabled
+			|| options.EagerRefreshThreshold is not null
 			|| options.Size is not null
-			|| isFromFailSafe
 			|| lastModified is not null
 			|| etag is not null
 		;

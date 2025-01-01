@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.Internals;
 internal class FusionCacheEntryMetadataSurrogate
 {
 	[ProtoMember(2)]
-	public bool IsFromFailSafe { get; set; }
+	public bool IsStale { get; set; }
 
 	[ProtoMember(3)]
 	public long? LastModifiedUtcTicks { get; set; }
@@ -17,7 +17,7 @@ internal class FusionCacheEntryMetadataSurrogate
 	public string? ETag { get; set; }
 
 	[ProtoMember(5)]
-	public long? EagerExpirationUtcTicks { get; set; }
+	public long? EagerExpirationTimestamp { get; set; }
 
 	[ProtoMember(6)]
 	public long? Size { get; set; }
@@ -29,8 +29,8 @@ internal class FusionCacheEntryMetadataSurrogate
 
 		return new FusionCacheEntryMetadataSurrogate
 		{
-			IsFromFailSafe = value.IsFromFailSafe,
-			EagerExpirationUtcTicks = value.EagerExpiration?.UtcTicks,
+			IsStale = value.IsStale,
+			EagerExpirationTimestamp = value.EagerExpirationTimestamp,
 			ETag = value.ETag,
 			LastModifiedUtcTicks = value.LastModified?.UtcTicks,
 			Size = value.Size
@@ -43,8 +43,8 @@ internal class FusionCacheEntryMetadataSurrogate
 			return null;
 
 		return new FusionCacheEntryMetadata(
-			value.IsFromFailSafe,
-			value.EagerExpirationUtcTicks.HasValue ? new DateTimeOffset(value.EagerExpirationUtcTicks.Value, TimeSpan.Zero) : null,
+			value.IsStale,
+			value.EagerExpirationTimestamp,
 			value.ETag,
 			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null,
 			value.Size

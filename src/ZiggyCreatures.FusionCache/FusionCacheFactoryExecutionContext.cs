@@ -105,7 +105,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	}
 
 	/// <summary>
-	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// If provided, it's the Last-Modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/ConditionalRefresh.md"/>
 	/// </summary>

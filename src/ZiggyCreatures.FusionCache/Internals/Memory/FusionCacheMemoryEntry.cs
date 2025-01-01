@@ -12,13 +12,13 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal sealed class FusionCacheMemoryEntry<TValue>
 	: IFusionCacheMemoryEntry
 {
-	public FusionCacheMemoryEntry(object? value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp, long logicalExpirationTimestamp)
+	public FusionCacheMemoryEntry(object? value, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata)
 	{
 		Value = value;
-		Tags = tags;
-		Metadata = metadata;
 		Timestamp = timestamp;
 		LogicalExpirationTimestamp = logicalExpirationTimestamp;
+		Tags = tags;
+		Metadata = metadata;
 	}
 
 	private byte[]? _serializedValue;
@@ -40,13 +40,13 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		}
 	}
 
-	public string[]? Tags { get; set; }
-
-	public FusionCacheEntryMetadata? Metadata { get; private set; }
-
 	public long Timestamp { get; private set; }
 
 	public long LogicalExpirationTimestamp { get; set; }
+
+	public string[]? Tags { get; set; }
+
+	public FusionCacheEntryMetadata? Metadata { get; private set; }
 
 	// TODO: STILL USEFUL ?
 	public DateTimeOffset PhysicalExpiration { get; set; }
@@ -83,25 +83,25 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
-	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long? timestamp)
+	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, long? timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, DateTimeOffset? lastModified, string? etag)
 	{
-		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isFromFailSafe ? options.FailSafeThrottleDuration : options.Duration, options, true);
+		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isStale ? options.FailSafeThrottleDuration : options.Duration, options, true);
 
 		FusionCacheEntryMetadata? metadata = null;
-		if (FusionCacheInternalUtils.RequiresMetadata(options, isFromFailSafe, lastModified, etag))
+		if (FusionCacheInternalUtils.RequiresMetadata(options, isStale, lastModified, etag))
 		{
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, new DateTimeOffset(exp, TimeSpan.Zero));
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, exp);
 
-			metadata = new FusionCacheEntryMetadata(isFromFailSafe, eagerExp, etag, lastModified, options.Size);
+			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModified, options.Size);
 		}
 
 		return new FusionCacheMemoryEntry<TValue>(
 			value,
-			tags,
-			metadata,
 			timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp(),
 			exp
-		);
+,
+			tags,
+			metadata);
 	}
 
 	public static FusionCacheMemoryEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -110,7 +110,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata))
 		{
 			var isStale = entry.IsStale();
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isStale, options.EagerRefreshThreshold, new DateTimeOffset(entry.LogicalExpirationTimestamp, TimeSpan.Zero));
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp);
 
 			metadata = new FusionCacheEntryMetadata(
 				isStale,
@@ -123,11 +123,11 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
-			entry.Tags,
-			metadata,
 			entry.Timestamp,
 			entry.LogicalExpirationTimestamp
-		);
+,
+			entry.Tags,
+			metadata);
 	}
 
 	public void UpdateFromDistributedEntry(FusionCacheDistributedEntry<TValue> distributedEntry)

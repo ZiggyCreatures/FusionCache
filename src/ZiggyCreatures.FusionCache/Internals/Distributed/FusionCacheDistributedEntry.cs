@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.Serialization;
+using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
@@ -15,17 +16,17 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	/// Creates a new instance.
 	/// </summary>
 	/// <param name="value">The actual value.</param>
-	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
-	/// <param name="metadata">The metadata for the entry.</param>
 	/// <param name="timestamp">The original timestamp of the entry, see <see cref="Timestamp"/>.</param>
 	/// <param name="logicalExpirationTimestamp">The logical expiration of the entry</param>
-	public FusionCacheDistributedEntry(TValue value, string[]? tags, FusionCacheEntryMetadata? metadata, long timestamp, long logicalExpirationTimestamp)
+	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
+	/// <param name="metadata">The metadata for the entry.</param>
+	public FusionCacheDistributedEntry(TValue value, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata)
 	{
 		Value = value;
-		Tags = tags;
-		Metadata = metadata;
 		Timestamp = timestamp;
 		LogicalExpirationTimestamp = logicalExpirationTimestamp;
+		Tags = tags;
+		Metadata = metadata;
 	}
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -40,27 +41,25 @@ public sealed class FusionCacheDistributedEntry<TValue>
 	}
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-	// TODO: RE-ORDER
-
 	/// <inheritdoc/>
 	[DataMember(Name = "v", EmitDefaultValue = false)]
 	public TValue Value { get; set; }
-
-	/// <inheritdoc/>
-	[DataMember(Name = "m", EmitDefaultValue = false)]
-	public FusionCacheEntryMetadata? Metadata { get; set; }
 
 	/// <inheritdoc/>
 	[DataMember(Name = "t", EmitDefaultValue = false)]
 	public long Timestamp { get; set; }
 
 	/// <inheritdoc/>
+	[DataMember(Name = "l", EmitDefaultValue = false)]
+	public long LogicalExpirationTimestamp { get; set; }
+
+	/// <inheritdoc/>
 	[DataMember(Name = "x", EmitDefaultValue = false)]
 	public string[]? Tags { get; set; }
 
 	/// <inheritdoc/>
-	[DataMember(Name = "l", EmitDefaultValue = false)]
-	public long LogicalExpirationTimestamp { get; set; }
+	[DataMember(Name = "m", EmitDefaultValue = false)]
+	public FusionCacheEntryMetadata? Metadata { get; set; }
 
 	/// <inheritdoc/>
 	public TValue1 GetValue<TValue1>()
@@ -80,25 +79,25 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
-	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, string[]? tags, FusionCacheEntryOptions options, bool isFromFailSafe, DateTimeOffset? lastModified, string? etag, long timestamp)
+	internal static FusionCacheDistributedEntry<TValue> CreateFromOptions(TValue value, long timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, DateTimeOffset? lastModified, string? etag)
 	{
-		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isFromFailSafe ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
+		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isStale ? options.FailSafeThrottleDuration : options.DistributedCacheDuration.GetValueOrDefault(options.Duration), options, false);
 
 		FusionCacheEntryMetadata? metadata = null;
-		if (FusionCacheInternalUtils.RequiresMetadata(options, isFromFailSafe, lastModified, etag))
+		if (FusionCacheInternalUtils.RequiresMetadata(options, isStale, lastModified, etag))
 		{
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isFromFailSafe, options.EagerRefreshThreshold, new DateTimeOffset(exp, TimeSpan.Zero));
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, exp);
 
-			metadata = new FusionCacheEntryMetadata(isFromFailSafe, eagerExp, etag, lastModified, options.Size);
+			metadata = new FusionCacheEntryMetadata(isStale, eagerExp, etag, lastModified, options.Size);
 		}
 
 		return new FusionCacheDistributedEntry<TValue>(
 			value,
-			tags,
-			metadata,
 			timestamp,
 			exp
-		);
+,
+			tags,
+			metadata);
 	}
 
 	internal static FusionCacheDistributedEntry<TValue> CreateFromOtherEntry(IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -107,7 +106,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata))
 		{
 			var isStale = entry.IsStale();
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpiration(isStale, options.EagerRefreshThreshold, new DateTimeOffset(entry.LogicalExpirationTimestamp, TimeSpan.Zero));
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp);
 
 			metadata = new FusionCacheEntryMetadata(
 				isStale,
@@ -120,10 +119,10 @@ public sealed class FusionCacheDistributedEntry<TValue>
 
 		return new FusionCacheDistributedEntry<TValue>(
 			entry.GetValue<TValue>(),
-			entry.Tags,
-			metadata,
 			entry.Timestamp,
 			entry.LogicalExpirationTimestamp
-		);
+,
+			entry.Tags,
+			metadata);
 	}
 }
