@@ -5,6 +5,7 @@ using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
 using Xunit.Abstractions;
@@ -82,6 +83,7 @@ public class AutoRecoveryTests
 	public async Task CanRecoverAsync(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var _value = 0;
 
@@ -95,9 +97,9 @@ public class AutoRecoveryTests
 		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; });
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -147,6 +149,7 @@ public class AutoRecoveryTests
 	public void CanRecover(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var _value = 0;
 
@@ -160,9 +163,9 @@ public class AutoRecoveryTests
 		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; });
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -212,6 +215,7 @@ public class AutoRecoveryTests
 	public async Task CanBeDisabledAsync(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var _value = 0;
 
@@ -225,9 +229,9 @@ public class AutoRecoveryTests
 		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = false; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = false; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = false; });
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = false; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = false; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = false; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -277,6 +281,7 @@ public class AutoRecoveryTests
 	public void CanBeDisabled(SerializerType serializerType)
 	{
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var _value = 0;
 
@@ -290,9 +295,9 @@ public class AutoRecoveryTests
 		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = false; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = false; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = false; });
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = false; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = false; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = false; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -341,12 +346,14 @@ public class AutoRecoveryTests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task RespectsMaxItemsAsync(SerializerType serializerType)
 	{
-		var _value = 0;
+		var logger = CreateXUnitLogger<FusionCache>();
+		var value = 0;
 
 		var key1 = "foo";
 		var key2 = "bar";
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = CreateDistributedCache();
 
@@ -356,78 +363,92 @@ public class AutoRecoveryTests
 		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+		logger.LogInformation("DISABLE THE BACKPLANE");
 
 		// DISABLE THE BACKPLANE
 		backplane1.SetAlwaysThrow();
 		backplane2.SetAlwaysThrow();
 		backplane3.SetAlwaysThrow();
 
+		logger.LogInformation("WAIT");
+
 		await Task.Delay(1_000);
 
 		// 1
-		_value = 1;
-		await cache1.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
-		await cache1.SetAsync(key2, _value, TimeSpan.FromMinutes(5));
+		value = 1;
+		await cache1.SetAsync(key1, value, TimeSpan.FromMinutes(10));
+		await cache1.SetAsync(key2, value, TimeSpan.FromMinutes(5));
 		await Task.Delay(200);
 
 		// 2
-		_value = 2;
-		await cache2.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
-		await cache2.SetAsync(key2, _value, TimeSpan.FromMinutes(5));
+		value = 2;
+		await cache2.SetAsync(key1, value, TimeSpan.FromMinutes(10));
+		await cache2.SetAsync(key2, value, TimeSpan.FromMinutes(5));
 		await Task.Delay(200);
 
 		// 3
-		_value = 3;
-		await cache3.SetAsync(key1, _value, TimeSpan.FromMinutes(10));
-		await cache3.SetAsync(key2, _value, TimeSpan.FromMinutes(5));
+		value = 3;
+		await cache3.SetAsync(key1, value, TimeSpan.FromMinutes(10));
+		await cache3.SetAsync(key2, value, TimeSpan.FromMinutes(5));
 		await Task.Delay(200);
 
-		_value = 21;
+		value = 21;
 
-		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key1, async _ => _value));
-		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key1, async _ => _value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => _value));
+		logger.LogInformation("ASSERTS");
 
-		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => _value));
-		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => _value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => _value));
+		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key1, async _ => value));
+		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key1, async _ => value));
+		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => value));
+
+		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => value));
+		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => value));
+		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => value));
+
+		logger.LogInformation("RE-ENABLE THE BACKPLANE");
 
 		// RE-ENABLE THE BACKPLANE
 		backplane1.SetNeverThrow();
 		backplane2.SetNeverThrow();
 		backplane3.SetNeverThrow();
 
+		logger.LogInformation("WAIT FOR THE AUTO-RECOVERY DELAY");
+
 		// WAIT FOR THE AUTO-RECOVERY DELAY
 		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		_value = 42;
+		value = 42;
 
-		Assert.Equal(3, await cache1.GetOrSetAsync<int>(key1, async _ => _value));
-		Assert.Equal(3, await cache2.GetOrSetAsync<int>(key1, async _ => _value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => _value));
+		logger.LogInformation("ASSERTS");
 
-		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => _value));
-		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => _value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => _value));
+		Assert.Equal(3, await cache1.GetOrSetAsync<int>(key1, async _ => value));
+		Assert.Equal(3, await cache2.GetOrSetAsync<int>(key1, async _ => value));
+		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => value));
+
+		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => value));
+		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => value));
+		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => value));
 	}
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
 	public void RespectsMaxItems(SerializerType serializerType)
 	{
-		var _value = 0;
+		var logger = CreateXUnitLogger<FusionCache>();
+		var value = 0;
 
 		var key1 = "foo";
 		var key2 = "bar";
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = CreateDistributedCache();
 
@@ -437,66 +458,78 @@ public class AutoRecoveryTests
 		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
 		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; });
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+		logger.LogInformation("DISABLE THE BACKPLANE");
 
 		// DISABLE THE BACKPLANE
 		backplane1.SetAlwaysThrow();
 		backplane2.SetAlwaysThrow();
 		backplane3.SetAlwaysThrow();
 
+		logger.LogInformation("WAIT");
+
 		Thread.Sleep(1_000);
 
 		// 1
-		_value = 1;
-		cache1.Set(key1, _value, TimeSpan.FromMinutes(10));
-		cache1.Set(key2, _value, TimeSpan.FromMinutes(5));
+		value = 1;
+		cache1.Set(key1, value, TimeSpan.FromMinutes(10));
+		cache1.Set(key2, value, TimeSpan.FromMinutes(5));
 		Thread.Sleep(200);
 
 		// 2
-		_value = 2;
-		cache2.Set(key1, _value, TimeSpan.FromMinutes(10));
-		cache2.Set(key2, _value, TimeSpan.FromMinutes(5));
+		value = 2;
+		cache2.Set(key1, value, TimeSpan.FromMinutes(10));
+		cache2.Set(key2, value, TimeSpan.FromMinutes(5));
 		Thread.Sleep(200);
 
 		// 3
-		_value = 3;
-		cache3.Set(key1, _value, TimeSpan.FromMinutes(10));
-		cache3.Set(key2, _value, TimeSpan.FromMinutes(5));
+		value = 3;
+		cache3.Set(key1, value, TimeSpan.FromMinutes(10));
+		cache3.Set(key2, value, TimeSpan.FromMinutes(5));
 		Thread.Sleep(200);
 
-		_value = 21;
+		value = 21;
 
-		Assert.Equal(1, cache1.GetOrSet<int>(key1, _ => _value));
-		Assert.Equal(2, cache2.GetOrSet<int>(key1, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => _value));
+		logger.LogInformation("ASSERTS");
 
-		Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => _value));
-		Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key2, _ => _value));
+		Assert.Equal(1, cache1.GetOrSet<int>(key1, _ => value));
+		Assert.Equal(2, cache2.GetOrSet<int>(key1, _ => value));
+		Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => value));
+
+		Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => value));
+		Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => value));
+		Assert.Equal(3, cache3.GetOrSet<int>(key2, _ => value));
+
+		logger.LogInformation("RE-ENABLE THE BACKPLANE");
 
 		// RE-ENABLE THE BACKPLANE
 		backplane1.SetNeverThrow();
 		backplane2.SetNeverThrow();
 		backplane3.SetNeverThrow();
 
+		logger.LogInformation("WAIT FOR THE AUTO-RECOVERY DELAY");
+
 		// WAIT FOR THE AUTO-RECOVERY DELAY
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		_value = 42;
+		value = 42;
 
-		Assert.Equal(3, cache1.GetOrSet<int>(key1, _ => _value));
-		Assert.Equal(3, cache2.GetOrSet<int>(key1, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => _value));
+		logger.LogInformation("ASSERTS");
 
-		Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => _value));
-		Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key2, _ => _value));
+		Assert.Equal(3, cache1.GetOrSet<int>(key1, _ => value));
+		Assert.Equal(3, cache2.GetOrSet<int>(key1, _ => value));
+		Assert.Equal(3, cache3.GetOrSet<int>(key1, _ => value));
+
+		Assert.Equal(1, cache1.GetOrSet<int>(key2, _ => value));
+		Assert.Equal(2, cache2.GetOrSet<int>(key2, _ => value));
+		Assert.Equal(3, cache3.GetOrSet<int>(key2, _ => value));
 	}
 
 	[Theory]
@@ -506,6 +539,7 @@ public class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
@@ -513,7 +547,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -524,7 +560,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE B
 		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -585,6 +623,7 @@ public class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
@@ -592,7 +631,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -603,7 +644,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE B
 		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -664,6 +707,7 @@ public class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
@@ -671,7 +715,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -682,7 +728,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE B
 		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -743,7 +791,7 @@ public class AutoRecoveryTests
 		// GET FROM CACHE B
 		var vB4 = await cacheB.GetOrSetAsync<int>("foo", async _ => 70);
 
-		await Task.Delay(TimeSpan.FromMilliseconds(500));
+		//await Task.Delay(TimeSpan.FromMilliseconds(500));
 
 		Assert.Equal(30, vA4);
 		Assert.Equal(30, vB4);
@@ -756,6 +804,7 @@ public class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
@@ -763,7 +812,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -774,7 +825,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE B
 		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -835,7 +888,7 @@ public class AutoRecoveryTests
 		// GET FROM CACHE B
 		var vB4 = cacheB.GetOrSet<int>("foo", _ => 70);
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(500));
+		//Thread.Sleep(TimeSpan.FromMilliseconds(500));
 
 		Assert.Equal(30, vA4);
 		Assert.Equal(30, vB4);
@@ -848,6 +901,7 @@ public class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
@@ -855,7 +909,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -866,7 +922,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE B
 		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -924,6 +982,7 @@ public class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
@@ -931,7 +990,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneA = new ChaosBackplane(backplaneA, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheA = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheA = new FusionCache(optionsA, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
@@ -942,7 +1003,9 @@ public class AutoRecoveryTests
 		// SETUP CACHE B
 		var backplaneB = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
 		var chaosBackplaneB = new ChaosBackplane(backplaneB, logger: CreateXUnitLogger<ChaosBackplane>());
-		using var cacheB = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
+		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 
 		cacheB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		cacheB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;

@@ -710,7 +710,7 @@ public class L1L2Tests
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
 
-		var firstDuration = TimeSpan.FromSeconds(4);
+		var firstDuration = TimeSpan.FromSeconds(2);
 		var secondDuration = TimeSpan.FromSeconds(10);
 
 		var distributedCache = CreateDistributedCache();
@@ -737,7 +737,7 @@ public class L1L2Tests
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
 
-		var firstDuration = TimeSpan.FromSeconds(4);
+		var firstDuration = TimeSpan.FromSeconds(2);
 		var secondDuration = TimeSpan.FromSeconds(10);
 
 		var distributedCache = CreateDistributedCache();
