@@ -484,18 +484,40 @@ internal static class FusionCacheInternalUtils
 
 	public static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
 	{
-		if (ctx.HasStaleValue)
-			return Task.FromResult(ctx.StaleValue.Value);
+		var res = 0L;
 
-		return Task.FromResult(0L);
+		if (ctx.HasStaleValue)
+		{
+			res = ctx.StaleValue.Value;
+		}
+
+		if (res == 0L)
+		{
+			// IF THE VALUE IS 0 (ZERO) -> WE DON'T NEED TO WRITE TO DISTRIBUTED AND NOTIFY THE OTHER NODES
+			ctx.Options.SkipDistributedCacheWrite = true;
+			ctx.Options.SkipBackplaneNotifications = true;
+		}
+
+		return Task.FromResult(res);
 	}
 
 	public static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
 	{
-		if (ctx.HasStaleValue)
-			return ctx.StaleValue.Value;
+		var res = 0L;
 
-		return 0L;
+		if (ctx.HasStaleValue)
+		{
+			res = ctx.StaleValue.Value;
+		}
+
+		if (res == 0L)
+		{
+			// IF THE VALUE IS 0 (ZERO) -> WE DON'T NEED TO WRITE TO DISTRIBUTED AND NOTIFY THE OTHER NODES
+			ctx.Options.SkipDistributedCacheWrite = true;
+			ctx.Options.SkipBackplaneNotifications = true;
+		}
+
+		return res;
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
