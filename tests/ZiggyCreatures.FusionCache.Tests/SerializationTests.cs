@@ -333,22 +333,28 @@ public partial class SerializationTests
 		var logger = CreateXUnitLogger<bool>();
 		var serializer = TestsUtils.GetSerializer(serializerType);
 
-		var sourceString = new String('x', 1_000);
-		logger.LogInformation("SOURCE STRING: {chars} chars", sourceString.Length);
+		var random = new Random(123456);
 
-		var sourceData = Encoding.UTF8.GetBytes(sourceString);
+		var sourceData = new byte[100_000];
+		random.NextBytes(sourceData);
+
 		logger.LogInformation("SOURCE DATA: {bytes} bytes", sourceData.Length);
 
-		var serializedData = await serializer.SerializeAsync(sourceData);
+		var sourceEntry = new FusionCacheDistributedEntry<byte[]>(
+			sourceData,
+			DateTimeOffset.UtcNow.UtcTicks,
+			DateTimeOffset.UtcNow.AddSeconds(10).UtcTicks,
+			null,
+			null
+		);
+
+		var serializedData = await serializer.SerializeAsync(sourceEntry);
 		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
 
-		var targetData = await serializer.DeserializeAsync<byte[]>(serializedData);
-		logger.LogInformation("TARGET DATA: {bytes} bytes", targetData!.Length);
+		var targetEntry = await serializer.DeserializeAsync<FusionCacheDistributedEntry<byte[]>>(serializedData);
+		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
 
-		var targetString = Encoding.UTF8.GetString(targetData!);
-		logger.LogInformation("TARGET STRING: {chars} chars", targetString.Length);
-
-		Assert.Equal(sourceString, targetString);
+		Assert.Equal(sourceData, targetEntry.Value);
 	}
 
 	[Theory]
@@ -358,21 +364,27 @@ public partial class SerializationTests
 		var logger = CreateXUnitLogger<bool>();
 		var serializer = TestsUtils.GetSerializer(serializerType);
 
-		var sourceString = new String('x', 1_000);
-		logger.LogInformation("SOURCE STRING: {chars} chars", sourceString.Length);
+		var random = new Random(123456);
 
-		var sourceData = Encoding.UTF8.GetBytes(sourceString);
+		var sourceData = new byte[100_000];
+		random.NextBytes(sourceData);
+
 		logger.LogInformation("SOURCE DATA: {bytes} bytes", sourceData.Length);
 
-		var serializedData = serializer.Serialize(sourceData);
+		var sourceEntry = new FusionCacheDistributedEntry<byte[]>(
+			sourceData,
+			DateTimeOffset.UtcNow.UtcTicks,
+			DateTimeOffset.UtcNow.AddSeconds(10).UtcTicks,
+			null,
+			null
+		);
+
+		var serializedData = serializer.Serialize(sourceEntry);
 		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
 
-		var targetData = serializer.Deserialize<byte[]>(serializedData);
-		logger.LogInformation("TARGET DATA: {bytes} bytes", targetData!.Length);
+		var targetEntry = serializer.Deserialize<FusionCacheDistributedEntry<byte[]>>(serializedData);
+		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
 
-		var targetString = Encoding.UTF8.GetString(targetData!);
-		logger.LogInformation("TARGET STRING: {chars} chars", targetString.Length);
-
-		Assert.Equal(sourceString, targetString);
+		Assert.Equal(sourceData, targetEntry.Value);
 	}
 }
