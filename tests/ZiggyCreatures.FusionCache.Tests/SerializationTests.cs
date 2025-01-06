@@ -144,6 +144,7 @@ public partial class SerializationTests
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
 		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	[Theory]
@@ -169,6 +170,7 @@ public partial class SerializationTests
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
 		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	[Theory]
@@ -236,6 +238,7 @@ public partial class SerializationTests
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
 		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	[Theory]
@@ -260,6 +263,8 @@ public partial class SerializationTests
 		Assert.Equal(obj.Metadata!.EagerExpirationTimestamp, looped.Metadata!.EagerExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
 		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
+		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	//[Theory]
