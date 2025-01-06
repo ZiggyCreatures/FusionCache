@@ -463,7 +463,7 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			(memoryEntry, memoryEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, memoryEntry, true, token);
+			(memoryEntry, memoryEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, memoryEntry, false, token);
 			if (memoryEntry is null)
 			{
 				// EVENT
@@ -515,7 +515,7 @@ public partial class FusionCache
 		// TAGGING
 		if (distributedEntryIsValid)
 		{
-			(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, true, token);
+			(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 			if (distributedEntry is null)
 			{
 				// EVENT
