@@ -392,18 +392,24 @@ internal sealed partial class BackplaneAccessor
 			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (REMOVE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-			// RESET THE CLEAR (REMOVE) TIMESTAMP, SO THAT AT THE NEXT
-			// TIME IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
-			Interlocked.Exchange(ref _cache.ClearRemoveTimestamp, -1);
+			//// RESET THE CLEAR (REMOVE) TIMESTAMP, SO THAT AT THE NEXT
+			//// TIME IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
+			//Interlocked.Exchange(ref _cache.ClearRemoveTimestamp, -1);
+
+			// SET THE CLEAR (REMOVE) TIMESTAMP TO THE ONE FROMTHE BACKPLANE MESSAGE
+			Interlocked.Exchange(ref _cache.ClearRemoveTimestamp, message.Timestamp);
 		}
 		else if (message.CacheKey == _cache.ClearExpireTagInternalCacheKey)
 		{
 			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (EXPIRE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-			// RESET THE CLEAR (EXPIRE) TIMESTAMP, SO THAT AT THE NEXT
-			// TIME IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
-			Interlocked.Exchange(ref _cache.ClearExpireTimestamp, -1);
+			//// RESET THE CLEAR (EXPIRE) TIMESTAMP, SO THAT AT THE NEXT
+			//// TIME IT'S NEEDED THE TIMESTAMP WILL BE GET AGAIN
+			//Interlocked.Exchange(ref _cache.ClearExpireTimestamp, -1);
+
+			// SET THE CLEAR (REMOVE) TIMESTAMP TO THE ONE FROMTHE BACKPLANE MESSAGE
+			Interlocked.Exchange(ref _cache.ClearExpireTimestamp, message.Timestamp);
 		}
 	}
 }
