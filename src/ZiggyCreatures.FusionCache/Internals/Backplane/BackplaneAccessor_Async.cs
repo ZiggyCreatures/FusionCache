@@ -74,21 +74,21 @@ internal partial class BackplaneAccessor
 		return true;
 	}
 
-	public ValueTask<bool> PublishSetAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	public ValueTask<bool> PublishSetAsync(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = BackplaneMessage.CreateForEntrySet(_cache.InstanceId, key, timestamp);
 
 		return PublishAsync(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 
-	public ValueTask<bool> PublishRemoveAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	public ValueTask<bool> PublishRemoveAsync(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
 		return PublishAsync(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 
-	public ValueTask<bool> PublishExpireAsync(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	public ValueTask<bool> PublishExpireAsync(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = options.IsFailSafeEnabled
 			? BackplaneMessage.CreateForEntryExpire(_cache.InstanceId, key, timestamp)

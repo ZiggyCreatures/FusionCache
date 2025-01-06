@@ -1084,18 +1084,19 @@ public partial class FusionCache
 
 	private void DistributedRemoveEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
+		var now = FusionCacheInternalUtils.GetCurrentTimestamp();
 		ExecuteDistributedAction(
 			operationId,
 			key,
 			FusionCacheAction.EntryRemove,
-			FusionCacheInternalUtils.GetCurrentTimestamp(),
+			now,
 			(dca, isBackground, ct) =>
 			{
 				return dca.RemoveEntry(operationId, key, options, isBackground, ct);
 			},
 			(bpa, isBackground, ct) =>
 			{
-				return bpa.PublishRemove(operationId, key, null, options, false, isBackground, ct);
+				return bpa.PublishRemove(operationId, key, now, options, false, isBackground, ct);
 			},
 			options,
 			token
@@ -1104,18 +1105,19 @@ public partial class FusionCache
 
 	private void DistributedExpireEntry(string operationId, string key, FusionCacheEntryOptions options, CancellationToken token)
 	{
+		var now = FusionCacheInternalUtils.GetCurrentTimestamp();
 		ExecuteDistributedAction(
 			operationId,
 			key,
 			FusionCacheAction.EntryExpire,
-			FusionCacheInternalUtils.GetCurrentTimestamp(),
+			now,
 			(dca, isBackground, ct) =>
 			{
 				return dca.RemoveEntry(operationId, key, options, isBackground, ct);
 			},
 			(bpa, isBackground, ct) =>
 			{
-				return bpa.PublishExpire(operationId, key, null, options, false, isBackground, ct);
+				return bpa.PublishExpire(operationId, key, now, options, false, isBackground, ct);
 			},
 			options,
 			token
