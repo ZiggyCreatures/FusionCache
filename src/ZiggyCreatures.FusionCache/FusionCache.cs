@@ -307,7 +307,7 @@ public partial class FusionCache
 			return;
 		}
 
-		if (factoryTask.IsFaulted)
+		if (factoryTask.IsFaulted || factoryTask.IsCanceled)
 		{
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message);
@@ -331,7 +331,7 @@ public partial class FusionCache
 
 	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity)
 	{
-		if (factoryTask.IsFaulted)
+		if (factoryTask.IsFaulted || factoryTask.IsCanceled)
 		{
 			try
 			{
@@ -363,7 +363,7 @@ public partial class FusionCache
 		{
 			try
 			{
-				if (antecedent.Status == TaskStatus.Faulted)
+				if (antecedent.Status == TaskStatus.Faulted || antecedent.Status == TaskStatus.Canceled)
 				{
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
 						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);

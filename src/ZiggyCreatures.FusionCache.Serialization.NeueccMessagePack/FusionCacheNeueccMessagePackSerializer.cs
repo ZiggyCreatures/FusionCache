@@ -69,4 +69,7 @@ public class FusionCacheNeueccMessagePackSerializer
 		// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
 		return new ValueTask<T?>(Deserialize<T>(data));
 	}
+
+	/// <inheritdoc />
+	public override string ToString() => $"{GetType().Name}";
 }

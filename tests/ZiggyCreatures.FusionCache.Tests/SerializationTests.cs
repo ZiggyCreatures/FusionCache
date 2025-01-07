@@ -75,6 +75,36 @@ public class SerializationTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task LoopSucceedsWitComplexTypesArrayAsync(SerializerType serializerType)
+	{
+		var data = new ComplexType[1024 * 1024];
+		for(int i = 0; i < data.Length; i++)
+		{
+			data[i] = ComplexType.CreateSample();
+		}
+
+		var serializer = TestsUtils.GetSerializer(serializerType);
+		var looped = await LoopDeLoopAsync(serializer, data);
+		Assert.Equal(data, looped);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void LoopSucceedsWithComplexTypesArray(SerializerType serializerType)
+	{
+		var data = new ComplexType[1024 * 1024];
+		for (int i = 0; i < data.Length; i++)
+		{
+			data[i] = ComplexType.CreateSample();
+		}
+
+		var serializer = TestsUtils.GetSerializer(serializerType);
+		var looped = LoopDeLoop(serializer, data);
+		Assert.Equal(data, looped);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task LoopDoesNotFailWithNullAsync(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);

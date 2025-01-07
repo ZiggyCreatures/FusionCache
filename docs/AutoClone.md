@@ -45,7 +45,7 @@ The idea is that:
 - it just works, out of the box
 - is easy to use
 - doesn't require extra coding/setup (it's just a new option)
-- uses existing code infrastructure (eg: `IFusionCacheSerializer`)
+- uses existing code infrastructure (eg: `IFusionCacheSerializer`, for when working with the [distributed level](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md))
 - has granular control on a per-entry basis
 - is performant (as much as possible)
 
@@ -69,3 +69,64 @@ Of course `DefaultEntryOptions` are always at our disposal to do the usual [defa
 Regarding performance: instead of serializing + deserializing at every get call (which would be a waste of resources), FusionCache will keep track of an internal buffer on each memory entry and, only if and when it will be requried, will serialize it (just once) so that the binary payload will be available to deserialize at every get call.
 
 Extra care will be put into avoiding any synchronization/double-serialization issue related to multithreading or high-load scenario.
+
+## 👩‍💻 Example
+
+```csharp
+// SETUP
+
+var cache = new FusionCache(new FusionCacheOptions());
+cache.SetupSerializer(new FusionCacheSystemTextJsonSerializer());
+
+// USAGE
+
+cache.Set("foo", new Person { Name = "John" });
+
+// RETURNS A CLONE OF THE CACHED INSTANCE
+var person1 = cache.GetOrDefault<Person>("foo", options => options.SetAutoClone(true));
+Console.WriteLine($"person1: {person1.Name}");
+Console.WriteLine();
+
+// RETURNS A CLONE OF THE CACHED INSTANCE: CHANGES APPLIED ONLY THE CLONE, CACHED INSTANCE REMAINS UNCHANGED
+var person2 = cache.GetOrDefault<Person>("foo", options => options.SetAutoClone(true));
+person2.Name = "Jane";
+Console.WriteLine($"person1: {person1.Name}");
+Console.WriteLine($"person2: {person2.Name}");
+Console.WriteLine();
+
+// RETURNS DIRECT REFERENCE TO THE CACHED INSTANCE: CHANGES APPLIED TO THE CACHED INSTANCE ITSELF
+var person3 = cache.GetOrDefault<Person>("foo");
+person3.Name = "Jim";
+Console.WriteLine($"person1: {person1.Name}");
+Console.WriteLine($"person2: {person2.Name}");
+Console.WriteLine($"person3: {person3.Name}");
+Console.WriteLine();
+
+// RETURNS DIRECT REFERENCE TO THE CACHED INSTANCE: THE INSTANCE IS THE SAME AS BEFORE
+// CHANGES APPLIED TO BOTH person3 AND person4 AS THEY POINT TO THE SAME CACHED INSTANCE
+var person4 = cache.GetOrDefault<Person>("foo");
+person4.Name = "Joe";
+
+Console.WriteLine($"person1: {person1.Name}");
+Console.WriteLine($"person2: {person2.Name}");
+Console.WriteLine($"person3: {person3.Name}");
+Console.WriteLine($"person4: {person4.Name}");
+```
+
+This will produce this output:
+
+```
+person1: John
+
+person1: John
+person2: Jane
+
+person1: John
+person2: Jane
+person3: Jim
+
+person1: John
+person2: Jane
+person3: Joe
+person4: Joe
+```

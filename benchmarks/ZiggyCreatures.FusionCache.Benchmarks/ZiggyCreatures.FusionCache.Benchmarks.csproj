@@ -14,14 +14,15 @@
 		<PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
 		<PackageReference Include="FastCache.Cached" Version="1.8.2" />
 		<PackageReference Include="LazyCache" Version="2.4.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.0.0-preview.7.24406.2" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.0.0-preview.9.24556.5" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack\ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.ServiceStackJson\ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />
-		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 	</ItemGroup>
-
 </Project>

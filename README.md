@@ -18,7 +18,7 @@
 
 ### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
-It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
+It was born after years of dealing with all sorts of different types of caches: memory, distributed, hybrid, HTTP caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
 
 <div style="text-align:center;">
 
@@ -305,9 +305,9 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling millions and millions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **6 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **10 million times** (thanks everybody!) it may very well be used even more.
 
-Oh, and it is being used in products by Microsoft itself, like [Data API Builder]()!
+Oh, and it is being used in products by Microsoft itself, like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/)!
 
 ## 😍 Are you using it?
 
