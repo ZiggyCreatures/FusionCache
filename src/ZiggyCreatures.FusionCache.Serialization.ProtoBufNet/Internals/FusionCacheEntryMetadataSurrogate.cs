@@ -6,22 +6,22 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.Internals;
 [ProtoContract]
 internal class FusionCacheEntryMetadataSurrogate
 {
-	[ProtoMember(2)]
+	[ProtoMember(1)]
 	public bool IsStale { get; set; }
 
-	[ProtoMember(3)]
+	[ProtoMember(2)]
 	public long? LastModifiedTimestamp { get; set; }
 
-	[ProtoMember(4)]
+	[ProtoMember(3)]
 	public string? ETag { get; set; }
 
-	[ProtoMember(5)]
+	[ProtoMember(4)]
 	public long? EagerExpirationTimestamp { get; set; }
 
-	[ProtoMember(6)]
+	[ProtoMember(5)]
 	public long? Size { get; set; }
 
-	[ProtoMember(7)]
+	[ProtoMember(6)]
 	public byte? Priority { get; set; }
 
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
