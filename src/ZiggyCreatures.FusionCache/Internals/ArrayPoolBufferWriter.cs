@@ -8,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// <summary>
 /// The <see cref="ArrayPoolBufferWriter"/> class is an implementation of <see cref="T:IBufferWriter{byte}"/> that uses an <see cref="T:ArrayPool{byte}"/> to rent and return buffers.
 /// </summary>
-public class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
+public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 {
 	private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Create();
 	private byte[] _buffer;
@@ -101,7 +101,11 @@ public class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 		throw new InvalidOperationException("Cannot advance past the end of the buffer.");
 	}
 
-	protected virtual void Dispose(bool disposing)
+	/// <summary>
+	/// Returns the buffer to the pool.
+	/// </summary>
+	/// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
+	private void Dispose(bool disposing)
 	{
 		if (!disposedValue)
 		{
@@ -114,6 +118,7 @@ public class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 		}
 	}
 
+	/// <inheritdoc/>
 	public void Dispose()
 	{
 		// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method

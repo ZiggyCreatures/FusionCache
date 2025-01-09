@@ -6,7 +6,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// <summary>
 /// A writable stream that uses an <see cref="ArrayPoolBufferWriter"/> to manage its buffer.
 /// </summary>
-public class ArrayPoolWritableStream : Stream
+public sealed class ArrayPoolWritableStream : Stream
 {
 	private readonly ArrayPoolBufferWriter _buffer;
 
