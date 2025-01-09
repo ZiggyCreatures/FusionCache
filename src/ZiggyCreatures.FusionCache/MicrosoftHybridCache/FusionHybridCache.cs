@@ -9,6 +9,8 @@ namespace ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
 /// <summary>
 /// An adapter that bridges the world of HybridCache from Microsoft and FusionCache.
+/// <br/><br/>
+/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid"/>
 /// </summary>
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class FusionHybridCache
