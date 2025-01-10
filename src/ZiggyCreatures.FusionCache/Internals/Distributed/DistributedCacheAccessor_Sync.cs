@@ -29,6 +29,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			Activity.Current?.AddException(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
@@ -83,6 +84,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
 
 			// EVENT
 			_events.OnSerializationError(operationId, key);
@@ -131,6 +133,7 @@ internal partial class DistributedCacheAccessor
 
 	public (FusionCacheDistributedEntry<TValue>? entry, bool isValid) TryGetEntry<TValue>(string operationId, string key, FusionCacheEntryOptions options, bool hasFallbackValue, TimeSpan? timeout, CancellationToken token)
 	{
+		// METRIC
 		Metrics.CounterDistributedGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		if (IsCurrentlyUsable(operationId, key) == false)
@@ -160,6 +163,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
@@ -231,6 +235,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
 
 			// EVENT
 			_events.OnDeserializationError(operationId, key);

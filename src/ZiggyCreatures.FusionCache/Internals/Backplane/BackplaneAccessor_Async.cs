@@ -55,6 +55,7 @@ internal partial class BackplaneAccessor
 
 			// ACTIVITY
 			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			Activity.Current?.AddException(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)
 			{

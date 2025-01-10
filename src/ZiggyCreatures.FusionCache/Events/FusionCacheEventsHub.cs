@@ -94,6 +94,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnFailSafeActivate(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterFailSafeActivate.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		FailSafeActivate?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FailSafeActivate), _logger, _errorsLogLevel, _syncExecution);
@@ -101,6 +102,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnFactorySyntheticTimeout(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterFactorySyntheticTimeout.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		FactorySyntheticTimeout?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactorySyntheticTimeout), _logger, _errorsLogLevel, _syncExecution);
@@ -108,6 +110,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnFactoryError(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, false));
 
 		FactoryError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactoryError), _logger, _errorsLogLevel, _syncExecution);
@@ -115,6 +118,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnFactorySuccess(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, false));
 
 		FactorySuccess?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(FactorySuccess), _logger, _errorsLogLevel, _syncExecution);
@@ -122,6 +126,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnBackgroundFactoryError(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterFactoryError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, true));
 
 		BackgroundFactoryError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(BackgroundFactoryError), _logger, _errorsLogLevel, _syncExecution);
@@ -129,6 +134,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnBackgroundFactorySuccess(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterFactorySuccess.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.OperationBackground, true));
 
 		BackgroundFactorySuccess?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(BackgroundFactorySuccess), _logger, _errorsLogLevel, _syncExecution);
@@ -136,6 +142,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnEagerRefresh(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterEagerRefresh.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		EagerRefresh?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(EagerRefresh), _logger, _errorsLogLevel, _syncExecution);
@@ -143,6 +150,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnExpire(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
@@ -156,6 +164,7 @@ public sealed class FusionCacheEventsHub
 			extraTags = [new KeyValuePair<string, object?>(Tags.Names.OperationTag, tag)];
 		}
 
+		// METRIC
 		Metrics.CounterRemoveByTag.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, extraTags);
 
 		RemoveByTag?.SafeExecute(operationId, "", _cache, new FusionCacheTagEventArgs(tag), nameof(RemoveByTag), _logger, _errorsLogLevel, _syncExecution);
@@ -163,6 +172,7 @@ public sealed class FusionCacheEventsHub
 
 	internal void OnClear(string operationId)
 	{
+		// METRIC
 		Metrics.CounterClear.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		Clear?.SafeExecute(operationId, "", _cache, new EventArgs(), nameof(Clear), _logger, _errorsLogLevel, _syncExecution);
@@ -172,6 +182,7 @@ public sealed class FusionCacheEventsHub
 
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
+		// METRIC
 		Metrics.CounterHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
 		base.OnHit(operationId, key, isStale, activity);
@@ -179,6 +190,7 @@ public sealed class FusionCacheEventsHub
 
 	internal override void OnMiss(string operationId, string key, Activity? activity)
 	{
+		// METRIC
 		Metrics.CounterMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnMiss(operationId, key, activity);
@@ -186,6 +198,7 @@ public sealed class FusionCacheEventsHub
 
 	internal override void OnSet(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterSet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnSet(operationId, key);
@@ -193,6 +206,7 @@ public sealed class FusionCacheEventsHub
 
 	internal override void OnRemove(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnRemove(operationId, key);

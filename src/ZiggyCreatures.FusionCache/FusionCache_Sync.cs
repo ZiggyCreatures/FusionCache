@@ -296,6 +296,7 @@ public partial class FusionCache
 					{
 						// ACTIVITY
 						activityForFactory?.SetStatus(ActivityStatusCode.Error, exc.Message);
+						activityForFactory?.AddException(exc);
 						activityForFactory?.Dispose();
 
 						throw;
@@ -368,6 +369,7 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
+		// METRIC
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		ValidateCacheKey(key);
@@ -391,24 +393,34 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, factory, true, failSafeDefaultValue, options, activity, token);
-
-		if (entry is null)
+		try
 		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", CacheName, InstanceId, operationId, key);
-			throw new InvalidOperationException("The resulting FusionCache entry is null");
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, factory, true, failSafeDefaultValue, options, activity, token);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", CacheName, InstanceId, operationId, key);
+				throw new InvalidOperationException("The resulting FusionCache entry is null");
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+
+			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
-
-		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
+		catch (Exception exc)
+		{
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
+		// METRIC
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		ValidateCacheKey(key);
@@ -429,19 +441,27 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
 
-		var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, (_, _) => defaultValue, false, default, options, activity, token);
-
-		if (entry is null)
+		try
 		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", CacheName, InstanceId, operationId, key);
-			throw new InvalidOperationException("The resulting FusionCache entry is null");
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, (_, _) => defaultValue, false, default, options, activity, token);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): something went wrong, the resulting entry is null, and it should not be possible", CacheName, InstanceId, operationId, key);
+				throw new InvalidOperationException("The resulting FusionCache entry is null");
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+
+			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
-
-		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
+		catch (Exception exc)
+		{
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	// TRY GET
@@ -590,6 +610,7 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		// METRIC
 		Metrics.CounterTryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		ValidateCacheKey(key);
@@ -606,20 +627,28 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.TryGet, CacheName, InstanceId, key, operationId);
 
-		var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
-
-		if (entry is null)
+		try
 		{
+			var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return NO SUCCESS", CacheName, InstanceId, operationId, key);
+
+				return default;
+			}
+
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return NO SUCCESS", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return SUCCESS", CacheName, InstanceId, operationId, key);
 
-			return default;
+			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return SUCCESS", CacheName, InstanceId, operationId, key);
-
-		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
+		catch (Exception exc)
+		{
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	// GET OR DEFAULT
@@ -627,6 +656,7 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		// METRIC
 		Metrics.CounterGetOrDefault.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		ValidateCacheKey(key);
@@ -643,20 +673,28 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrDefault, CacheName, InstanceId, key, operationId);
 
-		var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
-
-		if (entry is null)
+		try
 		{
+			var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", CacheName, InstanceId, operationId, key);
+
+				return defaultValue;
+			}
+
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
 
-			return defaultValue;
+			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
-
-		return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
+		catch (Exception exc)
+		{
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	// SET
@@ -684,21 +722,29 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
 
-		// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-		var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tagsArray, options, false, null, null);
-
-		if (_mca.ShouldWrite(options))
+		try
 		{
-			_mca.SetEntry<TValue>(operationId, key, entry, options);
-		}
+			// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
+			var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tagsArray, options, false, null, null);
 
-		if (RequiresDistributedOperations(options))
+			if (_mca.ShouldWrite(options))
+			{
+				_mca.SetEntry<TValue>(operationId, key, entry, options);
+			}
+
+			if (RequiresDistributedOperations(options))
+			{
+				DistributedSetEntry<TValue>(operationId, key, entry, options, token);
+			}
+
+			// EVENT
+			_events.OnSet(operationId, key);
+		}
+		catch (Exception exc)
 		{
-			DistributedSetEntry<TValue>(operationId, key, entry, options, token);
+			activity?.AddException(exc);
+			throw;
 		}
-
-		// EVENT
-		_events.OnSet(operationId, key);
 	}
 
 	// REMOVE
@@ -713,18 +759,26 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Remove, CacheName, InstanceId, key, operationId);
 
-		if (_mca.ShouldWrite(options))
+		try
 		{
-			_mca.RemoveEntry(operationId, key);
-		}
+			if (_mca.ShouldWrite(options))
+			{
+				_mca.RemoveEntry(operationId, key);
+			}
 
-		if (RequiresDistributedOperations(options))
+			if (RequiresDistributedOperations(options))
+			{
+				DistributedRemoveEntry(operationId, key, options, token);
+			}
+
+			// EVENT
+			_events.OnRemove(operationId, key);
+		}
+		catch (Exception exc)
 		{
-			DistributedRemoveEntry(operationId, key, options, token);
+			activity?.AddException(exc);
+			throw;
 		}
-
-		// EVENT
-		_events.OnRemove(operationId, key);
 	}
 
 	/// <inheritdoc/>
@@ -753,18 +807,26 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Expire, CacheName, InstanceId, key, operationId);
 
-		if (_mca.ShouldWrite(options))
+		try
 		{
-			_mca.ExpireEntry(operationId, key, null);
-		}
+			if (_mca.ShouldWrite(options))
+			{
+				_mca.ExpireEntry(operationId, key, null);
+			}
 
-		if (RequiresDistributedOperations(options))
+			if (RequiresDistributedOperations(options))
+			{
+				DistributedExpireEntry(operationId, key, options, token);
+			}
+
+			// EVENT
+			_events.OnExpire(operationId, key);
+		}
+		catch (Exception exc)
 		{
-			DistributedExpireEntry(operationId, key, options, token);
+			activity?.AddException(exc);
+			throw;
 		}
-
-		// EVENT
-		_events.OnExpire(operationId, key);
 	}
 
 	/// <inheritdoc/>
@@ -926,15 +988,23 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.RemoveByTag, CacheName, InstanceId, null, operationId);
 
-		if (_options.IncludeTagsInTraces)
+		try
 		{
-			activity?.AddTag(Tags.Names.OperationTag, tag);
+			if (_options.IncludeTagsInTraces)
+			{
+				activity?.AddTag(Tags.Names.OperationTag, tag);
+			}
+
+			SetTagDataInternal(tag, options, token);
+
+			// EVENT
+			_events.OnRemoveByTag(operationId, tag);
 		}
-
-		SetTagDataInternal(tag, options, token);
-
-		// EVENT
-		_events.OnRemoveByTag(operationId, tag);
+		catch (Exception exc)
+		{
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	// CLEAR
@@ -954,26 +1024,34 @@ public partial class FusionCache
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Clear, CacheName, InstanceId, null, operationId);
 
-		if (allowFailSafe)
+		try
 		{
-			// CLEAR EXPIRE
-			Interlocked.Exchange(ref ClearExpireTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
-
-			SetTagDataInternal(ClearExpireTag, options, token);
-		}
-		else
-		{
-			// CLEAR REMOVE
-			Interlocked.Exchange(ref ClearRemoveTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
-
-			if (TryExecuteRawClear(operationId) == false)
+			if (allowFailSafe)
 			{
-				SetTagDataInternal(ClearRemoveTag, options, token);
-			}
-		}
+				// CLEAR EXPIRE
+				Interlocked.Exchange(ref ClearExpireTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
 
-		// EVENT
-		_events.OnClear(operationId);
+				SetTagDataInternal(ClearExpireTag, options, token);
+			}
+			else
+			{
+				// CLEAR REMOVE
+				Interlocked.Exchange(ref ClearRemoveTimestamp, FusionCacheInternalUtils.GetCurrentTimestamp());
+
+				if (TryExecuteRawClear(operationId) == false)
+				{
+					SetTagDataInternal(ClearRemoveTag, options, token);
+				}
+			}
+
+			// EVENT
+			_events.OnClear(operationId);
+		}
+		catch (Exception exc)
+		{
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	// DISTRIBUTED ACTIONS

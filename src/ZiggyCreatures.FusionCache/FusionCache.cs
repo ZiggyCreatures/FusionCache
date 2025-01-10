@@ -407,6 +407,8 @@ public sealed partial class FusionCache
 		{
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
+			if (factoryTask.Exception is not null)
+				activity?.AddException(factoryTask.Exception);
 			activity?.Dispose();
 
 			return;
@@ -445,6 +447,8 @@ public sealed partial class FusionCache
 
 				// ACTIVITY
 				activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
+				if (factoryTask.Exception is not null)
+					activity?.AddException(factoryTask.Exception);
 				activity?.Dispose();
 			}
 
@@ -466,6 +470,8 @@ public sealed partial class FusionCache
 
 					// ACTIVITY
 					activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
+					if (factoryTask.Exception is not null)
+						activity?.AddException(factoryTask.Exception);
 					activity?.Dispose();
 
 					// EVENT
@@ -1129,8 +1135,8 @@ public sealed partial class FusionCache
 
 	internal TValue GetValueFromMemoryEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions? options)
 	{
-		if (entry is null)
-			throw new ArgumentNullException(nameof(entry));
+		//if (entry is null)
+		//	throw new ArgumentNullException(nameof(entry));
 
 		options ??= _options.DefaultEntryOptions;
 

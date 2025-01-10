@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
@@ -61,95 +62,124 @@ internal sealed class MemoryCacheAccessor
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemorySet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
-
-		var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key, entry.Metadata?.Size, entry.Metadata?.Priority);
-
-		if (memoryEntryOptions is not null)
+		try
 		{
-			_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryEntryOptions);
-		}
-		else if (absoluteExpiration is not null)
-		{
-			_cache.Set<IFusionCacheMemoryEntry>(key, entry, absoluteExpiration.Value);
-		}
-		else
-		{
-			throw new InvalidOperationException("No MemoryCacheEntryOptions or AbsoluteExpiration was determined: this should not be possible, WTH!?");
-		}
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
 
-		// EVENT
-		_events.OnSet(operationId, key);
+			var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key, entry.Metadata?.Size, entry.Metadata?.Priority);
+
+			if (memoryEntryOptions is not null)
+			{
+				_cache.Set<IFusionCacheMemoryEntry>(key, entry, memoryEntryOptions);
+			}
+			else if (absoluteExpiration is not null)
+			{
+				_cache.Set<IFusionCacheMemoryEntry>(key, entry, absoluteExpiration.Value);
+			}
+			else
+			{
+				throw new InvalidOperationException("No MemoryCacheEntryOptions or AbsoluteExpiration was determined: this should not be possible, WTH!?");
+			}
+
+			// EVENT
+			_events.OnSet(operationId, key);
+		}
+		catch (Exception exc)
+		{
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	public IFusionCacheMemoryEntry? GetEntryOrNull(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterMemoryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		var entry = _cache.Get<IFusionCacheMemoryEntry?>(key);
-
-		// EVENT
-		if (entry is not null)
+		try
 		{
-			_events.OnHit(operationId, key, entry.IsLogicallyExpired(), activity);
-		}
-		else
-		{
-			_events.OnMiss(operationId, key, activity);
-		}
+			var entry = _cache.Get<IFusionCacheMemoryEntry?>(key);
 
-		return entry;
+			// EVENT
+			if (entry is not null)
+			{
+				_events.OnHit(operationId, key, entry.IsLogicallyExpired(), activity);
+			}
+			else
+			{
+				_events.OnMiss(operationId, key, activity);
+			}
+
+			return entry;
+		}
+		catch (Exception exc)
+		{
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	public (IFusionCacheMemoryEntry? entry, bool isValid) TryGetEntry(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterMemoryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		IFusionCacheMemoryEntry? entry;
-		bool isValid = false;
-
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] trying to get from memory", _options.CacheName, _options.InstanceId, operationId, key);
-
-		if (_cache.TryGetValue<IFusionCacheMemoryEntry>(key, out entry) == false)
+		try
 		{
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry not found", _options.CacheName, _options.InstanceId, operationId, key);
-		}
-		else
-		{
-			if (entry.IsLogicallyExpired())
+			IFusionCacheMemoryEntry? entry;
+			bool isValid = false;
+
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] trying to get from memory", _options.CacheName, _options.InstanceId, operationId, key);
+
+			if (_cache.TryGetValue<IFusionCacheMemoryEntry>(key, out entry) == false)
 			{
 				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry found (expired) {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry not found", _options.CacheName, _options.InstanceId, operationId, key);
 			}
 			else
 			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry found {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+				if (entry.IsLogicallyExpired())
+				{
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry found (expired) {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+				}
+				else
+				{
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry found {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
 
-				isValid = true;
+					isValid = true;
+				}
 			}
-		}
 
-		// EVENT
-		if (entry is not null)
-		{
-			_events.OnHit(operationId, key, isValid == false, activity);
-		}
-		else
-		{
-			_events.OnMiss(operationId, key, activity);
-		}
+			// EVENT
+			if (entry is not null)
+			{
+				_events.OnHit(operationId, key, isValid == false, activity);
+			}
+			else
+			{
+				_events.OnMiss(operationId, key, activity);
+			}
 
-		return (entry, isValid);
+			return (entry, isValid);
+		}
+		catch (Exception exc)
+		{
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	public void RemoveEntry(string operationId, string key)
@@ -157,13 +187,22 @@ internal sealed class MemoryCacheAccessor
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryRemove, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
+		try
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
 
-		_cache.Remove(key);
+			_cache.Remove(key);
 
-		// EVENT
-		_events.OnRemove(operationId, key);
+			// EVENT
+			_events.OnRemove(operationId, key);
+		}
+		catch (Exception exc)
+		{
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
+			throw;
+		}
 	}
 
 	public bool ExpireEntry(string operationId, string key, long? timestampThreshold)
@@ -171,54 +210,63 @@ internal sealed class MemoryCacheAccessor
 		// ACTIVITY
 		using var activity = Activities.SourceMemoryLevel.StartActivityWithCommonTags(Activities.Names.MemoryExpire, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Memory);
 
-		var entry = _cache.Get<IFusionCacheMemoryEntry>(key);
-
-		if (entry is null)
+		try
 		{
+			var entry = _cache.Get<IFusionCacheMemoryEntry>(key);
+
+			if (entry is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry not found: not necessary to expire", _options.CacheName, _options.InstanceId, operationId, key);
+
+				return false;
+			}
+
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] memory entry not found: not necessary to expire", _options.CacheName, _options.InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] Metadata {Metadata}", _options.CacheName, _options.InstanceId, operationId, key, entry.Metadata);
 
-			return false;
+			if (timestampThreshold is not null && entry.Timestamp >= timestampThreshold.Value)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] timestamp of cached entry {TimestampCached} was greater than the specified threshold {TimestampThreshold}", _options.CacheName, _options.InstanceId, operationId, key, entry.Timestamp, timestampThreshold.Value);
+
+				return false;
+			}
+
+			if (entry.Metadata is not null && entry.IsLogicallyExpired() == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
+
+				// MAKE THE ENTRY LOGICALLY EXPIRE
+				//entry.LogicalExpirationTimestamp = DateTimeOffset.UtcNow.AddMilliseconds(-10).UtcTicks;
+				entry.LogicalExpirationTimestamp = 0L;
+				entry.Metadata.IsStale = true;
+				entry.Metadata.EagerExpirationTimestamp = null;
+
+				// EVENT
+				_events.OnExpire(operationId, key);
+			}
+			else
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
+
+				// REMOVE THE ENTRY
+				_cache.Remove(key);
+
+				// EVENT
+				_events.OnRemove(operationId, key);
+			}
+
+			return true;
 		}
-
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] Metadata {Metadata}", _options.CacheName, _options.InstanceId, operationId, key, entry.Metadata);
-
-		if (timestampThreshold is not null && entry.Timestamp >= timestampThreshold.Value)
+		catch (Exception exc)
 		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] timestamp of cached entry {TimestampCached} was greater than the specified threshold {TimestampThreshold}", _options.CacheName, _options.InstanceId, operationId, key, entry.Timestamp, timestampThreshold.Value);
-
-			return false;
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
+			throw;
 		}
-
-		if (entry.Metadata is not null && entry.IsLogicallyExpired() == false)
-		{
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
-
-			// MAKE THE ENTRY LOGICALLY EXPIRE
-			//entry.LogicalExpirationTimestamp = DateTimeOffset.UtcNow.AddMilliseconds(-10).UtcTicks;
-			entry.LogicalExpirationTimestamp = 0L;
-			entry.Metadata.IsStale = true;
-			entry.Metadata.EagerExpirationTimestamp = null;
-
-			// EVENT
-			_events.OnExpire(operationId, key);
-		}
-		else
-		{
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
-
-			// REMOVE THE ENTRY
-			_cache.Remove(key);
-
-			// EVENT
-			_events.OnRemove(operationId, key);
-		}
-
-		return true;
 	}
 
 	public bool CanClear
