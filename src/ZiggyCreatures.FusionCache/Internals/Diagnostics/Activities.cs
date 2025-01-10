@@ -65,7 +65,7 @@ internal static class Activities
 		};
 
 		if (levelKind is not null)
-			res.Add(new KeyValuePair<string, object?>(Tags.Names.OperationLevel, levelKind.ToString()?.ToLowerInvariant()));
+			res.Add(new KeyValuePair<string, object?>(Tags.Names.OperationLevel, levelKind.Value.ToString().ToLowerInvariant()));
 
 		return res;
 	}
