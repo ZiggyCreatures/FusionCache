@@ -14,11 +14,11 @@ public class CacheStampedeTests
 {
 	private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
 
-	// AS FUSION CACHE
+	// FUSIONCACHE
 
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public async Task FusionHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	public async Task FusionAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
@@ -47,7 +47,7 @@ public class CacheStampedeTests
 
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public void FusionHighConcurrency(MemoryLockerType memoryLockerType, int accessorsCount)
+	public void FusionSync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
@@ -72,7 +72,7 @@ public class CacheStampedeTests
 
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public async Task FusionMixedHighConcurrencyAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	public async Task FusionMixedAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 
@@ -115,21 +115,21 @@ public class CacheStampedeTests
 		Assert.Equal(1, factoryCallsCount);
 	}
 
-	// AS HYBRID CACHE (ASYNC-ONLY)
+	// HYBRIDCACHE ADAPTER (ASYNC-ONLY)
 
 	[Theory]
 	[ClassData(typeof(CacheStampedeClassData))]
-	public async Task FusionHybridHighConcurrencyCacheAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	public async Task FusionHybridAsync(MemoryLockerType memoryLockerType, int accessorsCount)
 	{
 		using var fusionCache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
-		var cache = new FusionHybridCache(fusionCache);
+		var hybridCache = new FusionHybridCache(fusionCache);
 
 		var factoryCallsCount = 0;
 
 		var tasks = new ConcurrentBag<Task>();
 		Parallel.For(0, accessorsCount, _ =>
 		{
-			var task = cache.GetOrCreateAsync<int>(
+			var task = hybridCache.GetOrCreateAsync<int>(
 				"foo",
 				async _ =>
 				{
@@ -140,6 +140,49 @@ public class CacheStampedeTests
 				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task.AsTask());
+		});
+
+		await Task.WhenAll(tasks);
+
+		Assert.Equal(1, factoryCallsCount);
+	}
+
+	// FUSIONCACHE + HYBRIDCACHE ADAPTER AT THE SAME TIME (ASYNC-ONLY)
+
+	[Theory]
+	[ClassData(typeof(CacheStampedeClassData))]
+	public async Task FusionAndFusionHybridAsync(MemoryLockerType memoryLockerType, int accessorsCount)
+	{
+		using var fusionCache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var hybridCache = new FusionHybridCache(fusionCache);
+
+		var factoryCallsCount = 0;
+
+		var tasks = new ConcurrentBag<Task>();
+		Parallel.For(0, accessorsCount, _ =>
+		{
+			var task1 = fusionCache.GetOrSetAsync<int>(
+				"foo",
+				async _ =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					await Task.Delay(FactoryDuration);
+					return 42;
+				},
+				new FusionCacheEntryOptions(TimeSpan.FromSeconds(10))
+			);
+			tasks.Add(task1.AsTask());
+			var task2 = hybridCache.GetOrCreateAsync<int>(
+				"foo",
+				async _ =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					await Task.Delay(FactoryDuration);
+					return 42;
+				},
+				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+			);
+			tasks.Add(task2.AsTask());
 		});
 
 		await Task.WhenAll(tasks);
