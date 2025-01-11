@@ -1257,7 +1257,14 @@ public class L1L2BackplaneTests
 		var distributedCache = CreateDistributedCache();
 
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		cache1.DefaultEntryOptions.IsFailSafeEnabled = true;
+		cache1.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		cache2.DefaultEntryOptions.IsFailSafeEnabled = true;
+		cache2.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		logger.LogInformation("STEP 1");
 
@@ -1289,6 +1296,8 @@ public class L1L2BackplaneTests
 
 		await cache2.ClearAsync();
 
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
+
 		logger.LogInformation("STEP 5");
 
 		await cache2.SetAsync<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
@@ -1307,8 +1316,6 @@ public class L1L2BackplaneTests
 		Assert.Equal(22, bar1_2);
 		Assert.Equal(0, baz1_2);
 
-		logger.LogInformation("STEP 8");
-
 		var foo2_2 = await cache2.GetOrDefaultAsync<int>("foo");
 		var bar2_2 = await cache2.GetOrDefaultAsync<int>("bar");
 		var baz2_2 = await cache2.GetOrDefaultAsync<int>("baz");
@@ -1316,6 +1323,22 @@ public class L1L2BackplaneTests
 		Assert.Equal(0, foo2_2);
 		Assert.Equal(22, bar2_2);
 		Assert.Equal(0, baz2_2);
+
+		var foo1_3 = await cache1.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar1_3 = await cache1.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+		var baz1_3 = await cache1.GetOrDefaultAsync<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(1, foo1_3);
+		Assert.Equal(22, bar1_3);
+		Assert.Equal(3, baz1_3);
+
+		var foo2_3 = await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar2_3 = await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+		var baz2_3 = await cache2.GetOrDefaultAsync<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(1, foo2_3);
+		Assert.Equal(22, bar2_3);
+		Assert.Equal(3, baz2_3);
 	}
 
 	[Theory]
@@ -1331,7 +1354,14 @@ public class L1L2BackplaneTests
 		var distributedCache = CreateDistributedCache();
 
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		cache1.DefaultEntryOptions.IsFailSafeEnabled = true;
+		cache1.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		cache2.DefaultEntryOptions.IsFailSafeEnabled = true;
+		cache2.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
 		logger.LogInformation("STEP 1");
 
@@ -1363,6 +1393,8 @@ public class L1L2BackplaneTests
 
 		cache2.Clear();
 
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+
 		logger.LogInformation("STEP 5");
 
 		cache2.Set<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
@@ -1381,8 +1413,6 @@ public class L1L2BackplaneTests
 		Assert.Equal(22, bar1_2);
 		Assert.Equal(0, baz1_2);
 
-		logger.LogInformation("STEP 8");
-
 		var foo2_2 = cache2.GetOrDefault<int>("foo");
 		var bar2_2 = cache2.GetOrDefault<int>("bar");
 		var baz2_2 = cache2.GetOrDefault<int>("baz");
@@ -1390,6 +1420,22 @@ public class L1L2BackplaneTests
 		Assert.Equal(0, foo2_2);
 		Assert.Equal(22, bar2_2);
 		Assert.Equal(0, baz2_2);
+
+		var foo1_3 = cache1.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar1_3 = cache1.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+		var baz1_3 = cache1.GetOrDefault<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(1, foo1_3);
+		Assert.Equal(22, bar1_3);
+		Assert.Equal(3, baz1_3);
+
+		var foo2_3 = cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar2_3 = cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+		var baz2_3 = cache2.GetOrDefault<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(1, foo2_3);
+		Assert.Equal(22, bar2_3);
+		Assert.Equal(3, baz2_3);
 	}
 
 	[Theory]
