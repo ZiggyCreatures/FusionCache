@@ -11,10 +11,10 @@ using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
 namespace FusionCacheTests.FusionHybridCacheTests;
 
-public class MemoryLevelTests
+public class HybridL1Tests
 	: AbstractTests
 {
-	public MemoryLevelTests(ITestOutputHelper output)
+	public HybridL1Tests(ITestOutputHelper output)
 		: base(output, null)
 	{
 	}
@@ -184,11 +184,12 @@ public class MemoryLevelTests
 	}
 
 	[Fact]
-	public async Task GetOrDefaultDoesReturnStaleDataWithFailSafeAsync()
+	public async Task GetOrDefaultDoesReturnStaleDataWithAllowStaleOnReadOnlyAsync()
 	{
 		var options = new FusionCacheOptions();
 		options.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(1);
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
+		options.DefaultEntryOptions.AllowStaleOnReadOnly = true;
 		using var fc = new FusionCache(options);
 		var cache = new FusionHybridCache(fc);
 
@@ -206,21 +207,23 @@ public class MemoryLevelTests
 		options.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(1);
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
 		options.DefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(1);
-		options.DefaultEntryOptions.FactorySoftTimeout = TimeSpan.FromMicroseconds(500);
+		options.DefaultEntryOptions.FactorySoftTimeout = TimeSpan.FromMilliseconds(500);
 		using var fc = new FusionCache(options);
 		var cache = new FusionHybridCache(fc);
 
 		await cache.SetAsync<int>("foo", 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) });
 		var initialValue = await cache.GetOrDefaultAsync<int>("foo");
 		await Task.Delay(1_500);
-		var middleValue = await cache.GetOrCreateAsync<int>("foo", async ct => { await Task.Delay(2_000); ct.ThrowIfCancellationRequested(); return 21; }, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) });
-		var interstitialValue = await cache.GetOrDefaultAsync<int>("foo");
+		var interstitialValue1 = await cache.GetOrDefaultAsync<int>("foo");
+		var middleValue = await cache.GetOrCreateAsync<int>("foo", async ct => { await Task.Delay(2_000); ct.ThrowIfCancellationRequested(); return 21; }, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) });
+		var interstitialValue2 = await cache.GetOrDefaultAsync<int>("foo");
 		await Task.Delay(3_000);
 		var finalValue = await cache.GetOrDefaultAsync<int>("foo");
 
 		Assert.Equal(42, initialValue);
 		Assert.Equal(42, middleValue);
-		Assert.Equal(42, interstitialValue);
+		Assert.Equal(0, interstitialValue1);
+		Assert.Equal(42, interstitialValue2);
 		Assert.Equal(21, finalValue);
 	}
 
