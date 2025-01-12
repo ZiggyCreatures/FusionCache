@@ -483,13 +483,14 @@ public partial class FusionCache
 		// TAGGING
 		if (memoryEntryIsValid)
 		{
-			(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, false, token).ConfigureAwait(false);
-			if (memoryEntry is null)
-			{
-				// EVENT
-				_events.OnMiss(operationId, key, activity);
+			(memoryEntry, memoryEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, memoryEntry, true, token).ConfigureAwait(false);
+			//if (memoryEntry is null)
+			//{
+			//	// EVENT
+			//	_events.OnMiss(operationId, key, activity);
 
-				return null;
+			//	return null;
+			//}
 			}
 		}
 
@@ -509,7 +510,7 @@ public partial class FusionCache
 		// EARLY RETURN: NO USABLE DISTRIBUTED CACHE
 		if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) || dca.CanBeUsed(operationId, key) == false)
 		{
-			if (options.IsFailSafeEnabled && memoryEntry is not null)
+			if (options.AllowStaleOnReadOnly && memoryEntry is not null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): using memory entry (expired)", CacheName, InstanceId, operationId, key);
@@ -852,7 +853,10 @@ public partial class FusionCache
 			return (null, false);
 
 		if (_options.DisableTagging)
-			return (entry, true);
+			return (entry, entry.IsLogicallyExpired() == false);
+
+		if (key.StartsWith(TagInternalCacheKeyPrefix))
+			return (entry, entry.IsLogicallyExpired() == false);
 
 		var entryTimestamp = entry.Timestamp;
 		var tags = entry.Tags;
@@ -916,8 +920,6 @@ public partial class FusionCache
 
 					return (entry, false);
 				}
-
-				token.ThrowIfCancellationRequested();
 			}
 		}
 
@@ -957,7 +959,7 @@ public partial class FusionCache
 			}
 		}
 
-		return (entry, true);
+		return (entry, entry.IsLogicallyExpired() == false);
 	}
 
 	private async ValueTask SetTagDataInternalAsync(string tag, FusionCacheEntryOptions options, CancellationToken token)
