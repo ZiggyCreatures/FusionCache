@@ -491,7 +491,6 @@ public partial class FusionCache
 
 			//	return null;
 			//}
-			}
 		}
 
 		if (memoryEntryIsValid)
