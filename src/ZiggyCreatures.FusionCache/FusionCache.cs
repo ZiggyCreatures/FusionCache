@@ -210,7 +210,7 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public FusionCacheEntryOptions DefaultEntryOptions
 	{
-		get { return _options.DefaultEntryOptions; }
+		get { return _defaultEntryOptions; }
 	}
 
 	internal AutoRecoveryService AutoRecovery
@@ -235,7 +235,7 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 	{
-		var res = _options.DefaultEntryOptions.Duplicate(duration);
+		var res = _defaultEntryOptions.Duplicate(duration);
 		setupAction?.Invoke(res);
 		return res;
 	}
@@ -1089,10 +1089,7 @@ public sealed partial class FusionCache
 
 	internal TValue GetValueFromMemoryEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions? options)
 	{
-		//if (entry is null)
-		//	throw new ArgumentNullException(nameof(entry));
-
-		options ??= _options.DefaultEntryOptions;
+		options ??= _defaultEntryOptions;
 
 		if (options.EnableAutoClone == false)
 			return entry.GetValue<TValue>();
