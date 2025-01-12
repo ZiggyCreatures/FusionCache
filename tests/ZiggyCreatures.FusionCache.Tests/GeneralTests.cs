@@ -191,7 +191,6 @@ public class GeneralTests
 			DefaultEntryOptions = CreateEntryOptionsSample(),
 
 			TagsDefaultEntryOptions = CreateEntryOptionsSample(),
-			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(123),
 
 			EnableAutoRecovery = !defaultState.EnableAutoRecovery,
 			AutoRecoveryDelay = TimeSpan.FromSeconds(123),
