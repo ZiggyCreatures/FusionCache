@@ -33,6 +33,7 @@ public sealed partial class FusionCache
 	private readonly FusionCacheOptions _options;
 	private readonly string? _cacheKeyPrefix;
 	private readonly ILogger<FusionCache>? _logger;
+	internal readonly FusionCacheEntryOptions _defaultEntryOptions;
 	internal readonly FusionCacheEntryOptions _tryUpdateEntryOptions;
 
 	// MEMORY LOCKER
@@ -62,11 +63,10 @@ public sealed partial class FusionCache
 	private readonly object _pluginsLock = new object();
 
 	// TAGGING
-	private readonly TimeSpan _tagsDuration = TimeSpan.FromHours(24);
-	private readonly TimeSpan _tagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(30);
-	private readonly bool _tagsDefaultEntryOptionsSelfManaged = false;
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
 	private readonly FusionCacheEntryOptions _cascadeRemoveByTagEntryOptions;
+
+	internal readonly string TagInternalCacheKeyPrefix;
 
 	internal const string ClearRemoveTag = "**";
 	internal readonly string ClearRemoveTagCacheKey;
@@ -96,6 +96,9 @@ public sealed partial class FusionCache
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
 
+		// TODO: FIND AND REPLACE ALL _options.DefaultEntryOptions USAGE WITH _defaultEntryOptions
+		_defaultEntryOptions = _options.DefaultEntryOptions;
+
 		// TRY UPDATE OPTIONS
 		_tryUpdateEntryOptions ??= new FusionCacheEntryOptions()
 		{
@@ -106,34 +109,8 @@ public sealed partial class FusionCache
 			ReThrowSerializationExceptions = true,
 		};
 
-		// TAGS DEFAULT ENTRY OPTIONS
-		_tagsMemoryCacheDurationOverride = _options.TagsMemoryCacheDurationOverride;
-		if (_options.TagsDefaultEntryOptions is not null)
-		{
-			_tagsDefaultEntryOptions = _options.TagsDefaultEntryOptions;
-		}
-		else
-		{
-			_tagsDefaultEntryOptionsSelfManaged = true;
-			_tagsDefaultEntryOptions = _options.DefaultEntryOptions.Duplicate();
-			_tagsDefaultEntryOptions.Duration = _tagsDuration;
-			_tagsDefaultEntryOptions.DistributedCacheDuration = _tagsDuration;
-			_tagsDefaultEntryOptions.IsFailSafeEnabled = true;
-			_tagsDefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
-			_tagsDefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-			_tagsDefaultEntryOptions.ReThrowDistributedCacheExceptions = false;
-			_tagsDefaultEntryOptions.ReThrowSerializationExceptions = false;
-			_tagsDefaultEntryOptions.ReThrowBackplaneExceptions = false;
-			_tagsDefaultEntryOptions.SkipMemoryCacheRead = false;
-			_tagsDefaultEntryOptions.SkipMemoryCacheWrite = false;
-			_tagsDefaultEntryOptions.SkipDistributedCacheRead = false;
-			_tagsDefaultEntryOptions.SkipDistributedCacheWrite = false;
-			_tagsDefaultEntryOptions.SkipBackplaneNotifications = false;
-			_tagsDefaultEntryOptions.Priority = CacheItemPriority.NeverRemove;
-			_tagsDefaultEntryOptions.Size = 1;
-		}
-
-		// CASCADE REMOVE BY TAG ENTRY OPTIONS
+		// TAGGING
+		_tagsDefaultEntryOptions = _options.TagsDefaultEntryOptions;
 		_cascadeRemoveByTagEntryOptions = new FusionCacheEntryOptions
 		{
 			Duration = TimeSpan.FromHours(24),
@@ -198,6 +175,8 @@ public sealed partial class FusionCache
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: instance created", CacheName, InstanceId);
+
+		TagInternalCacheKeyPrefix = GetTagInternalCacheKey("");
 
 		ClearRemoveTimestamp = -1;
 		ClearRemoveTagCacheKey = GetTagCacheKey(ClearRemoveTag);
@@ -635,7 +614,7 @@ public sealed partial class FusionCache
 	internal void RemoveMemoryEntryInternal(string operationId, string key)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling RemoveMemoryEntryInternal", CacheName, InstanceId, operationId, key);
 
 		_mca.RemoveEntry(operationId, key);
 	}
@@ -643,7 +622,7 @@ public sealed partial class FusionCache
 	internal void ExpireMemoryEntryInternal(string operationId, string key, long? timestampThreshold)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling MaybeExpireMemoryEntryInternal (timestampThreshold={TimestampThreshold})", CacheName, InstanceId, operationId, key, timestampThreshold);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling ExpireMemoryEntryInternal (timestampThreshold={TimestampThreshold})", CacheName, InstanceId, operationId, key, timestampThreshold);
 
 		_mca.ExpireEntry(operationId, key, timestampThreshold);
 	}
@@ -667,23 +646,6 @@ public sealed partial class FusionCache
 		var res = GetTagCacheKey(tag);
 		MaybePreProcessCacheKey(ref res);
 		return res;
-	}
-
-	private void UpdateTagsDefaultEntryOptions()
-	{
-		// CHECK IF SELF-MANAGED
-		if (_tagsDefaultEntryOptionsSelfManaged == false)
-			return;
-
-		if (HasDistributedCache && HasBackplane == false)
-		{
-			// DISTRIBUTED CACHE AND NO BACKPLANE -> USE OVERRIDE
-			_tagsDefaultEntryOptions.Duration = _tagsMemoryCacheDurationOverride;
-		}
-		else
-		{
-			_tagsDefaultEntryOptions.Duration = _tagsDuration;
-		}
 	}
 
 	internal bool CanExecuteRawClear()
@@ -775,8 +737,6 @@ public sealed partial class FusionCache
 		SetupSerializer(serializer);
 		SetupDistributedCache(distributedCache);
 
-		UpdateTagsDefaultEntryOptions();
-
 		return this;
 	}
 
@@ -790,8 +750,6 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed cache removed", CacheName, InstanceId);
 		}
-
-		UpdateTagsDefaultEntryOptions();
 
 		return this;
 	}
@@ -819,8 +777,6 @@ public sealed partial class FusionCache
 		{
 			_bpa = new BackplaneAccessor(this, backplane, _options, _logger);
 		}
-
-		UpdateTagsDefaultEntryOptions();
 
 		RunUtils.RunSyncActionAdvanced(
 			_ =>
@@ -868,8 +824,6 @@ public sealed partial class FusionCache
 					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: backplane removed", CacheName, InstanceId);
 			}
 		}
-
-		UpdateTagsDefaultEntryOptions();
 
 		return this;
 	}
