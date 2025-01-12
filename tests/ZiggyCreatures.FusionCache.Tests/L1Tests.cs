@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
@@ -159,24 +160,30 @@ public class L1Tests
 	[Fact]
 	public async Task ThrowsWhenFactoryThrowsWithoutFailSafeAsync()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
 		await Task.Delay(1_100);
 		await Assert.ThrowsAnyAsync<Exception>(async () =>
 		{
 			var newValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(false));
+			logger.LogInformation("NEW VALUE: {NewValue}", newValue);
 		});
 	}
 
 	[Fact]
 	public void ThrowsWhenFactoryThrowsWithoutFailSafe()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 		var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)) { IsFailSafeEnabled = true });
 		Thread.Sleep(1_100);
 		Assert.ThrowsAny<Exception>(() =>
 		{
 			var newValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)) { IsFailSafeEnabled = false });
+			logger.LogInformation("NEW VALUE: {NewValue}", newValue);
 		});
 	}
 
