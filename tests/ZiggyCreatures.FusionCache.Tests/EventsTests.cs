@@ -357,9 +357,9 @@ public class EventsTests
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 		Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(2, stats.Data.Values.Sum());
+		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+		Assert.Equal(4, stats.Data.Values.Sum());
 	}
 
 	[Fact]
@@ -408,9 +408,9 @@ public class EventsTests
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 		Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(2, stats.Data.Values.Sum());
+		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+		Assert.Equal(4, stats.Data.Values.Sum());
 	}
 
 	[Fact]
@@ -532,7 +532,7 @@ public class EventsTests
 		await Task.Delay(duration.PlusALittleBit());
 
 		// HIT (STALE): +1
-		_ = await cache.TryGetAsync<int>("foo");
+		_ = await cache.TryGetAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -542,7 +542,7 @@ public class EventsTests
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 		Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(3, stats.Data.Values.Sum());
 	}
 
 	[Fact]
@@ -580,7 +580,7 @@ public class EventsTests
 		Thread.Sleep(duration.PlusALittleBit());
 
 		// HIT (STALE): +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -590,11 +590,11 @@ public class EventsTests
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 		Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(3, stats.Data.Values.Sum());
 	}
 
 	[Fact]
-	public async Task TryGetStaleNoFailSafeAsync()
+	public async Task TryGetStaleNoAllowStaleOnReadOnlyAsync()
 	{
 		var stats = new EntryActionsStats();
 
@@ -628,7 +628,7 @@ public class EventsTests
 		await Task.Delay(duration.PlusALittleBit());
 
 		// MISS: +1
-		_ = await cache.TryGetAsync<int>("foo", options => options.SetFailSafe(false));
+		_ = await cache.TryGetAsync<int>("foo");
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -637,12 +637,12 @@ public class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(3, stats.Data.Values.Sum());
 	}
 
 	[Fact]
-	public void TryGetStaleNoFailSafe()
+	public void TryGetStaleNoAllowStaleOnReadOnly()
 	{
 		var stats = new EntryActionsStats();
 
@@ -676,7 +676,7 @@ public class EventsTests
 		Thread.Sleep(duration.PlusALittleBit());
 
 		// MISS: +1
-		cache.TryGet<int>("foo", options => options.SetFailSafe(false));
+		cache.TryGet<int>("foo");
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -685,8 +685,8 @@ public class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(3, stats.Data.Values.Sum());
 	}
 
 	[Fact]
