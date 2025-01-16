@@ -146,6 +146,8 @@ public class GeneralTests
 
 			EagerRefreshThreshold = 0.456f,
 
+			EnableAutoClone = !FusionCacheGlobalDefaults.EntryOptionsEnableAutoClone,
+
 			AllowStaleOnReadOnly = true,
 
 			IsFailSafeEnabled = !FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled,

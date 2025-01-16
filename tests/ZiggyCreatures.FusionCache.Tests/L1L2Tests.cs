@@ -240,27 +240,37 @@ public class L1L2Tests
 
 		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 		var softTimeout = TimeSpan.FromMilliseconds(100);
-		var hardTimeout = TimeSpan.FromMilliseconds(1_000);
+		var hardTimeout = TimeSpan.FromMilliseconds(500);
 		var duration = TimeSpan.FromSeconds(1);
+
 		var distributedCache = CreateDistributedCache();
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
-		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
-		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache);
+		var options = CreateFusionCacheOptions();
+		options.TagsDefaultEntryOptions.DistributedCacheSoftTimeout = softTimeout;
+		options.TagsDefaultEntryOptions.DistributedCacheHardTimeout = hardTimeout;
+		using var fusionCache = new FusionCache(options, logger: logger);
 		fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
 		await fusionCache.SetAsync<int>(keyFoo, 42, new FusionCacheEntryOptions().SetDuration(duration).SetFailSafe(true));
 		await Task.Delay(duration.PlusALittleBit());
-		var sw = Stopwatch.StartNew();
+
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
-		var res = await fusionCache.GetOrSetAsync<int>(keyFoo, async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(1_000)));
+
+		var sw = Stopwatch.StartNew();
+		var res = await fusionCache.GetOrSetAsync<int>(
+			keyFoo,
+			async _ => throw new Exception("Sloths are cool"),
+			new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout)
+		);
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 		logger.LogTrace("Elapsed (with extra pad): {ElapsedMs} ms", elapsedMs);
 
 		Assert.Equal(42, res);
-		Assert.True(elapsedMs >= 100, "Distributed cache soft timeout not applied");
-		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds, "Distributed cache soft timeout not applied");
+		Assert.True(elapsedMs >= 100, "Distributed cache soft timeout not applied (1)");
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds, "Distributed cache soft timeout not applied (2)");
 	}
 
 	[Theory]
@@ -272,27 +282,37 @@ public class L1L2Tests
 
 		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
 		var softTimeout = TimeSpan.FromMilliseconds(100);
-		var hardTimeout = TimeSpan.FromMilliseconds(1_000);
+		var hardTimeout = TimeSpan.FromMilliseconds(500);
 		var duration = TimeSpan.FromSeconds(1);
+
 		var distributedCache = CreateDistributedCache();
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
-		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
-		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache);
+		var options = CreateFusionCacheOptions();
+		options.TagsDefaultEntryOptions.DistributedCacheSoftTimeout = softTimeout;
+		options.TagsDefaultEntryOptions.DistributedCacheHardTimeout = hardTimeout;
+		using var fusionCache = new FusionCache(options, logger: logger);
 		fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
 		fusionCache.Set<int>(keyFoo, 42, new FusionCacheEntryOptions().SetDuration(duration).SetFailSafe(true));
 		Thread.Sleep(duration.PlusALittleBit());
-		var sw = Stopwatch.StartNew();
+
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
-		var res = fusionCache.GetOrSet<int>(keyFoo, _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout));
+
+		var sw = Stopwatch.StartNew();
+		var res = fusionCache.GetOrSet<int>(
+			keyFoo,
+			_ => throw new Exception("Sloths are cool"),
+			new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true).SetDistributedCacheTimeouts(softTimeout, hardTimeout)
+		);
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 		logger.LogTrace("Elapsed (with extra pad): {ElapsedMs} ms", elapsedMs);
 
 		Assert.Equal(42, res);
-		Assert.True(elapsedMs >= 100, "Distributed cache soft timeout not applied");
-		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds, "Distributed cache soft timeout not applied");
+		Assert.True(elapsedMs >= 100, "Distributed cache soft timeout not applied (1)");
+		Assert.True(elapsedMs < simulatedDelay.TotalMilliseconds, "Distributed cache soft timeout not applied (2)");
 	}
 
 	[Theory]
@@ -1521,9 +1541,9 @@ public class L1L2Tests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var cacheName = Guid.NewGuid().ToString("N");
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
 
-		var duration = TimeSpan.FromSeconds(2);
+		var duration = TimeSpan.FromSeconds(4);
 		var durationOverride = TimeSpan.FromMilliseconds(500);
 
 		var distributedCache = CreateDistributedCache();
@@ -1531,12 +1551,12 @@ public class L1L2Tests
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = durationOverride,
 			DefaultEntryOptions = new FusionCacheEntryOptions
 			{
 				Duration = duration
 			}
 		};
+		options1.TagsDefaultEntryOptions.Duration = durationOverride;
 		options1.SetInstanceId("C1");
 		using var cache1 = new FusionCache(options1, logger: logger);
 		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
@@ -1545,22 +1565,26 @@ public class L1L2Tests
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = durationOverride,
 			DefaultEntryOptions = new FusionCacheEntryOptions
 			{
 				Duration = duration
 			}
 		};
+		options2.TagsDefaultEntryOptions.Duration = durationOverride;
 		options2.SetInstanceId("C2");
 		using var cache2 = new FusionCache(options2, logger: logger);
 		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
+		logger.LogInformation("STEP 1");
+
 		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
 		await cache1.SetAsync<int>("bar", 2, tags: ["y", "z"]);
-		await cache2.GetOrSetAsync<int>("baz", async (_, _) => 3, tags: ["x", "z"]);
+		await cache2.GetOrSetAsync<int>("baz", async _ => 3, tags: ["x", "z"]);
 
-		var foo1 = await cache2.GetOrSetAsync<int>("foo", async (_, _) => 11, tags: ["x", "y"]);
-		var bar1 = await cache2.GetOrSetAsync<int>("bar", async (_, _) => 22, tags: ["y", "z"]);
+		logger.LogInformation("STEP 2");
+
+		var foo1 = await cache2.GetOrSetAsync<int>("foo", async _ => 11, tags: ["x", "y"]);
+		var bar1 = await cache2.GetOrSetAsync<int>("bar", async _ => 22, tags: ["y", "z"]);
 		var baz1 = await cache1.GetOrSetAsync<int>("baz", async (ctx, _) =>
 		{
 			ctx.Tags = ["x", "z"];
@@ -1571,25 +1595,31 @@ public class L1L2Tests
 		Assert.Equal(2, bar1);
 		Assert.Equal(3, baz1);
 
-		await cache1.RemoveByTagAsync("x");
+		logger.LogInformation("STEP 3");
 
+		await cache1.RemoveByTagAsync("x");
 		await Task.Delay(durationOverride.PlusALittleBit());
 
+		logger.LogInformation("STEP 4");
+
 		var foo2 = await cache1.GetOrDefaultAsync<int>("foo");
-		var bar2 = await cache1.GetOrSetAsync<int>("bar", async (_, _) => 222, tags: ["y", "z"]);
-		var baz2 = await cache2.GetOrSetAsync<int>("baz", async (_, _) => 333, tags: ["x", "z"]);
+		var bar2 = await cache1.GetOrSetAsync<int>("bar", async _ => 222, tags: ["y", "z"]);
+		var baz2 = await cache2.GetOrSetAsync<int>("baz", async _ => 333, tags: ["x", "z"]);
 
 		Assert.Equal(0, foo2);
 		Assert.Equal(2, bar2);
 		Assert.Equal(333, baz2);
 
-		await cache2.RemoveByTagAsync("y");
+		logger.LogInformation("STEP 5");
 
+		await cache2.RemoveByTagAsync("y");
 		await Task.Delay(durationOverride.PlusALittleBit());
 
-		var foo3 = await cache2.GetOrSetAsync<int>("foo", async (_, _) => 1111, tags: ["x", "y"]);
-		var bar3 = await cache2.GetOrSetAsync<int>("bar", async (_, _) => 2222, tags: ["y", "z"]);
-		var baz3 = await cache1.GetOrSetAsync<int>("baz", async (_, _) => 3333, tags: ["x", "z"]);
+		logger.LogInformation("STEP 6");
+
+		var foo3 = await cache2.GetOrSetAsync<int>("foo", async _ => 1111, tags: ["x", "y"]);
+		var bar3 = await cache2.GetOrSetAsync<int>("bar", async _ => 2222, tags: ["y", "z"]);
+		var baz3 = await cache1.GetOrSetAsync<int>("baz", async _ => 3333, tags: ["x", "z"]);
 
 		Assert.Equal(1111, foo3);
 		Assert.Equal(2222, bar3);
@@ -1604,7 +1634,7 @@ public class L1L2Tests
 
 		var cacheName = Guid.NewGuid().ToString("N");
 
-		var duration = TimeSpan.FromSeconds(2);
+		var duration = TimeSpan.FromSeconds(4);
 		var durationOverride = TimeSpan.FromMilliseconds(500);
 
 		var distributedCache = CreateDistributedCache();
@@ -1612,12 +1642,12 @@ public class L1L2Tests
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = durationOverride,
 			DefaultEntryOptions = new FusionCacheEntryOptions
 			{
 				Duration = duration
 			}
 		};
+		options1.TagsDefaultEntryOptions.Duration = durationOverride;
 		options1.SetInstanceId("C1");
 		using var cache1 = new FusionCache(options1, logger: logger);
 		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
@@ -1626,22 +1656,26 @@ public class L1L2Tests
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = durationOverride,
 			DefaultEntryOptions = new FusionCacheEntryOptions
 			{
 				Duration = duration
 			}
 		};
+		options2.TagsDefaultEntryOptions.Duration = durationOverride;
 		options2.SetInstanceId("C2");
 		using var cache2 = new FusionCache(options2, logger: logger);
 		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
+		logger.LogInformation("STEP 1");
+
 		cache1.Set<int>("foo", 1, tags: ["x", "y"]);
 		cache1.Set<int>("bar", 2, tags: ["y", "z"]);
-		cache2.GetOrSet<int>("baz", (_, _) => 3, tags: ["x", "z"]);
+		cache2.GetOrSet<int>("baz", _ => 3, tags: ["x", "z"]);
 
-		var foo1 = cache2.GetOrSet<int>("foo", (_, _) => 11, tags: ["x", "y"]);
-		var bar1 = cache2.GetOrSet<int>("bar", (_, _) => 22, tags: ["y", "z"]);
+		logger.LogInformation("STEP 2");
+
+		var foo1 = cache2.GetOrSet<int>("foo", _ => 11, tags: ["x", "y"]);
+		var bar1 = cache2.GetOrSet<int>("bar", _ => 22, tags: ["y", "z"]);
 		var baz1 = cache1.GetOrSet<int>("baz", (ctx, _) =>
 		{
 			ctx.Tags = ["x", "z"];
@@ -1652,25 +1686,31 @@ public class L1L2Tests
 		Assert.Equal(2, bar1);
 		Assert.Equal(3, baz1);
 
-		cache1.RemoveByTag("x");
+		logger.LogInformation("STEP 3");
 
+		cache1.RemoveByTag("x");
 		Thread.Sleep(durationOverride.PlusALittleBit());
 
+		logger.LogInformation("STEP 4");
+
 		var foo2 = cache1.GetOrDefault<int>("foo");
-		var bar2 = cache1.GetOrSet<int>("bar", (_, _) => 222, tags: ["y", "z"]);
-		var baz2 = cache2.GetOrSet<int>("baz", (_, _) => 333, tags: ["x", "z"]);
+		var bar2 = cache1.GetOrSet<int>("bar", _ => 222, tags: ["y", "z"]);
+		var baz2 = cache2.GetOrSet<int>("baz", _ => 333, tags: ["x", "z"]);
 
 		Assert.Equal(0, foo2);
 		Assert.Equal(2, bar2);
 		Assert.Equal(333, baz2);
 
-		cache2.RemoveByTag("y");
+		logger.LogInformation("STEP 5");
 
+		cache2.RemoveByTag("y");
 		Thread.Sleep(durationOverride.PlusALittleBit());
 
-		var foo3 = cache2.GetOrSet<int>("foo", (_, _) => 1111, tags: ["x", "y"]);
-		var bar3 = cache2.GetOrSet<int>("bar", (_, _) => 2222, tags: ["y", "z"]);
-		var baz3 = cache1.GetOrSet<int>("baz", (_, _) => 3333, tags: ["x", "z"]);
+		logger.LogInformation("STEP 6");
+
+		var foo3 = cache2.GetOrSet<int>("foo", _ => 1111, tags: ["x", "y"]);
+		var bar3 = cache2.GetOrSet<int>("bar", _ => 2222, tags: ["y", "z"]);
+		var baz3 = cache1.GetOrSet<int>("baz", _ => 3333, tags: ["x", "z"]);
 
 		Assert.Equal(1111, foo3);
 		Assert.Equal(2222, bar3);
@@ -1683,75 +1723,88 @@ public class L1L2Tests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var cacheName = Guid.NewGuid().ToString("N");
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
 
-		var keyFoo = CreateRandomCacheKey("foo");
-
-		var firstDuration = TimeSpan.FromSeconds(4);
-		var secondDuration = TimeSpan.FromSeconds(10);
+		var durationOverride = TimeSpan.FromSeconds(2);
 
 		var distributedCache = CreateDistributedCache();
+
+		// CACHE 1
 		var options1 = new FusionCacheOptions
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(2)
 		};
+		options1.TagsDefaultEntryOptions.Duration = durationOverride;
 		options1.SetInstanceId("C1");
-		using var cache1 = new FusionCache(options1);
+		using var cache1 = new FusionCache(options1, logger: logger);
 		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
+		// CACHE 2
 		var options2 = new FusionCacheOptions
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(2)
 		};
+		options2.TagsDefaultEntryOptions.Duration = durationOverride;
 		options2.SetInstanceId("C2");
-		using var cache2 = new FusionCache(options2);
+		using var cache2 = new FusionCache(options2, logger: logger);
 		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 		logger.LogInformation("STEP 1");
 
-		await cache1.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromMinutes(10)));
-		await cache1.SetAsync<int>("bar", 2, options => options.SetDuration(TimeSpan.FromMinutes(10)));
-		await cache1.SetAsync<int>("baz", 3, options => options.SetDuration(TimeSpan.FromMinutes(10)));
+		await cache1.SetAsync<int>("foo", 1, options => options.SetFailSafe(true).SetDuration(TimeSpan.FromMinutes(10)));
+		await cache1.SetAsync<int>("bar", 2, options => options.SetFailSafe(true).SetDuration(TimeSpan.FromMinutes(10)));
 
 		logger.LogInformation("STEP 2");
 
 		var foo2_1 = await cache2.GetOrDefaultAsync<int>("foo");
 		var bar2_1 = await cache2.GetOrDefaultAsync<int>("bar");
-		var baz2_1 = await cache2.GetOrDefaultAsync<int>("baz");
 
 		Assert.Equal(1, foo2_1);
 		Assert.Equal(2, bar2_1);
-		Assert.Equal(3, baz2_1);
 
 		logger.LogInformation("STEP 3");
 
 		await cache1.ClearAsync();
+		await Task.Delay(durationOverride.PlusALittleBit());
 
 		logger.LogInformation("STEP 4");
 
-		var foo2_2 = await cache2.GetOrDefaultAsync<int>("foo");
-		var bar2_2 = await cache2.GetOrDefaultAsync<int>("bar");
-		var baz2_2 = await cache2.GetOrDefaultAsync<int>("baz");
-
-		Assert.Equal(1, foo2_2);
-		Assert.Equal(2, bar2_2);
-		Assert.Equal(3, baz2_2);
-
-		logger.LogInformation("STEP 5");
-
-		await Task.Delay(TimeSpan.FromSeconds(3));
-
 		var foo2_3 = await cache2.GetOrDefaultAsync<int>("foo");
 		var bar2_3 = await cache2.GetOrDefaultAsync<int>("bar");
-		var baz2_3 = await cache2.GetOrDefaultAsync<int>("baz");
 
 		Assert.Equal(0, foo2_3);
 		Assert.Equal(0, bar2_3);
-		Assert.Equal(0, baz2_3);
+
+		logger.LogInformation("STEP 5");
+
+		var foo2_4 = await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar2_4 = await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(1, foo2_4);
+		Assert.Equal(2, bar2_4);
+
+		logger.LogInformation("STEP 6");
+
+		await cache1.ClearAsync(false);
+		await Task.Delay(durationOverride.PlusALittleBit());
+
+		logger.LogInformation("STEP 7");
+
+		var foo2_5 = await cache2.GetOrDefaultAsync<int>("foo");
+		var bar2_5 = await cache2.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, foo2_5);
+		Assert.Equal(0, bar2_5);
+
+		logger.LogInformation("STEP 8");
+
+		var foo2_6 = await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar2_6 = await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, foo2_6);
+		Assert.Equal(0, bar2_6);
 	}
 
 	[Theory]
@@ -1760,20 +1813,18 @@ public class L1L2Tests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var cacheName = Guid.NewGuid().ToString("N");
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
 
-		var keyFoo = CreateRandomCacheKey("foo");
-
-		var firstDuration = TimeSpan.FromSeconds(4);
-		var secondDuration = TimeSpan.FromSeconds(10);
+		var durationOverride = TimeSpan.FromSeconds(2);
 
 		var distributedCache = CreateDistributedCache();
 		var options1 = new FusionCacheOptions
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(2)
 		};
+		options1.TagsDefaultEntryOptions.Duration = durationOverride;
+		//options1.DefaultEntryOptions.IsFailSafeEnabled = true;
 		options1.SetInstanceId("C1");
 		using var cache1 = new FusionCache(options1, logger: logger);
 		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
@@ -1782,53 +1833,67 @@ public class L1L2Tests
 		{
 			CacheName = cacheName,
 			CacheKeyPrefix = cacheName + ":",
-			TagsMemoryCacheDurationOverride = TimeSpan.FromSeconds(2)
 		};
+		options2.TagsDefaultEntryOptions.Duration = durationOverride;
+		//options2.DefaultEntryOptions.IsFailSafeEnabled = true;
 		options2.SetInstanceId("C2");
 		using var cache2 = new FusionCache(options2, logger: logger);
 		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 		logger.LogInformation("STEP 1");
 
-		cache1.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromMinutes(10)));
-		cache1.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromMinutes(10)));
-		cache1.Set<int>("baz", 3, options => options.SetDuration(TimeSpan.FromMinutes(10)));
+		cache1.Set<int>("foo", 1, options => options.SetFailSafe(true).SetDuration(TimeSpan.FromMinutes(10)));
+		cache1.Set<int>("bar", 2, options => options.SetFailSafe(true).SetDuration(TimeSpan.FromMinutes(10)));
 
 		logger.LogInformation("STEP 2");
 
 		var foo2_1 = cache2.GetOrDefault<int>("foo");
 		var bar2_1 = cache2.GetOrDefault<int>("bar");
-		var baz2_1 = cache2.GetOrDefault<int>("baz");
 
 		Assert.Equal(1, foo2_1);
 		Assert.Equal(2, bar2_1);
-		Assert.Equal(3, baz2_1);
 
 		logger.LogInformation("STEP 3");
 
 		cache1.Clear();
+		Thread.Sleep(durationOverride.PlusALittleBit());
 
 		logger.LogInformation("STEP 4");
 
-		var foo2_2 = cache2.GetOrDefault<int>("foo");
-		var bar2_2 = cache2.GetOrDefault<int>("bar");
-		var baz2_2 = cache2.GetOrDefault<int>("baz");
-
-		Assert.Equal(1, foo2_2);
-		Assert.Equal(2, bar2_2);
-		Assert.Equal(3, baz2_2);
-
-		logger.LogInformation("STEP 5");
-
-		Thread.Sleep(TimeSpan.FromSeconds(3));
-
 		var foo2_3 = cache2.GetOrDefault<int>("foo");
 		var bar2_3 = cache2.GetOrDefault<int>("bar");
-		var baz2_3 = cache2.GetOrDefault<int>("baz");
 
 		Assert.Equal(0, foo2_3);
 		Assert.Equal(0, bar2_3);
-		Assert.Equal(0, baz2_3);
+
+		logger.LogInformation("STEP 5");
+
+		var foo2_4 = cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar2_4 = cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(1, foo2_4);
+		Assert.Equal(2, bar2_4);
+
+		logger.LogInformation("STEP 6");
+
+		cache1.Clear(false);
+		Thread.Sleep(TimeSpan.FromSeconds(3));
+
+		logger.LogInformation("STEP 7");
+
+		var foo2_5 = cache2.GetOrDefault<int>("foo");
+		var bar2_5 = cache2.GetOrDefault<int>("bar");
+
+		Assert.Equal(0, foo2_5);
+		Assert.Equal(0, bar2_5);
+
+		logger.LogInformation("STEP 8");
+
+		var foo2_6 = cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var bar2_6 = cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, foo2_6);
+		Assert.Equal(0, bar2_6);
 	}
 
 	[Theory]
@@ -2070,258 +2135,4 @@ public class L1L2Tests
 		Assert.Equal(1, memoryCache1.Count);
 		Assert.Equal(2, memoryCache2.Count);
 	}
-
-	//[Theory]
-	//[ClassData(typeof(SerializerTypesClassData))]
-	//public async Task CanUseLowMemoryCacheDurationToReduceOutOfSyncIssuesAsync(SerializerType serializerType)
-	//{
-	//	var logger = CreateXUnitLogger<FusionCache>();
-
-	//	var duration = TimeSpan.FromMinutes(10);
-	//	var memoryDuration = TimeSpan.FromSeconds(1);
-
-	//	var cacheName = Guid.NewGuid().ToString("N");
-	//	var distributedCache = CreateDistributedCache();
-
-	//	var options1 = CreateFusionCacheOptions(cacheName);
-	//	options1.SetInstanceId("C1");
-	//	options1.DefaultEntryOptions.Duration = duration;
-	//	options1.DefaultEntryOptions.MemoryCacheDuration = memoryDuration;
-	//	options1.TagsMemoryCacheDurationOverride = memoryDuration;
-	//	using var cache1 = new FusionCache(options1, logger: logger);
-	//	cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	var options2 = CreateFusionCacheOptions(cacheName);
-	//	options2.SetInstanceId("C2");
-	//	options2.DefaultEntryOptions.Duration = duration;
-	//	options2.DefaultEntryOptions.MemoryCacheDuration = memoryDuration;
-	//	options2.TagsMemoryCacheDurationOverride = memoryDuration;
-	//	using var cache2 = new FusionCache(options2, logger: logger);
-	//	cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	await cache1.SetAsync("foo", 1);
-
-	//	Assert.Equal(1, await cache1.GetOrDefaultAsync<int>("foo"));
-	//	Assert.Equal(1, await cache2.GetOrDefaultAsync<int>("foo"));
-
-	//	Assert.Equal(0, await cache1.GetOrDefaultAsync<int>("bar"));
-	//	Assert.Equal(0, await cache2.GetOrDefaultAsync<int>("bar"));
-
-	//	await cache1.SetAsync("bar", 2);
-
-	//	Assert.Equal(2, await cache1.GetOrDefaultAsync<int>("bar"));
-	//	Assert.Equal(2, await cache2.GetOrDefaultAsync<int>("bar"));
-
-	//	await cache2.SetAsync("foo", 3);
-
-	//	Assert.Equal(1, await cache1.GetOrDefaultAsync<int>("foo"));
-	//	Assert.Equal(3, await cache2.GetOrDefaultAsync<int>("foo"));
-
-	//	await Task.Delay(memoryDuration.PlusALittleBit());
-
-	//	Assert.Equal(3, await cache1.GetOrDefaultAsync<int>("foo"));
-	//	Assert.Equal(3, await cache2.GetOrDefaultAsync<int>("foo"));
-
-	//	await cache1.SetAsync("foo", 123);
-	//	await cache2.SetAsync("bar", 456);
-
-	//	await Task.Delay(memoryDuration.PlusALittleBit());
-
-	//	Assert.Equal(123, await cache1.GetOrDefaultAsync<int>("foo"));
-	//	Assert.Equal(123, await cache2.GetOrDefaultAsync<int>("foo"));
-
-	//	Assert.Equal(456, await cache1.GetOrDefaultAsync<int>("bar"));
-	//	Assert.Equal(456, await cache2.GetOrDefaultAsync<int>("bar"));
-
-	//	logger.LogInformation("CLEAR");
-
-	//	await cache2.ClearAsync();
-
-	//	logger.LogInformation("WAIT");
-
-	//	await Task.Delay(memoryDuration.PlusALittleBit());
-
-	//	Assert.Equal(0, await cache1.GetOrDefaultAsync<int>("foo"));
-	//	Assert.Equal(0, await cache2.GetOrDefaultAsync<int>("foo"));
-
-	//	Assert.Equal(0, await cache1.GetOrDefaultAsync<int>("bar"));
-	//	Assert.Equal(0, await cache2.GetOrDefaultAsync<int>("bar"));
-
-	//	Assert.Equal(123, await cache1.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly()));
-	//	Assert.Equal(123, await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly()));
-
-	//	Assert.Equal(456, await cache1.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly()));
-	//	Assert.Equal(456, await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly()));
-	//}
-
-	//[Theory]
-	//[ClassData(typeof(SerializerTypesClassData))]
-	//public void CanUseLowMemoryCacheDurationToReduceOutOfSyncIssues(SerializerType serializerType)
-	//{
-	//	var logger = CreateXUnitLogger<FusionCache>();
-
-	//	var duration = TimeSpan.FromMinutes(10);
-	//	var memoryDuration = TimeSpan.FromSeconds(1);
-
-	//	var cacheName = Guid.NewGuid().ToString("N");
-	//	var distributedCache = CreateDistributedCache();
-
-	//	var options1 = CreateFusionCacheOptions(cacheName);
-	//	options1.SetInstanceId("C1");
-	//	options1.DefaultEntryOptions.Duration = duration;
-	//	options1.DefaultEntryOptions.MemoryCacheDuration = memoryDuration;
-	//	options1.TagsMemoryCacheDurationOverride = memoryDuration;
-	//	using var cache1 = new FusionCache(options1, logger: logger);
-	//	cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	var options2 = CreateFusionCacheOptions(cacheName);
-	//	options2.SetInstanceId("C2");
-	//	options2.DefaultEntryOptions.Duration = duration;
-	//	options2.DefaultEntryOptions.MemoryCacheDuration = memoryDuration;
-	//	options2.TagsMemoryCacheDurationOverride = memoryDuration;
-	//	using var cache2 = new FusionCache(options2, logger: logger);
-	//	cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	cache1.Set("foo", 1);
-
-	//	Assert.Equal(1, cache1.GetOrDefault<int>("foo"));
-	//	Assert.Equal(1, cache2.GetOrDefault<int>("foo"));
-
-	//	Assert.Equal(0, cache1.GetOrDefault<int>("bar"));
-	//	Assert.Equal(0, cache2.GetOrDefault<int>("bar"));
-
-	//	cache1.Set("bar", 2);
-
-	//	Assert.Equal(2, cache1.GetOrDefault<int>("bar"));
-	//	Assert.Equal(2, cache2.GetOrDefault<int>("bar"));
-
-	//	cache2.Set("foo", 3);
-
-	//	Assert.Equal(1, cache1.GetOrDefault<int>("foo"));
-	//	Assert.Equal(3, cache2.GetOrDefault<int>("foo"));
-
-	//	Thread.Sleep(memoryDuration.PlusALittleBit());
-
-	//	Assert.Equal(3, cache1.GetOrDefault<int>("foo"));
-	//	Assert.Equal(3, cache2.GetOrDefault<int>("foo"));
-
-	//	cache1.Set("foo", 123);
-	//	cache2.Set("bar", 456);
-
-	//	Thread.Sleep(memoryDuration.PlusALittleBit());
-
-	//	Assert.Equal(123, cache1.GetOrDefault<int>("foo"));
-	//	Assert.Equal(123, cache2.GetOrDefault<int>("foo"));
-
-	//	Assert.Equal(456, cache1.GetOrDefault<int>("bar"));
-	//	Assert.Equal(456, cache2.GetOrDefault<int>("bar"));
-
-	//	cache2.Clear();
-
-	//	Thread.Sleep(memoryDuration.PlusALittleBit());
-
-	//	Assert.Equal(0, cache1.GetOrDefault<int>("foo"));
-	//	Assert.Equal(0, cache2.GetOrDefault<int>("foo"));
-
-	//	Assert.Equal(0, cache1.GetOrDefault<int>("bar"));
-	//	Assert.Equal(0, cache2.GetOrDefault<int>("bar"));
-
-	//	Assert.Equal(123, cache1.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly()));
-	//	Assert.Equal(123, cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly()));
-
-	//	Assert.Equal(456, cache1.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly()));
-	//	Assert.Equal(456, cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly()));
-	//}
-
-	//[Theory]
-	//[ClassData(typeof(SerializerTypesClassData))]
-	//public async Task SpecificMemoryCacheDurationWorksAsync(SerializerType serializerType)
-	//{
-	//	var cacheName = Guid.NewGuid().ToString("N");
-
-	//	var distributedCache = CreateDistributedCache();
-
-	//	using var cacheA = new FusionCache(CreateFusionCacheOptions(cacheName));
-	//	cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	using var cacheB = new FusionCache(CreateFusionCacheOptions(cacheName));
-	//	cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	var duration = TimeSpan.FromSeconds(60);
-	//	var memoryDuration = TimeSpan.FromSeconds(1);
-	//	var entryOptions = cacheA.CreateEntryOptions().SetDuration(duration).SetMemoryCacheDuration(memoryDuration);
-
-
-	//	await cacheA.SetAsync<int>(
-	//		"foo",
-	//		1,
-	//		entryOptions
-	//	);
-
-	//	var valueA1 = await cacheA.GetOrDefaultAsync<int>("foo", options: entryOptions);
-	//	Assert.Equal(1, valueA1);
-
-	//	var valueB1 = await cacheB.GetOrDefaultAsync<int>("foo", options: entryOptions);
-	//	Assert.Equal(1, valueB1);
-
-	//	await cacheA.SetAsync<int>(
-	//		"foo",
-	//		2,
-	//		entryOptions
-	//	);
-
-	//	await Task.Delay(memoryDuration.PlusALittleBit());
-
-	//	var valueA2 = await cacheA.GetOrDefaultAsync<int>("foo", options: entryOptions);
-	//	Assert.Equal(2, valueA2);
-
-	//	var valueB2 = await cacheB.GetOrDefaultAsync<int>("foo", options: entryOptions);
-	//	Assert.Equal(2, valueB2);
-	//}
-
-	//[Theory]
-	//[ClassData(typeof(SerializerTypesClassData))]
-	//public void SpecificMemoryCacheDurationWorks(SerializerType serializerType)
-	//{
-	//	var cacheName = Guid.NewGuid().ToString("N");
-
-	//	var distributedCache = CreateDistributedCache();
-
-	//	using var cacheA = new FusionCache(CreateFusionCacheOptions(cacheName));
-	//	cacheA.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	using var cacheB = new FusionCache(CreateFusionCacheOptions(cacheName));
-	//	cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-
-	//	var duration = TimeSpan.FromSeconds(60);
-	//	var memoryDuration = TimeSpan.FromSeconds(1);
-	//	var entryOptions = cacheA.CreateEntryOptions().SetDuration(duration).SetMemoryCacheDuration(memoryDuration);
-
-
-	//	cacheA.Set<int>(
-	//		"foo",
-	//		1,
-	//		entryOptions
-	//	);
-
-	//	var valueA1 = cacheA.GetOrDefault<int>("foo", options: entryOptions);
-	//	Assert.Equal(1, valueA1);
-
-	//	var valueB1 = cacheB.GetOrDefault<int>("foo", options: entryOptions);
-	//	Assert.Equal(1, valueB1);
-
-	//	cacheA.Set<int>(
-	//		"foo",
-	//		2,
-	//		entryOptions
-	//	);
-
-	//	Thread.Sleep(memoryDuration.PlusALittleBit());
-
-	//	var valueA2 = cacheA.GetOrDefault<int>("foo", options: entryOptions);
-	//	Assert.Equal(2, valueA2);
-
-	//	var valueB2 = cacheB.GetOrDefault<int>("foo", options: entryOptions);
-	//	Assert.Equal(2, valueB2);
-	//}
 }

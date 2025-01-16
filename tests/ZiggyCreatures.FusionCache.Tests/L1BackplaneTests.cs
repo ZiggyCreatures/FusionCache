@@ -14,6 +14,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
 
@@ -39,15 +40,15 @@ public class L1BackplaneTests
 	private static readonly bool UseRedis = false;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
 
-	private IFusionCacheBackplane CreateBackplane(string connectionId)
+	private IFusionCacheBackplane CreateBackplane(string connectionId, ILogger? logger = null)
 	{
 		if (UseRedis)
-			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
+			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: (logger as ILogger<RedisBackplane>) ?? CreateXUnitLogger<RedisBackplane>());
 
-		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
+		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: (logger as ILogger<MemoryBackplane>) ?? CreateXUnitLogger<MemoryBackplane>());
 	}
 
-	private FusionCache CreateFusionCache(string? cacheName, SerializerType? serializerType, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null, IMemoryCache? memoryCache = null, string? cacheInstanceId = null)
+	private FusionCache CreateFusionCache(string? cacheName, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null, IMemoryCache? memoryCache = null, string? cacheInstanceId = null, ILogger<FusionCache>? logger = null)
 	{
 		var options = CreateFusionCacheOptions();
 
@@ -60,7 +61,7 @@ public class L1BackplaneTests
 		options.EnableSyncEventHandlersExecution = true;
 
 		setupAction?.Invoke(options);
-		var fusionCache = new FusionCache(options, memoryCache, logger: CreateXUnitLogger<FusionCache>());
+		var fusionCache = new FusionCache(options, memoryCache, logger: logger ?? CreateXUnitLogger<FusionCache>());
 		fusionCache.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		if (backplane is not null)
 			fusionCache.SetupBackplane(backplane);
@@ -74,9 +75,9 @@ public class L1BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var key = Guid.NewGuid().ToString("N");
-		using var cache1 = CreateFusionCache("C1", null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
-		using var cache2 = CreateFusionCache("C2", null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
-		using var cache2bis = CreateFusionCache("C2", null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
+		using var cache1 = CreateFusionCache("C1", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
+		using var cache2bis = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
 
 		await Task.Delay(1_000);
 
@@ -109,9 +110,9 @@ public class L1BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var key = Guid.NewGuid().ToString("N");
-		using var cache1 = CreateFusionCache("C1", null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
-		using var cache2 = CreateFusionCache("C2", null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
-		using var cache2bis = CreateFusionCache("C2", null, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
+		using var cache1 = CreateFusionCache("C1", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
+		using var cache2bis = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
 
 		Thread.Sleep(1_000);
 
@@ -144,9 +145,9 @@ public class L1BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var key = Guid.NewGuid().ToString("N");
-		using var cache1 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
-		using var cache2 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
-		using var cache3 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
+		using var cache1 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
+		using var cache2 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
+		using var cache3 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 
 		cache1.DefaultEntryOptions.SkipBackplaneNotifications = true;
 		cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
@@ -178,9 +179,9 @@ public class L1BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var key = Guid.NewGuid().ToString("N");
-		using var cache1 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
-		using var cache2 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
-		using var cache3 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
+		using var cache1 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
+		using var cache2 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
+		using var cache3 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 
 		cache1.DefaultEntryOptions.SkipBackplaneNotifications = true;
 		cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
@@ -252,11 +253,11 @@ public class L1BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 		var key = Guid.NewGuid().ToString("N");
 
-		using var cache1 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
+		using var cache1 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache1.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
-		using var cache2 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
+		using var cache2 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
@@ -331,11 +332,11 @@ public class L1BackplaneTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 		var key = Guid.NewGuid().ToString("N");
 
-		using var cache1 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
+		using var cache1 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache1.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
-		using var cache2 = CreateFusionCache(null, null, CreateBackplane(backplaneConnectionId));
+		using var cache2 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
 
@@ -401,4 +402,239 @@ public class L1BackplaneTests
 		Assert.Equal(0, bar2_3);
 		Assert.Equal(0, baz2_3);
 	}
+
+	[Fact]
+	public async Task CanRemoveByTagAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		using var cache1 = CreateFusionCache(
+			cacheName,
+			CreateBackplane(backplaneConnectionId),
+			opt =>
+			{
+				opt.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+				opt.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			},
+			cacheInstanceId: "C1",
+			logger: logger
+		);
+
+		using var cache2 = CreateFusionCache(
+			cacheName,
+			CreateBackplane(backplaneConnectionId),
+			opt =>
+			{
+				opt.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+				opt.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			},
+			cacheInstanceId: "C2",
+			logger: logger
+		);
+
+		logger.LogInformation("STEP 1");
+
+		var foo = 1;
+		var bar = 2;
+		var baz = 3;
+
+		await cache1.SetAsync<int>("foo", foo, tags: ["x", "y"]);
+		await cache1.SetAsync<int>("bar", bar, tags: ["y", "z"]);
+		await cache1.GetOrSetAsync<int>("baz", async _ => baz, tags: ["x", "z"]);
+
+		var cache1_foo_1 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache1_bar_1 = await cache1.GetOrDefaultAsync<int>("bar");
+		var cache1_baz_1 = await cache1.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, cache1_foo_1);
+		Assert.Equal(2, cache1_bar_1);
+		Assert.Equal(3, cache1_baz_1);
+
+		var cache2_foo_1 = await cache2.GetOrSetAsync<int>("foo", async _ => foo, tags: ["x", "y"]);
+		var cache2_bar_1 = await cache2.GetOrSetAsync<int>("bar", async _ => bar, tags: ["y", "z"]);
+		var cache2_baz_1 = await cache2.GetOrSetAsync<int>("baz", async _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(1, cache2_foo_1);
+		Assert.Equal(2, cache2_bar_1);
+		Assert.Equal(3, cache2_baz_1);
+
+		logger.LogInformation("STEP 2");
+
+		// REMOVE BY TAG ("x") ON CACHE 1
+		await cache1.RemoveByTagAsync("x");
+		await Task.Delay(100);
+
+		logger.LogInformation("STEP 3");
+
+		foo = 11;
+		bar = 22;
+		baz = 33;
+
+		var cache1_foo_3 = await cache1.GetOrSetAsync<int>("foo", async _ => foo, tags: ["x", "y"]);
+		var cache1_bar_3 = await cache1.GetOrSetAsync<int>("bar", async _ => bar, tags: ["y", "z"]);
+		var cache1_baz_3 = await cache1.GetOrSetAsync<int>("baz", async _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache1_foo_3);
+		Assert.Equal(2, cache1_bar_3);
+		Assert.Equal(baz, cache1_baz_3);
+
+		var cache2_foo_3 = await cache2.GetOrSetAsync<int>("foo", async _ => foo, tags: ["x", "y"]);
+		var cache2_bar_3 = await cache2.GetOrSetAsync<int>("bar", async _ => bar, tags: ["y", "z"]);
+		var cache2_baz_3 = await cache2.GetOrSetAsync<int>("baz", async _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache2_foo_3);
+		Assert.Equal(2, cache2_bar_3);
+		Assert.Equal(baz, cache2_baz_3);
+
+		logger.LogInformation("STEP 4");
+
+		// REMOVE BY TAG ("y") ON CACHE 2
+		await cache2.RemoveByTagAsync("y");
+		await Task.Delay(100);
+
+		logger.LogInformation("STEP 5");
+
+		foo = 111;
+		bar = 222;
+		baz = 333;
+
+		var cache1_foo_4 = await cache1.GetOrSetAsync<int>("foo", async _ => foo, tags: ["x", "y"]);
+		var cache1_bar_4 = await cache1.GetOrSetAsync<int>("bar", async _ => bar, tags: ["y", "z"]);
+		var cache1_baz_4 = await cache1.GetOrSetAsync<int>("baz", async _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache1_foo_4);
+		Assert.Equal(bar, cache1_bar_4);
+		Assert.Equal(33, cache1_baz_4);
+
+		var cache2_foo_4 = await cache2.GetOrSetAsync<int>("foo", async _ => foo, tags: ["x", "y"]);
+		var cache2_bar_4 = await cache2.GetOrSetAsync<int>("bar", async _ => bar, tags: ["y", "z"]);
+		var cache2_baz_4 = await cache2.GetOrSetAsync<int>("baz", async _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache2_foo_4);
+		Assert.Equal(bar, cache2_bar_4);
+		Assert.Equal(33, cache2_baz_4);
+	}
+
+	[Fact]
+	public void CanRemoveByTag()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		using var cache1 = CreateFusionCache(
+			cacheName,
+			CreateBackplane(backplaneConnectionId),
+			opt =>
+			{
+				opt.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+				opt.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			},
+			cacheInstanceId: "C1",
+			logger: logger
+		);
+
+		using var cache2 = CreateFusionCache(
+			cacheName,
+			CreateBackplane(backplaneConnectionId),
+			opt =>
+			{
+				opt.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+				opt.DefaultEntryOptions.SkipBackplaneNotifications = true;
+			},
+			cacheInstanceId: "C2",
+			logger: logger
+		);
+
+		logger.LogInformation("STEP 1");
+
+		var foo = 1;
+		var bar = 2;
+		var baz = 3;
+
+		cache1.Set<int>("foo", foo, tags: ["x", "y"]);
+		cache1.Set<int>("bar", bar, tags: ["y", "z"]);
+		cache1.GetOrSet<int>("baz", _ => baz, tags: ["x", "z"]);
+
+		var cache1_foo_1 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar_1 = cache1.GetOrDefault<int>("bar");
+		var cache1_baz_1 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache1_foo_1);
+		Assert.Equal(2, cache1_bar_1);
+		Assert.Equal(3, cache1_baz_1);
+
+		var cache2_foo_1 = cache2.GetOrSet<int>("foo", _ => foo, tags: ["x", "y"]);
+		var cache2_bar_1 = cache2.GetOrSet<int>("bar", _ => bar, tags: ["y", "z"]);
+		var cache2_baz_1 = cache2.GetOrSet<int>("baz", _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(1, cache2_foo_1);
+		Assert.Equal(2, cache2_bar_1);
+		Assert.Equal(3, cache2_baz_1);
+
+		logger.LogInformation("STEP 2");
+
+		// REMOVE BY TAG ("x") ON CACHE 1
+		cache1.RemoveByTag("x");
+		Thread.Sleep(100);
+
+		logger.LogInformation("STEP 3");
+
+		foo = 11;
+		bar = 22;
+		baz = 33;
+
+		var cache1_foo_3 = cache1.GetOrSet<int>("foo", _ => foo, tags: ["x", "y"]);
+		var cache1_bar_3 = cache1.GetOrSet<int>("bar", _ => bar, tags: ["y", "z"]);
+		var cache1_baz_3 = cache1.GetOrSet<int>("baz", _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache1_foo_3);
+		Assert.Equal(2, cache1_bar_3);
+		Assert.Equal(baz, cache1_baz_3);
+
+		var cache2_foo_3 = cache2.GetOrSet<int>("foo", _ => foo, tags: ["x", "y"]);
+		var cache2_bar_3 = cache2.GetOrSet<int>("bar", _ => bar, tags: ["y", "z"]);
+		var cache2_baz_3 = cache2.GetOrSet<int>("baz", _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache2_foo_3);
+		Assert.Equal(2, cache2_bar_3);
+		Assert.Equal(baz, cache2_baz_3);
+
+		logger.LogInformation("STEP 4");
+
+		// REMOVE BY TAG ("y") ON CACHE 2
+		cache2.RemoveByTag("y");
+		Thread.Sleep(100);
+
+		logger.LogInformation("STEP 5");
+
+		foo = 111;
+		bar = 222;
+		baz = 333;
+
+		var cache1_foo_4 = cache1.GetOrSet<int>("foo", _ => foo, tags: ["x", "y"]);
+		var cache1_bar_4 = cache1.GetOrSet<int>("bar", _ => bar, tags: ["y", "z"]);
+		var cache1_baz_4 = cache1.GetOrSet<int>("baz", _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache1_foo_4);
+		Assert.Equal(bar, cache1_bar_4);
+		Assert.Equal(33, cache1_baz_4);
+
+		var cache2_foo_4 = cache2.GetOrSet<int>("foo", _ => foo, tags: ["x", "y"]);
+		var cache2_bar_4 = cache2.GetOrSet<int>("bar", _ => bar, tags: ["y", "z"]);
+		var cache2_baz_4 = cache2.GetOrSet<int>("baz", _ => baz, tags: ["x", "z"]);
+
+		Assert.Equal(foo, cache2_foo_4);
+		Assert.Equal(bar, cache2_bar_4);
+		Assert.Equal(33, cache2_baz_4);
+	}
+
+	// TODO:
+	//CanClearWithColdStartsAsync
 }

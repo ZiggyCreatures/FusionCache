@@ -24,7 +24,9 @@ public class L1Tests
 	[Fact]
 	public async Task CanRemoveAsync()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 		await cache.SetAsync<int>("foo", 42);
 		var foo1 = await cache.GetOrDefaultAsync<int>("foo");
 		await cache.RemoveAsync("foo");
@@ -36,7 +38,9 @@ public class L1Tests
 	[Fact]
 	public void CanRemove()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 		cache.Set<int>("foo", 42);
 		var foo1 = cache.GetOrDefault<int>("foo");
 		cache.Remove("foo");
@@ -352,7 +356,7 @@ public class L1Tests
 		var initialValue = 42;
 		await cache.SetAsync<int>("foo", initialValue, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)) { IsFailSafeEnabled = true });
 		await Task.Delay(1_500);
-		var newValue = await cache.GetOrDefaultAsync<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)) { IsFailSafeEnabled = true });
+		var newValue = await cache.GetOrDefaultAsync<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		Assert.Equal(initialValue, newValue);
 	}
 
@@ -363,7 +367,7 @@ public class L1Tests
 		var initialValue = 42;
 		cache.Set<int>("foo", initialValue, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)) { IsFailSafeEnabled = true });
 		Thread.Sleep(1_500);
-		var newValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)) { IsFailSafeEnabled = true });
+		var newValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		Assert.Equal(initialValue, newValue);
 	}
 
@@ -394,12 +398,12 @@ public class L1Tests
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		await cache.SetAsync<int>("foo", 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromMinutes(1)));
-		var initialValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromMinutes(1)));
+		var initialValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		await Task.Delay(1_500);
 		var middleValue = await cache.GetOrSetAsync<int>("foo", async ct => { await Task.Delay(2_000); ct.ThrowIfCancellationRequested(); return 21; }, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(500));
-		var interstitialValue = await cache.GetOrDefaultAsync<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var interstitialValue = await cache.GetOrDefaultAsync<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		await Task.Delay(3_000);
-		var finalValue = await cache.GetOrDefaultAsync<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var finalValue = await cache.GetOrDefaultAsync<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 
 		Assert.Equal(42, initialValue);
 		Assert.Equal(42, middleValue);
@@ -412,12 +416,12 @@ public class L1Tests
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
 		cache.Set<int>("foo", 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromMinutes(1)));
-		var initialValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromMinutes(1)));
+		var initialValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		Thread.Sleep(1_500);
 		var middleValue = cache.GetOrSet<int>("foo", ct => { Thread.Sleep(2_000); ct.ThrowIfCancellationRequested(); return 21; }, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true).SetFactoryTimeoutsMs(500));
-		var interstitialValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var interstitialValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		Thread.Sleep(3_000);
-		var finalValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var finalValue = cache.GetOrDefault<int>("foo", options: new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 
 		Assert.Equal(42, initialValue);
 		Assert.Equal(42, middleValue);
@@ -609,19 +613,19 @@ public class L1Tests
 		// LET IT EXPIRE
 		await Task.Delay(duration.PlusALittleBit());
 		// CHECK EXPIRED (WITHOUT FAIL-SAFE)
-		var nope = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+		var nope = await cache.TryGetAsync<int>("foo");
 		// DO NOT ACTIVATE FAIL-SAFE AND THROTTLE DURATION
 		var default1 = await cache.GetOrDefaultAsync("foo", 1);
 		// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
-		var throttled1 = await cache.GetOrDefaultAsync("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
+		var throttled1 = await cache.GetOrDefaultAsync("foo", 1, opt => opt.SetAllowStaleOnReadOnly());
 		// WAIT A LITTLE BIT (LESS THAN THE DURATION)
 		await Task.Delay(100);
 		// GET THE THROTTLED (NON EXPIRED) VALUE
-		var throttled2 = await cache.GetOrDefaultAsync("foo", 2, opt => opt.SetFailSafe(true));
+		var throttled2 = await cache.GetOrDefaultAsync("foo", 2, opt => opt.SetAllowStaleOnReadOnly());
 		// LET THE THROTTLE DURATION PASS
 		await Task.Delay(throttleDuration);
 		// FALLBACK TO THE DEFAULT VALUE
-		var default3 = await cache.GetOrDefaultAsync("foo", 3, opt => opt.SetFailSafe(false));
+		var default3 = await cache.GetOrDefaultAsync("foo", 3);
 
 		Assert.False(nope.HasValue);
 		Assert.Equal(1, default1);
@@ -642,19 +646,19 @@ public class L1Tests
 		// LET IT EXPIRE
 		Thread.Sleep(duration.PlusALittleBit());
 		// CHECK EXPIRED (WITHOUT FAIL-SAFE)
-		var nope = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+		var nope = cache.TryGet<int>("foo");
 		// DO NOT ACTIVATE FAIL-SAFE AND THROTTLE DURATION
 		var default1 = cache.GetOrDefault("foo", 1);
 		// ACTIVATE FAIL-SAFE AND RE-STORE THE VALUE WITH THROTTLE DURATION
-		var throttled1 = cache.GetOrDefault("foo", 1, opt => opt.SetFailSafe(true, throttleDuration: throttleDuration));
+		var throttled1 = cache.GetOrDefault("foo", 1, opt => opt.SetAllowStaleOnReadOnly());
 		// WAIT A LITTLE BIT (LESS THAN THE DURATION)
 		Thread.Sleep(100);
 		// GET THE THROTTLED (NON EXPIRED) VALUE
-		var throttled2 = cache.GetOrDefault("foo", 2, opt => opt.SetFailSafe(true));
+		var throttled2 = cache.GetOrDefault("foo", 2, opt => opt.SetAllowStaleOnReadOnly());
 		// LET THE THROTTLE DURATION PASS
 		Thread.Sleep(throttleDuration);
 		// FALLBACK TO THE DEFAULT VALUE
-		var default3 = cache.GetOrDefault("foo", 3, opt => opt.SetFailSafe(false));
+		var default3 = cache.GetOrDefault("foo", 3);
 
 		Assert.False(nope.HasValue);
 		Assert.Equal(1, default1);
@@ -869,6 +873,8 @@ public class L1Tests
 
 		var foo1 = await cache.GetOrSetAsync<int>("foo", async _ => 1);
 
+		Assert.Equal(1, foo1);
+
 		await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
 
 		var foo2 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
@@ -879,16 +885,17 @@ public class L1Tests
 			return 2;
 		});
 
-		var foo3 = await cache.TryGetAsync<int>("foo");
+		Assert.Equal(2, foo2);
+
+		var foo3 = await cache.TryGetAsync<int>("foo", options => options.SetAllowStaleOnReadOnly());
+
+		Assert.True(foo3.HasValue);
+		Assert.Equal(1, foo3.Value);
 
 		await Task.Delay(cache.DefaultEntryOptions.FailSafeThrottleDuration.PlusALittleBit());
 
 		var foo4 = await cache.GetOrSetAsync<int>("foo", async _ => 4);
 
-		Assert.Equal(1, foo1);
-		Assert.Equal(2, foo2);
-		Assert.True(foo3.HasValue);
-		Assert.Equal(1, foo3.Value);
 		Assert.Equal(4, foo4);
 	}
 
@@ -902,6 +909,8 @@ public class L1Tests
 
 		var foo1 = cache.GetOrSet<int>("foo", _ => 1);
 
+		Assert.Equal(1, foo1);
+
 		Thread.Sleep(TimeSpan.FromSeconds(1).PlusALittleBit());
 
 		var foo2 = cache.GetOrSet<int>("foo", (ctx, _) =>
@@ -912,16 +921,18 @@ public class L1Tests
 			return 2;
 		});
 
-		var foo3 = cache.TryGet<int>("foo");
+
+		Assert.Equal(2, foo2);
+
+		var foo3 = cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly());
+
+		Assert.True(foo3.HasValue);
+		Assert.Equal(1, foo3.Value);
 
 		Thread.Sleep(cache.DefaultEntryOptions.FailSafeThrottleDuration.PlusALittleBit());
 
 		var foo4 = cache.GetOrSet<int>("foo", _ => 4);
 
-		Assert.Equal(1, foo1);
-		Assert.Equal(2, foo2);
-		Assert.True(foo3.HasValue);
-		Assert.Equal(1, foo3.Value);
 		Assert.Equal(4, foo4);
 	}
 
@@ -1035,9 +1046,9 @@ public class L1Tests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var initialValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)));
 		await Task.Delay(1_500);
-		var maybeValue = await cache.TryGetAsync<int>("foo", opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var maybeValue = await cache.TryGetAsync<int>("foo", opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		var defaultValue1 = await cache.GetOrDefaultAsync<int>("foo", 1);
-		var defaultValue2 = await cache.GetOrDefaultAsync<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var defaultValue2 = await cache.GetOrDefaultAsync<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		var defaultValue3 = await cache.GetOrDefaultAsync<int>("foo", 3);
 
 		Assert.True(maybeValue.HasValue);
@@ -1053,9 +1064,9 @@ public class L1Tests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var initialValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(TimeSpan.FromSeconds(1)).SetFailSafe(true, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30)));
 		Thread.Sleep(1_500);
-		var maybeValue = cache.TryGet<int>("foo", opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var maybeValue = cache.TryGet<int>("foo", opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		var defaultValue1 = cache.GetOrDefault<int>("foo", 1);
-		var defaultValue2 = cache.GetOrDefault<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true));
+		var defaultValue2 = cache.GetOrDefault<int>("foo", 2, opt => opt.SetDuration(TimeSpan.FromSeconds(1)).SetAllowStaleOnReadOnly());
 		var defaultValue3 = cache.GetOrDefault<int>("foo", 3);
 
 		Assert.True(maybeValue.HasValue);
@@ -1160,7 +1171,7 @@ public class L1Tests
 	}
 
 	[Fact]
-	public async Task CanHandleConditionalRefreshAsync()
+	public async Task CanConditionalRefreshAsync()
 	{
 		static async Task<int> FakeGetAsync(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
 		{
@@ -1233,7 +1244,7 @@ public class L1Tests
 	}
 
 	[Fact]
-	public void CanHandleConditionalRefresh()
+	public void CanConditionalRefresh()
 	{
 		static int FakeGet(FusionCacheFactoryExecutionContext<int> ctx, FakeHttpEndpoint endpoint)
 		{
@@ -1306,12 +1317,14 @@ public class L1Tests
 	}
 
 	[Fact]
-	public async Task CanHandleEagerRefreshAsync()
+	public async Task CanEagerRefreshAsync()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var duration = TimeSpan.FromSeconds(2);
 		var eagerRefreshThreshold = 0.2f;
 
-		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -1327,7 +1340,9 @@ public class L1Tests
 		await Task.Delay(eagerDuration);
 
 		// EAGER REFRESH KICKS IN
-		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks);
+		var eagerRefreshValue = DateTimeOffset.UtcNow.Ticks;
+		logger.LogInformation("EAGER REFRESH VALUE: {0}", eagerRefreshValue);
+		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => eagerRefreshValue);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
 		await Task.Delay(TimeSpan.FromMilliseconds(250));
@@ -1347,17 +1362,20 @@ public class L1Tests
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
 		Assert.True(v4 > v3);
+		Assert.Equal(eagerRefreshValue, v4);
 		Assert.True(v5 > v4);
 		Assert.Equal(v5, v6);
 	}
 
 	[Fact]
-	public void CanHandleEagerRefresh()
+	public void CanEagerRefresh()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var duration = TimeSpan.FromSeconds(2);
 		var eagerRefreshThreshold = 0.2f;
 
-		using var cache = new FusionCache(new FusionCacheOptions());
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -1373,7 +1391,9 @@ public class L1Tests
 		Thread.Sleep(eagerDuration);
 
 		// EAGER REFRESH KICKS IN
-		var v3 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks);
+		var eagerRefreshValue = DateTimeOffset.UtcNow.Ticks;
+		logger.LogInformation("EAGER REFRESH VALUE: {0}", eagerRefreshValue);
+		var v3 = cache.GetOrSet<long>("foo", _ => eagerRefreshValue);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
 		Thread.Sleep(TimeSpan.FromMilliseconds(250));
@@ -1393,12 +1413,13 @@ public class L1Tests
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
 		Assert.True(v4 > v3);
+		Assert.Equal(eagerRefreshValue, v4);
 		Assert.True(v5 > v4);
 		Assert.Equal(v5, v6);
 	}
 
 	[Fact]
-	public async Task CanHandleEagerRefreshWithInfiniteDurationAsync()
+	public async Task CanEagerRefreshWithInfiniteDurationAsync()
 	{
 		var duration = TimeSpan.MaxValue;
 		var eagerRefreshThreshold = 0.5f;
@@ -1415,7 +1436,7 @@ public class L1Tests
 	}
 
 	[Fact]
-	public void CanHandleEagerRefreshWithInfiniteDuration()
+	public void CanEagerRefreshWithInfiniteDuration()
 	{
 		var duration = TimeSpan.MaxValue;
 		var eagerRefreshThreshold = 0.5f;
@@ -1432,7 +1453,7 @@ public class L1Tests
 	}
 
 	[Fact]
-	public async Task CanHandleEagerRefreshNoCancellationAsync()
+	public async Task CanEagerRefreshNoCancellationAsync()
 	{
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
@@ -1510,7 +1531,7 @@ public class L1Tests
 	}
 
 	[Fact]
-	public void CanHandleEagerRefreshNoCancellation()
+	public void CanEagerRefreshNoCancellation()
 	{
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
@@ -1729,10 +1750,10 @@ public class L1Tests
 		cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 
 		await cache.SetAsync<int>("foo", 42);
-		var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(false));
 		await cache.ExpireAsync("foo");
-		var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
-		var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFoo2 = await cache.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(false));
+		var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
 		Assert.True(maybeFoo1.HasValue);
 		Assert.Equal(42, maybeFoo1.Value);
 		Assert.False(maybeFoo2.HasValue);
@@ -1748,10 +1769,10 @@ public class L1Tests
 		cache.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 
 		cache.Set<int>("foo", 42);
-		var maybeFoo1 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFoo1 = cache.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly(false));
 		cache.Expire("foo");
-		var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(false));
-		var maybeFoo3 = cache.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+		var maybeFoo2 = cache.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly(false));
+		var maybeFoo3 = cache.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
 		Assert.True(maybeFoo1.HasValue);
 		Assert.Equal(42, maybeFoo1.Value);
 		Assert.False(maybeFoo2.HasValue);
@@ -2220,6 +2241,106 @@ public class L1Tests
 	}
 
 	[Fact]
+	public async Task CanRemoveByTagMultiAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions() { IncludeTagsInLogs = true }, logger: logger);
+
+		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"]);
+		await cache.SetAsync<int>("bar", 2, tags: ["y"]);
+		await cache.GetOrSetAsync<int>("baz", async _ => 3, tags: ["z"]);
+
+		var foo1 = await cache.GetOrDefaultAsync<int>("foo");
+		var bar1 = await cache.GetOrDefaultAsync<int>("bar");
+		var baz1 = await cache.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		await cache.RemoveByTagAsync(["x", "z"]);
+
+		var foo2 = await cache.GetOrDefaultAsync<int>("foo");
+		var bar2 = await cache.GetOrDefaultAsync<int>("bar");
+		var baz2 = await cache.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(0, baz2);
+
+		await cache.RemoveByTagAsync((string[])null!);
+		await cache.RemoveByTagAsync([]);
+
+		var foo4 = await cache.GetOrDefaultAsync<int>("foo");
+		var bar4 = await cache.GetOrDefaultAsync<int>("bar");
+		var baz4 = await cache.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, foo4);
+		Assert.Equal(2, bar4);
+		Assert.Equal(0, baz4);
+
+		await cache.RemoveByTagAsync(["y", "non-existing"]);
+
+		var foo5 = await cache.GetOrDefaultAsync<int>("foo");
+		var bar5 = await cache.GetOrDefaultAsync<int>("bar");
+		var baz5 = await cache.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, foo5);
+		Assert.Equal(0, bar5);
+		Assert.Equal(0, baz5);
+	}
+
+	[Fact]
+	public void CanRemoveByTagMulti()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions() { IncludeTagsInLogs = true }, logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"]);
+		cache.Set<int>("bar", 2, tags: ["y"]);
+		cache.GetOrSet<int>("baz", _ => 3, tags: ["z"]);
+
+		var foo1 = cache.GetOrDefault<int>("foo");
+		var bar1 = cache.GetOrDefault<int>("bar");
+		var baz1 = cache.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+		Assert.Equal(3, baz1);
+
+		cache.RemoveByTag(["x", "z"]);
+
+		var foo2 = cache.GetOrDefault<int>("foo");
+		var bar2 = cache.GetOrDefault<int>("bar");
+		var baz2 = cache.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, foo2);
+		Assert.Equal(2, bar2);
+		Assert.Equal(0, baz2);
+
+		cache.RemoveByTag((string[])null!);
+		cache.RemoveByTag([]);
+
+		var foo4 = cache.GetOrDefault<int>("foo");
+		var bar4 = cache.GetOrDefault<int>("bar");
+		var baz4 = cache.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, foo4);
+		Assert.Equal(2, bar4);
+		Assert.Equal(0, baz4);
+
+		cache.RemoveByTag(["y", "non-existing"]);
+
+		var foo5 = cache.GetOrDefault<int>("foo");
+		var bar5 = cache.GetOrDefault<int>("bar");
+		var baz5 = cache.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, foo5);
+		Assert.Equal(0, bar5);
+		Assert.Equal(0, baz5);
+	}
+
+	[Fact]
 	public async Task CanClearAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
@@ -2387,7 +2508,7 @@ public class L1Tests
 
 		await Task.Delay(TimeSpan.FromMilliseconds(100));
 
-		var foo2 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(true));
+		var foo2 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
 
 		Assert.Equal(1, foo2);
 
@@ -2395,7 +2516,7 @@ public class L1Tests
 
 		await Task.Delay(TimeSpan.FromMilliseconds(100));
 
-		var foo3 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetFailSafe(true));
+		var foo3 = await cache.GetOrDefaultAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
 
 		Assert.Equal(0, foo3);
 	}
@@ -2418,7 +2539,7 @@ public class L1Tests
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
-		var foo2 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(true));
+		var foo2 = cache.GetOrDefault<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
 
 		Assert.Equal(1, foo2);
 
@@ -2426,7 +2547,7 @@ public class L1Tests
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
-		var foo3 = cache.GetOrDefault<int>("foo", options => options.SetFailSafe(true));
+		var foo3 = cache.GetOrDefault<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
 
 		Assert.Equal(0, foo3);
 	}

@@ -1148,6 +1148,222 @@ public class L1L2BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanRemoveByTagMultiAsync(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
+		var barKey = "bar:" + Guid.NewGuid().ToString("N");
+		var bazKey = "baz:" + Guid.NewGuid().ToString("N");
+
+		var xTag = "tag:x:" + Guid.NewGuid().ToString("N");
+		var yTag = "tag:y:" + Guid.NewGuid().ToString("N");
+		var zTag = "tag:z:" + Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+
+		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
+		await cache1.SetAsync<int>("bar", 2, tags: ["y"]);
+		await cache1.GetOrSetAsync<int>("baz", async _ => 3, tags: ["z"]);
+
+		await Task.Delay(100);
+
+		var cache1_foo1 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache1_bar1 = await cache1.GetOrDefaultAsync<int>("bar");
+		var cache1_baz1 = await cache1.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, cache1_foo1);
+		Assert.Equal(2, cache1_bar1);
+		Assert.Equal(3, cache1_baz1);
+
+		var cache2_foo1 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache2_bar1 = await cache1.GetOrDefaultAsync<int>("bar");
+		var cache2_baz1 = await cache1.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, cache2_foo1);
+		Assert.Equal(2, cache2_bar1);
+		Assert.Equal(3, cache2_baz1);
+
+		var cache3_foo1 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache3_bar1 = await cache1.GetOrDefaultAsync<int>("bar");
+		var cache3_baz1 = await cache1.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(1, cache3_foo1);
+		Assert.Equal(2, cache3_bar1);
+		Assert.Equal(3, cache3_baz1);
+
+		await cache1.RemoveByTagAsync(["x", "z"]);
+		await Task.Delay(100);
+
+		var cache2_foo2 = await cache2.GetOrDefaultAsync<int>("foo");
+		var cache2_bar2 = await cache2.GetOrDefaultAsync<int>("bar");
+		var cache2_baz2 = await cache2.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, cache2_foo2);
+		Assert.Equal(2, cache2_bar2);
+		Assert.Equal(0, cache2_baz2);
+
+		var cache3_foo2 = await cache2.GetOrDefaultAsync<int>("foo");
+		var cache3_bar2 = await cache2.GetOrDefaultAsync<int>("bar");
+		var cache3_baz2 = await cache2.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, cache3_foo2);
+		Assert.Equal(2, cache3_bar2);
+		Assert.Equal(0, cache3_baz2);
+
+		await cache3.RemoveByTagAsync((string[])null!);
+		await Task.Delay(100);
+		await cache3.RemoveByTagAsync([]);
+		await Task.Delay(100);
+
+		var cache1_foo3 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache2_bar3 = await cache2.GetOrDefaultAsync<int>("bar");
+		var cache3_baz3 = await cache3.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, cache1_foo3);
+		Assert.Equal(2, cache2_bar3);
+		Assert.Equal(0, cache3_baz3);
+
+		await cache3.RemoveByTagAsync(["y", "non-existing"]);
+		await Task.Delay(100);
+
+		var cache1_foo5 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache1_bar5 = await cache1.GetOrDefaultAsync<int>("bar");
+		var cache1_baz5 = await cache1.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, cache1_foo5);
+		Assert.Equal(0, cache1_bar5);
+		Assert.Equal(0, cache1_baz5);
+
+		var cache2_foo5 = await cache2.GetOrDefaultAsync<int>("foo");
+		var cache2_bar5 = await cache2.GetOrDefaultAsync<int>("bar");
+		var cache2_baz5 = await cache2.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, cache2_foo5);
+		Assert.Equal(0, cache2_bar5);
+		Assert.Equal(0, cache2_baz5);
+
+		var cache3_foo5 = await cache3.GetOrDefaultAsync<int>("foo");
+		var cache3_bar5 = await cache3.GetOrDefaultAsync<int>("bar");
+		var cache3_baz5 = await cache3.GetOrDefaultAsync<int>("baz");
+
+		Assert.Equal(0, cache3_foo5);
+		Assert.Equal(0, cache3_bar5);
+		Assert.Equal(0, cache3_baz5);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanRemoveByTagMulti(SerializerType serializerType)
+	{
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
+		var barKey = "bar:" + Guid.NewGuid().ToString("N");
+		var bazKey = "baz:" + Guid.NewGuid().ToString("N");
+
+		var xTag = "tag:x:" + Guid.NewGuid().ToString("N");
+		var yTag = "tag:y:" + Guid.NewGuid().ToString("N");
+		var zTag = "tag:z:" + Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+
+		cache1.Set<int>("foo", 1, tags: ["x", "y"]);
+		cache1.Set<int>("bar", 2, tags: ["y"]);
+		cache1.GetOrSet<int>("baz", _ => 3, tags: ["z"]);
+
+		Thread.Sleep(100);
+
+		var cache1_foo1 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar1 = cache1.GetOrDefault<int>("bar");
+		var cache1_baz1 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache1_foo1);
+		Assert.Equal(2, cache1_bar1);
+		Assert.Equal(3, cache1_baz1);
+
+		var cache2_foo1 = cache1.GetOrDefault<int>("foo");
+		var cache2_bar1 = cache1.GetOrDefault<int>("bar");
+		var cache2_baz1 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache2_foo1);
+		Assert.Equal(2, cache2_bar1);
+		Assert.Equal(3, cache2_baz1);
+
+		var cache3_foo1 = cache1.GetOrDefault<int>("foo");
+		var cache3_bar1 = cache1.GetOrDefault<int>("bar");
+		var cache3_baz1 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache3_foo1);
+		Assert.Equal(2, cache3_bar1);
+		Assert.Equal(3, cache3_baz1);
+
+		cache1.RemoveByTag(["x", "z"]);
+		Thread.Sleep(100);
+
+		var cache2_foo2 = cache2.GetOrDefault<int>("foo");
+		var cache2_bar2 = cache2.GetOrDefault<int>("bar");
+		var cache2_baz2 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, cache2_foo2);
+		Assert.Equal(2, cache2_bar2);
+		Assert.Equal(0, cache2_baz2);
+
+		var cache3_foo2 = cache2.GetOrDefault<int>("foo");
+		var cache3_bar2 = cache2.GetOrDefault<int>("bar");
+		var cache3_baz2 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, cache3_foo2);
+		Assert.Equal(2, cache3_bar2);
+		Assert.Equal(0, cache3_baz2);
+
+		cache3.RemoveByTag((string[])null!);
+		Thread.Sleep(100);
+		cache3.RemoveByTag([]);
+		Thread.Sleep(100);
+
+		var cache1_foo3 = cache1.GetOrDefault<int>("foo");
+		var cache2_bar3 = cache2.GetOrDefault<int>("bar");
+		var cache3_baz3 = cache3.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, cache1_foo3);
+		Assert.Equal(2, cache2_bar3);
+		Assert.Equal(0, cache3_baz3);
+
+		cache3.RemoveByTag(["y", "non-existing"]);
+		Thread.Sleep(100);
+
+		var cache1_foo5 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar5 = cache1.GetOrDefault<int>("bar");
+		var cache1_baz5 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, cache1_foo5);
+		Assert.Equal(0, cache1_bar5);
+		Assert.Equal(0, cache1_baz5);
+
+		var cache2_foo5 = cache2.GetOrDefault<int>("foo");
+		var cache2_bar5 = cache2.GetOrDefault<int>("bar");
+		var cache2_baz5 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, cache2_foo5);
+		Assert.Equal(0, cache2_bar5);
+		Assert.Equal(0, cache2_baz5);
+
+		var cache3_foo5 = cache3.GetOrDefault<int>("foo");
+		var cache3_bar5 = cache3.GetOrDefault<int>("bar");
+		var cache3_baz5 = cache3.GetOrDefault<int>("baz");
+
+		Assert.Equal(0, cache3_foo5);
+		Assert.Equal(0, cache3_bar5);
+		Assert.Equal(0, cache3_baz5);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task RemoveByTagDoesNotRemoveTaggingDataAsync(SerializerType serializerType)
 	{
 		var cacheName = Guid.NewGuid().ToString("N");
@@ -1270,75 +1486,93 @@ public class L1L2BackplaneTests
 
 		await cache1.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 		await cache1.SetAsync<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
-		await cache1.SetAsync<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 
 		logger.LogInformation("STEP 2");
 
-		var foo1_1 = await cache1.GetOrDefaultAsync<int>("foo");
-		var bar1_1 = await cache1.GetOrDefaultAsync<int>("bar");
-		var baz1_1 = await cache1.GetOrDefaultAsync<int>("baz");
+		var cache1_foo_1 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache1_bar_1 = await cache1.GetOrDefaultAsync<int>("bar");
 
-		Assert.Equal(1, foo1_1);
-		Assert.Equal(2, bar1_1);
-		Assert.Equal(3, baz1_1);
+		Assert.Equal(1, cache1_foo_1);
+		Assert.Equal(2, cache1_bar_1);
 
 		logger.LogInformation("STEP 3");
 
-		var foo2_1 = await cache2.GetOrDefaultAsync<int>("foo");
-		var bar2_1 = await cache2.GetOrDefaultAsync<int>("bar");
-		var baz2_1 = await cache2.GetOrDefaultAsync<int>("baz");
+		var cache2_foo_1 = await cache2.GetOrDefaultAsync<int>("foo");
+		var cache2_bar_1 = await cache2.GetOrDefaultAsync<int>("bar");
 
-		Assert.Equal(1, foo2_1);
-		Assert.Equal(2, bar2_1);
-		Assert.Equal(3, baz2_1);
+		Assert.Equal(2, cache2_bar_1);
+		Assert.Equal(1, cache2_foo_1);
 
 		logger.LogInformation("STEP 4");
 
 		await cache2.ClearAsync();
-
 		await Task.Delay(TimeSpan.FromMilliseconds(100));
 
 		logger.LogInformation("STEP 5");
 
 		await cache2.SetAsync<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
 
 		logger.LogInformation("STEP 6");
 
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		var cache1_foo_2 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache1_bar_2 = await cache1.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, cache1_foo_2);
+		Assert.Equal(22, cache1_bar_2);
+
+		var cache2_foo_2 = await cache2.GetOrDefaultAsync<int>("foo");
+		var cache2_bar_2 = await cache2.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, cache2_foo_2);
+		Assert.Equal(22, cache2_bar_2);
 
 		logger.LogInformation("STEP 7");
 
-		var foo1_2 = await cache1.GetOrDefaultAsync<int>("foo");
-		var bar1_2 = await cache1.GetOrDefaultAsync<int>("bar");
-		var baz1_2 = await cache1.GetOrDefaultAsync<int>("baz");
+		var cache1_foo_3 = await cache1.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache1_bar_3 = await cache1.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
 
-		Assert.Equal(0, foo1_2);
-		Assert.Equal(22, bar1_2);
-		Assert.Equal(0, baz1_2);
+		Assert.Equal(1, cache1_foo_3);
+		Assert.Equal(22, cache1_bar_3);
 
-		var foo2_2 = await cache2.GetOrDefaultAsync<int>("foo");
-		var bar2_2 = await cache2.GetOrDefaultAsync<int>("bar");
-		var baz2_2 = await cache2.GetOrDefaultAsync<int>("baz");
+		var cache2_foo_3 = await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache2_bar_3 = await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
 
-		Assert.Equal(0, foo2_2);
-		Assert.Equal(22, bar2_2);
-		Assert.Equal(0, baz2_2);
+		Assert.Equal(1, cache2_foo_3);
+		Assert.Equal(22, cache2_bar_3);
 
-		var foo1_3 = await cache1.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
-		var bar1_3 = await cache1.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
-		var baz1_3 = await cache1.GetOrDefaultAsync<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+		logger.LogInformation("STEP 8");
 
-		Assert.Equal(1, foo1_3);
-		Assert.Equal(22, bar1_3);
-		Assert.Equal(3, baz1_3);
+		await cache2.ClearAsync(false);
+		await Task.Delay(TimeSpan.FromMilliseconds(100));
 
-		var foo2_3 = await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
-		var bar2_3 = await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
-		var baz2_3 = await cache2.GetOrDefaultAsync<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+		logger.LogInformation("STEP 9");
 
-		Assert.Equal(1, foo2_3);
-		Assert.Equal(22, bar2_3);
-		Assert.Equal(3, baz2_3);
+		var cache1_foo_4 = await cache1.GetOrDefaultAsync<int>("foo");
+		var cache1_bar_4 = await cache1.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, cache1_foo_4);
+		Assert.Equal(0, cache1_bar_4);
+
+		var cache2_foo_4 = await cache2.GetOrDefaultAsync<int>("foo");
+		var cache2_bar_4 = await cache2.GetOrDefaultAsync<int>("bar");
+
+		Assert.Equal(0, cache2_foo_4);
+		Assert.Equal(0, cache2_bar_4);
+
+		logger.LogInformation("STEP 10");
+
+		var cache1_foo_5 = await cache1.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache1_bar_5 = await cache1.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, cache1_foo_5);
+		Assert.Equal(0, cache1_bar_5);
+
+		var cache2_foo_5 = await cache2.GetOrDefaultAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache2_bar_5 = await cache2.GetOrDefaultAsync<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, cache2_foo_5);
+		Assert.Equal(0, cache2_bar_5);
 	}
 
 	[Theory]
@@ -1367,75 +1601,93 @@ public class L1L2BackplaneTests
 
 		cache1.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 		cache1.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
-		cache1.Set<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 
 		logger.LogInformation("STEP 2");
 
-		var foo1_1 = cache1.GetOrDefault<int>("foo");
-		var bar1_1 = cache1.GetOrDefault<int>("bar");
-		var baz1_1 = cache1.GetOrDefault<int>("baz");
+		var cache1_foo_1 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar_1 = cache1.GetOrDefault<int>("bar");
 
-		Assert.Equal(1, foo1_1);
-		Assert.Equal(2, bar1_1);
-		Assert.Equal(3, baz1_1);
+		Assert.Equal(1, cache1_foo_1);
+		Assert.Equal(2, cache1_bar_1);
 
 		logger.LogInformation("STEP 3");
 
-		var foo2_1 = cache2.GetOrDefault<int>("foo");
-		var bar2_1 = cache2.GetOrDefault<int>("bar");
-		var baz2_1 = cache2.GetOrDefault<int>("baz");
+		var cache2_foo_1 = cache2.GetOrDefault<int>("foo");
+		var cache2_bar_1 = cache2.GetOrDefault<int>("bar");
 
-		Assert.Equal(1, foo2_1);
-		Assert.Equal(2, bar2_1);
-		Assert.Equal(3, baz2_1);
+		Assert.Equal(2, cache2_bar_1);
+		Assert.Equal(1, cache2_foo_1);
 
 		logger.LogInformation("STEP 4");
 
 		cache2.Clear();
-
 		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
 		logger.LogInformation("STEP 5");
 
 		cache2.Set<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
 		logger.LogInformation("STEP 6");
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		var cache1_foo_2 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar_2 = cache1.GetOrDefault<int>("bar");
+
+		Assert.Equal(0, cache1_foo_2);
+		Assert.Equal(22, cache1_bar_2);
+
+		var cache2_foo_2 = cache2.GetOrDefault<int>("foo");
+		var cache2_bar_2 = cache2.GetOrDefault<int>("bar");
+
+		Assert.Equal(0, cache2_foo_2);
+		Assert.Equal(22, cache2_bar_2);
 
 		logger.LogInformation("STEP 7");
 
-		var foo1_2 = cache1.GetOrDefault<int>("foo");
-		var bar1_2 = cache1.GetOrDefault<int>("bar");
-		var baz1_2 = cache1.GetOrDefault<int>("baz");
+		var cache1_foo_3 = cache1.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache1_bar_3 = cache1.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
 
-		Assert.Equal(0, foo1_2);
-		Assert.Equal(22, bar1_2);
-		Assert.Equal(0, baz1_2);
+		Assert.Equal(1, cache1_foo_3);
+		Assert.Equal(22, cache1_bar_3);
 
-		var foo2_2 = cache2.GetOrDefault<int>("foo");
-		var bar2_2 = cache2.GetOrDefault<int>("bar");
-		var baz2_2 = cache2.GetOrDefault<int>("baz");
+		var cache2_foo_3 = cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache2_bar_3 = cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
 
-		Assert.Equal(0, foo2_2);
-		Assert.Equal(22, bar2_2);
-		Assert.Equal(0, baz2_2);
+		Assert.Equal(1, cache2_foo_3);
+		Assert.Equal(22, cache2_bar_3);
 
-		var foo1_3 = cache1.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
-		var bar1_3 = cache1.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
-		var baz1_3 = cache1.GetOrDefault<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+		logger.LogInformation("STEP 8");
 
-		Assert.Equal(1, foo1_3);
-		Assert.Equal(22, bar1_3);
-		Assert.Equal(3, baz1_3);
+		cache2.Clear(false);
+		Thread.Sleep(TimeSpan.FromMilliseconds(100));
 
-		var foo2_3 = cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
-		var bar2_3 = cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
-		var baz2_3 = cache2.GetOrDefault<int>("baz", opt => opt.SetAllowStaleOnReadOnly());
+		logger.LogInformation("STEP 9");
 
-		Assert.Equal(1, foo2_3);
-		Assert.Equal(22, bar2_3);
-		Assert.Equal(3, baz2_3);
+		var cache1_foo_4 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar_4 = cache1.GetOrDefault<int>("bar");
+
+		Assert.Equal(0, cache1_foo_4);
+		Assert.Equal(0, cache1_bar_4);
+
+		var cache2_foo_4 = cache2.GetOrDefault<int>("foo");
+		var cache2_bar_4 = cache2.GetOrDefault<int>("bar");
+
+		Assert.Equal(0, cache2_foo_4);
+		Assert.Equal(0, cache2_bar_4);
+
+		logger.LogInformation("STEP 10");
+
+		var cache1_foo_5 = cache1.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache1_bar_5 = cache1.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, cache1_foo_5);
+		Assert.Equal(0, cache1_bar_5);
+
+		var cache2_foo_5 = cache2.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+		var cache2_bar_5 = cache2.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, cache2_foo_5);
+		Assert.Equal(0, cache2_bar_5);
 	}
 
 	[Theory]
