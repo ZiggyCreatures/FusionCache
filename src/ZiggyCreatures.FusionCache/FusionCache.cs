@@ -68,7 +68,7 @@ public sealed partial class FusionCache
 
 	internal readonly string TagInternalCacheKeyPrefix;
 
-	internal const string ClearRemoveTag = "**";
+	internal const string ClearRemoveTag = "!";
 	internal readonly string ClearRemoveTagCacheKey;
 	internal readonly string ClearRemoveTagInternalCacheKey;
 	internal long ClearRemoveTimestamp;
