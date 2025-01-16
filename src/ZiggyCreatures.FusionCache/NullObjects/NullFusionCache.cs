@@ -173,7 +173,19 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
+	public ValueTask RemoveByTagAsync(IEnumerable<string> tags, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
 	public void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		// EMPTY
+	}
+
+	/// <inheritdoc/>
+	public void RemoveByTag(IEnumerable<string> tags, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
 		// EMPTY
 	}

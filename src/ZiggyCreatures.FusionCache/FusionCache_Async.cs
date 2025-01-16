@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -995,6 +996,32 @@ public partial class FusionCache
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 			activity?.AddException(exc);
 			throw;
+		}
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask RemoveByTagAsync(IEnumerable<string>? tags, FusionCacheEntryOptions? options = null, CancellationToken token = default)
+	{
+		CheckTaggingEnabled();
+
+		if (tags is null)
+			return;
+
+		if (tags is ICollection<string> tags2)
+		{
+			if (tags2.Count == 0)
+				return;
+
+			if (tags2.Count == 1)
+			{
+				await RemoveByTagAsync(tags2.First(), options, token).ConfigureAwait(false);
+				return;
+			}
+		}
+
+		foreach (var tag in tags)
+		{
+			await RemoveByTagAsync(tag, options, token).ConfigureAwait(false);
 		}
 	}
 

@@ -209,21 +209,42 @@ public interface IFusionCache
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
-	/// <param name="tag">The tag to use to identify the entries to remove.</param>
+	/// <param name="tag">The tag used by the entries to remove.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
+	/// Remove all entries tagged with the specified <paramref name="tags"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	/// <param name="tags">The tags used by the entries to remove.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
+	ValueTask RemoveByTagAsync(IEnumerable<string> tags, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+	/// <summary>
 	/// Expire all entries tagged with the specified <paramref name="tag"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
-	/// <param name="tag">The tag to use to identify the entries to remove.</param>
+	/// <param name="tag">The tag used by the entries to remove.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default);
+
+	/// <summary>
+	/// Remove all entries tagged with the specified <paramref name="tags"/>: for each entry, that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	/// <param name="tags">The tags used by the entries to remove.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
+	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
+	void RemoveByTag(IEnumerable<string> tags, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	// CLEAR
 
