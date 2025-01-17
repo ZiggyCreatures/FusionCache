@@ -634,7 +634,4 @@ public class L1BackplaneTests
 		Assert.Equal(bar, cache2_bar_4);
 		Assert.Equal(33, cache2_baz_4);
 	}
-
-	// TODO:
-	//CanClearWithColdStartsAsync
 }
