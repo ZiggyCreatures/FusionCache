@@ -144,7 +144,7 @@ internal static class FusionCacheInternalUtils
 		;
 	}
 
-	public static string? ToLogString_Expiration(this DateTimeOffset dt)
+	public static string ToLogString_Expiration(this DateTimeOffset dt)
 	{
 		var now = DateTimeOffset.UtcNow;
 		var delta = dt - now;
@@ -164,7 +164,7 @@ internal static class FusionCacheInternalUtils
 		return dt.ToString(DateTimeOffsetFormatString);
 	}
 
-	public static string? ToLogString_Expiration(this DateTimeOffset? dt)
+	public static string ToLogString_Expiration(this DateTimeOffset? dt)
 	{
 		if (dt.HasValue == false)
 			return "/";
@@ -172,12 +172,12 @@ internal static class FusionCacheInternalUtils
 		return dt.Value.ToLogString_Expiration();
 	}
 
-	public static string? ToLogString(this DateTimeOffset dt)
+	public static string ToLogString(this DateTimeOffset dt)
 	{
 		return dt.ToString(DateTimeOffsetFormatString);
 	}
 
-	public static string? ToLogString(this DateTimeOffset? dt)
+	public static string ToLogString(this DateTimeOffset? dt)
 	{
 		if (dt is null)
 			return "/";
@@ -214,7 +214,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is null)
 			return null;
 
-		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})[T={new DateTimeOffset(entry.Timestamp, TimeSpan.Zero).ToLogString()}, LEXP={new DateTimeOffset(entry.LogicalExpirationTimestamp, TimeSpan.Zero).ToLogString()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}]{entry.Metadata?.ToString() ?? "[]"}";
+		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})[T={entry.Timestamp.ToLogString_DateTimeOffsetUTC()}, LEXP={entry.LogicalExpirationTimestamp.ToLogString_DateTimeOffsetUTC()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}]{entry.Metadata.ToLogString()}";
 
 		static string GetTagsLogString(string[]? tags)
 		{
@@ -227,7 +227,7 @@ internal static class FusionCacheInternalUtils
 		}
 	}
 
-	public static string? ToLogString(this TimeSpan ts)
+	public static string ToLogString(this TimeSpan ts)
 	{
 		if (ts == TimeSpan.Zero)
 			return "0";
@@ -244,7 +244,7 @@ internal static class FusionCacheInternalUtils
 		return ts.ToString();
 	}
 
-	public static string? ToLogString(this TimeSpan? ts)
+	public static string ToLogString(this TimeSpan? ts)
 	{
 		if (ts.HasValue == false)
 			return "/";
@@ -252,7 +252,7 @@ internal static class FusionCacheInternalUtils
 		return ts.Value.ToLogString();
 	}
 
-	public static string? ToLogString_Timeout(this TimeSpan ts)
+	public static string ToLogString_Timeout(this TimeSpan ts)
 	{
 		if (ts == Timeout.InfiniteTimeSpan)
 			return "/";
@@ -281,8 +281,29 @@ internal static class FusionCacheInternalUtils
 		return value.Value.ToString();
 	}
 
+	public static string ToLogString_DateTimeOffsetUTC(this long value)
+	{
+		return new DateTimeOffset(value, TimeSpan.Zero).ToString(DateTimeOffsetFormatString);
+	}
+
+	public static string ToLogString_DateTimeOffsetUTC(this long? value)
+	{
+		if (value is null)
+			return "/";
+
+		return new DateTimeOffset(value.Value, TimeSpan.Zero).ToString(DateTimeOffsetFormatString);
+	}
+
+	public static string ToLogString(this FusionCacheEntryMetadata? meta)
+	{
+		if (meta is null)
+			return "[]";
+
+		return meta.ToString();
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static string ToStringYN(this bool b)
+	public static string ToLogStringYN(this bool b)
 	{
 		return b ? "Y" : "N";
 	}

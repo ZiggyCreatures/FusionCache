@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals;
@@ -76,6 +75,6 @@ public sealed class FusionCacheEntryMetadata
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[S={IsStale.ToStringYN()}, EEXP={(EagerExpirationTimestamp is null ? "/" : new DateTimeOffset(EagerExpirationTimestamp.Value, TimeSpan.Zero).ToLogString())}, LM={(LastModifiedTimestamp is null ? "/" : new DateTimeOffset(LastModifiedTimestamp.Value, TimeSpan.Zero).ToLogString())}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={(Size.HasValue ? Size.Value.ToString() : "/")}, P={(CacheItemPriority)Priority.GetValueOrDefault(1)}]";
+		return $"[S={IsStale.ToLogStringYN()}, EEXP={EagerExpirationTimestamp.ToLogString_DateTimeOffsetUTC()}, LM={LastModifiedTimestamp.ToLogString_DateTimeOffsetUTC()}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={Size.ToLogString()}, P={(CacheItemPriority)Priority.GetValueOrDefault(1)}]";
 	}
 }

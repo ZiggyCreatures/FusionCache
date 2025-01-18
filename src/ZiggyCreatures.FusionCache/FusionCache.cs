@@ -96,7 +96,6 @@ public sealed partial class FusionCache
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
 
-		// TODO: FIND AND REPLACE ALL _options.DefaultEntryOptions USAGE WITH _defaultEntryOptions
 		_defaultEntryOptions = _options.DefaultEntryOptions;
 
 		// TRY UPDATE OPTIONS
