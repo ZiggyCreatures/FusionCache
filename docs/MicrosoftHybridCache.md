@@ -136,7 +136,7 @@ Oh (x3), and since FusionCache supports both the sync and async programming mode
 - `hybridCache.GetOrCreateAsync("foo", ...)` (async call from the HybridCache adapter)
 - `fusionCache.GetOrSet("foo", ...)` (sync call from FusionCache directly)
 
-They'll be both not just protected from Cache Stampede automatically, but among themselves: this means that accross both the HybridCache adapter instance and the FusionCache instance, only 1 database call will be executed.
+They'll be both protected from Cache Stampede automatically, but not just separately, but also between themselves: this means that accross both the HybridCache adapter instance and the FusionCache instance, only 1 database call will be executed, total.
 
 Nice 😬
 
