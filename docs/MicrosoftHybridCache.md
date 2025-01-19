@@ -10,6 +10,9 @@
 | -------- |
 | FusionCache can ALSO be used as an implementation of the new `HybridCache` abstraction from Microsoft, with the added extra features of FusionCache. Oh, and it's the first production-ready implementation of HybridCache (see below). |
 
+> [!NOTE]
+> FusionCache is the **FIRST** 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the **FIRST** production-ready implementation of HybridCache **AT ALL**, including the one by Microsoft itself. Quite bonkers 😬
+
 With .NET 9 Microsoft [introduced](https://www.youtube.com/watch?v=rjMfDUP4-eQ) their own hybrid cache, called [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0).
 
 This of course sparked a lot of [questions](https://x.com/markjerz/status/1785654100375281954) about what I thought about it, and the future of FusionCache.
@@ -94,9 +97,6 @@ Basically, we register FusionCache (eg: `.AddFusionCache()`), make it also avail
 Also, when using the adapter based on FusionCache, we'll have more features anyway.
 
 Yep, more features: read on.
-
-> [!NOTE]  
-> FusionCache is the **first** 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the **first** production-ready implementation of HybridCache **at all**, including the one by Microsoft itself. Quite bonkers 😬
 
 ## 🆎 Feature Comparison
 
