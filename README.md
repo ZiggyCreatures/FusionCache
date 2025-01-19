@@ -30,17 +30,21 @@ So I tried to put together these experiences and came up with FusionCache.
 
 Being a hybrid cache means it can transparently work as either a normal memory cache (L1) or as a multi-level cache (L1+L2), where the distributed 2nd level (L2) can be any implementation of the standard `IDistributedCache` interface: this will get us better cold starts, better horizontal scalability, more resiliency and overall better performance.
 
-FusionCache also includes an optional [backplane](docs/Backplane.md) for realtime sync between multiple nodes and advanced resiliency features like [cache stampede](docs/CacheStampede.md) protection, a [fail-safe](docs/FailSafe.md) mechanism, [soft/hard timeouts](docs/Timeouts.md), [eager refresh](docs/EagerRefresh.md), full observability via [logging](docs/Logging.md) and [OpenTelemetry](docs/OpenTelemetry.md) and much more.
+FusionCache includes an optional [backplane](docs/Backplane.md) for realtime sync between multiple nodes and advanced resiliency features like [cache stampede](docs/CacheStampede.md) protection, a [fail-safe](docs/FailSafe.md) mechanism, [soft/hard timeouts](docs/Timeouts.md), [eager refresh](docs/EagerRefresh.md), full observability via [logging](docs/Logging.md) and [OpenTelemetry](docs/OpenTelemetry.md), [tagging](docs/Tagging.md) and much more.
 
-## 🏆 Award
+It's being used in production on real-world projects with huge volumes for years, and is even used by Microsoft itself in its products like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/).
+
+It's also compatible with the new HybridCache from Microsoft, thanks to a [powerful integration](docs/MicrosoftHybridCache.md).
+
+## 🏆 Awards
 
 <div align="center">
 
-![Google Award](docs/google-award-128x128.png)
+![Google OSS Award](docs/google-award-128x128.png)
 
 </div>
 
-On August 2021, FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
+In 2021 FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
 
 ## 📕 Getting Started
 
@@ -51,6 +55,8 @@ Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) f
 What about each global or entry option? Sure thing, there's an 🎚️ [Options](docs/Options.md) page for that.
 
 Curious about what you can achieve from start to finish? There's a [👩‍🏫 Step By Step ](docs/StepByStep.md) guide.
+
+In search of all the docs? There's a [page](docs/README.md) for that, too.
 
 ## 📺 Media
 
@@ -159,55 +165,35 @@ Third-party packages:
 
 ## ⭐ Quick Start
 
-FusionCache can be installed via the nuget UI (search for the `ZiggyCreatures.FusionCache` package) or via the nuget package manager console:
+Just install the `ZiggyCreatures.FusionCache` Nuget package:
 
 ```PowerShell
 PM> Install-Package ZiggyCreatures.FusionCache
 ```
 
-As an example, imagine having a method that retrieves a product from your database:
+Then, let's say we have a method that loads a product from the database:
 
 ```csharp
 Product GetProductFromDb(int id) {
-	// YOUR DATABASE CALL HERE
+	// DATABASE CALL HERE
 }
 ```
 
 (This is using the **sync** programming model, but it would be equally valid with the newer **async** one)
 
-To start using FusionCache the first thing is create a cache instance:
+Then we create a FusionCache instance:
 
 ```csharp
 var cache = new FusionCache(new FusionCacheOptions());
 ```
 
-If instead you are using [DI (Dependency Injection)](docs/DependencyInjection.md) use this:
+or, if using [dependency injection](docs/DependencyInjection.md):
 
 ```csharp
 services.AddFusionCache();
 ```
 
-We can also specify some global options, like a default `FusionCacheEntryOptions` object to serve as a default for each call we'll make, with a duration of `2 minutes`:
-
-```csharp
-var cache = new FusionCache(new FusionCacheOptions() {
-	DefaultEntryOptions = new FusionCacheEntryOptions {
-		Duration = TimeSpan.FromMinutes(2)
-	}
-});
-```
-
-Or, using DI, like this:
-
-```csharp
-services.AddFusionCache()
-	.WithDefaultEntryOptions(new FusionCacheEntryOptions {
-		Duration = TimeSpan.FromMinutes(2)
-	})
-;
-```
-
-Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec` (overriding the default `2 min` we set above) simply do this:
+Now, to get the product from the cache and, if not there, get it from the database in an optimized way and cache it for `30 sec`:
 
 ```csharp
 var id = 42;
@@ -219,10 +205,34 @@ cache.GetOrSet<Product>(
 );
 ```
 
-That's it 🎉
+That's it.
 
 <details>
 	<summary>Want a little bit more 😏 ?</summary>
+
+<br/>
+
+We can also specify some global options, like a default `FusionCacheEntryOptions` object to serve as a default for each call we'll make, with a duration of `2 minutes` and a `Low` priority:
+
+```csharp
+var cache = new FusionCache(new FusionCacheOptions() {
+	DefaultEntryOptions = new FusionCacheEntryOptions {
+		Duration = TimeSpan.FromMinutes(2),
+		Priority = CacheItemPriority.Low
+	}
+});
+```
+
+Or, using DI, like this:
+
+```csharp
+services.AddFusionCache()
+	.WithDefaultEntryOptions(new FusionCacheEntryOptions {
+		Duration = TimeSpan.FromMinutes(2),
+		Priority = CacheItemPriority.Low
+	})
+;
+```
 
 Now, imagine we want to do the same, but also:
 - set the **priority** of the cache item to `High` (mainly used in the underlying memory cache)
@@ -308,14 +318,6 @@ There are various alternatives out there with different features, different perf
 
 A [feature comparison](docs/Comparison.md) between existing .NET caching solutions may help you choose which one to use.
 
-## 💰 Support
-
-Nothing to do here.
-
-After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
-
-If you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
-
 ## 💼 Is it Production Ready :tm: ?
 
 Yes!
@@ -325,6 +327,14 @@ FusionCache is being used **in production** on **real world projects** for years
 Considering that the FusionCache packages have been downloaded more than **10 million times** (thanks everybody!) it may very well be used even more.
 
 Oh, and it is being used in products by Microsoft itself, like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/)!
+
+## 💰 Support
+
+Nothing to do here.
+
+After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
+
+If you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
 
 ## 😍 Are you using it?
 
