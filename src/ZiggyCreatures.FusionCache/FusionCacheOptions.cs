@@ -30,7 +30,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	public const string DistributedCacheWireFormatVersion = "v2p4";
+	public const string DistributedCacheWireFormatVersion = "v2";
 
 	/// <summary>
 	/// The wire format version separator for the distributed cache wire format, used in the cache key processing.
@@ -44,7 +44,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public const string BackplaneWireFormatVersion = "v2p4";
+	public const string BackplaneWireFormatVersion = "v2";
 
 	/// <summary>
 	/// The wire format version separator for the backplane wire format, used in the channel name.

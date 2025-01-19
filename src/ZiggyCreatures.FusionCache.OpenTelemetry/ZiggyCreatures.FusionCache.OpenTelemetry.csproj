@@ -2,13 +2,15 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.0.0-preview-4</Version>
+		<Version>2.0.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.OpenTelemetry</PackageId>
 		<Description>Add native OpenTelemetry support to FusionCache.</Description>
 		<PackageTags>telemetry;observability;opentelemetry;open-telemetry;chaos;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.OpenTelemetry</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- Add: Tagging support
+			- Add: Clear support
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>

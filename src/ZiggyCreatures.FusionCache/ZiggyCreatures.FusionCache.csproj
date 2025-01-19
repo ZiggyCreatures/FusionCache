@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
-		<Version>2.0.0-preview-4</Version>
+		<Version>2.0.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
@@ -11,20 +11,17 @@
 		<PackageReleaseNotes>
 			- Add: Tagging support
 			- Add: Clear support
-			- Add: moved support for Microsoft's new HybridCache directly into the main package
-			- Fix: soft-fails in a factory (eg: ctx.Fail("Oops")) is now supported for with background factory completion
+			- Add: Microsoft HybridCache support
 			- Change: new AllowStaleOnReadOnly entry option for more granular control
-			- Change: better Expire, more predictable
-			- Change: ReThrowSerializationExceptions does not affect serialization, only deserialization
-			- Perf: better metadata handling
-			- Change: better eager refresh handling
-			- Add: support for immutable objects when using Auto-Clone
-			- Add: support for Tagging/Clear in events
-			- Add: new IncludeTagsInLogs option
-			- Add: new IncludeTagsInTraces option
-			- Add: new IncludeTagsInMetrics option
 			- Perf: better serializers perf thanks to native array buffers/array pools
 			- Change: removed RecyclableMemoryStreamManager support from serializes (not needed anymore)
+			- Change: ReThrowSerializationExceptions does not affect serialization, only deserialization
+			- Perf: better metadata handling, with metadata-less support
+			- Add: support for immutable objects when using Auto-Clone
+			- Add: better Observability with tagging support for logs, traces and metrics
+			- Fix: soft-fails in a factory (eg: ctx.Fail("Oops")) is now supported for with background factory completion
+			- Change: better, more predictable Expire
+			- Change: better eager refresh handling
 			- Change: the auto-generated InstanceId for each cache is now shorter (saves space in logs and traces)
 			- Update: all [Obsolete] members has been marked as errors
 			- Update: package dependencies
