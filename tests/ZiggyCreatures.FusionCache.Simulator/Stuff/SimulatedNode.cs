@@ -8,5 +8,4 @@ public class SimulatedNode
 	}
 
 	public IFusionCache Cache { get; }
-	public long? ExpirationTimestampUnixMs { get; set; }
 }

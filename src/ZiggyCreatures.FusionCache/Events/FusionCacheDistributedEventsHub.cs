@@ -41,6 +41,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 	{
+		// METRIC
 		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.DistributedCircuitBreakerClosed, isClosed));
 
 		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
@@ -48,6 +49,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal void OnSerializationError(string? operationId, string? key)
 	{
+		// METRIC
 		Metrics.CounterSerializationError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		SerializationError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(SerializationError), _logger, _errorsLogLevel, _syncExecution);
@@ -55,6 +57,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal void OnDeserializationError(string? operationId, string? key)
 	{
+		// METRIC
 		Metrics.CounterDeserializationError.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		DeserializationError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
@@ -62,6 +65,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
+		// METRIC
 		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
 		base.OnHit(operationId, key, isStale, activity);
@@ -69,6 +73,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal override void OnMiss(string operationId, string key, Activity? activity)
 	{
+		// METRIC
 		Metrics.CounterDistributedMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnMiss(operationId, key, activity);
@@ -76,6 +81,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal override void OnSet(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterDistributedSet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnSet(operationId, key);
@@ -83,6 +89,7 @@ public sealed class FusionCacheDistributedEventsHub
 
 	internal override void OnRemove(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterDistributedRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnRemove(operationId, key);

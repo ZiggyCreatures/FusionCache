@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -51,7 +54,22 @@ internal static class FusionCacheInternalUtils
 	}
 
 	private static readonly DateTimeOffset DateTimeOffsetMaxValue = DateTimeOffset.MaxValue;
+	private static readonly long DateTimeOffsetMaxValueTicks = DateTimeOffset.MaxValue.UtcTicks;
+	private const string DateTimeOffsetFormatString = "yyyy-MM-ddTHH:mm:ss.ffffff";
 	private static readonly TimeSpan TimeSpanMaxValue = TimeSpan.MaxValue;
+	private static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
+	public static readonly string[]? NoTags = null;
+	public static readonly byte CacheItemPriority_DefaultValue = 1;
+
+	public static T[]? AsArray<T>(this IEnumerable<T>? items)
+	{
+		return items switch
+		{
+			null => null,
+			T[] => (T[])items,
+			_ => items.ToArray()
+		};
+	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static long GetCurrentTimestamp()
@@ -59,12 +77,16 @@ internal static class FusionCacheInternalUtils
 		return DateTimeOffset.UtcNow.UtcTicks;
 	}
 
-
 	public static string MaybeGenerateOperationId(ILogger? logger)
 	{
 		if (logger is null)
 			return string.Empty;
 
+		return GeneratorUtils.GenerateOperationId();
+	}
+
+	public static string GenerateOperationId()
+	{
 		return GeneratorUtils.GenerateOperationId();
 	}
 
@@ -78,15 +100,41 @@ internal static class FusionCacheInternalUtils
 		return ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Remove(new KeyValuePair<TKey, TValue>(key, value));
 	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsLogicallyExpired(this IFusionCacheEntry? entry)
+	{
+		if (entry is null)
+			return false;
+
+		return entry.LogicalExpirationTimestamp < DateTimeOffset.UtcNow.UtcTicks;
+	}
+
+	/// <summary>
+	/// Checks if an eager refresh should happen.
+	/// </summary>
+	/// <returns>A <see cref="bool"/> indicating an eager refresh should happen.</returns>
+	public static bool ShouldEagerlyRefresh(this IFusionCacheEntry? entry)
 	{
 		if (entry?.Metadata is null)
 			return false;
 
-		return entry.Metadata.IsLogicallyExpired();
+		if (entry.Metadata.EagerExpirationTimestamp.HasValue == false)
+			return false;
+
+		if (entry.Metadata.EagerExpirationTimestamp.Value >= DateTimeOffset.UtcNow.UtcTicks)
+			return false;
+
+		if (entry.IsLogicallyExpired())
+			return false;
+
+		return true;
 	}
 
-	public static readonly Type CacheItemPriorityType = typeof(CacheItemPriority);
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool IsStale(this IFusionCacheEntry entry)
+	{
+		return entry.Metadata?.IsStale ?? false;
+	}
 
 	public static Exception GetSingleInnerExceptionOrSelf(this AggregateException exc)
 	{
@@ -96,7 +144,7 @@ internal static class FusionCacheInternalUtils
 		;
 	}
 
-	public static string? ToLogString_Expiration(this DateTimeOffset dt)
+	public static string ToLogString_Expiration(this DateTimeOffset dt)
 	{
 		var now = DateTimeOffset.UtcNow;
 		var delta = dt - now;
@@ -113,10 +161,10 @@ internal static class FusionCacheInternalUtils
 		if (delta.TotalHours > -1 && delta.TotalHours < 1)
 			return delta.TotalMinutes.ToString("0") + "m";
 
-		return dt.ToString("o");
+		return dt.ToString(DateTimeOffsetFormatString);
 	}
 
-	public static string? ToLogString_Expiration(this DateTimeOffset? dt)
+	public static string ToLogString_Expiration(this DateTimeOffset? dt)
 	{
 		if (dt.HasValue == false)
 			return "/";
@@ -124,12 +172,17 @@ internal static class FusionCacheInternalUtils
 		return dt.Value.ToLogString_Expiration();
 	}
 
-	public static string? ToLogString(this DateTimeOffset? dt)
+	public static string ToLogString(this DateTimeOffset dt)
+	{
+		return dt.ToString(DateTimeOffsetFormatString);
+	}
+
+	public static string ToLogString(this DateTimeOffset? dt)
 	{
 		if (dt is null)
 			return "/";
 
-		return dt.Value.ToString("o");
+		return dt.Value.ToString(DateTimeOffsetFormatString);
 	}
 
 	public static string? ToLogString(this MemoryCacheEntryOptions? options)
@@ -137,7 +190,7 @@ internal static class FusionCacheInternalUtils
 		if (options is null)
 			return null;
 
-		return $"MEO[CEXP={options.AbsoluteExpiration!.Value.ToLogString_Expiration()} PR={options.Priority.ToLogString()} S={options.Size?.ToString()}]";
+		return $"MEO[CEXP={options.AbsoluteExpiration!.Value.ToLogString_Expiration()}, PR={options.Priority.ToLogString()}, S={options.Size?.ToString()}]";
 	}
 
 	public static string? ToLogString(this DistributedCacheEntryOptions? options)
@@ -156,15 +209,25 @@ internal static class FusionCacheInternalUtils
 		return "FEO" + options.ToString();
 	}
 
-	public static string? ToLogString(this IFusionCacheEntry? entry)
+	public static string? ToLogString(this IFusionCacheEntry? entry, bool includeTags)
 	{
 		if (entry is null)
 			return null;
 
-		return "FE" + entry.ToString();
+		return $"FE({(entry is IFusionCacheMemoryEntry ? "M" : "D")})[T={entry.Timestamp.ToLogString_DateTimeOffsetUTC()}, LEXP={entry.LogicalExpirationTimestamp.ToLogString_DateTimeOffsetUTC()}{(includeTags ? GetTagsLogString(entry.Tags) : null)}]{entry.Metadata.ToLogString()}";
+
+		static string GetTagsLogString(string[]? tags)
+		{
+			if (tags is null || tags.Length == 0)
+			{
+				return ", T=";
+			}
+
+			return $", T={string.Join(",", tags)}";
+		}
 	}
 
-	public static string? ToLogString(this TimeSpan ts)
+	public static string ToLogString(this TimeSpan ts)
 	{
 		if (ts == TimeSpan.Zero)
 			return "0";
@@ -181,7 +244,7 @@ internal static class FusionCacheInternalUtils
 		return ts.ToString();
 	}
 
-	public static string? ToLogString(this TimeSpan? ts)
+	public static string ToLogString(this TimeSpan? ts)
 	{
 		if (ts.HasValue == false)
 			return "/";
@@ -189,7 +252,7 @@ internal static class FusionCacheInternalUtils
 		return ts.Value.ToLogString();
 	}
 
-	public static string? ToLogString_Timeout(this TimeSpan ts)
+	public static string ToLogString_Timeout(this TimeSpan ts)
 	{
 		if (ts == Timeout.InfiniteTimeSpan)
 			return "/";
@@ -218,8 +281,29 @@ internal static class FusionCacheInternalUtils
 		return value.Value.ToString();
 	}
 
+	public static string ToLogString_DateTimeOffsetUTC(this long value)
+	{
+		return new DateTimeOffset(value, TimeSpan.Zero).ToString(DateTimeOffsetFormatString);
+	}
+
+	public static string ToLogString_DateTimeOffsetUTC(this long? value)
+	{
+		if (value is null)
+			return "/";
+
+		return new DateTimeOffset(value.Value, TimeSpan.Zero).ToString(DateTimeOffsetFormatString);
+	}
+
+	public static string ToLogString(this FusionCacheEntryMetadata? meta)
+	{
+		if (meta is null)
+			return "[]";
+
+		return meta.ToString();
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static string ToStringYN(this bool b)
+	public static string ToLogStringYN(this bool b)
 	{
 		return b ? "Y" : "N";
 	}
@@ -235,9 +319,7 @@ internal static class FusionCacheInternalUtils
 		if (entry is FusionCacheDistributedEntry<TValue> entry1)
 			return entry1;
 
-		// TODO: CHECK THIS AGAIN
-		return FusionCacheDistributedEntry<TValue>.CreateFromOptions(entry.GetValue<TValue>(), options, entry.Metadata?.IsFromFailSafe ?? false, entry.Metadata?.LastModified, entry.Metadata?.ETag, entry.Timestamp);
-		//return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
+		return FusionCacheDistributedEntry<TValue>.CreateFromOtherEntry(entry, options);
 	}
 
 	public static FusionCacheMemoryEntry<TValue> AsMemoryEntry<TValue>(this IFusionCacheEntry entry, FusionCacheEntryOptions options)
@@ -297,41 +379,95 @@ internal static class FusionCacheInternalUtils
 		return $"{prefix}.Backplane{FusionCacheOptions.BackplaneWireFormatSeparator}{FusionCacheOptions.BackplaneWireFormatVersion}";
 	}
 
-	public static DateTimeOffset GetNormalizedAbsoluteExpiration(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering)
+	public static long GetNormalizedAbsoluteExpirationTimestamp(TimeSpan duration, FusionCacheEntryOptions options, bool allowJittering, DateTimeOffset? startAt = null)
 	{
 		// EARLY RETURN: COMMON CASE FOR WHEN USERS DO NOT WANT EXPIRATION
 		if (duration == TimeSpanMaxValue)
-			return DateTimeOffsetMaxValue;
+			return DateTimeOffsetMaxValueTicks;
 
 		if (allowJittering && options.JitterMaxDuration > TimeSpan.Zero)
 		{
 			// EARLY RETURN: WHEN THE VALUES ARE NOT THE LIMITS BUT ARE STRETCHED VERY NEAR THEM
 			if (duration > (TimeSpanMaxValue - options.JitterMaxDuration))
-				return DateTimeOffsetMaxValue;
+				return DateTimeOffsetMaxValueTicks;
 
 			// ADD JITTERING
 			duration += TimeSpan.FromMilliseconds(options.GetJitterDurationMs());
 		}
 
 		// EARLY RETURN: WHEN OVERFLOWING DateTimeOffset.MaxValue
-		var now = DateTimeOffset.UtcNow;
+		var now = startAt ?? DateTimeOffset.UtcNow;
 		if (duration > (DateTimeOffsetMaxValue - now))
-			return DateTimeOffsetMaxValue;
+			return DateTimeOffsetMaxValueTicks;
 
-		return now.Add(duration);
+		return now.Add(duration).UtcTicks;
 	}
 
-	public static DateTimeOffset? GetNormalizedEagerExpiration(bool isFromFailSafe, float? eagerRefreshThreshold, DateTimeOffset normalizedExpiration)
+	public static long? GetNormalizedEagerExpirationTimestamp(bool isStale, float? eagerRefreshThreshold, long normalizedExpiration, long? startAt = null)
 	{
-		if (isFromFailSafe)
+		if (isStale)
+			return null;
+
+		var now = startAt ?? DateTimeOffset.UtcNow.UtcTicks;
+
+		if (normalizedExpiration < now)
 			return null;
 
 		if (eagerRefreshThreshold.HasValue == false)
 			return null;
 
-		var now = DateTimeOffset.UtcNow;
+		return now + (long)((normalizedExpiration - now) * eagerRefreshThreshold.Value);
+	}
 
-		return now.AddTicks((long)((normalizedExpiration - now).Ticks * eagerRefreshThreshold.Value));
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool ShouldRead(this MemoryCacheAccessor mca, FusionCacheEntryOptions options)
+	{
+		if (options.SkipMemoryCacheRead)
+			return false;
+
+		return true;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool ShouldWrite(this MemoryCacheAccessor mca, FusionCacheEntryOptions options)
+	{
+		if (options.SkipMemoryCacheWrite)
+			return false;
+
+		return true;
+	}
+
+	public static bool ShouldRead(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	{
+		if (dca is null)
+			return false;
+
+		if (options.SkipDistributedCacheRead)
+			return false;
+
+		return true;
+	}
+
+	public static bool ShouldReadWhenStale(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	{
+		if (dca is null)
+			return false;
+
+		if (options.SkipDistributedCacheRead || options.SkipDistributedCacheReadWhenStale)
+			return false;
+
+		return true;
+	}
+
+	public static bool ShouldWrite(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	{
+		if (dca is null)
+			return false;
+
+		if (options.SkipDistributedCacheWrite)
+			return false;
+
+		return true;
 	}
 
 	public static bool CanBeUsed(this DistributedCacheAccessor? dca, string? operationId, string? key)
@@ -339,20 +475,128 @@ internal static class FusionCacheInternalUtils
 		if (dca is null)
 			return false;
 
-		if (dca.IsCurrentlyUsable(operationId, key))
-			return true;
+		if (dca.IsCurrentlyUsable(operationId, key) == false)
+			return false;
 
-		return false;
+		return true;
 	}
 
-	//public static bool CanBeUsed(this BackplaneAccessor? bpa, string? operationId, string? key)
-	//{
-	//	if (bpa is null)
-	//		return false;
+	public static bool ShouldWrite(this BackplaneAccessor? bpa, FusionCacheEntryOptions options)
+	{
+		if (bpa is null)
+			return false;
 
-	//	if (bpa.IsCurrentlyUsable(operationId, key))
-	//		return true;
+		if (options.SkipBackplaneNotifications)
+			return false;
 
-	//	return false;
-	//}
+		return true;
+	}
+
+	public static bool CanBeUsed(this BackplaneAccessor? bpa, string? operationId, string? key)
+	{
+		if (bpa is null)
+			return false;
+
+		if (bpa.IsCurrentlyUsable(operationId, key) == false)
+			return false;
+
+		return true;
+	}
+
+	public static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	{
+		var res = 0L;
+
+		if (ctx.HasStaleValue)
+		{
+			res = ctx.StaleValue.Value;
+		}
+
+		if (res == 0L)
+		{
+			// IF THE VALUE IS 0 (ZERO) -> WE DON'T NEED TO WRITE TO DISTRIBUTED AND NOTIFY THE OTHER NODES
+			ctx.Options.SkipDistributedCacheWrite = true;
+			ctx.Options.SkipBackplaneNotifications = true;
+		}
+
+		return Task.FromResult(res);
+	}
+
+	public static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	{
+		var res = 0L;
+
+		if (ctx.HasStaleValue)
+		{
+			res = ctx.StaleValue.Value;
+		}
+
+		if (res == 0L)
+		{
+			// IF THE VALUE IS 0 (ZERO) -> WE DON'T NEED TO WRITE TO DISTRIBUTED AND NOTIFY THE OTHER NODES
+			ctx.Options.SkipDistributedCacheWrite = true;
+			ctx.Options.SkipBackplaneNotifications = true;
+		}
+
+		return res;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool RequiresMetadata(FusionCacheEntryOptions options, FusionCacheEntryMetadata? metadata)
+	{
+		return
+			metadata is not null
+			|| options.IsFailSafeEnabled
+			|| options.EagerRefreshThreshold is not null
+			|| options.Size is not null
+			|| options.Priority != CacheItemPriority.Normal
+		;
+	}
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool RequiresMetadata(FusionCacheEntryOptions options, bool isStale, long? lastModifiedTimestamp, string? etag)
+	{
+		return
+			isStale
+			|| options.IsFailSafeEnabled
+			|| options.EagerRefreshThreshold is not null
+			|| options.Size is not null
+			|| options.Priority != CacheItemPriority.Normal
+			|| lastModifiedTimestamp is not null
+			|| etag is not null
+		;
+	}
+
+	// SOURCE: https://github.com/dotnet/extensions/blob/main/src/Libraries/Microsoft.Extensions.Caching.Hybrid/Internal/ImmutableTypeCache.cs
+	// COPIED AS-IS FOR MAXIMUM COMPATIBILITY WITH HybridCache
+	public static bool IsTypeImmutable(Type type)
+	{
+		// check for known types
+		if (type == typeof(string))
+		{
+			return true;
+		}
+
+		if (type.IsValueType)
+		{
+			// switch from Foo? to Foo if necessary
+			if (Nullable.GetUnderlyingType(type) is { } nullable)
+			{
+				type = nullable;
+			}
+		}
+
+		if (type.IsValueType || (type.IsClass & type.IsSealed))
+		{
+			// check for [ImmutableObject(true)]; note we're looking at this as a statement about
+			// the overall nullability; for example, a type could contain a private int[] field,
+			// where the field is mutable and the list is mutable; but if the type is annotated:
+			// we're trusting that the API and use-case is such that the type is immutable
+			return type.GetCustomAttribute<ImmutableObjectAttribute>() is { Immutable: true };
+		}
+
+		// don't trust interfaces and non-sealed types; we might have any concrete
+		// type that has different behaviour
+		return false;
+	}
 }

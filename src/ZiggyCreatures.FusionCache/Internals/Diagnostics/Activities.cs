@@ -17,8 +17,10 @@ internal static class Activities
 		public const string TryGet = "get from cache";
 		public const string GetOrDefault = "get from cache";
 		public const string GetOrSet = "get or set from cache";
-		public const string Expire = "expire from cache";
 		public const string Remove = "remove from cache";
+		public const string Expire = "expire from cache";
+		public const string RemoveByTag = "remove from cache by tag";
+		public const string Clear = "clear cache";
 
 		// MEMORY
 		public const string MemorySet = "set to cache level";
@@ -63,7 +65,7 @@ internal static class Activities
 		};
 
 		if (levelKind is not null)
-			res.Add(new KeyValuePair<string, object?>(Tags.Names.OperationLevel, levelKind.ToString()?.ToLowerInvariant()));
+			res.Add(new KeyValuePair<string, object?>(Tags.Names.OperationLevel, levelKind.Value.ToString().ToLowerInvariant()));
 
 		return res;
 	}

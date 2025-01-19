@@ -1,5 +1,4 @@
-﻿using System;
-using ProtoBuf;
+﻿using ProtoBuf;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.Internals;
@@ -8,22 +7,22 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet.Internals;
 internal class FusionCacheEntryMetadataSurrogate
 {
 	[ProtoMember(1)]
-	public long LogicalExpirationUtcTicks { get; set; }
+	public bool IsStale { get; set; }
 
 	[ProtoMember(2)]
-	public bool IsFromFailSafe { get; set; }
+	public long? LastModifiedTimestamp { get; set; }
 
 	[ProtoMember(3)]
-	public long? LastModifiedUtcTicks { get; set; }
-
-	[ProtoMember(4)]
 	public string? ETag { get; set; }
 
+	[ProtoMember(4)]
+	public long? EagerExpirationTimestamp { get; set; }
+
 	[ProtoMember(5)]
-	public long? EagerExpirationUtcTicks { get; set; }
+	public long? Size { get; set; }
 
 	[ProtoMember(6)]
-	public long? Size { get; set; }
+	public byte? Priority { get; set; }
 
 	public static implicit operator FusionCacheEntryMetadataSurrogate?(FusionCacheEntryMetadata value)
 	{
@@ -32,12 +31,12 @@ internal class FusionCacheEntryMetadataSurrogate
 
 		return new FusionCacheEntryMetadataSurrogate
 		{
-			LogicalExpirationUtcTicks = value.LogicalExpiration.UtcTicks,
-			IsFromFailSafe = value.IsFromFailSafe,
-			EagerExpirationUtcTicks = value.EagerExpiration?.UtcTicks,
+			IsStale = value.IsStale,
+			EagerExpirationTimestamp = value.EagerExpirationTimestamp,
 			ETag = value.ETag,
-			LastModifiedUtcTicks = value.LastModified?.UtcTicks,
-			Size = value.Size
+			LastModifiedTimestamp = value.LastModifiedTimestamp,
+			Size = value.Size,
+			Priority = value.Priority
 		};
 	}
 
@@ -47,12 +46,12 @@ internal class FusionCacheEntryMetadataSurrogate
 			return null;
 
 		return new FusionCacheEntryMetadata(
-			new DateTimeOffset(value.LogicalExpirationUtcTicks, TimeSpan.Zero),
-			value.IsFromFailSafe,
-			value.EagerExpirationUtcTicks.HasValue ? new DateTimeOffset(value.EagerExpirationUtcTicks.Value, TimeSpan.Zero) : null,
+			value.IsStale,
+			value.EagerExpirationTimestamp,
 			value.ETag,
-			value.LastModifiedUtcTicks.HasValue ? new DateTimeOffset(value.LastModifiedUtcTicks.Value, TimeSpan.Zero) : null,
-			value.Size
+			value.LastModifiedTimestamp,
+			value.Size,
+			value.Priority
 		);
 	}
 }

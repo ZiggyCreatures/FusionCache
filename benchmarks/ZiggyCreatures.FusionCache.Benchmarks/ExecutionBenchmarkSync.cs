@@ -3,6 +3,9 @@ using System.Threading;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
@@ -15,9 +18,12 @@ public class ExecutionBenchmarkSync
 	{
 		public Config()
 		{
-			AddColumn(
-				StatisticColumn.P95
-			);
+			AddColumn(StatisticColumn.P95);
+			AddDiagnoser(MemoryDiagnoser.Default);
+			//AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByMethod);
+			AddJob(Job.Default.WithToolchain(InProcessEmitToolchain.Instance));
+			//WithOrderer(new DefaultOrderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest));
+			WithSummaryStyle(BenchmarkDotNet.Reports.SummaryStyle.Default.WithMaxParameterColumnWidth(50));
 		}
 	}
 

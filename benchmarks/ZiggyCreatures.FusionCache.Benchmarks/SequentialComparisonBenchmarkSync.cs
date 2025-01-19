@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
-using CacheManager.Core;
+using BenchmarkDotNet.Diagnosers;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using EasyCaching.Core;
 using LazyCache;
 using LazyCache.Providers;
@@ -20,9 +22,12 @@ public class SequentialComparisonBenchmarkSync
 	{
 		public Config()
 		{
-			AddColumn(
-				StatisticColumn.P95
-			);
+			AddColumn(StatisticColumn.P95);
+			AddDiagnoser(MemoryDiagnoser.Default);
+			//AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByMethod);
+			AddJob(Job.Default.WithToolchain(InProcessEmitToolchain.Instance));
+			//WithOrderer(new DefaultOrderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest));
+			WithSummaryStyle(BenchmarkDotNet.Reports.SummaryStyle.Default.WithMaxParameterColumnWidth(50));
 		}
 	}
 
@@ -39,7 +44,6 @@ public class SequentialComparisonBenchmarkSync
 	private FusionCache _FusionCache = null!;
 	private IEasyCachingProvider _EasyCaching = null!;
 	private CachingService _LazyCache = null!;
-	private ICacheManager<SamplePayload> _CacheManager = CacheFactory.Build<SamplePayload>(p => p.WithMicrosoftMemoryCacheHandle());
 
 	[GlobalSetup]
 	public void Setup()
@@ -67,7 +71,6 @@ public class SequentialComparisonBenchmarkSync
 	public void Cleanup()
 	{
 		_FusionCache.Dispose();
-		_CacheManager.Dispose();
 	}
 
 	[Benchmark(Baseline = true)]
@@ -84,29 +87,6 @@ public class SequentialComparisonBenchmarkSync
 					   return new SamplePayload();
 				   }
 			   );
-			}
-		}
-	}
-
-	[Benchmark]
-	public void CacheManager()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			foreach (var key in Keys)
-			{
-				_CacheManager.GetOrAdd(
-					key,
-					_ =>
-					{
-						return new CacheItem<SamplePayload>(
-							key,
-							new SamplePayload(),
-							global::CacheManager.Core.ExpirationMode.Absolute,
-							CacheDuration
-						);
-					}
-				);
 			}
 		}
 	}

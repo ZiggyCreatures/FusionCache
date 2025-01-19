@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.Json;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -86,6 +88,11 @@ public class DependencyInjectionTests
 			AutoRecoveryMaxItems = 123,
 		};
 
+		//services.Configure<FusionCacheOptions>(o =>
+		//{
+		//	o.AutoRecoveryMaxItems = 456;
+		//});
+
 		services.AddFusionCache()
 			.WithOptions(options)
 			.WithOptions(opt =>
@@ -102,9 +109,11 @@ public class DependencyInjectionTests
 
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
 
+		var options2 = cache.GetOptions();
+
 		Assert.NotNull(cache);
 		Assert.Equal(FusionCacheOptions.DefaultCacheName, cache.CacheName);
-		Assert.Equal(123, options.AutoRecoveryMaxItems);
+		Assert.Equal(123, options2.AutoRecoveryMaxItems);
 		Assert.Equal(TimeSpan.FromSeconds(123), cache.DefaultEntryOptions.DistributedCacheDuration!.Value);
 		Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
 	}
@@ -1468,5 +1477,36 @@ public class DependencyInjectionTests
 		{
 			var bar = barCache.GetOrDefault<int>("bar");
 		});
+	}
+
+	[Fact]
+	public void CanUseAsHybridCache()
+	{
+		var services = new ServiceCollection();
+
+		services
+			.AddFusionCache()
+			.AsHybridCache()
+			.AsKeyedHybridCache("Foo")
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var fusionCache = serviceProvider.GetRequiredService<IFusionCache>();
+		var hybridCache1 = serviceProvider.GetRequiredService<HybridCache>();
+		var hybridCache2 = serviceProvider.GetRequiredKeyedService<HybridCache>("Foo");
+		var fusionHybridCache1 = (FusionHybridCache)hybridCache1;
+		var fusionHybridCache2 = (FusionHybridCache)hybridCache2;
+
+		Assert.NotNull(fusionCache);
+		Assert.NotNull(hybridCache1);
+		Assert.NotNull(hybridCache2);
+		Assert.NotNull(fusionHybridCache1);
+		Assert.NotNull(fusionHybridCache2);
+		Assert.IsType<FusionHybridCache>(hybridCache1);
+		Assert.IsType<FusionHybridCache>(hybridCache2);
+		Assert.NotSame(hybridCache1, hybridCache2);
+		Assert.Same(fusionCache, fusionHybridCache1.InnerFusionCache);
+		Assert.Same(fusionCache, fusionHybridCache2.InnerFusionCache);
 	}
 }

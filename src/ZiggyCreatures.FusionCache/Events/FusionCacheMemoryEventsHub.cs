@@ -46,6 +46,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value)
 	{
+		// METRIC
 		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.MemoryEvictReason, reason.ToString()));
 
 		Eviction?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
@@ -53,6 +54,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal void OnExpire(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterMemoryExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
@@ -60,6 +62,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
+		// METRIC
 		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
 		base.OnHit(operationId, key, isStale, activity);
@@ -67,6 +70,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal override void OnMiss(string operationId, string key, Activity? activity)
 	{
+		// METRIC
 		Metrics.CounterMemoryMiss.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnMiss(operationId, key, activity);
@@ -74,6 +78,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal override void OnSet(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterMemorySet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnSet(operationId, key);
@@ -81,6 +86,7 @@ public sealed class FusionCacheMemoryEventsHub
 
 	internal override void OnRemove(string operationId, string key)
 	{
+		// METRIC
 		Metrics.CounterMemoryRemove.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
 		base.OnRemove(operationId, key);

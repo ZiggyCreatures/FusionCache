@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -117,9 +118,23 @@ public static class FusionCacheGlobalDefaults
 	public static bool EntryOptionsReThrowBackplaneExceptions { get; set; } = false;
 
 	/// <summary>
-	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCache"/>.
+	/// The global default SkipDistributedCache, not used anymore.
+	/// <br/><br/>
+	/// NOTE: this is not used anymore, please use <see cref="EntryOptionsSkipDistributedCacheRead"/> and <see cref="EntryOptionsSkipDistributedCacheWrite"/>.
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Please use the specific EntryOptionsSkipDistributedCacheRead and EntryOptionsSkipDistributedCacheWrite.", true)]
 	public static bool EntryOptionsSkipDistributedCache { get; set; } = false;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCacheRead"/>.
+	/// </summary>
+	public static bool EntryOptionsSkipDistributedCacheRead { get; set; } = false;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCacheWrite"/>.
+	/// </summary>
+	public static bool EntryOptionsSkipDistributedCacheWrite { get; set; } = false;
 
 	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedCacheReadWhenStale"/>.
@@ -127,9 +142,23 @@ public static class FusionCacheGlobalDefaults
 	public static bool EntryOptionsSkipDistributedCacheReadWhenStale { get; set; } = false;
 
 	/// <summary>
-	/// The global default <see cref="FusionCacheEntryOptions.SkipMemoryCache"/>.
+	/// The global default SkipMemoryCache, not used anymore.
+	/// <br/><br/>
+	/// NOTE: this is not used anymore, please use <see cref="EntryOptionsSkipMemoryCacheRead"/> and <see cref="EntryOptionsSkipMemoryCacheWrite"/>.
 	/// </summary>
+	[EditorBrowsable(EditorBrowsableState.Never)]
+	[Obsolete("Please use the specific SkipMemoryCacheRead and SkipMemoryCacheWrite.", true)]
 	public static bool EntryOptionsSkipMemoryCache { get; set; } = false;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.SkipMemoryCacheRead"/>.
+	/// </summary>
+	public static bool EntryOptionsSkipMemoryCacheRead { get; set; } = false;
+
+	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.SkipMemoryCacheWrite"/>.
+	/// </summary>
+	public static bool EntryOptionsSkipMemoryCacheWrite { get; set; } = false;
 
 	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.EnableAutoClone"/>.

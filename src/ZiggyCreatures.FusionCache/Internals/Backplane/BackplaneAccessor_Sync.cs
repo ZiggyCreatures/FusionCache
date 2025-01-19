@@ -54,6 +54,7 @@ internal partial class BackplaneAccessor
 
 			// ACTIVITY
 			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			Activity.Current?.AddException(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)
 			{
@@ -73,21 +74,21 @@ internal partial class BackplaneAccessor
 		return true;
 	}
 
-	public bool PublishSet(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	public bool PublishSet(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = BackplaneMessage.CreateForEntrySet(_cache.InstanceId, key, timestamp);
 
 		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 
-	public bool PublishRemove(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	public bool PublishRemove(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
 		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
 
-	public bool PublishExpire(string operationId, string key, long? timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	public bool PublishExpire(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		var message = options.IsFailSafeEnabled
 			? BackplaneMessage.CreateForEntryExpire(_cache.InstanceId, key, timestamp)

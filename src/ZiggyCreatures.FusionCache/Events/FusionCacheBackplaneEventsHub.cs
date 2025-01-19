@@ -42,6 +42,7 @@ public sealed class FusionCacheBackplaneEventsHub
 
 	internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 	{
+		// METRIC
 		Metrics.CounterBackplaneCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.BackplaneCircuitBreakerClosed, isClosed));
 
 		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
@@ -49,6 +50,7 @@ public sealed class FusionCacheBackplaneEventsHub
 
 	internal void OnMessagePublished(string operationId, BackplaneMessage message)
 	{
+		// METRIC
 		Metrics.CounterBackplanePublish.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.BackplaneMessageAction, message.Action.ToString()));
 
 		MessagePublished?.SafeExecute(operationId, message.CacheKey, _cache, new FusionCacheBackplaneMessageEventArgs(message), nameof(MessagePublished), _logger, _errorsLogLevel, _syncExecution);
@@ -56,6 +58,7 @@ public sealed class FusionCacheBackplaneEventsHub
 
 	internal void OnMessageReceived(string operationId, BackplaneMessage message)
 	{
+		// METRIC
 		Metrics.CounterBackplaneReceive.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.BackplaneMessageAction, message.Action.ToString()));
 
 		MessageReceived?.SafeExecute(operationId, message.CacheKey, _cache, new FusionCacheBackplaneMessageEventArgs(message), nameof(MessageReceived), _logger, _errorsLogLevel, _syncExecution);

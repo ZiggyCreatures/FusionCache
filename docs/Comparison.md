@@ -41,6 +41,9 @@ The general features I've identified are:
 - [**Fail-Safe**](FailSafe.md) (or similar mechanism): in general the ability to temporarily re-use an expired entry in case it's currently not possible to get a new one. This can greatly reduce transient errors in your application
 - [**Timeouts**](Timeouts.md): the ability to avoid factories to run for too long, potentially creating a blocking situation or resulting in too slow responses
 - [**Adaptive Caching**](AdaptiveCaching.md): the ability to adapt the caching options for a specific cache entry based on the result of the factory execution. This may be important for example to have a cache duration that changes based on the object being cached
+- [**Tagging**](Tagging.md): the ability to associate tags with entries, to later expire them all at once
+- [**Clear**](Clear.md): the ability to clear an entire cache at once, even with a shared L2, a cache key prefix, etc
+- [**Microsoft HybridCache**](MicrosoftHybridCache.md): the ability to be used as an implementation of the new HybridCache abstraction from Microsoft
 - [**Cancellation**](https://docs.microsoft.com/en-us/dotnet/standard/threading/cancellation-in-managed-threads): the ability to cancel the execution of methods via a `CancellationToken`. This may be important in some situations to release some resources (http connections, locks, etc) when the calling code has already decided that something is not necessary anymore. It would be great to be able to cancel each method and also cancel the provided factory method itself, so the entire execution pipeline can be gracefully canceled
 - [**Multi-provider**](CacheLevels.md): the abilty to use the same caching api towards different implementations (memory, Redis, MongoDb, etc)
 - [**Multi-level**](CacheLevels.md): the ability to handle more than one caching level, transparently. This can give you - at the same time - the benefits of a local in-memory cache (high performance + data locality) and the benefits of a distributed cache (sharing of cached data + better cold start) without having to handle them separately
@@ -65,13 +68,16 @@ This is how they compare:
 | **Fail-Safe**         | ✔          | ❌              | ❌           | ❌         | ❌             | ❌           |
 | **Timeouts**          | ✔          | ❌              | ❌           | ❌         | ❌             | ❌           |
 | **Adaptive Caching**  | ✔          | ❌              | ❌           | ❌         | ❌             | ✔            |
+| **Tagging**           | ✔          | ✔               | ❌           | ❌         | ❌             | ✔            |
+| **Clear**             | ✔          | ❓              | ❌           | ❌         | ❌             | ✔            |
+| **MS HybridCache**    | ✔          | ✔               | ❌           | ❌         | ❌             | ✔            |
 | **Cancellation**      | ✔          | ✔               | ❌           | ❌         | ❌             | ❌           |
 | **Multi-provider**    | ✔          | ✔               | ✔            | ✔          | ✔              | ❌           |
 | **Multi-level**       | ✔          | ✔               | ✔            | ✔          | ⚠              | ❌           |
 | **Backplane**         | ✔          | ✔               | ✔            | ✔          | ✔              | ❌           |
 | **Auto-Recovery**     | ✔          | ❌              | ❌           | ❌         | ❌             | ❌           |
 | **Events**            | ✔          | ❌              | ✔            | ❌         | ❌             | ❌           |
-| **OpenTelemetry**     | ✔          | ❌              | ❌           | ❌         | ❌             | ❌           |
+| **OpenTelemetry**     | ✔          | ❓              | ❌           | ❌         | ❌             | ❌           |
 | **Logging**           | ✔          | ❌              | ✔            | ❌         | ✔              | ❌           |
 | **Portable**          | ✔          | ✔               | ✔            | ✔          | ✔              | ✔            |
 | **Tests**             | ✔          | ✔               | ✔            | ✔          | ✔              | ✔            |

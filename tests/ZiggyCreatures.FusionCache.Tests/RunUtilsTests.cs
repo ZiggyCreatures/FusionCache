@@ -64,14 +64,14 @@ public class RunUtilsTests
 	{
 		int res = -1;
 		var factoryTerminated = false;
-		var outerCancelDelayMs = 500;
-		var innerDelayMs = 2_000;
+		var outerCancelDelay = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
 		{
-			var cts = new CancellationTokenSource(outerCancelDelayMs);
-			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
+			var cts = new CancellationTokenSource(outerCancelDelay);
+			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 		});
-		await Task.Delay(innerDelayMs);
+		await Task.Delay(innerDelay.PlusALittleBit());
 
 		Assert.Equal(-1, res);
 		Assert.False(factoryTerminated);
@@ -82,13 +82,14 @@ public class RunUtilsTests
 	{
 		int res = -1;
 		var factoryTerminated = false;
-		var outerCancelDelayMs = 500;
-		var innerDelayMs = 2_000;
+		var outerCancelDelay = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		Assert.ThrowsAny<OperationCanceledException>(() =>
 		{
-			var cts = new CancellationTokenSource(outerCancelDelayMs);
-			res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
+			var cts = new CancellationTokenSource(outerCancelDelay);
+			res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 		});
+		Thread.Sleep(innerDelay.PlusALittleBit());
 
 		Assert.Equal(-1, res);
 		Assert.False(factoryTerminated);
@@ -99,13 +100,14 @@ public class RunUtilsTests
 	{
 		int res = -1;
 		var factoryTerminated = false;
-		var outerCancelDelayMs = 500;
-		var innerDelayMs = 2_000;
+		var outerCancelDelay = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		Assert.Throws<OperationCanceledException>(() =>
 		{
-			var cts = new CancellationTokenSource(outerCancelDelayMs);
-			res = RunUtils.RunSyncFuncWithTimeout(ct => { Thread.Sleep(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
+			var cts = new CancellationTokenSource(outerCancelDelay);
+			res = RunUtils.RunSyncFuncWithTimeout(ct => { Thread.Sleep(innerDelay); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 		});
+		Thread.Sleep(innerDelay.PlusALittleBit());
 
 		Assert.Equal(-1, res);
 		Assert.False(factoryTerminated);
@@ -115,53 +117,53 @@ public class RunUtilsTests
 	public async Task TimeoutEffectivelyWorksAsync()
 	{
 		int res = -1;
-		var timeoutMs = 500;
-		var innerDelayMs = 2_000;
+		var timeout = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		var sw = Stopwatch.StartNew();
 		await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 		{
-			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, TimeSpan.FromMilliseconds(timeoutMs));
+			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); return 42; }, timeout);
 		});
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 
 		Assert.Equal(-1, res);
-		Assert.True(elapsedMs >= timeoutMs, $"Elapsed ({elapsedMs}ms) is less than specified timeout ({timeoutMs}ms)");
-		Assert.True(elapsedMs < innerDelayMs, $"Elapsed ({elapsedMs}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
+		Assert.True(elapsedMs >= timeout.TotalMilliseconds, $"Elapsed ({elapsedMs}ms) is less than specified timeout ({timeout.TotalMilliseconds}ms)");
+		Assert.True(elapsedMs < innerDelay.TotalMilliseconds, $"Elapsed ({elapsedMs}ms) is greater than or equal to inner delay ({innerDelay.TotalMilliseconds}ms)");
 	}
 
 	[Fact]
 	public void TimeoutEffectivelyWorks()
 	{
 		int res = -1;
-		var timeoutMs = 500;
-		var innerDelayMs = 2_000;
+		var timeout = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		var sw = Stopwatch.StartNew();
 		Assert.ThrowsAny<TimeoutException>(() =>
 		{
-			res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); return 42; }, TimeSpan.FromMilliseconds(timeoutMs));
+			res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); return 42; }, timeout);
 		});
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 
 		Assert.Equal(-1, res);
-		Assert.True(elapsedMs >= timeoutMs, $"Elapsed ({elapsedMs}ms) is less than specified timeout ({timeoutMs}ms)");
-		Assert.True(elapsedMs < innerDelayMs, $"Elapsed ({elapsedMs}ms) is greater than or equal to inner delay ({innerDelayMs}ms)");
+		Assert.True(elapsedMs >= timeout.TotalMilliseconds, $"Elapsed ({elapsedMs}ms) is less than specified timeout ({timeout.TotalMilliseconds}ms)");
+		Assert.True(elapsedMs < innerDelay.TotalMilliseconds, $"Elapsed ({elapsedMs}ms) is greater than or equal to inner delay ({innerDelay.TotalMilliseconds}ms)");
 	}
 
 	[Fact]
 	public async Task CancelWhenTimeoutActuallyWorksAsync()
 	{
 		var factoryCompleted = false;
-		var timeoutMs = 500;
-		var innerDelayMs = 2_000;
+		var timeout = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 		{
-			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), true);
+			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, true);
 		});
-		await Task.Delay(innerDelayMs);
+		await Task.Delay(innerDelay.PlusALittleBit());
 
 		Assert.False(factoryCompleted);
 	}
@@ -170,13 +172,13 @@ public class RunUtilsTests
 	public void CancelWhenTimeoutActuallyWorks()
 	{
 		var factoryCompleted = false;
-		var timeoutMs = 500;
-		var innerDelayMs = 2_000;
+		var timeout = TimeSpan.FromMilliseconds(500);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		Assert.ThrowsAny<TimeoutException>(() =>
 		{
-			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), true);
+			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, true);
 		});
-		Thread.Sleep(innerDelayMs);
+		Thread.Sleep(innerDelay.PlusALittleBit());
 
 		Assert.False(factoryCompleted);
 	}
@@ -185,13 +187,13 @@ public class RunUtilsTests
 	public async Task DoNotCancelWhenTimeoutActuallyWorksAsync()
 	{
 		var factoryCompleted = false;
-		var timeoutMs = 100;
-		var innerDelayMs = 2_000;
+		var timeout = TimeSpan.FromMilliseconds(100);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 		{
-			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
+			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, false);
 		});
-		await Task.Delay(innerDelayMs + timeoutMs);
+		await Task.Delay((innerDelay + timeout).PlusALittleBit());
 
 		Assert.True(factoryCompleted);
 	}
@@ -200,13 +202,13 @@ public class RunUtilsTests
 	public void DoNotCancelWhenTimeoutActuallyWorks()
 	{
 		var factoryCompleted = false;
-		var timeoutMs = 100;
-		var innerDelayMs = 2_000;
+		var timeout = TimeSpan.FromMilliseconds(100);
+		var innerDelay = TimeSpan.FromSeconds(2);
 		Assert.ThrowsAny<TimeoutException>(() =>
 		{
-			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelayMs); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, TimeSpan.FromMilliseconds(timeoutMs), false);
+			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, false);
 		});
-		Thread.Sleep(innerDelayMs + timeoutMs);
+		Thread.Sleep((innerDelay + timeout).PlusALittleBit());
 
 		Assert.True(factoryCompleted);
 	}

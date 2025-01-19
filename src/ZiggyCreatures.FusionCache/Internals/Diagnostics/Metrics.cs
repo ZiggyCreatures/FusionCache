@@ -15,8 +15,10 @@ internal static class Metrics
 	public static readonly Counter<long> CounterTryGet = Meter.CreateCounter<long>("fusioncache.cache.try_get");
 	public static readonly Counter<long> CounterGetOrDefault = Meter.CreateCounter<long>("fusioncache.cache.get_or_default");
 	public static readonly Counter<long> CounterGetOrSet = Meter.CreateCounter<long>("fusioncache.cache.get_or_set");
-	public static readonly Counter<long> CounterExpire = Meter.CreateCounter<long>("fusioncache.cache.expire");
 	public static readonly Counter<long> CounterRemove = Meter.CreateCounter<long>("fusioncache.cache.remove");
+	public static readonly Counter<long> CounterExpire = Meter.CreateCounter<long>("fusioncache.cache.expire");
+	public static readonly Counter<long> CounterRemoveByTag = Meter.CreateCounter<long>("fusioncache.cache.remove_by_tag");
+	public static readonly Counter<long> CounterClear = Meter.CreateCounter<long>("fusioncache.cache.clear");
 
 	public static readonly Counter<long> CounterHit = Meter.CreateCounter<long>("fusioncache.cache.hit");
 	public static readonly Counter<long> CounterMiss = Meter.CreateCounter<long>("fusioncache.cache.miss");

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +34,8 @@ internal sealed class FusionCacheBuilder
 		PluginsFactories = [];
 	}
 
+	private IFusionCache? _cache;
+
 	public string CacheName { get; }
 
 	public IServiceCollection Services { get; }
@@ -44,6 +45,15 @@ internal sealed class FusionCacheBuilder
 	public ILogger<FusionCache>? Logger { get; set; }
 	public Func<IServiceProvider, ILogger<FusionCache>>? LoggerFactory { get; set; }
 	public bool ThrowIfMissingLogger { get; set; }
+
+	public bool UseRegisteredOptions { get; set; }
+	public FusionCacheOptions? Options { get; set; }
+	public bool UseCacheKeyPrefix { get; set; }
+	public string? CacheKeyPrefix { get; set; }
+	public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
+
+	public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
+	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 	public bool UseRegisteredMemoryCache { get; set; }
 	public object? MemoryCacheServiceKey { get; set; }
@@ -56,15 +66,6 @@ internal sealed class FusionCacheBuilder
 	public IFusionCacheMemoryLocker? MemoryLocker { get; set; }
 	public Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
 	public bool ThrowIfMissingMemoryLocker { get; set; }
-
-	public bool UseRegisteredOptions { get; set; }
-	public FusionCacheOptions? Options { get; set; }
-	public bool UseCacheKeyPrefix { get; set; }
-	public string? CacheKeyPrefix { get; set; }
-	public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
-
-	public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
-	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
 
 	public bool UseRegisteredSerializer { get; set; }
 	public object? SerializerServiceKey { get; set; }
@@ -97,12 +98,23 @@ internal sealed class FusionCacheBuilder
 		if (serviceProvider is null)
 			throw new ArgumentNullException(nameof(serviceProvider));
 
+		if (_cache is not null)
+			return _cache;
+
 		// OPTIONS
 		FusionCacheOptions? options = null;
 
 		if (UseRegisteredOptions)
 		{
-			options = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheOptions>>().Get(CacheName);
+			if (CacheName == FusionCacheOptions.DefaultCacheName)
+			{
+				options = serviceProvider.GetService<IOptions<FusionCacheOptions>>()?.Value;
+			}
+			else
+			{
+				options = serviceProvider.GetRequiredService<IOptionsMonitor<FusionCacheOptions>>().Get(CacheName);
+			}
+
 			if (options is not null)
 			{
 				options.CacheName = CacheName;
@@ -353,12 +365,12 @@ internal sealed class FusionCacheBuilder
 			plugins.AddRange(serviceProvider.GetKeyedServices<IFusionCachePlugin>(PluginsServiceKey));
 		}
 
-		if (Plugins?.Any() == true)
+		if (Plugins?.Count > 0)
 		{
 			plugins.AddRange(Plugins);
 		}
 
-		if (PluginsFactories?.Any() == true)
+		if (PluginsFactories?.Count > 0)
 		{
 			foreach (var pluginFactory in PluginsFactories)
 			{
@@ -386,6 +398,8 @@ internal sealed class FusionCacheBuilder
 
 		// CUSTOM SETUP ACTION
 		PostSetupAction?.Invoke(serviceProvider, cache);
+
+		_cache ??= cache;
 
 		return cache;
 	}

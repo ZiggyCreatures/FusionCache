@@ -3,7 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using FastCache;
 using LazyCache;
 using Microsoft.Extensions.Caching.Memory;
@@ -13,8 +15,8 @@ namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 [RankColumn]
 [MemoryDiagnoser]
 [Config(typeof(Config))]
-[ShortRunJob(RuntimeMoniker.Net80)]
-[ShortRunJob(RuntimeMoniker.NativeAot80)]
+//[ShortRunJob(RuntimeMoniker.Net80)]
+//[ShortRunJob(RuntimeMoniker.NativeAot80)]
 [Orderer(BenchmarkDotNet.Order.SummaryOrderPolicy.FastestToSlowest)]
 public class HappyPathBenchmark
 {
@@ -22,9 +24,12 @@ public class HappyPathBenchmark
 	{
 		public Config()
 		{
-			AddColumn(
-				StatisticColumn.P95
-			);
+			AddColumn(StatisticColumn.P95);
+			AddDiagnoser(MemoryDiagnoser.Default);
+			//AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByMethod);
+			AddJob(Job.Default.WithToolchain(InProcessEmitToolchain.Instance));
+			//WithOrderer(new DefaultOrderer(summaryOrderPolicy: SummaryOrderPolicy.FastestToSlowest));
+			WithSummaryStyle(BenchmarkDotNet.Reports.SummaryStyle.Default.WithMaxParameterColumnWidth(50));
 		}
 	}
 

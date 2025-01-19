@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
@@ -131,10 +132,9 @@ public class GeneralTests
 		});
 	}
 
-	[Fact]
-	public void CanDuplicatEntryOptions()
+	private static FusionCacheEntryOptions CreateEntryOptionsSample()
 	{
-		var original = new FusionCacheEntryOptions()
+		return new FusionCacheEntryOptions()
 		{
 			IsSafeForAdaptiveCaching = true,
 
@@ -145,6 +145,10 @@ public class GeneralTests
 			JitterMaxDuration = TimeSpan.FromSeconds(3),
 
 			EagerRefreshThreshold = 0.456f,
+
+			EnableAutoClone = !FusionCacheGlobalDefaults.EntryOptionsEnableAutoClone,
+
+			AllowStaleOnReadOnly = true,
 
 			IsFailSafeEnabled = !FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled,
 			FailSafeMaxDuration = TimeSpan.FromSeconds(4),
@@ -168,11 +172,88 @@ public class GeneralTests
 
 			SkipBackplaneNotifications = !FusionCacheGlobalDefaults.EntryOptionsSkipBackplaneNotifications,
 
-			SkipDistributedCache = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCache,
+			SkipDistributedCacheRead = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheRead,
+			SkipDistributedCacheWrite = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheWrite,
 			SkipDistributedCacheReadWhenStale = !FusionCacheGlobalDefaults.EntryOptionsSkipDistributedCacheReadWhenStale,
 
-			SkipMemoryCache = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCache
+			SkipMemoryCacheRead = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheRead,
+			SkipMemoryCacheWrite = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheWrite,
 		};
+	}
+
+	[Fact]
+	public void CanDuplicateOptions()
+	{
+		var defaultState = new FusionCacheOptions();
+		var original = new FusionCacheOptions()
+		{
+			CacheName = "Foo",
+			CacheKeyPrefix = "Foo:",
+
+			DefaultEntryOptions = CreateEntryOptionsSample(),
+
+			TagsDefaultEntryOptions = CreateEntryOptionsSample(),
+
+			EnableAutoRecovery = !defaultState.EnableAutoRecovery,
+			AutoRecoveryDelay = TimeSpan.FromSeconds(123),
+			AutoRecoveryMaxItems = 123,
+			AutoRecoveryMaxRetryCount = 123,
+
+			BackplaneChannelPrefix = "Foo",
+			IgnoreIncomingBackplaneNotifications = !defaultState.IgnoreIncomingBackplaneNotifications,
+			BackplaneCircuitBreakerDuration = TimeSpan.FromSeconds(123),
+
+			DistributedCacheKeyModifierMode = CacheKeyModifierMode.Suffix,
+			DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(123),
+
+			EnableSyncEventHandlersExecution = !defaultState.EnableSyncEventHandlersExecution,
+
+			ReThrowOriginalExceptions = !defaultState.ReThrowOriginalExceptions,
+
+			PreferSyncSerialization = !defaultState.PreferSyncSerialization,
+
+			IncludeTagsInLogs = !defaultState.IncludeTagsInLogs,
+			IncludeTagsInTraces = !defaultState.IncludeTagsInTraces,
+			IncludeTagsInMetrics = !defaultState.IncludeTagsInMetrics,
+
+			DisableTagging = !defaultState.DisableTagging,
+
+			SkipAutoCloneForImmutableObjects = !defaultState.SkipAutoCloneForImmutableObjects,
+
+			// LOG LEVELS
+			IncoherentOptionsNormalizationLogLevel = LogLevel.Critical,
+
+			FailSafeActivationLogLevel = LogLevel.Critical,
+			FactorySyntheticTimeoutsLogLevel = LogLevel.Critical,
+			FactoryErrorsLogLevel = LogLevel.Critical,
+
+			DistributedCacheSyntheticTimeoutsLogLevel = LogLevel.Critical,
+			DistributedCacheErrorsLogLevel = LogLevel.Critical,
+			SerializationErrorsLogLevel = LogLevel.Critical,
+
+			BackplaneSyntheticTimeoutsLogLevel = LogLevel.Critical,
+			BackplaneErrorsLogLevel = LogLevel.Critical,
+
+			EventHandlingErrorsLogLevel = LogLevel.Critical,
+
+			PluginsErrorsLogLevel = LogLevel.Critical,
+			PluginsInfoLogLevel = LogLevel.Critical,
+
+			MissingCacheKeyPrefixWarningLogLevel = LogLevel.Critical,
+		};
+
+		var duplicated = original.Duplicate();
+
+		Assert.Equal(
+			JsonConvert.SerializeObject(original),
+			JsonConvert.SerializeObject(duplicated)
+		);
+	}
+
+	[Fact]
+	public void CanDuplicateEntryOptions()
+	{
+		var original = CreateEntryOptionsSample();
 
 		var duplicated = original.Duplicate();
 

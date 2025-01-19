@@ -32,7 +32,7 @@ public class RedisBackplaneOptions
 	/// DEPRECATED: verify that at least one client received the notifications after each publish.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	[Obsolete("Please stop using this, it is now obsolete.")]
+	[Obsolete("Please stop using this, it is now obsolete.", true)]
 	public bool VerifyReceivedClientsCountAfterPublish { get; set; } = false;
 
 	RedisBackplaneOptions IOptions<RedisBackplaneOptions>.Value

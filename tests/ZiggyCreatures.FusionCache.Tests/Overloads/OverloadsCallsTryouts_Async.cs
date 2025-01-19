@@ -5,7 +5,7 @@ namespace FusionCacheTests.Overloads;
 
 internal static partial class OverloadsCallsTryouts
 {
-	private static async Task GetOrSetCallsAsync(IFusionCache cache)
+	internal static async Task GetOrSetCallsAsync(IFusionCache cache)
 	{
 		// FACTORY / FAIL-SAFE DEFAULT VALUE
 		_ = await cache.GetOrSetAsync<int?>(
@@ -75,7 +75,7 @@ internal static partial class OverloadsCallsTryouts
 		);
 	}
 
-	private static async Task GetOrDefaultCallsAsync(IFusionCache cache)
+	internal static async Task GetOrDefaultCallsAsync(IFusionCache cache)
 	{
 		_ = await cache.GetOrDefaultAsync<int?>(
 			Key,
@@ -93,7 +93,7 @@ internal static partial class OverloadsCallsTryouts
 		);
 	}
 
-	private static async Task SetCallsAsync(IFusionCache cache)
+	internal static async Task SetCallsAsync(IFusionCache cache)
 	{
 		await cache.SetAsync<int?>(
 			Key,
@@ -111,7 +111,7 @@ internal static partial class OverloadsCallsTryouts
 		);
 	}
 
-	private static async Task RemoveCallsAsync(IFusionCache cache)
+	internal static async Task RemoveCallsAsync(IFusionCache cache)
 	{
 		await cache.RemoveAsync(
 			Key,

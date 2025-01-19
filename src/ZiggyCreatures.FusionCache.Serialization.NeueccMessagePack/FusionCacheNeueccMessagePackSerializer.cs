@@ -1,7 +1,11 @@
-﻿using System.Threading;
+﻿using System;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
 using MessagePack.Resolvers;
+
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
 
@@ -45,18 +49,23 @@ public class FusionCacheNeueccMessagePackSerializer
 	private readonly MessagePackSerializerOptions? _serializerOptions;
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public byte[] Serialize<T>(T? obj)
 	{
-		return MessagePackSerializer.Serialize<T?>(obj, _serializerOptions);
+		using var writer = new ArrayPoolBufferWriter();
+		MessagePackSerializer.Serialize(writer, obj, _serializerOptions);
+		return writer.ToArray();
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public T? Deserialize<T>(byte[] data)
 	{
-		return MessagePackSerializer.Deserialize<T?>(data, _serializerOptions);
+		return MessagePackSerializer.Deserialize<T?>(data.AsMemory(), _serializerOptions);
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
@@ -64,6 +73,7 @@ public class FusionCacheNeueccMessagePackSerializer
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM

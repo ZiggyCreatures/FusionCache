@@ -1,5 +1,4 @@
-﻿using System;
-using MemoryPack;
+﻿using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack.Internals;
@@ -11,27 +10,27 @@ internal partial class SerializableFusionCacheEntryMetadata
 	public readonly FusionCacheEntryMetadata? Metadata;
 
 	[MemoryPackInclude]
-	public DateTimeOffset LogicalExpiration => Metadata?.LogicalExpiration ?? default;
+	public bool IsStale => Metadata?.IsStale ?? default;
 
 	[MemoryPackInclude]
-	public bool IsFromFailSafe => Metadata?.IsFromFailSafe ?? default;
-
-	[MemoryPackInclude]
-	public DateTimeOffset? EagerExpiration => Metadata?.EagerExpiration;
+	public long? EagerExpirationTimestamp => Metadata?.EagerExpirationTimestamp;
 
 	[MemoryPackInclude]
 	public string? ETag => Metadata?.ETag;
 
 	[MemoryPackInclude]
-	public DateTimeOffset? LastModified => Metadata?.LastModified;
+	public long? LastModifiedTimestamp => Metadata?.LastModifiedTimestamp;
 
 	[MemoryPackInclude]
 	public long? Size => Metadata?.Size;
 
+	[MemoryPackInclude]
+	public byte? Priority => Metadata?.Priority;
+
 	[MemoryPackConstructor]
-	SerializableFusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? eagerExpiration, string? etag, DateTimeOffset? lastModified, long? size)
+	SerializableFusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size, byte? priority)
 	{
-		Metadata = new FusionCacheEntryMetadata(logicalExpiration, isFromFailSafe, eagerExpiration, etag, lastModified, size);
+		Metadata = new FusionCacheEntryMetadata(isStale, eagerExpirationTimestamp, etag, lastModifiedTimestamp, size, priority);
 	}
 
 	public SerializableFusionCacheEntryMetadata(FusionCacheEntryMetadata? metadata)

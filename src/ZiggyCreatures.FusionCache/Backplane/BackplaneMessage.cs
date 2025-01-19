@@ -23,10 +23,10 @@ public class BackplaneMessage
 	/// <summary>
 	/// Creates a new instance of a backplane message.
 	/// </summary>
-	/// <param name="timestamp">The timestamp, or <see langword="null"/> to set it automatically to the current timestamp.</param>
-	public BackplaneMessage(long? timestamp)
+	/// <param name="timestamp">The timestamp (in ticks) related to the operation being notified.</param>
+	public BackplaneMessage(long timestamp)
 	{
-		Timestamp = timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp();
+		Timestamp = timestamp;
 	}
 
 	/// <summary>
@@ -35,7 +35,7 @@ public class BackplaneMessage
 	public string? SourceId { get; set; }
 
 	/// <summary>
-	/// The timestamp (in ticks) at a message has been created.
+	/// The timestamp (in ticks) related to the operation being notified.
 	/// </summary>
 	public long Timestamp { get; set; }
 
@@ -81,7 +81,7 @@ public class BackplaneMessage
 	/// <param name="cacheKey">The cache key.</param>
 	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntrySet(string sourceId, string cacheKey, long? timestamp)
+	public static BackplaneMessage CreateForEntrySet(string sourceId, string cacheKey, long timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
@@ -101,7 +101,7 @@ public class BackplaneMessage
 	/// <param name="cacheKey">The cache key.</param>
 	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntryRemove(string sourceId, string cacheKey, long? timestamp)
+	public static BackplaneMessage CreateForEntryRemove(string sourceId, string cacheKey, long timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));
@@ -121,7 +121,7 @@ public class BackplaneMessage
 	/// <param name="cacheKey">The cache key.</param>
 	/// <param name="timestamp">The timestamp.</param>
 	/// <returns>The message.</returns>
-	public static BackplaneMessage CreateForEntryExpire(string sourceId, string cacheKey, long? timestamp)
+	public static BackplaneMessage CreateForEntryExpire(string sourceId, string cacheKey, long timestamp)
 	{
 		if (string.IsNullOrEmpty(cacheKey))
 			throw new ArgumentException("The cache key cannot be null or empty", nameof(cacheKey));

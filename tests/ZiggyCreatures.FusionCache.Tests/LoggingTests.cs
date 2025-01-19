@@ -24,7 +24,7 @@ public class LoggingTests
 	}
 
 	[Fact]
-	public async Task CommonLogLevelsWork()
+	public void CommonLogLevelsWork()
 	{
 		var logger = CreateListLogger<FusionCache>(LogLevel.Debug);
 		using (var cache = new FusionCache(new FusionCacheOptions(), logger: logger))
@@ -38,13 +38,13 @@ public class LoggingTests
 			cache.GetOrSet<int>("qux", _ => throw new Exception("Sloths!"), 123, opt => opt.SetFailSafe(true));
 		}
 
-		Assert.Equal(21, logger.Items.Count);
+		Assert.Equal(27, logger.Items.Count);
 		Assert.Equal(2, logger.Items.Count(x => x.LogLevel == LogLevel.Warning));
 		Assert.Equal(2, logger.Items.Count(x => x.LogLevel == LogLevel.Information));
 	}
 
 	[Fact]
-	public async Task PluginsInfoWork()
+	public void PluginsInfoWork()
 	{
 		var logger = CreateListLogger<FusionCache>(LogLevel.Information);
 		var options = new FusionCacheOptions();
@@ -69,7 +69,7 @@ public class LoggingTests
 	}
 
 	[Fact]
-	public async Task EventsErrorsLogLevelsWork()
+	public void EventsErrorsLogLevelsWork()
 	{
 		var logger = CreateListLogger<FusionCache>(LogLevel.Information);
 		var options = new FusionCacheOptions
@@ -83,7 +83,7 @@ public class LoggingTests
 		}
 
 		Assert.Single(logger.Items);
-		Assert.Single(logger.Items.Where(x => x.LogLevel == LogLevel.Warning));
+		Assert.Single(logger.Items, x => x.LogLevel == LogLevel.Warning);
 
 		logger = CreateListLogger<FusionCache>(LogLevel.Information);
 		options = new FusionCacheOptions

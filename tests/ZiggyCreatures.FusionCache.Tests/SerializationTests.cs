@@ -1,8 +1,8 @@
 ﻿using System;
-using System.IO;
-using System.Text.RegularExpressions;
+using System.Text;
 using System.Threading.Tasks;
 using FusionCacheTests.Stuff;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -11,15 +11,27 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests;
 
-public class SerializationTests
+public partial class SerializationTests
 	: AbstractTests
 {
+	private static readonly ComplexType[] BigData;
+
+	static SerializationTests()
+	{
+		var len = 1024 * 1024;
+		BigData = new ComplexType[len];
+		for (int i = 0; i < len; i++)
+		{
+			BigData[i] = ComplexType.CreateSample();
+		}
+	}
+
 	public SerializationTests(ITestOutputHelper output)
 			: base(output, null)
 	{
 	}
 
-	private static readonly Regex __re_VersionExtractor = new Regex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled);
+	//private static readonly Regex __re_VersionExtractor = VersionExtractorRegEx();
 
 	private const string SampleString = "Supercalifragilisticexpialidocious";
 
@@ -75,32 +87,20 @@ public class SerializationTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task LoopSucceedsWitComplexTypesArrayAsync(SerializerType serializerType)
+	public async Task LoopSucceedsWithComplexTypesArrayAsync(SerializerType serializerType)
 	{
-		var data = new ComplexType[1024 * 1024];
-		for(int i = 0; i < data.Length; i++)
-		{
-			data[i] = ComplexType.CreateSample();
-		}
-
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var looped = await LoopDeLoopAsync(serializer, data);
-		Assert.Equal(data, looped);
+		var looped = await LoopDeLoopAsync(serializer, BigData);
+		Assert.Equal(BigData, looped);
 	}
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
 	public void LoopSucceedsWithComplexTypesArray(SerializerType serializerType)
 	{
-		var data = new ComplexType[1024 * 1024];
-		for (int i = 0; i < data.Length; i++)
-		{
-			data[i] = ComplexType.CreateSample();
-		}
-
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var looped = LoopDeLoop(serializer, data);
-		Assert.Equal(data, looped);
+		var looped = LoopDeLoop(serializer, BigData);
+		Assert.Equal(BigData, looped);
 	}
 
 	[Theory]
@@ -127,7 +127,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).UtcTicks, "abc123", now.UtcTicks, 123, 1));
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -138,12 +138,13 @@ public class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
-		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
-		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
+		Assert.Equal(obj.Metadata!.IsStale, looped.Metadata!.IsStale);
+		Assert.Equal(obj.Metadata!.EagerExpirationTimestamp, looped.Metadata!.EagerExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
-		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
+		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
 		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	[Theory]
@@ -152,7 +153,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).UtcTicks, "abc123", now.UtcTicks, 123, 1));
 
 		var data = serializer.Serialize(obj);
 
@@ -163,12 +164,13 @@ public class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
-		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
-		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
+		Assert.Equal(obj.Metadata!.IsStale, looped.Metadata!.IsStale);
+		Assert.Equal(obj.Metadata!.EagerExpirationTimestamp, looped.Metadata!.EagerExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
-		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
+		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
 		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	[Theory]
@@ -176,7 +178,8 @@ public class SerializationTests
 	public async Task LoopSucceedsWithDistributedEntryAndNoMetadataAsync(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, null, FusionCacheInternalUtils.GetCurrentTimestamp());
+		var now = DateTimeOffset.UtcNow;
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], null);
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -187,6 +190,7 @@ public class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Null(looped!.Metadata);
 	}
 
@@ -195,7 +199,8 @@ public class SerializationTests
 	public void LoopSucceedsWithDistributedEntryAndNoMetadata(SerializerType serializerType)
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
-		var obj = new FusionCacheDistributedEntry<string>(SampleString, null, FusionCacheInternalUtils.GetCurrentTimestamp());
+		var now = DateTimeOffset.UtcNow;
+		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], null);
 
 		var data = serializer.Serialize(obj);
 
@@ -206,6 +211,7 @@ public class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
 		Assert.Null(looped!.Metadata);
 	}
 
@@ -215,7 +221,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(now.AddSeconds(10), true, now.AddSeconds(9), "abc123", now, 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), now.UtcTicks, now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1).UtcTicks, "abc123", now.AddMicroseconds(now.Microsecond * -1).UtcTicks, 123, 1));
 
 		var data = await serializer.SerializeAsync(obj);
 
@@ -226,12 +232,13 @@ public class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
-		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
-		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
+		Assert.Equal(obj.Metadata!.IsStale, looped.Metadata!.IsStale);
+		Assert.Equal(obj.Metadata!.EagerExpirationTimestamp, looped.Metadata!.EagerExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
-		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
+		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
 		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
 	}
 
 	[Theory]
@@ -240,7 +247,7 @@ public class SerializationTests
 	{
 		var serializer = TestsUtils.GetSerializer(serializerType);
 		var now = DateTimeOffset.UtcNow;
-		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), new FusionCacheEntryMetadata(now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1), true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1), "abc123", now.AddMicroseconds(now.Microsecond * -1), 123), FusionCacheInternalUtils.GetCurrentTimestamp());
+		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), now.UtcTicks, now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1).UtcTicks, "abc123", now.AddMicroseconds(now.Microsecond * -1).UtcTicks, 123, 1));
 
 		var data = serializer.Serialize(obj);
 
@@ -251,66 +258,133 @@ public class SerializationTests
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
-		Assert.Equal(obj.Metadata!.IsFromFailSafe, looped.Metadata!.IsFromFailSafe);
-		Assert.Equal(obj.Metadata!.LogicalExpiration, looped.Metadata!.LogicalExpiration);
-		Assert.Equal(obj.Metadata!.EagerExpiration, looped.Metadata!.EagerExpiration);
+		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
+		Assert.Equal(obj.Metadata!.IsStale, looped.Metadata!.IsStale);
+		Assert.Equal(obj.Metadata!.EagerExpirationTimestamp, looped.Metadata!.EagerExpirationTimestamp);
 		Assert.Equal(obj.Metadata!.ETag, looped.Metadata!.ETag);
-		Assert.Equal(obj.Metadata!.LastModified, looped.Metadata!.LastModified);
+		Assert.Equal(obj.Metadata!.LastModifiedTimestamp, looped.Metadata!.LastModifiedTimestamp);
+		Assert.Equal(obj.Metadata!.Size, looped.Metadata!.Size);
+		Assert.Equal(obj.Metadata!.Priority, looped.Metadata!.Priority);
+	}
+
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public async Task CanDeserializeOldSnapshotsAsync(SerializerType serializerType)
+	//{
+	//	var serializer = TestsUtils.GetSerializer(serializerType);
+
+	//	var assembly = serializer.GetType().Assembly;
+	//	var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+	//	string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
+
+	//	var filePrefix = $"{serializer.GetType().Name}__";
+
+	//	var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
+
+	//	TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
+
+	//	foreach (var file in files)
+	//	{
+	//		var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
+
+	//		var payload = File.ReadAllBytes(file);
+	//		var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
+	//		Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+
+	//		TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
+	//	}
+	//}
+
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public void CanDeserializeOldSnapshots(SerializerType serializerType)
+	//{
+	//	var serializer = TestsUtils.GetSerializer(serializerType);
+
+	//	var assembly = serializer.GetType().Assembly;
+	//	var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+	//	string? currentVersion = fvi.FileVersion![..fvi.FileVersion!.LastIndexOf('.')];
+
+	//	var filePrefix = $"{serializer.GetType().Name}__";
+
+	//	var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
+
+	//	TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
+
+	//	foreach (var file in files)
+	//	{
+	//		var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
+
+	//		var payload = File.ReadAllBytes(file);
+	//		var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
+	//		Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+
+	//		TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
+	//	}
+	//}
+
+	//[GeneratedRegex(@"\w+__v(\d+_\d+_\d+)_\d+\.bin", RegexOptions.Compiled)]
+	//private static partial Regex VersionExtractorRegEx();
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanWorkWithByteArraysAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<bool>();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		var random = new Random(123456);
+
+		var sourceData = new byte[100_000];
+		random.NextBytes(sourceData);
+
+		logger.LogInformation("SOURCE DATA: {bytes} bytes", sourceData.Length);
+
+		var sourceEntry = new FusionCacheDistributedEntry<byte[]>(
+			sourceData,
+			DateTimeOffset.UtcNow.UtcTicks,
+			DateTimeOffset.UtcNow.AddSeconds(10).UtcTicks,
+			null,
+			null
+		);
+
+		var serializedData = await serializer.SerializeAsync(sourceEntry);
+		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
+
+		var targetEntry = await serializer.DeserializeAsync<FusionCacheDistributedEntry<byte[]>>(serializedData);
+		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
+
+		Assert.Equal(sourceData, targetEntry.Value);
 	}
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanDeserializeOldSnapshotsAsync(SerializerType serializerType)
+	public void CanWorkWithByteArrays(SerializerType serializerType)
 	{
+		var logger = CreateXUnitLogger<bool>();
 		var serializer = TestsUtils.GetSerializer(serializerType);
 
-		var assembly = serializer.GetType().Assembly;
-		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? currentVersion = fvi.FileVersion!.Substring(0, fvi.FileVersion.LastIndexOf('.'));
+		var random = new Random(123456);
 
-		var filePrefix = $"{serializer.GetType().Name}__";
+		var sourceData = new byte[100_000];
+		random.NextBytes(sourceData);
 
-		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
+		logger.LogInformation("SOURCE DATA: {bytes} bytes", sourceData.Length);
 
-		TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
+		var sourceEntry = new FusionCacheDistributedEntry<byte[]>(
+			sourceData,
+			DateTimeOffset.UtcNow.UtcTicks,
+			DateTimeOffset.UtcNow.AddSeconds(10).UtcTicks,
+			null,
+			null
+		);
 
-		foreach (var file in files)
-		{
-			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
+		var serializedData = serializer.Serialize(sourceEntry);
+		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
 
-			var payload = File.ReadAllBytes(file);
-			var deserialized = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(payload);
-			Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
+		var targetEntry = serializer.Deserialize<FusionCacheDistributedEntry<byte[]>>(serializedData);
+		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
 
-			TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
-		}
-	}
-
-	[Theory]
-	[ClassData(typeof(SerializerTypesClassData))]
-	public void CanDeserializeOldSnapshots(SerializerType serializerType)
-	{
-		var serializer = TestsUtils.GetSerializer(serializerType);
-
-		var assembly = serializer.GetType().Assembly;
-		var fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-		string? currentVersion = fvi.FileVersion!.Substring(0, fvi.FileVersion.LastIndexOf('.'));
-
-		var filePrefix = $"{serializer.GetType().Name}__";
-
-		var files = Directory.GetFiles("Snapshots", filePrefix + "*.bin");
-
-		TestOutput.WriteLine($"Found {files.Length} snapshots for {serializer.GetType().Name}");
-
-		foreach (var file in files)
-		{
-			var payloadVersion = __re_VersionExtractor.Match(file).Groups[1].Value.Replace('_', '.');
-
-			var payload = File.ReadAllBytes(file);
-			var deserialized = serializer.Deserialize<FusionCacheDistributedEntry<string>>(payload);
-			Assert.False(deserialized is null, $"Failed deserializing payload from v{payloadVersion}");
-
-			TestOutput.WriteLine($"Correctly deserialized payload from v{payloadVersion} to v{currentVersion} (current) using {serializer.GetType().Name}");
-		}
+		Assert.Equal(sourceData, targetEntry.Value);
 	}
 }

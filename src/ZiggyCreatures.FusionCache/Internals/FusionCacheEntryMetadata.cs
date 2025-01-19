@@ -1,5 +1,5 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -12,20 +12,22 @@ public sealed class FusionCacheEntryMetadata
 	/// <summary>
 	/// Creates a new instance.
 	/// </summary>
-	/// <param name="logicalExpiration">The logical expiration of the cache entry: this is used in when the actual expiration in the cache is higher because of fail-safe.</param>
-	/// <param name="isFromFailSafe">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
-	/// <param name="eagerExpiration">The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.</param>
+	/// <param name="isStale">Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.</param>
+	/// <param name="eagerExpirationTimestamp">The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.</param>
 	/// <param name="etag">If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	/// <param name="lastModified">If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
-	/// <param name="size">Ifprovided, it's the Size of the cache entry.</param>
-	public FusionCacheEntryMetadata(DateTimeOffset logicalExpiration, bool isFromFailSafe, DateTimeOffset? eagerExpiration, string? etag, DateTimeOffset? lastModified, long? size)
+	/// <param name="lastModifiedTimestamp">If provided, it's the last modified date of the entry, expressed as a timestamp (UtcTicks): this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.</param>
+	/// <param name="size">The Size of the cache entry.</param>
+	/// <param name="priority">The Priority of the cache entry, or null for the default value.</param>
+	public FusionCacheEntryMetadata(bool isStale, long? eagerExpirationTimestamp, string? etag, long? lastModifiedTimestamp, long? size, byte? priority)
 	{
-		LogicalExpiration = logicalExpiration;
-		IsFromFailSafe = isFromFailSafe;
-		EagerExpiration = eagerExpiration;
+		IsStale = isStale;
+		EagerExpirationTimestamp = eagerExpirationTimestamp;
 		ETag = etag;
-		LastModified = lastModified;
+		LastModifiedTimestamp = lastModifiedTimestamp;
 		Size = size;
+		Priority = priority;
+		if (Priority == FusionCacheInternalUtils.CacheItemPriority_DefaultValue)
+			Priority = null;
 	}
 
 	// USED BY SOME SERIALIZERS
@@ -35,73 +37,44 @@ public sealed class FusionCacheEntryMetadata
 	}
 
 	/// <summary>
-	/// The intended expiration of the entry as requested from the caller.
-	/// <br/>
-	/// When fail-safe is enabled the entry is cached with a higher duration (<see cref="FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
+	/// Indicates if the cache entry is stale, typically because of a fail-safe activation during a refresh (factory execution).
 	/// </summary>
-	[DataMember(Name = "e", EmitDefaultValue = false)]
-	public DateTimeOffset LogicalExpiration { get; set; }
-
-	/// <summary>
-	/// Indicates if the cache entry comes from a fail-safe activation, so if the value was used as a fallback because errors occurred.
-	/// </summary>
-	[DataMember(Name = "f", EmitDefaultValue = false)]
-	public bool IsFromFailSafe { get; set; }
+	[DataMember(Name = "s", EmitDefaultValue = false)]
+	public bool IsStale { get; set; }
 
 	/// <summary>
 	/// The eager expiration, based on the <see cref="FusionCacheEntryOptions.EagerRefreshThreshold"/>.
 	/// </summary>
-	[DataMember(Name = "ea", EmitDefaultValue = false)]
-	public DateTimeOffset? EagerExpiration { get; set; }
+	[DataMember(Name = "e", EmitDefaultValue = false)]
+	public long? EagerExpirationTimestamp { get; set; }
 
 	/// <summary>
 	/// If provided, it's the ETag of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-None-Match" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
-	[DataMember(Name = "et", EmitDefaultValue = false)]
+	[DataMember(Name = "t", EmitDefaultValue = false)]
 	public string? ETag { get; set; }
 
 	/// <summary>
-	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// If provided, it's the Last-Modified date of the entry, expressed as a timestamp (UtcTicks): this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
 	/// </summary>
-	[DataMember(Name = "lm", EmitDefaultValue = false)]
-	public DateTimeOffset? LastModified { get; set; }
+	[DataMember(Name = "m", EmitDefaultValue = false)]
+	public long? LastModifiedTimestamp { get; set; }
 
 	/// <summary>
-	/// If provided, it's the last modified date of the entry: this may be used in the next refresh cycle (eg: with the use of the "If-Modified-Since" header in an http request) to check if the entry is changed, to avoid getting the entire value.
+	/// The size of the entry.
 	/// </summary>
-	[DataMember(Name = "s", EmitDefaultValue = false)]
+	[DataMember(Name = "z", EmitDefaultValue = false)]
 	public long? Size { get; set; }
 
 	/// <summary>
-	/// Checks if the entry is logically expired.
+	/// The size of the entry.
 	/// </summary>
-	/// <returns>A <see cref="bool"/> indicating the logical expiration status.</returns>
-	public bool IsLogicallyExpired()
-	{
-		return LogicalExpiration < DateTimeOffset.UtcNow;
-	}
-
-	/// <summary>
-	/// Checks if an eager refresh should happen.
-	/// </summary>
-	/// <returns>A <see cref="bool"/> indicating an eager refresh should happen.</returns>
-	public bool ShouldEagerlyRefresh()
-	{
-		if (EagerExpiration.HasValue == false)
-			return false;
-
-		if (EagerExpiration.Value >= DateTimeOffset.UtcNow)
-			return false;
-
-		if (IsLogicallyExpired())
-			return false;
-
-		return true;
-	}
+	[DataMember(Name = "p", EmitDefaultValue = false)]
+	public byte? Priority { get; set; }
 
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[FFS={IsFromFailSafe.ToStringYN()}, LEXP={LogicalExpiration.ToLogString_Expiration()}, EEXP={EagerExpiration.ToLogString_Expiration()}, LM={LastModified.ToLogString()}, ET={(string.IsNullOrEmpty(ETag) ? "/" : ETag)}, S={(Size.HasValue ? Size.Value.ToString() : "/")}]";
+		return $"[S={IsStale.ToLogStringYN()}, EEXP={EagerExpirationTimestamp.ToLogString_DateTimeOffsetUTC()}, LM={LastModifiedTimestamp.ToLogString_DateTimeOffsetUTC()}, ET={(string.IsNullOrWhiteSpace(ETag) ? "/" : ETag)}, S={Size.ToLogString()}, P={(CacheItemPriority)Priority.GetValueOrDefault(1)}]";
 	}
 }

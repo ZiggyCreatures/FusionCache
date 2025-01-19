@@ -9,7 +9,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-		<PackageReference Include="CacheManager.Microsoft.Extensions.Caching.Memory" Version="1.2.0" />
 		<PackageReference Include="CacheTower" Version="0.14.0" />
 		<PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
 		<PackageReference Include="FastCache.Cached" Version="1.8.2" />

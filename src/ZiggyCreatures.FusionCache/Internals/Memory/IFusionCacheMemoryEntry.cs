@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -12,7 +11,6 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal interface IFusionCacheMemoryEntry
 	: IFusionCacheEntry
 {
-	DateTimeOffset PhysicalExpiration { get; set; }
 	object? Value { get; set; }
 
 	byte[] GetSerializedValue(IFusionCacheSerializer serializer);

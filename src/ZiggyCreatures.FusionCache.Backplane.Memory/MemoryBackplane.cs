@@ -90,7 +90,7 @@ public class MemoryBackplane
 				if (_channelName is null)
 					throw new NullReferenceException("The backplane channel name is null");
 
-				_subscribers = _connection.GetOrAdd(_channelName, _ => new List<MemoryBackplane>());
+				_subscribers = _connection.GetOrAdd(_channelName, _ => []);
 			}
 		}
 	}
@@ -159,7 +159,7 @@ public class MemoryBackplane
 				var removed = _subscribers.Remove(this);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after unsubscribing (Subscribers: {SubscribersCount}, Removed: {Removed}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count, removed);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] after unsubscribing (Subscribers: {SubscribersCount}, Removed: {Removed})", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _subscribers.Count, removed);
 
 				_subscriptionOptions = null;
 				_channelName = null;
