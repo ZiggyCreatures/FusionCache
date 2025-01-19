@@ -34,9 +34,6 @@ This may turn the HybridCache `abstract class` into some sort of "lingua franca"
 
 So FusionCache is available **ALSO** as an implementation of HybridCache, via an adapter class.
 
-> [!IMPORTANT]  
-> To be clear, this does **NOT** mean that FusionCache will now be based **ON** `HybridCache` from Microsoft, but that it will **ALSO** be available **AS** an implementation of it, via an adapter class.
-
 Ok cool, but how?
 
 Easy peasy:
@@ -97,6 +94,9 @@ Basically, we register FusionCache (eg: `.AddFusionCache()`), make it also avail
 Also, when using the adapter based on FusionCache, we'll have more features anyway.
 
 Yep, more features: read on.
+
+> [!IMPORTANT]  
+> Again, to be clear, this does **NOT** mean that FusionCache will now be based **ON** `HybridCache` from Microsoft, but that it will **ALSO** be available **AS** an implementation of it, via an adapter class.
 
 ## 🆎 Feature Comparison
 
