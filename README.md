@@ -13,12 +13,14 @@
 
 </div>
 
-| 🙋‍♂️ Updating to `v1.0.0` ? please [read here](docs/Update_v1_0_0.md). |
+| 🙋‍♂️ Updating to `v2` ? please [read here](docs/Update_v2_0_0.md). |
 |:-------|
 
 ### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
-It was born after years of dealing with all sorts of different types of caches: memory, distributed, hybrid, HTTP caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.
+It was born after years of dealing with all sorts of different types of caches: memory, distributed, hybrid, HTTP caching, CDNs, browser cache, offline cache, you name it.
+
+So I tried to put together these experiences and came up with FusionCache.
 
 <div style="text-align:center;">
 
@@ -46,6 +48,8 @@ With [🦄 A Gentle Introduction](docs/AGentleIntroduction.md) you'll get yourse
 
 Want to start using it immediately? There's a [⭐ Quick Start](#-quick-start) for you.
 
+What about each global or entry option? Sure thing, there's an 🎚️ [Options](docs/Options.md) page for that.
+
 Curious about what you can achieve from start to finish? There's a [👩‍🏫 Step By Step ](docs/StepByStep.md) guide.
 
 ## 📺 Media
@@ -63,26 +67,39 @@ A good example is when the fine folks at [On .NET](https://learn.microsoft.com/e
 </div>
 
 ## ✔ Features
-These are the **key features** of FusionCache:
 
+FusionCache has a lot of features, let's see them grouped together:
+
+#### Resiliency
 - [**🛡️ Cache Stampede**](docs/CacheStampede.md): automatic protection from the Cache Stampede problem
-- [**🔀 2nd level**](docs/CacheLevels.md): an optional 2nd level handled transparently, with any implementation of `IDistributedCache`
 - [**💣 Fail-Safe**](docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
-- [**⏱ Soft/Hard Timeouts**](docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
+- [**↩️ Auto-Recovery**](docs/AutoRecovery.md): self-healing for the entire cache, all automatically
+
+#### Performance & Scalability
+- [**🔀 L1+L2**](docs/CacheLevels.md): any implementation of `IDistributedCache` can be used as an optional 2nd level, all transparently
 - [**📢 Backplane**](docs/Backplane.md): in a multi-node scenario, it can notify the other nodes about changes in the cache, so all will be in-sync
-- [**↩️ Auto-Recovery**](docs/AutoRecovery.md): automatic handling of transient issues with retries and sync logic
-- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): for when you don't know upfront the cache duration, as it depends on the value being cached itself
-- [**🔂 Conditional Refresh**](docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
+- [**⏱ Soft/Hard Timeouts**](docs/Timeouts.md): a slow factory (or distributed cache) will not slow down your application, and no data will be wasted
 - [**🦅 Eager Refresh**](docs/EagerRefresh.md): start a non-blocking background refresh before the expiration occurs
-- [**🔃 Dependency Injection + Builder**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
-- [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
-- [**♊ Auto-Clone**](docs/AutoClone.md): be sure that cached values returned can be safely modified
-- [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
+- [**🔂 Conditional Refresh**](docs/ConditionalRefresh.md): like HTTP Conditional Requests, but for caching
 - [**🚀 Background Distributed Operations**](docs/BackgroundDistributedOperations.md): distributed operations can easily be executed in the background, safely, for better performance
-- [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
+
+#### Flexibility
+- [**📛 Named Caches**](docs/NamedCaches.md): easily work with multiple named caches, even if differently configured
+- [**🏷️ Tagging**](docs/Tagging.md): tags can be associated to entries, to later expire them all at once
+- [**🧼 Clear**](docs/Clear.md): clear an entire cache, even with shared L2, cache key prefix, etc
+- [**Ⓜ️ Microsoft HybridCache**](docs/MicrosoftHybridCache.md): can be used as an implementation of the new HybridCache abstraction from Microsoft, all while adding extra features
+- [**🧙‍♂️ Adaptive Caching**](docs/AdaptiveCaching.md): for when you don't know upfront the entry options (eg: `Duration`), since they depends on the value being cached itself
+- [**🔃 Dependency Injection + Builder**](docs/DependencyInjection.md): native support for Dependency Injection, with a nice fluent interface including a Builder support
+- [**♊ Auto-Clone**](docs/AutoClone.md): be sure that cached values returned can be safely modified
 - [**💫 Fully sync/async**](docs/CoreMethods.md): native support for both the synchronous and asynchronous programming model
-- [**📞 Events**](docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
 - [**🧩 Plugins**](docs/Plugins.md): extend FusionCache with additional behavior like adding support for metrics, statistics, etc...
+
+#### Observability
+- [**🔭 OpenTelemetry**](docs/OpenTelemetry.md): native observability support via OpenTelemetry
+- [**📜 Logging**](docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
+- [**📞 Events**](docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
+
+That was a lot, but not all!
 
 <details>
 	<summary>Something more 😏 ?</summary>
@@ -156,7 +173,7 @@ Product GetProductFromDb(int id) {
 }
 ```
 
-💡 This is using the **sync** programming model, but it would be equally valid with the newer **async** one for even better performance.
+(This is using the **sync** programming model, but it would be equally valid with the newer **async** one)
 
 To start using FusionCache the first thing is create a cache instance:
 
@@ -275,7 +292,7 @@ If you are in for a ride you can read a complete [step by step example](docs/Ste
 
 Distributed systems are, in general, quite complex to understand.
 
-When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [backplane](docs/Backplane.md) and [auto-recovery](docs/AutoRecovery.md) the Simulator can help us **seeing** the whole picture.
+When using FusionCache with the [distributed cache](docs/CacheLevels.md), the [backplane](docs/Backplane.md) and [auto-recovery](docs/AutoRecovery.md) the Simulator can help us **see** the whole picture.
 
 [![FusionCache Simulator](https://img.youtube.com/vi/6jGX6ePgD3Q/maxresdefault.jpg)](docs/Simulator.md)
 
@@ -305,9 +322,9 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling billions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **8 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **10 million times** (thanks everybody!) it may very well be used even more.
 
-Oh, and it is being used in products by Microsoft itself, like [Data API Builder]()!
+Oh, and it is being used in products by Microsoft itself, like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/)!
 
 ## 😍 Are you using it?
 
