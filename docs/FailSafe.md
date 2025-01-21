@@ -109,5 +109,13 @@ var productResult = await cache.GetOrSetAsync<Result<Product>>(
 );
 ```
 
+## 🥇 There's Always A First Time
+
+What if we would like to use a fallback value with fail-safe, but it's the first time calling the factory?
+
+Well, in that case there's nothing in the cache, right? So what can FusionCache return?
+
+Easy: when calling `GetOrSet` we can also specify a `failSafeDefaultValue` which, if specified by us, would act as a final fallback to avoid propagating the factory error to our users. This may not always make sense, because sometimes there is not a reasonable default value to use, but if that is the case we can use it.
+
 ## ❤️ A Beautiful Movie
 The name is also an homage to a somewhat forgotten [beautiful movie](https://en.wikipedia.org/wiki/Fail_Safe_(1964_film)), directed by the great Sidney Lumet and with a stellar cast. It's from a different era, so expect black and white and a different acting style, but give it a chance: it's remarkable.
