@@ -36,7 +36,9 @@ Also, if we want, we can also set two additional options to have more control:
 - `FailSafeThrottleDuration`: how long an expired value (used because of a fail-safe *activation*) should be temporarily considered as non-expired, to avoid going to check the database for every consecutive request
 - `FailSafeMaxDuration`: how long a value should be kept around at most, after its *logical* expiration
 
-**ℹ️ NOTE:** we can control if we want to allow fail-safe on GET operations (`GetOrSet`/`TryGet`/`GetOrDefault`), but **only** if fail-safe was also enabled when saving via a SET method (`Set`/`GetOrSet`): we can SET with fail-safe and later GET without using it, but we cannot GET with fail-safe if the previous SET call did not have it enabled.
+> [!NOTE]
+> Please note that fail-safe **must** be enabled when saving an entry in the cache for it to work, not just when getting a value from the cache.
+> Also, since fail-safe is about a **fail** while executing a factory, it only works with the `GetOrSet` method (where there is a factory): to force getting a stale value with readonly methods (eg: `TryGet`/`GetOrDefault`) we can use another option, `AllowStaleOnReadOnly`.
 
 The end result (also adding some [timeouts](Timeouts.md)) would be something like this:
 
