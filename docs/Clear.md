@@ -103,6 +103,6 @@ So to recap, if:
 - the underlying `MemoryCache` supports a raw clear
 - the underlying `MemoryCache` is not shared (between different FusionCache instances)
 
-then when `Clear()` is invoked FusionCache will automatically call `Clear()` on the underlying `MemoryCache`, and immediately wipe out the entire thing for good.
+then when `Clear(false)` is invoked FusionCache will automatically call `Clear()` on the underlying `MemoryCache`, and immediately wipe out the entire thing for good.
 
 Can I say, again, nice 🙂 ?
