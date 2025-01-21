@@ -197,7 +197,7 @@ Boom!
 
 ## 🚳 Limitations
 
-The HybridCache API surface area is more limited: for example for each `GetOrCreate()` call we can pass a `HybridCacheEntryOptions` object instead of a `FusionCacheEntryOptions` object.
+The HybridCache API surface area is more limited: for example for each `GetOrCreateAsync()` call we can pass a `HybridCacheEntryOptions` object instead of a `FusionCacheEntryOptions` object.
 
 Because of this, when using FusionCache via the HybridCache adapter we can configure all of this goodness only at startup, and not on a per-call basis: still, it's a lot of power to have available for when we need or want to depend on the Microsoft abstraction.
 
