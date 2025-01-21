@@ -35,7 +35,7 @@ So how is it possible to do achieve all of this?
 
 Now that [Tagging](Tagging.md) is finally here, we have our solution.
 
-By simply using a "special tag" like `"*"` we can use tagging to make a proper `Clear()` mechanism work (for a detail of Tagging works underneath, please refer to its [docs](Tagging.md)).
+By simply using a "special tag" like `"*"` we can use tagging to make a proper `Clear()` mechanism work (for a detail of how Tagging works underneath, please refer to its [docs](Tagging.md)).
 
 Here's an example:
 
