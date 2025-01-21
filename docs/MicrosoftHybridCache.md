@@ -84,7 +84,7 @@ public class SomeService2(IFusionCache cache)
 and the **SAME** FusionCache instance will be used for both, directly as well as via the HybridCache adapter.
 
 As FusionCache users this means we'll have 2 options available:
-- use `FusionCache` directly, as they did up until today
+- use `FusionCache` directly, as we did up until today
 - depend on the `HybridCache` shared _abstraction_ by Microsoft, but use the `FusionCache` _implementation_ (the adapter)
 
 Actually, as said, we can do them both at the same time, in the same app: if there are components that depend on the HybridCache abstraction we can use the adapter for them, and if we want more power and more control in our own code we can use FusionCache directly, all while sharing the same underlying data.
