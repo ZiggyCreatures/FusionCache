@@ -64,13 +64,13 @@ The second approach (PASSIVE) is not good either, since it has these problems:
 The third approach (LAZY) seems like the best approach, because it does not involve extra network traffic and in general the problems of ACTIVE or PASSIVE.
 Having said that, if the receiving nodes already have the entry related to the notification in the L1 cache, that means they already worked with that cache entry, and that may indicate they'll do that again: without an immediate update to that entry, the next access will trigger a refresh, which could've been done earlier.
 
-So what FusionCache does is a mixture of PASSIVE and LAZY, getting the best of both worlds: it sends the notification without sending the data and immediately updates the data in L1 (taken from L2) but ONLY if it's already there on that node's l1. So, if cache key `"foo"` is in the memory cache of only 2 of 10 nodes, only those 2 nodes will get the data from L2.
+So what FusionCache does is a mixture of PASSIVE and LAZY, getting the best of both worlds: it sends the notification without sending the data and immediately updates the data in L1 (taken from L2) but ONLY if it's already there on that node's L1. So, if cache key `"foo"` is in the memory cache of only 2 of 10 nodes, only those 2 nodes will get the data from L2.
 
-One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call).
+One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: `Set()`) and a notification for the removal of a piece of data (eg: `Expire()` or `Remove()`).
 
 But why is that?
 
-Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls.
+Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls. Finally, `Expire()` or `Remove()` does not require any payload being sent over the network to be totally applied on every node.
 
 ## ↩️ Auto-Recovery
 
