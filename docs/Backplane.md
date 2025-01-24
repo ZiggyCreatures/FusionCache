@@ -58,10 +58,13 @@ The first approach (ACTIVE) is not really good, since it has these problems:
 - all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
 
 The second approach (PASSIVE) is not good either, since it has these problems:
-- every node will request the same data at the same time from the distributed cache, generating a lot of traffic
+- every node will request the data from the distributed cache, generating useless traffic
 - all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
 
-The third approach (LAZY) is the sweet spot, since it just says to each node _"hey, this data is changed, evict your local copy"_: at the next request for that data, if and only if it ever arrives, the data will be automatically get from the distributed cache and everything will work normally, thanks to the [cache stampede protection](CacheStampede.md) and all the other features.
+The third approach (LAZY) seems like the best approach, because it does not involve extra network traffic and in general the problems of ACTIVE or PASSIVE.
+Having said that, if the receiving nodes already have the entry related to the notification in the L1 cache, that means they already worked with that cache entry, and that may indicate they'll do that again: without an immediate update to that entry, the next access will trigger a refresh, which could've been done earlier.
+
+So what FusionCache does is a mixture of PASSIVE and LAZY, getting the best of both worlds: it sends the notification without sending the data and immediately updates the data in L1 (taken from L2) but ONLY if it's already there on that node's l1. So, if cache key `"foo"` is in the memory cache of only 2 of 10 nodes, only those 2 nodes will get the data from L2.
 
 One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: with `Set(...)` call) and a notification for the removal of a piece of data (eg: with a `Remove(...)` call).
 
