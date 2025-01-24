@@ -103,6 +103,7 @@ Enter **soft/hard timeouts**.
 
 Read more [**here**](Timeouts.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
 
+
 ## ↩️ Auto-Recovery([more](AutoRecovery.md))
 
 As we know from the [Fallacies Of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing), something may go wrong while we are using distributed components like the distributed cache or the backplane, even if only in a transient way.
@@ -114,6 +115,27 @@ wouldn't it be nice if FusionCache would help us is some way when transient erro
 Enter **Auto-Recovery**.: everything is done automatically, and it just works.
 
 Read more [**here**](AutoRecovery.md).
+
+
+## 🏷️ Tagging ([more](Tagging.md))
+
+Tagging is an incredibly powerful feature: cache entries can be tagged with one or more tags, and later they can be evicted all at once by just by calling `RemoveByTag("my-tag")`.
+
+The overall [design](https://github.com/ZiggyCreatures/FusionCache/issues/319) used to achieve this is such that, even when working against a massive cache with millions of entries, will not incur in any upfront cost (yes, even a distributed L2 like a Redis gigantic instance).
+
+Tagging works in any supported scenario: with or without an optional L2 (distributed level), an optional backplane, shared caches, cache key prefix, fail-safe, soft/hard timeouts, auto-recovery and everything else.
+
+Read more [**here**](Tagging.md).
+
+
+## 🧼 Clear ([more](Clear.md))
+
+Thanks to the design used for the Tagging feature (see above), FusionCache also supports a proper `Clear()` mechanism for the entire cache.
+
+Yes, yes: the abiltiy to clear seems like an easy one but when we consider things like shared caches, cache key prefix and all the other features... it's definitely not an easy feat. But yeah, it just works.
+
+Read more [**here**](Clear.md).
+
 
 ## 🎚️ Options ([more](Options.md))
 
@@ -138,6 +160,10 @@ At a high level there are 6 core methods:
 - `Expire[Async]`
 - `Remove[Async]`
 
+Then there are methods for Tagging and Clear:
+- `RemoveByTag[Async]`
+- `Clear[Async]`
+
 All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: we don't have to do anything extra for it to coordinate the 2 levels.
 
 All of them are available in both a **sync** and an **async** version.
@@ -152,6 +178,7 @@ Read more [**here**](CoreMethods.md).
 Everything is natively available for both the **sync** and **async** programming models.
 
 Any operation works seamlessly with any other, even if one is **sync** and the other is **async**: an example is multiple concurrent factory calls for the same cache key, some of them **sync** while others **async**, all coordinated together at the same time with no problems and a guarantee that only one will be executed at the same time.
+
 
 ## 🔃 Dependency Injection + Builder ([more](DependencyInjection.md))
 
@@ -169,6 +196,20 @@ Just like with the standard [named http clients](https://learn.microsoft.com/en-
 Thanks to the native [builder](DependencyInjection.md) support, it's very easy to configure different caches identified by different names.
 
 Read more [**here**](NamedCaches.md).
+
+
+## Ⓜ️ Support for Microsoft HybridCache ([more](MicrosoftHybridCache.md))
+
+With .NET 9, Microsoft released their new [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0).
+
+This may turn the HybridCache abstract class into some sort of "lingua franca" for a basic set of common features for all hybrid caches in .NET.
+
+So FusionCache is available ALSO as an implementation of HybridCache, via an adapter class.
+
+> [!NOTE]
+> FusionCache is the FIRST 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the FIRST production-ready implementation of HybridCache AT ALL, including the one by Microsoft itself. Quite bonkers 😬
+
+Read more [**here**](MicrosoftHybridCache.md).
 
 
 ## 📞 Events ([more](Events.md))
