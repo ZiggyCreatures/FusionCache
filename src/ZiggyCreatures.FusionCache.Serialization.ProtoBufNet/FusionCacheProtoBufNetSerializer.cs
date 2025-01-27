@@ -39,7 +39,7 @@ public class FusionCacheProtoBufNetSerializer
 		{
 			lock (model)
 			{
-				model.Add(typeof(FusionCacheEntryMetadata), false).SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate));
+				model.Add(_metadataType, false).SetSurrogate(typeof(FusionCacheEntryMetadataSurrogate));
 				return [_metadataType];
 			}
 		});
@@ -78,6 +78,9 @@ public class FusionCacheProtoBufNetSerializer
 
 		lock (tmp)
 		{
+			if (tmp.Contains(t))
+				return;
+
 			try
 			{
 				// NOTE: USING FusionCacheDistributedEntry<bool> HERE SINCE IT WILL
