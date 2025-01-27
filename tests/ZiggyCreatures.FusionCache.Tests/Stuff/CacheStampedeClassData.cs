@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace FusionCacheTests.Stuff;
 
-public class CacheStampedeClassData : IEnumerable<object[]>
+public class CacheStampedeClassData : IEnumerable<object?[]>
 {
 	private static readonly int[] AccessorsCounts = [
 		10,
@@ -12,13 +12,22 @@ public class CacheStampedeClassData : IEnumerable<object[]>
 		1_000
 	];
 
-	public IEnumerator<object[]> GetEnumerator()
+	public IEnumerator<object?[]> GetEnumerator()
 	{
-		foreach (var memoryLockerType in Enum.GetValues<MemoryLockerType>())
+		var serializerTypes = new List<SerializerType?> { null };
+		foreach (var serializerType in Enum.GetValues<SerializerType>())
 		{
-			foreach (var accessorsCount in AccessorsCounts)
+			serializerTypes.Add(serializerType);
+		}
+
+		foreach (var serializerType in serializerTypes)
+		{
+			foreach (var memoryLockerType in Enum.GetValues<MemoryLockerType>())
 			{
-				yield return [memoryLockerType, accessorsCount];
+				foreach (var accessorsCount in AccessorsCounts)
+				{
+					yield return [serializerType, memoryLockerType, accessorsCount];
+				}
 			}
 		}
 	}
