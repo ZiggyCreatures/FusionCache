@@ -16,6 +16,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
 
@@ -65,7 +66,10 @@ public class L1L2BackplaneTests
 			options.SetInstanceId(cacheInstanceId!);
 
 		if (string.IsNullOrWhiteSpace(cacheName) == false)
+		{
 			options.CacheName = cacheName;
+			options.CacheKeyPrefix = cacheName + ":";
+		}
 
 		options.EnableSyncEventHandlersExecution = true;
 
@@ -812,51 +816,54 @@ public class L1L2BackplaneTests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanRemoveByTagAsync(SerializerType serializerType)
 	{
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
-		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
-		var barKey = "bar:" + Guid.NewGuid().ToString("N");
-		var bazKey = "baz:" + Guid.NewGuid().ToString("N");
+		var logger = CreateXUnitLogger<FusionCache>();
 
-		var xTag = "tag:x:" + Guid.NewGuid().ToString("N");
-		var yTag = "tag:y:" + Guid.NewGuid().ToString("N");
-		var zTag = "tag:z:" + Guid.NewGuid().ToString("N");
+		var backplaneConnectionId = FusionCacheInternalUtils.GenerateOperationId();
 
 		var distributedCache = CreateDistributedCache();
 		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
-		await cache1.SetAsync<int>(fooKey, 1, tags: [xTag, yTag]);
-		await cache2.SetAsync<int>(barKey, 2, tags: [yTag, zTag]);
-		await cache3.GetOrSetAsync<int>(bazKey, async (_, _) => 3, tags: [xTag, zTag]);
+		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
+		await cache2.SetAsync<int>("bar", 2, tags: ["y", "z"]);
+		await cache3.GetOrSetAsync<int>("baz", async _ => 3, tags: ["x", "z"]);
 
-		var foo1 = await cache1.GetOrSetAsync<int>(fooKey, async (_, _) => 11, tags: [xTag, yTag]);
-		var bar1 = await cache2.GetOrSetAsync<int>(barKey, async (_, _) => 22, tags: [yTag, zTag]);
-		var baz1 = await cache3.GetOrSetAsync<int>(bazKey, async (_, _) => 33, tags: [xTag, zTag]);
+		logger.LogInformation("STEP 1");
 
-		await cache1.RemoveByTagAsync(xTag);
-
-		await Task.Delay(100);
-
-		var foo2 = await cache3.GetOrDefaultAsync<int>(fooKey);
-		var bar2 = await cache1.GetOrSetAsync<int>(barKey, async (_, _) => 222, tags: [yTag, zTag]);
-		var baz2 = await cache2.GetOrSetAsync<int>(bazKey, async (_, _) => 333, tags: [xTag, zTag]);
-
-		await cache3.RemoveByTagAsync(yTag);
-
-		await Task.Delay(100);
-
-		var bar3 = await cache3.GetOrSetAsync<int>(barKey, async (_, _) => 2222, tags: [yTag, zTag]);
-		var foo3 = await cache2.GetOrSetAsync<int>(fooKey, async (_, _) => 1111, tags: [xTag, yTag]);
-		var baz3 = await cache1.GetOrSetAsync<int>(bazKey, async (_, _) => 3333, tags: [xTag, zTag]);
+		var foo1 = await cache1.GetOrSetAsync<int>("foo", async _ => 11, tags: ["x", "y"]);
+		var bar1 = await cache2.GetOrSetAsync<int>("bar", async _ => 22, tags: ["y", "z"]);
+		var baz1 = await cache3.GetOrSetAsync<int>("baz", async _ => 33, tags: ["x", "z"]);
 
 		Assert.Equal(1, foo1);
 		Assert.Equal(2, bar1);
 		Assert.Equal(3, baz1);
 
+		logger.LogInformation("STEP 2");
+
+		await cache1.RemoveByTagAsync("x");
+		await Task.Delay(250);
+
+		logger.LogInformation("STEP 3");
+
+		var foo2 = await cache3.GetOrDefaultAsync<int>("foo");
+		var bar2 = await cache1.GetOrSetAsync<int>("bar", async _ => 222, tags: ["y", "z"]);
+		var baz2 = await cache2.GetOrSetAsync<int>("baz", async _ => 333, tags: ["x", "z"]);
+
 		Assert.Equal(0, foo2);
 		Assert.Equal(2, bar2);
 		Assert.Equal(333, baz2);
+
+		logger.LogInformation("STEP 4");
+
+		await cache3.RemoveByTagAsync("y");
+		await Task.Delay(250);
+
+		logger.LogInformation("STEP 5");
+
+		var bar3 = await cache3.GetOrSetAsync<int>("bar", async _ => 2222, tags: ["y", "z"]);
+		var foo3 = await cache2.GetOrSetAsync<int>("foo", async _ => 1111, tags: ["x", "y"]);
+		var baz3 = await cache1.GetOrSetAsync<int>("baz", async _ => 3333, tags: ["x", "z"]);
 
 		Assert.Equal(1111, foo3);
 		Assert.Equal(2222, bar3);
@@ -867,51 +874,56 @@ public class L1L2BackplaneTests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public void CanRemoveByTag(SerializerType serializerType)
 	{
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
-		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
-		var barKey = "bar:" + Guid.NewGuid().ToString("N");
-		var bazKey = "baz:" + Guid.NewGuid().ToString("N");
+		var logger = CreateXUnitLogger<FusionCache>();
 
-		var xTag = "tag:x:" + Guid.NewGuid().ToString("N");
-		var yTag = "tag:y:" + Guid.NewGuid().ToString("N");
-		var zTag = "tag:z:" + Guid.NewGuid().ToString("N");
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+
+		var backplaneConnectionId = FusionCacheInternalUtils.GenerateOperationId();
 
 		var distributedCache = CreateDistributedCache();
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
-		cache1.Set<int>(fooKey, 1, tags: [xTag, yTag]);
-		cache2.Set<int>(barKey, 2, tags: [yTag, zTag]);
-		cache3.GetOrSet<int>(bazKey, (_, _) => 3, tags: [xTag, zTag]);
+		cache1.Set<int>("foo", 1, tags: ["x", "y"]);
+		cache2.Set<int>("bar", 2, tags: ["y", "z"]);
+		cache3.GetOrSet<int>("baz", _ => 3, tags: ["x", "z"]);
 
-		var foo1 = cache1.GetOrSet<int>(fooKey, (_, _) => 11, tags: [xTag, yTag]);
-		var bar1 = cache2.GetOrSet<int>(barKey, (_, _) => 22, tags: [yTag, zTag]);
-		var baz1 = cache3.GetOrSet<int>(bazKey, (_, _) => 33, tags: [xTag, zTag]);
+		logger.LogInformation("STEP 1");
 
-		cache1.RemoveByTag(xTag);
-
-		Thread.Sleep(100);
-
-		var foo2 = cache3.GetOrDefault<int>(fooKey);
-		var bar2 = cache1.GetOrSet<int>(barKey, (_, _) => 222, tags: [yTag, zTag]);
-		var baz2 = cache2.GetOrSet<int>(bazKey, (_, _) => 333, tags: [xTag, zTag]);
-
-		cache3.RemoveByTag(yTag);
-
-		Thread.Sleep(100);
-
-		var bar3 = cache3.GetOrSet<int>(barKey, (_, _) => 2222, tags: [yTag, zTag]);
-		var foo3 = cache2.GetOrSet<int>(fooKey, (_, _) => 1111, tags: [xTag, yTag]);
-		var baz3 = cache1.GetOrSet<int>(bazKey, (_, _) => 3333, tags: [xTag, zTag]);
+		var foo1 = cache1.GetOrSet<int>("foo", _ => 11, tags: ["x", "y"]);
+		var bar1 = cache2.GetOrSet<int>("bar", _ => 22, tags: ["y", "z"]);
+		var baz1 = cache3.GetOrSet<int>("baz", _ => 33, tags: ["x", "z"]);
 
 		Assert.Equal(1, foo1);
 		Assert.Equal(2, bar1);
 		Assert.Equal(3, baz1);
 
+		logger.LogInformation("STEP 2");
+
+		cache1.RemoveByTag("x");
+		Thread.Sleep(250);
+
+		logger.LogInformation("STEP 3");
+
+		var foo2 = cache3.GetOrDefault<int>("foo");
+		var bar2 = cache1.GetOrSet<int>("bar", _ => 222, tags: ["y", "z"]);
+		var baz2 = cache2.GetOrSet<int>("baz", _ => 333, tags: ["x", "z"]);
+
 		Assert.Equal(0, foo2);
 		Assert.Equal(2, bar2);
 		Assert.Equal(333, baz2);
+
+		logger.LogInformation("STEP 4");
+
+		cache3.RemoveByTag("y");
+		Thread.Sleep(250);
+
+		logger.LogInformation("STEP 5");
+
+		var bar3 = cache3.GetOrSet<int>("bar", _ => 2222, tags: ["y", "z"]);
+		var foo3 = cache2.GetOrSet<int>("foo", _ => 1111, tags: ["x", "y"]);
+		var baz3 = cache1.GetOrSet<int>("baz", _ => 3333, tags: ["x", "z"]);
 
 		Assert.Equal(1111, foo3);
 		Assert.Equal(2222, bar3);
