@@ -66,19 +66,21 @@ static void TestSnapshots<T>(IFusionCacheSerializer[] serializers)
 
 static FusionCacheDistributedEntry<string> CreateEntry()
 {
-	var logicalExpiration = new DateTimeOffset(641400439934520833, TimeSpan.Zero);
+	var timestamp = 641400439934520833;
 
 	return new FusionCacheDistributedEntry<string>(
 		"Sloths are cool!",
+		timestamp,
+		timestamp,
+		["x", "y", "z"],
 		new FusionCacheEntryMetadata(
-			logicalExpiration
-			, true
-			, logicalExpiration.AddDays(-10)
-			, "MyETagValue"
-			, logicalExpiration.AddDays(-100)
-			, 1
-		),
-		DateTimeOffset.UtcNow.Ticks
+			true,
+			timestamp,
+			"abc123",
+			timestamp,
+			1,
+			0
+		)
 	);
 }
 
