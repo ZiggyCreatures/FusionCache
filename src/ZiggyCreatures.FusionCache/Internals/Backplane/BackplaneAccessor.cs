@@ -190,7 +190,15 @@ internal sealed partial class BackplaneAccessor
 
 		_ = Task.Run(async () =>
 		{
-			await HandleIncomingMessageAsync(message).ConfigureAwait(false);
+			try
+			{
+				await HandleIncomingMessageAsync(message).ConfigureAwait(false);
+			}
+			catch (Exception exc)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] an error occurred while processing an incoming backplane message", _cache.CacheName, _cache.InstanceId, message.CacheKey);
+			}
 		});
 	}
 
