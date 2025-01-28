@@ -136,10 +136,20 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		Metadata = distributedEntry.Metadata;
 	}
 
+	public (bool error, bool isSame, bool hasUpdated) TryUpdateMemoryEntryFromDistributedEntry(string operationId, string cacheKey, FusionCache cache)
+	{
+		return cache.TryUpdateMemoryEntryFromDistributedEntry<TValue>(operationId, cacheKey, this);
+	}
+
 	public ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync(string operationId, string cacheKey, FusionCache cache)
 	{
 		return cache.TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(operationId, cacheKey, this);
 	}
+
+	//public bool SetDistributedEntry(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
+	//{
+	//	return dca.SetEntry<TValue>(operationId, key, this, options, isBackground, token);
+	//}
 
 	public ValueTask<bool> SetDistributedEntryAsync(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
 	{

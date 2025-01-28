@@ -17,6 +17,8 @@ public class ChaosBackplane
 	private readonly IFusionCacheBackplane _innerBackplane;
 	private Action<BackplaneConnectionInfo>? _innerConnectHandler;
 	private Action<BackplaneMessage>? _innerIncomingMessageHandler;
+	private Func<BackplaneConnectionInfo, ValueTask>? _innerConnectHandlerAsync;
+	private Func<BackplaneMessage, ValueTask>? _innerIncomingMessageHandlerAsync;
 
 	/// <summary>
 	/// Initializes a new instance of the ChaosBackplane class.
@@ -53,13 +55,17 @@ public class ChaosBackplane
 
 		_innerConnectHandler = options.ConnectHandler;
 		_innerIncomingMessageHandler = options.IncomingMessageHandler;
+		_innerConnectHandlerAsync = options.ConnectHandlerAsync;
+		_innerIncomingMessageHandlerAsync = options.IncomingMessageHandlerAsync;
 
 		var innerOptions = new BackplaneSubscriptionOptions(
 			options.CacheName,
 			options.CacheInstanceId,
 			options.ChannelName,
 			OnConnect,
-			OnIncomingMessage
+			OnIncomingMessage,
+			OnConnectAsync,
+			OnIncomingMessageAsync
 		);
 
 		_innerBackplane.Subscribe(innerOptions);
@@ -75,6 +81,8 @@ public class ChaosBackplane
 
 		_innerConnectHandler = null;
 		_innerIncomingMessageHandler = null;
+		_innerConnectHandlerAsync = null;
+		_innerIncomingMessageHandlerAsync = null;
 
 		_innerBackplane.Unsubscribe();
 	}
@@ -104,5 +112,31 @@ public class ChaosBackplane
 			return;
 
 		_innerIncomingMessageHandler?.Invoke(message);
+	}
+
+	async ValueTask OnConnectAsync(BackplaneConnectionInfo info)
+	{
+		if (ShouldThrow())
+			return;
+
+		var tmp = _innerConnectHandlerAsync;
+
+		if (tmp is null)
+			return;
+
+		await tmp(info).ConfigureAwait(false);
+	}
+
+	async ValueTask OnIncomingMessageAsync(BackplaneMessage message)
+	{
+		if (ShouldThrow())
+			return;
+
+		var tmp = _innerIncomingMessageHandlerAsync;
+
+		if (tmp is null)
+			return;
+
+		await tmp(message).ConfigureAwait(false);
 	}
 }

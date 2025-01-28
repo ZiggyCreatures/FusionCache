@@ -96,4 +96,255 @@ internal partial class BackplaneAccessor
 
 		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
 	}
+
+	private void HandleConnect(BackplaneConnectionInfo info)
+	{
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
+
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] backplane " + (info.IsReconnection ? "re-connected" : "connected"), _cache.CacheName, _cache.InstanceId, operationId);
+
+		if (info.IsReconnection)
+		{
+			_cache.AutoRecovery.TryUpdateBarrier(operationId);
+		}
+	}
+
+	private void HandleIncomingMessage(BackplaneMessage message)
+	{
+		if (_options.IgnoreIncomingBackplaneNotifications)
+		{
+			return;
+		}
+
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
+
+		// IGNORE NULL
+		if (message is null)
+		{
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
+
+			return;
+		}
+
+		// IGNORE MESSAGES FROM THIS SOURCE
+		if (message.SourceId == _cache.InstanceId)
+		{
+			return;
+		}
+
+		// CHECK CIRCUIT BREAKER
+		_breaker.Close(out var hasChanged);
+		if (hasChanged)
+		{
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] backplane activated again", _cache.CacheName, _cache.InstanceId, operationId);
+
+			// EVENT
+			_events.OnCircuitBreakerChange(operationId, message.CacheKey, true);
+		}
+
+		// ACTIVITY
+
+		// TEMP SWAP THE CURRENT ACTIVITY TO HAVE THE NEW ONE AS ROOT
+		var previous = Activity.Current;
+		Activity.Current = null;
+
+		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
+		activity?.SetTag(Tags.Names.BackplaneMessageAction, message.Action.ToString());
+		activity?.SetTag(Tags.Names.BackplaneMessageSourceId, message.SourceId);
+
+		// REVERT THE PREVIOUS CURRENT ACTIVITY
+		Activity.Current = previous;
+
+		// EVENT
+		_events.OnMessageReceived(operationId, message);
+
+		// IGNORE INVALID MESSAGES
+		if (message.IsValid() == false)
+		{
+			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] an invalid backplane notification has been received from remote cache {RemoteCacheInstanceId} (A={Action}, T={InstantTimestamp})", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action, message.Timestamp);
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, Activities.EventNames.BackplaneIncomingMessageInvalid);
+			activity?.Dispose();
+
+			return;
+		}
+
+		// AUTO-RECOVERY
+		if (_options.EnableAutoRecovery)
+		{
+			if (_cache.AutoRecovery.CheckIncomingMessageForConflicts(operationId, message) == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId}, but has been ignored since there is a pending one in the auto-recovery queue which is more recent", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+				// ACTIVITY
+				activity?.SetStatus(ActivityStatusCode.Error, Activities.EventNames.BackplaneIncomingMessageConflicts);
+				activity?.Dispose();
+
+				return;
+			}
+		}
+
+		// PROCESS MESSAGE
+		switch (message.Action)
+		{
+			case BackplaneMessageAction.EntrySet:
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+				if (message.CacheKey!.StartsWith(_cache.TagInternalCacheKeyPrefix))
+				{
+					// HANDLE A POTENTIAL UPDATE OF A TAGGING (RemoveByTag/Clear) TIMESTAMP
+					MaybeUpdateTaggingTimestamp(operationId, message);
+				}
+				else
+				{
+					// HANDLE SET
+					HandleIncomingMessageSet(operationId, message);
+				}
+
+				break;
+			case BackplaneMessageAction.EntryRemove:
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (REMOVE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+				// HANDLE REMOVE
+				_cache.RemoveMemoryEntryInternal(operationId, message.CacheKey!);
+				break;
+			case BackplaneMessageAction.EntryExpire:
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (EXPIRE)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+				// HANDLE EXPIRE
+				_cache.ExpireMemoryEntryInternal(operationId, message.CacheKey!, message.Timestamp);
+				break;
+			default:
+				// HANDLE UNKNOWN: DO NOTHING
+				if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
+					_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] an backplane notification has been received from remote cache {RemoteCacheInstanceId} for an unknown action {Action}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId, message.Action);
+
+				// ACTIVITY
+				activity?.SetStatus(ActivityStatusCode.Error, Activities.EventNames.BackplaneIncomingMessageUnknownAction);
+				activity?.Dispose();
+
+				break;
+		}
+	}
+
+	private void HandleIncomingMessageSet(string operationId, BackplaneMessage message)
+	{
+		var cacheKey = message.CacheKey!;
+
+		var mca = _cache.MemoryCache;
+
+		if (mca is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] no memory cache, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		var memoryEntry = mca.GetEntryOrNull(operationId, cacheKey);
+
+		// IF NO MEMORY ENTRY -> DO NOTHING
+		if (memoryEntry is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] no memory entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		// IF MEMORY ENTRY SAME AS REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
+		if (memoryEntry.Timestamp == message.Timestamp)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] memory entry same as the incoming backplane message, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		// IF MEMORY ENTRY MORE FRESH THAN REMOTE ENTRY (VIA MESSAGE TIMESTAMP) -> DO NOTHING
+		if (memoryEntry.Timestamp > message.Timestamp)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] memory entry more fresh than the incoming backplane message, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+			return;
+		}
+
+		var dca = _cache.DistributedCache;
+
+		if (dca is not null)
+		{
+			if (dca.CanBeUsed(operationId, cacheKey) == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] distributed cache not currently usable, expiring local memory entry", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+
+				_cache.ExpireMemoryEntryInternal(operationId, cacheKey, message.Timestamp);
+
+				return;
+			}
+
+			var (error, isSame, hasUpdated) = memoryEntry.TryUpdateMemoryEntryFromDistributedEntry(operationId, cacheKey, _cache);
+
+			if (error == false)
+			{
+				if (isSame)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] memory entry is the same as the distributed entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+					return;
+				}
+
+				if (hasUpdated)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] memory entry updated from the distributed entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+					return;
+				}
+			}
+		}
+
+		_cache.ExpireMemoryEntryInternal(operationId, cacheKey, message.Timestamp);
+	}
+
+	private void MaybeUpdateTaggingTimestamp(string operationId, BackplaneMessage message)
+	{
+		//if (message.CacheKey is null)
+		if (message.CacheKey is null || message.CacheKey.StartsWith(_cache.TagInternalCacheKeyPrefix) == false)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] XXX 02 {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+			return;
+		}
+
+		if (message.CacheKey == _cache.ClearRemoveTagInternalCacheKey)
+		{
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (REMOVE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+			// SET THE CLEAR (REMOVE) TIMESTAMP TO THE ONE FROMTHE BACKPLANE MESSAGE
+			Interlocked.Exchange(ref _cache.ClearRemoveTimestamp, message.Timestamp);
+		}
+		else if (message.CacheKey == _cache.ClearExpireTagInternalCacheKey)
+		{
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (EXPIRE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+
+			// SET THE CLEAR (REMOVE) TIMESTAMP TO THE ONE FROMTHE BACKPLANE MESSAGE
+			Interlocked.Exchange(ref _cache.ClearExpireTimestamp, message.Timestamp);
+		}
+		else
+		{
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a REMOVE BY TAG has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
+		}
+
+		_cache.SetTagDataInternal(message.CacheKey.Substring(_cache.TagInternalCacheKeyPrefix.Length), message.Timestamp, _options.TagsDefaultEntryOptions.Duplicate().SetSkipDistributedCacheWrite(true, true), default);
+	}
 }

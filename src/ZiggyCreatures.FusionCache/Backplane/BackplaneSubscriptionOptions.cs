@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane;
 
@@ -23,6 +24,8 @@ public class BackplaneSubscriptionOptions
 		ChannelName = channelName;
 		ConnectHandler = connectHandler;
 		IncomingMessageHandler = incomingMessageHandler;
+		ConnectHandlerAsync = async x => { connectHandler?.Invoke(x); };
+		IncomingMessageHandlerAsync = async x => { incomingMessageHandler?.Invoke(x); };
 	}
 
 	/// <summary>
@@ -33,13 +36,17 @@ public class BackplaneSubscriptionOptions
 	/// <param name="channelName">The channel name to be used.</param>
 	/// <param name="connectHandler">The backplane connection handler that will be used when there's a connection (or reconnection).</param>
 	/// <param name="incomingMessageHandler">The backplane message handler that will be used to process incoming messages.</param>
-	public BackplaneSubscriptionOptions(string cacheName, string cacheInstanceId, string? channelName, Action<BackplaneConnectionInfo>? connectHandler, Action<BackplaneMessage>? incomingMessageHandler)
+	/// <param name="connectHandlerAsync">The async backplane connection handler that will be used when there's a connection (or reconnection).</param>
+	/// <param name="incomingMessageHandlerAsync">The async backplane message handler that will be used to process incoming messages.</param>
+	public BackplaneSubscriptionOptions(string cacheName, string cacheInstanceId, string? channelName, Action<BackplaneConnectionInfo>? connectHandler, Action<BackplaneMessage>? incomingMessageHandler, Func<BackplaneConnectionInfo, ValueTask>? connectHandlerAsync, Func<BackplaneMessage, ValueTask>? incomingMessageHandlerAsync)
 	{
 		CacheName = cacheName;
 		CacheInstanceId = cacheInstanceId;
 		ChannelName = channelName;
 		ConnectHandler = connectHandler;
 		IncomingMessageHandler = incomingMessageHandler;
+		ConnectHandlerAsync = connectHandlerAsync;
+		IncomingMessageHandlerAsync = incomingMessageHandlerAsync;
 	}
 
 	/// <summary>
@@ -76,4 +83,14 @@ public class BackplaneSubscriptionOptions
 	/// The backplane message handler that will be used to process incoming messages.
 	/// </summary>
 	public Action<BackplaneMessage>? IncomingMessageHandler { get; }
+
+	/// <summary>
+	/// The backplane connection handler that will be used when there's a connection (or reconnection).
+	/// </summary>
+	public Func<BackplaneConnectionInfo, ValueTask>? ConnectHandlerAsync { get; }
+
+	/// <summary>
+	/// The backplane message handler that will be used to process incoming messages.
+	/// </summary>
+	public Func<BackplaneMessage, ValueTask>? IncomingMessageHandlerAsync { get; }
 }

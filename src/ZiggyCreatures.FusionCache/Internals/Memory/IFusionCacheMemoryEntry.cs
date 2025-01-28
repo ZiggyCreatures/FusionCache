@@ -15,6 +15,8 @@ internal interface IFusionCacheMemoryEntry
 
 	byte[] GetSerializedValue(IFusionCacheSerializer serializer);
 
+	(bool error, bool isSame, bool hasUpdated) TryUpdateMemoryEntryFromDistributedEntry(string operationId, string cacheKey, FusionCache cache);
 	ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync(string operationId, string cacheKey, FusionCache cache);
+
 	ValueTask<bool> SetDistributedEntryAsync(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token);
 }

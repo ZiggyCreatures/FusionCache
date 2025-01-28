@@ -28,6 +28,8 @@ public class MemoryBackplane
 
 	private Action<BackplaneConnectionInfo>? _connectHandler;
 	private Action<BackplaneMessage>? _incomingMessageHandler;
+	private Func<BackplaneConnectionInfo, ValueTask>? _connectHandlerAsync;
+	private Func<BackplaneMessage, ValueTask>? _incomingMessageHandlerAsync;
 
 	/// <summary>
 	/// Initializes a new instance of the MemoryBackplane class.
@@ -98,6 +100,7 @@ public class MemoryBackplane
 	private void Disconnect()
 	{
 		_connectHandler = null;
+		_connectHandlerAsync = null;
 
 		if (_connection is null)
 			return;
@@ -115,10 +118,16 @@ public class MemoryBackplane
 			throw new NullReferenceException("The BackplaneSubscriptionOptions.ChannelName cannot be null");
 
 		if (subscriptionOptions.IncomingMessageHandler is null)
-			throw new NullReferenceException("The BackplaneSubscriptionOptions.MessageHandler cannot be null");
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.IncomingMessageHandler cannot be null");
 
 		if (subscriptionOptions.ConnectHandler is null)
 			throw new NullReferenceException("The BackplaneSubscriptionOptions.ConnectHandler cannot be null");
+
+		if (subscriptionOptions.IncomingMessageHandlerAsync is null)
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.IncomingMessageHandlerAsync cannot be null");
+
+		if (subscriptionOptions.ConnectHandlerAsync is null)
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.ConnectHandlerAsync cannot be null");
 
 		_subscriptionOptions = subscriptionOptions;
 
@@ -126,6 +135,8 @@ public class MemoryBackplane
 
 		_incomingMessageHandler = _subscriptionOptions.IncomingMessageHandler;
 		_connectHandler = _subscriptionOptions.ConnectHandler;
+		_incomingMessageHandlerAsync = _subscriptionOptions.IncomingMessageHandlerAsync;
+		_connectHandlerAsync = _subscriptionOptions.ConnectHandlerAsync;
 
 		// CONNECTION
 		EnsureConnection();
@@ -151,6 +162,8 @@ public class MemoryBackplane
 		if (_subscribers is not null)
 		{
 			_incomingMessageHandler = null;
+			_incomingMessageHandlerAsync = null;
+
 			lock (_subscribers)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -166,7 +179,10 @@ public class MemoryBackplane
 
 				_incomingMessageHandler = null;
 				_connectHandler = null;
+				_incomingMessageHandlerAsync = null;
+				_connectHandlerAsync = null;
 			}
+
 			_subscribers = null;
 		}
 
@@ -174,10 +190,47 @@ public class MemoryBackplane
 	}
 
 	/// <inheritdoc/>
-	public ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		Publish(message, options, token);
-		return new ValueTask();
+		EnsureConnection();
+
+		if (message is null)
+			throw new ArgumentNullException(nameof(message));
+
+		if (message.IsValid() == false)
+			throw new InvalidOperationException("The message is invalid");
+
+		if (_subscribers is null)
+			throw new NullReferenceException("Something went wrong :-|");
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] about to send a backplane notification to {BackplanesCount} backplanes (including self)", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, _subscribers.Count);
+
+		var payload = BackplaneMessage.ToByteArray(message);
+
+		foreach (var backplane in _subscribers)
+		{
+			token.ThrowIfCancellationRequested();
+
+			if (backplane == this)
+				continue;
+
+			try
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] before sending a backplane notification to channel {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, backplane._channelName);
+
+				await backplane.OnMessageAsync(payload).ConfigureAwait(false);
+
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] after sending a backplane notification to channel {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, backplane._channelName);
+			}
+			catch
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] An error occurred while publishing a message to a subscriber", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey);
+			}
+		}
 	}
 
 	/// <inheritdoc/>
@@ -224,6 +277,29 @@ public class MemoryBackplane
 		}
 	}
 
+	internal async ValueTask OnMessageAsync(byte[] payload)
+	{
+		var message = BackplaneMessage.FromByteArray(payload);
+
+		var handler = _incomingMessageHandlerAsync;
+
+		if (handler is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] a backplane notification received from {BackplaneMessageSourceId} will not be processed because the handler is null", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, message.SourceId);
+		}
+		else
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] before processing a backplane notification received from {BackplaneMessageSourceId}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, message.SourceId);
+
+			await handler(message).ConfigureAwait(false);
+
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] after processing a backplane notification received from {BackplaneMessageSourceId}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, message.SourceId);
+		}
+	}
+
 	internal void OnMessage(byte[] payload)
 	{
 		var message = BackplaneMessage.FromByteArray(payload);
@@ -240,7 +316,7 @@ public class MemoryBackplane
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] before processing a backplane notification received from {BackplaneMessageSourceId}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, message.SourceId);
 
-			handler.Invoke(message);
+			handler(message);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] after processing a backplane notification received from {BackplaneMessageSourceId}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, message.SourceId);

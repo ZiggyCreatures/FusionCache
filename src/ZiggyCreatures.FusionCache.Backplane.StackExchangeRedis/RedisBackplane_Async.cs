@@ -32,7 +32,11 @@ public partial class RedisBackplane
 			if (_connection is not null)
 			{
 				_connection.ConnectionRestored += OnReconnect;
-				_connectHandler?.Invoke(new BackplaneConnectionInfo(false));
+				var tmp = _connectHandlerAsync;
+				if (tmp is not null)
+				{
+					await tmp(new BackplaneConnectionInfo(false)).ConfigureAwait(false);
+				}
 			}
 		}
 		finally

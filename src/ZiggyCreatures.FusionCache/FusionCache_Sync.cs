@@ -1037,7 +1037,7 @@ public partial class FusionCache
 		options ??= _tagsDefaultEntryOptions;
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling Clear {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling Clear({AllowFailSafe}) {Options}", CacheName, InstanceId, operationId, allowFailSafe, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Clear, CacheName, InstanceId, null, operationId);
@@ -1221,5 +1221,106 @@ public partial class FusionCache
 			options,
 			token
 		);
+	}
+
+	// INTERNAL STUFF
+
+	internal (bool error, bool isSame, bool hasUpdated) TryUpdateMemoryEntryFromDistributedEntry<TValue>(string operationId, string key, FusionCacheMemoryEntry<TValue> memoryEntry)
+	{
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to update memory entry from distributed entry", CacheName, InstanceId, operationId, key);
+
+		try
+		{
+			if (HasDistributedCache == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because there's no distributed cache", CacheName, InstanceId, operationId, key);
+
+				return (false, false, false);
+			}
+
+			var dca = DistributedCache;
+
+			if (dca is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because distributed cache is not enabled for the current operation", CacheName, InstanceId, operationId, key);
+
+				return (false, false, false);
+			}
+
+			if (dca.IsCurrentlyUsable(operationId, key) == false)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cannot update memory from distributed because distributed cache is not currently usable", CacheName, InstanceId, operationId, key);
+
+				return (true, false, false);
+			}
+
+			try
+			{
+				var (distributedEntry, isValid) = dca.TryGetEntry<TValue>(operationId, key, _tryUpdateEntryOptions, false, Timeout.InfiniteTimeSpan, default);
+
+				if (distributedEntry is null || isValid == false)
+				{
+					//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
+					//return;
+
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry not found or stale, do not update memory entry", CacheName, InstanceId, operationId, key);
+
+					return (false, false, false);
+				}
+
+				if (distributedEntry.Timestamp == memoryEntry.Timestamp)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry same as distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);
+
+					return (false, true, false);
+				}
+
+				if (distributedEntry.Timestamp < memoryEntry.Timestamp)
+				{
+					//return;
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);
+
+					return (false, false, false);
+				}
+
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): updating memory entry from distributed entry", CacheName, InstanceId, operationId, key);
+
+
+				_mca.UpdateEntryFromDistributedEntry(operationId, key, memoryEntry, distributedEntry);
+				//memoryEntry.UpdateFromDistributedEntry(distributedEntry);
+
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, key);
+
+				// EVENT
+				_events.Memory.OnSet(operationId, key);
+
+				return (false, false, true);
+			}
+			catch (Exception exc)
+			{
+				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to update a memory entry from a distributed entry", CacheName, InstanceId, operationId, key);
+
+				//MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
+
+				return (true, false, false);
+			}
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while calling TryUpdateMemoryEntryFromDistributedEntryUntypedAsync() to try to update a memory entry from a distributed entry without knowing the TValue type", CacheName, InstanceId, operationId, key);
+
+			return (true, false, false);
+		}
 	}
 }

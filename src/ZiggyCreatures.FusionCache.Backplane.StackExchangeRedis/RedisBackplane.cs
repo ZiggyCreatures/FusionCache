@@ -27,6 +27,8 @@ public partial class RedisBackplane
 
 	private Action<BackplaneConnectionInfo>? _connectHandler;
 	private Action<BackplaneMessage>? _incomingMessageHandler;
+	private Func<BackplaneConnectionInfo, ValueTask>? _connectHandlerAsync;
+	private Func<BackplaneMessage, ValueTask>? _incomingMessageHandlerAsync;
 
 	/// <summary>
 	/// Initializes a new instance of the RedisBackplane class.
@@ -85,6 +87,7 @@ public partial class RedisBackplane
 	private void Disconnect()
 	{
 		_connectHandler = null;
+		_connectHandlerAsync = null;
 
 		if (_connection is null)
 			return;
@@ -113,10 +116,16 @@ public partial class RedisBackplane
 			throw new NullReferenceException("The BackplaneSubscriptionOptions.ChannelName cannot be null");
 
 		if (subscriptionOptions.IncomingMessageHandler is null)
-			throw new NullReferenceException("The BackplaneSubscriptionOptions.MessageHandler cannot be null");
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.IncomingMessageHandler cannot be null");
 
 		if (subscriptionOptions.ConnectHandler is null)
 			throw new NullReferenceException("The BackplaneSubscriptionOptions.ConnectHandler cannot be null");
+
+		if (subscriptionOptions.IncomingMessageHandlerAsync is null)
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.IncomingMessageHandlerAsync cannot be null");
+
+		if (subscriptionOptions.ConnectHandlerAsync is null)
+			throw new NullReferenceException("The BackplaneSubscriptionOptions.ConnectHandlerAsync cannot be null");
 
 		_subscriptionOptions = subscriptionOptions;
 
@@ -128,6 +137,8 @@ public partial class RedisBackplane
 
 		_incomingMessageHandler = _subscriptionOptions.IncomingMessageHandler;
 		_connectHandler = _subscriptionOptions.ConnectHandler;
+		_incomingMessageHandlerAsync = _subscriptionOptions.IncomingMessageHandlerAsync;
+		_connectHandlerAsync = _subscriptionOptions.ConnectHandlerAsync;
 
 		// CONNECTION
 		EnsureConnection();
@@ -144,6 +155,16 @@ public partial class RedisBackplane
 
 			OnMessage(message);
 		});
+
+		//_subscriber.SubscribeAsync(_channel, (_, v) =>
+		//{
+		//	var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
+
+		//	if (message is null)
+		//		return;
+
+		//	OnMessage(message);
+		//});
 	}
 
 	/// <inheritdoc/>
@@ -152,6 +173,7 @@ public partial class RedisBackplane
 		_ = Task.Run(() =>
 		{
 			_incomingMessageHandler = null;
+			_incomingMessageHandlerAsync = null;
 			_subscriber?.Unsubscribe(_channel);
 			_subscriptionOptions = null;
 
