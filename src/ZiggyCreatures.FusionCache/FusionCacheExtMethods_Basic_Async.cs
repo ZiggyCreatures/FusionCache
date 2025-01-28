@@ -17,11 +17,11 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
-	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token)
 	{
-		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(key, duration: duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -31,12 +31,12 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
-	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), tags, token);
+		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(key, duration: duration).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -46,11 +46,11 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token)
 	{
-		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -60,12 +60,12 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static ValueTask<TValue> GetOrSetAsync<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
+		return cache.GetOrSetAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	#endregion
@@ -79,12 +79,12 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	public static ValueTask<TValue?> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue? defaultValue = default, CancellationToken token = default)
 	{
-		return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	/// <summary>
@@ -99,7 +99,7 @@ public static partial class FusionCacheExtMethods
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	public static ValueTask<TValue?> GetOrDefaultAsync<TValue>(this IFusionCache cache, string key, TValue? defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.GetOrDefaultAsync<TValue>(key, defaultValue, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion
@@ -112,11 +112,11 @@ public static partial class FusionCacheExtMethods
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		return cache.TryGetAsync<TValue>(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.TryGetAsync<TValue>(key, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion
@@ -130,12 +130,12 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
 	public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, CancellationToken token)
 	{
-		return cache.SetAsync<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(key, duration: duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -145,13 +145,13 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="duration">The value for the newly created <see cref="FusionCacheEntryOptions.Duration"/> property, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
 	public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return cache.SetAsync<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), tags, token);
+		return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(key, duration: duration).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -161,12 +161,12 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
 	public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, Action<FusionCacheEntryOptions> setupAction, CancellationToken token)
 	{
-		return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -176,13 +176,13 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
 	public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, Action<FusionCacheEntryOptions> setupAction, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
+		return cache.SetAsync<TValue>(key, value, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -192,7 +192,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="IFusionCache.DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	public static ValueTask SetAsync<TValue>(this IFusionCache cache, string key, TValue value, FusionCacheEntryOptions? options, CancellationToken token)
@@ -209,12 +209,12 @@ public static partial class FusionCacheExtMethods
 	/// </summary>
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="Task"/> to await the completion of the operation.</returns>
 	public static ValueTask RemoveAsync(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		return cache.RemoveAsync(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.RemoveAsync(key, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion
@@ -236,12 +236,12 @@ public static partial class FusionCacheExtMethods
 	/// </summary>
 	/// <param name="cache">The <see cref="IFusionCache"/> instance.</param>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
+	/// <param name="setupAction">The setup action used to further configure the newly created <see cref="FusionCacheEntryOptions"/> object, automatically created by duplicating <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="IFusionCache.DefaultEntryOptions"/>.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	public static ValueTask ExpireAsync(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		return cache.ExpireAsync(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.ExpireAsync(key, cache.CreateEntryOptions(key, setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion

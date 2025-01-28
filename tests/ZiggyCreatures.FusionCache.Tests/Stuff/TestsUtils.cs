@@ -100,6 +100,11 @@ public static class TestsUtils
 		return typeof(FusionCache).GetField("_logger", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as ILogger;
 	}
 
+	public static IKeyedFusionCacheEntryOptionsProvider? GetKeyedEntryOptionsProvider(IFusionCache cache)
+	{
+		return typeof(FusionCache).GetField("_keyDependentEntryOptionsProvider", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as IKeyedFusionCacheEntryOptionsProvider;
+	}
+
 	public static IFusionCacheMemoryLocker? GetMemoryLocker(IFusionCache cache)
 	{
 		return typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as IFusionCacheMemoryLocker;

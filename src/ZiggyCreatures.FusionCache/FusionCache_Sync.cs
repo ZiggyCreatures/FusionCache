@@ -86,10 +86,8 @@ public partial class FusionCache
 		});
 	}
 
-	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		options ??= _defaultEntryOptions;
-
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
@@ -375,6 +373,7 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		var tagsArray = tags.AsArray();
@@ -396,6 +395,7 @@ public partial class FusionCache
 
 		try
 		{
+			options ??= GetEntryOptions(unprefixedKey);
 			var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, factory, true, failSafeDefaultValue, options, activity, token);
 
 			if (entry is null)
@@ -426,6 +426,7 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		var tagsArray = tags.AsArray();
@@ -444,6 +445,7 @@ public partial class FusionCache
 
 		try
 		{
+			options ??= GetEntryOptions(unprefixedKey);
 			var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, (_, _) => defaultValue, false, default, options, activity, token);
 
 			if (entry is null)
@@ -468,10 +470,8 @@ public partial class FusionCache
 
 	// TRY GET
 
-	private IFusionCacheMemoryEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private IFusionCacheMemoryEntry? TryGetEntryInternal<TValue>(string operationId, string key, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		options ??= _defaultEntryOptions;
-
 		token.ThrowIfCancellationRequested();
 
 		IFusionCacheMemoryEntry? memoryEntry = null;
@@ -603,6 +603,7 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
@@ -617,6 +618,7 @@ public partial class FusionCache
 
 		try
 		{
+			options ??= GetEntryOptions(unprefixedKey);
 			var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
 
 			if (entry is null)
@@ -650,6 +652,7 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
@@ -664,6 +667,7 @@ public partial class FusionCache
 
 		try
 		{
+			options ??= GetEntryOptions(unprefixedKey);
 			var entry = TryGetEntryInternal<TValue>(operationId, key, options, activity, token);
 
 			if (entry is null)
@@ -694,6 +698,7 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		var tagsArray = tags.AsArray();
@@ -702,7 +707,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		options ??= _defaultEntryOptions;
+		options ??= GetEntryOptions(unprefixedKey);
 
 		var operationId = MaybeGenerateOperationId();
 
@@ -778,11 +783,12 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
 
-		options ??= _defaultEntryOptions;
+		options ??= GetEntryOptions(unprefixedKey);
 
 		RemoveInternal(key, options, token);
 	}
@@ -827,11 +833,12 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		var unprefixedKey = key;
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
 
-		options ??= _defaultEntryOptions;
+		options ??= GetEntryOptions(unprefixedKey);
 
 		ExpireInternal(key, options, token);
 	}

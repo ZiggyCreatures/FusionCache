@@ -140,6 +140,7 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 | ---: | :---: | :---: | :--- |
 | `CacheName`                                 | `string` | `"FusionCache"` | The name of the cache: it can be used for identification, and in a multi-node scenario it is typically shared between nodes to create a logical association. |
 | `DefaultEntryOptions`                       | `FusionCacheEntryOptions`  | *see below* | This is the default entry options object that will be used when one is not passed to each method call that need one, and as a starting point when duplicating one, either via the explicit `FusionCache.CreateOptions(...)` method or in one of the *overloads* of each *core method*. |
+| `KeyDependentEntryOptions`                  | `KeyDependentFusionCacheEntryOptions[]` | `[]` | entry options overrides for specific key prefixes.
 | `DistributedCacheCircuitBreakerDuration`    | `TimeSpan`                 | `none` | The duration of the circuit-breaker used when working with the distributed cache. |
 | `CacheKeyPrefix`           | `string?`     | `null` | A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches. With the builder it can be set using the `WithCacheKeyPrefix(...)` method. |
 | `DistributedCacheKeyModifierMode`           | `CacheKeyModifierMode`     | `Prefix` | Specify the mode in which cache key will be changed for the distributed cache (eg: to specify the wire format version). |

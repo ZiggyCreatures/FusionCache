@@ -344,7 +344,7 @@ public static class OpenTelemetryScenario
 
 		using (var activity = Source.StartActivity("Top-Level Action (Set)"))
 		{
-			await fusionCache.SetAsync("foo", 123, fusionCache.CreateEntryOptions(entry => entry.SetDurationSec(1).SetFailSafe(UseFailSafe)));
+			await fusionCache.SetAsync("foo", 123, fusionCache.CreateEntryOptions("foo", entry => entry.SetDurationSec(1).SetFailSafe(UseFailSafe)));
 		}
 
 		await Task.Delay(1_500);

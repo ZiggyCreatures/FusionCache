@@ -191,6 +191,11 @@ public class GeneralTests
 			CacheKeyPrefix = "Foo:",
 
 			DefaultEntryOptions = CreateEntryOptionsSample(),
+			KeyDependentEntryOptions =
+			[
+				new KeyDependentFusionCacheEntryOptions { KeyTemplate = "abc", Options = CreateEntryOptionsSample() },
+				new KeyDependentFusionCacheEntryOptions { KeyTemplate = "xyz", Options = CreateEntryOptionsSample() }
+			],
 
 			TagsDefaultEntryOptions = CreateEntryOptionsSample(),
 

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
@@ -276,6 +277,11 @@ public interface IFusionCacheBuilder
 	List<Func<IServiceProvider, IFusionCachePlugin>> PluginsFactories { get; }
 
 	#endregion
+
+	/// <summary>
+	/// Setup for a custom <see cref="IKeyedFusionCacheEntryOptionsProvider"/> registration to be used.
+	/// </summary>
+	CustomServiceRegistration<IKeyedFusionCacheEntryOptionsProvider> KeyDependentEntryOptionsProvider { get; set; }
 
 	/// <summary>
 	/// A custom post-setup action, that will be invoked just after the creation of the FusionCache instance, and before returning it to the caller.

@@ -39,6 +39,15 @@ public interface IFusionCache
 	/// <returns>The newly created <see cref="FusionCacheEntryOptions"/>.</returns>
 	FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null);
 
+	/// <summary>
+	/// Creates a new <see cref="FusionCacheEntryOptions"/> instance by duplicating the <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> and optionally applying a setup action.
+	/// </summary>
+	/// <param name="key">The cache key which identifies the entry in the cache.</param>
+	/// <param name="setupAction">An optional setup action to further configure the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
+	/// <param name="duration">An optional duration to directly change the <see cref="FusionCacheEntryOptions.Duration"/> of the newly created <see cref="FusionCacheEntryOptions"/> instance.</param>
+	/// <returns>The newly created <see cref="FusionCacheEntryOptions"/>.</returns>
+	FusionCacheEntryOptions CreateEntryOptions(string key, Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null);
+
 	// GET OR SET
 
 	/// <summary>
@@ -48,7 +57,7 @@ public interface IFusionCache
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="factory">The function which will be called if the value is not found in the cache.</param>
 	/// <param name="failSafeDefaultValue">In case fail-safe is activated and there's no stale data to use, this value will be used instead of throwing an exception.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
@@ -61,7 +70,7 @@ public interface IFusionCache
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="factory">The function which will be called if the value is not found in the cache.</param>
 	/// <param name="failSafeDefaultValue">In case fail-safe is activated and there's no stale data to use, this value will be used instead of throwing an exception.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache, either already there or generated using the provided <paramref name="factory"/> .</returns>
@@ -73,7 +82,7 @@ public interface IFusionCache
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default);
@@ -84,7 +93,7 @@ public interface IFusionCache
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">In case the value is not in the cache this value will be saved and returned instead.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default);
@@ -97,7 +106,7 @@ public interface IFusionCache
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	ValueTask<TValue?> GetOrDefaultAsync<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
@@ -108,7 +117,7 @@ public interface IFusionCache
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="defaultValue">The default value to return if the value for the given <paramref name="key"/> is not in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default);
@@ -120,7 +129,7 @@ public interface IFusionCache
 	/// </summary>
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
@@ -129,7 +138,7 @@ public interface IFusionCache
 	/// </summary>
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
@@ -141,7 +150,7 @@ public interface IFusionCache
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
@@ -153,7 +162,7 @@ public interface IFusionCache
 	/// <typeparam name="TValue">The type of the value in the cache.</typeparam>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="value">The value to put in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="tags">The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Set<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default);
@@ -164,7 +173,7 @@ public interface IFusionCache
 	/// Removes the value in the cache for the specified <paramref name="key"/>.
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	ValueTask RemoveAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
@@ -173,7 +182,7 @@ public interface IFusionCache
 	/// Removes the value in the cache for the specified <paramref name="key"/>.
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
@@ -186,7 +195,7 @@ public interface IFusionCache
 	/// In the distributed cache (if any), the entry will always be effectively removed.
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
@@ -198,7 +207,7 @@ public interface IFusionCache
 	/// In the distributed cache (if any), the entry will always be effectively removed.
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.KeyDependentEntryOptions"/> or <see cref="DefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
@@ -258,7 +267,7 @@ public interface IFusionCache
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
 	/// <param name="allowFailSafe">If set to <see langword="true"/> it will expire all entries in the cache, if set to <see langword="false"/> it will remove all entries in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	/// <returns>A <see cref="ValueTask"/> to await the completion of the operation.</returns>
 	ValueTask ClearAsync(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default);
@@ -273,7 +282,7 @@ public interface IFusionCache
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
 	/// <param name="allowFailSafe">If set to <see langword="true"/> it will expire all entries in the cache, if set to <see langword="false"/> it will remove all entries in the cache.</param>
-	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
+	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="FusionCacheOptions.TagsDefaultEntryOptions"/> will be used.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	void Clear(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
