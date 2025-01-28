@@ -8,7 +8,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| It's possible to register, configure and request multiple named caches: simply register each one and give them a different name (and configuration) and they'll all just work, both via `IFusionCacheProvider` and via [Keyed Services](DependencyInjection.md). |
+| It's possible to register, configure and request multiple named caches: simply register each one and give them a different name (and configuration) and they'll all just work, both via `IFusionCacheProvider` and via [Keyed Services](DependencyInjection.md#-keyed-services). |
 
 Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
 
