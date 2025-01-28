@@ -24,6 +24,8 @@ public class L1BackplaneTests
 	public L1BackplaneTests(ITestOutputHelper output)
 		: base(output, "MyCache:")
 	{
+		if (UseRedis)
+			InitialBackplaneDelay = TimeSpan.FromSeconds(5).PlusALittleBit();
 	}
 
 	private FusionCacheOptions CreateFusionCacheOptions()
@@ -39,6 +41,9 @@ public class L1BackplaneTests
 
 	private static readonly bool UseRedis = false;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
+
+	private readonly TimeSpan InitialBackplaneDelay = TimeSpan.FromMilliseconds(300);
+	private readonly TimeSpan MultiNodeOperationsDelay = TimeSpan.FromMilliseconds(300);
 
 	private IFusionCacheBackplane CreateBackplane(string connectionId, ILogger? logger = null)
 	{
@@ -79,13 +84,13 @@ public class L1BackplaneTests
 		using var cache2 = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
 		using var cache2bis = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
 
-		await Task.Delay(1_000);
+		await Task.Delay(InitialBackplaneDelay);
 
 		await cache1.GetOrSetAsync(key, async _ => 1, TimeSpan.FromMinutes(10));
 		await cache2.GetOrSetAsync(key, async _ => 2, TimeSpan.FromMinutes(10));
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 		await cache2bis.GetOrSetAsync(key, async _ => 2, TimeSpan.FromMinutes(10));
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		Assert.Equal(1, await cache1.GetOrDefaultAsync<int>(key));
 		Assert.Equal(0, await cache2.GetOrDefaultAsync<int>(key));
@@ -94,13 +99,13 @@ public class L1BackplaneTests
 		await cache1.SetAsync(key, 21);
 		await cache2.SetAsync(key, 42);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		Assert.Equal(21, await cache1.GetOrSetAsync(key, async _ => 78, TimeSpan.FromMinutes(10)));
 		Assert.Equal(42, await cache2.GetOrSetAsync(key, async _ => 78, TimeSpan.FromMinutes(10)));
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 		Assert.Equal(78, await cache2bis.GetOrSetAsync(key, async _ => 78, TimeSpan.FromMinutes(10)));
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 		Assert.Equal(88, await cache2.GetOrSetAsync(key, async _ => 88, TimeSpan.FromMinutes(10)));
 	}
 
@@ -114,13 +119,13 @@ public class L1BackplaneTests
 		using var cache2 = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-01");
 		using var cache2bis = CreateFusionCache("C2", CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2-02");
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(InitialBackplaneDelay);
 
 		cache1.GetOrSetAsync(key, async _ => 1, TimeSpan.FromMinutes(10));
 		cache2.GetOrSetAsync(key, async _ => 2, TimeSpan.FromMinutes(10));
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 		cache2bis.GetOrSet(key, _ => 2, TimeSpan.FromMinutes(10));
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		Assert.Equal(1, cache1.GetOrDefault<int>(key));
 		Assert.Equal(0, cache2.GetOrDefault<int>(key));
@@ -129,13 +134,13 @@ public class L1BackplaneTests
 		cache1.Set(key, 21);
 		cache2.Set(key, 42);
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		Assert.Equal(21, cache1.GetOrSet(key, _ => 78, TimeSpan.FromMinutes(10)));
 		Assert.Equal(42, cache2.GetOrSet(key, _ => 78, TimeSpan.FromMinutes(10)));
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 		Assert.Equal(78, cache2bis.GetOrSet(key, _ => 78, TimeSpan.FromMinutes(10)));
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 		Assert.Equal(88, cache2.GetOrSet(key, _ => 88, TimeSpan.FromMinutes(10)));
 	}
 
@@ -157,16 +162,16 @@ public class L1BackplaneTests
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-		await Task.Delay(1_000);
+		await Task.Delay(InitialBackplaneDelay);
 
 		await cache1.SetAsync(key, 1, TimeSpan.FromMinutes(10));
-		await Task.Delay(200);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		await cache2.SetAsync(key, 2, TimeSpan.FromMinutes(10));
-		await Task.Delay(200);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		await cache3.SetAsync(key, 3, TimeSpan.FromMinutes(10));
-		await Task.Delay(200);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		Assert.Equal(1, await cache1.GetOrDefaultAsync<int>(key));
 		Assert.Equal(2, await cache2.GetOrDefaultAsync<int>(key));
@@ -191,16 +196,16 @@ public class L1BackplaneTests
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(InitialBackplaneDelay);
 
 		cache1.Set(key, 1, TimeSpan.FromMinutes(10));
-		Thread.Sleep(200);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		cache2.Set(key, 2, TimeSpan.FromMinutes(10));
-		Thread.Sleep(200);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		cache3.Set(key, 3, TimeSpan.FromMinutes(10));
-		Thread.Sleep(200);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		Assert.Equal(1, cache1.GetOrDefault<int>(key));
 		Assert.Equal(2, cache2.GetOrDefault<int>(key));
@@ -220,6 +225,8 @@ public class L1BackplaneTests
 
 		fusionCache.SetupBackplane(chaosBackplane);
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		await Assert.ThrowsAsync<FusionCacheBackplaneException>(async () =>
 		{
 			await fusionCache.SetAsync<int>("foo", 42);
@@ -238,6 +245,8 @@ public class L1BackplaneTests
 		fusionCache.DefaultEntryOptions.ReThrowBackplaneExceptions = true;
 
 		fusionCache.SetupBackplane(chaosBackplane);
+
+		Thread.Sleep(InitialBackplaneDelay);
 
 		Assert.Throws<FusionCacheBackplaneException>(() =>
 		{
@@ -260,6 +269,8 @@ public class L1BackplaneTests
 		using var cache2 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
+
+		await Task.Delay(InitialBackplaneDelay);
 
 		logger.LogInformation("STEP 1");
 
@@ -301,7 +312,7 @@ public class L1BackplaneTests
 		Assert.Equal(0, bar1_2);
 		Assert.Equal(0, baz1_2);
 
-		await Task.Delay(250);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 5");
 
@@ -339,6 +350,8 @@ public class L1BackplaneTests
 		using var cache2 = CreateFusionCache(null, CreateBackplane(backplaneConnectionId));
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		cache2.DefaultEntryOptions.SkipBackplaneNotifications = true;
+
+		Thread.Sleep(InitialBackplaneDelay);
 
 		logger.LogInformation("STEP 1");
 
@@ -380,7 +393,7 @@ public class L1BackplaneTests
 		Assert.Equal(0, bar1_2);
 		Assert.Equal(0, baz1_2);
 
-		Thread.Sleep(250);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 5");
 
@@ -436,6 +449,8 @@ public class L1BackplaneTests
 			logger: logger
 		);
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		logger.LogInformation("STEP 1");
 
 		var foo = 1;
@@ -466,7 +481,7 @@ public class L1BackplaneTests
 
 		// REMOVE BY TAG ("x") ON CACHE 1
 		await cache1.RemoveByTagAsync("x");
-		await Task.Delay(100);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 3");
 
@@ -494,7 +509,7 @@ public class L1BackplaneTests
 
 		// REMOVE BY TAG ("y") ON CACHE 2
 		await cache2.RemoveByTagAsync("y");
-		await Task.Delay(100);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 5");
 
@@ -552,6 +567,8 @@ public class L1BackplaneTests
 			logger: logger
 		);
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		logger.LogInformation("STEP 1");
 
 		var foo = 1;
@@ -582,7 +599,7 @@ public class L1BackplaneTests
 
 		// REMOVE BY TAG ("x") ON CACHE 1
 		cache1.RemoveByTag("x");
-		Thread.Sleep(100);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 3");
 
@@ -610,7 +627,7 @@ public class L1BackplaneTests
 
 		// REMOVE BY TAG ("y") ON CACHE 2
 		cache2.RemoveByTag("y");
-		Thread.Sleep(100);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 5");
 

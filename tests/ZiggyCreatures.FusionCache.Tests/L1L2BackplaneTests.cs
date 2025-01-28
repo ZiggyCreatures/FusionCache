@@ -26,6 +26,8 @@ public class L1L2BackplaneTests
 	public L1L2BackplaneTests(ITestOutputHelper output)
 		: base(output, "MyCache:")
 	{
+		if (UseRedis)
+			InitialBackplaneDelay = TimeSpan.FromSeconds(5).PlusALittleBit();
 	}
 
 	private FusionCacheOptions CreateFusionCacheOptions()
@@ -41,6 +43,9 @@ public class L1L2BackplaneTests
 
 	private static readonly bool UseRedis = false;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
+
+	private readonly TimeSpan InitialBackplaneDelay = TimeSpan.FromMilliseconds(300);
+	private readonly TimeSpan MultiNodeOperationsDelay = TimeSpan.FromMilliseconds(300);
 
 	private IFusionCacheBackplane CreateBackplane(string connectionId)
 	{
@@ -109,7 +114,7 @@ public class L1L2BackplaneTests
 
 		await cache1.SetAsync(key, 21);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		Assert.Equal(21, await cache1.GetOrDefaultAsync<int>(key));
 		Assert.Equal(1, await cache2.GetOrDefaultAsync<int>(key));
@@ -121,11 +126,11 @@ public class L1L2BackplaneTests
 		cache2.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cache3.SetupBackplane(CreateBackplane(backplaneConnectionId));
 
-		await Task.Delay(1_000);
+		await Task.Delay(InitialBackplaneDelay);
 
 		await cache1.SetAsync(key, 42);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		Assert.Equal(42, await cache1.GetOrDefaultAsync<int>(key));
 		Assert.Equal(42, await cache2.GetOrDefaultAsync<int>(key));
@@ -133,7 +138,7 @@ public class L1L2BackplaneTests
 
 		await cache1.RemoveAsync(key);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		Assert.Equal(0, cache1.GetOrDefault<int>(key));
 		Assert.Equal(0, cache2.GetOrDefault<int>(key));
@@ -165,7 +170,7 @@ public class L1L2BackplaneTests
 
 		cache1.Set(key, 21, TimeSpan.FromMinutes(10));
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		Assert.Equal(21, cache1.GetOrDefault<int>(key));
 		Assert.Equal(1, cache2.GetOrDefault<int>(key));
@@ -177,11 +182,11 @@ public class L1L2BackplaneTests
 		cache2.SetupBackplane(CreateBackplane(backplaneConnectionId));
 		cache3.SetupBackplane(CreateBackplane(backplaneConnectionId));
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(InitialBackplaneDelay);
 
 		cache1.Set(key, 42, TimeSpan.FromMinutes(10));
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		Assert.Equal(42, cache1.GetOrDefault<int>(key));
 		Assert.Equal(42, cache2.GetOrDefault<int>(key));
@@ -189,7 +194,7 @@ public class L1L2BackplaneTests
 
 		cache1.Remove(key);
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		Assert.Equal(0, cache1.GetOrDefault<int>(key));
 		Assert.Equal(0, cache2.GetOrDefault<int>(key));
@@ -211,15 +216,17 @@ public class L1L2BackplaneTests
 			options.IgnoreIncomingBackplaneNotifications = true;
 		});
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		await cache1.SetAsync(key, 1);
 		await cache2.SetAsync(key, 2);
 		await cache3.SetAsync(key, 3);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		await cache1.SetAsync(key, 4);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		var v1 = await cache1.GetOrSetAsync(key, async _ => 10, TimeSpan.FromHours(10));
 		var v2 = await cache2.GetOrSetAsync(key, async _ => 20, TimeSpan.FromHours(10));
@@ -245,15 +252,17 @@ public class L1L2BackplaneTests
 			options.IgnoreIncomingBackplaneNotifications = true;
 		});
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		cache1.Set(key, 1);
 		cache2.Set(key, 2);
 		cache3.Set(key, 3);
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		cache1.Set(key, 4);
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		var v1 = cache1.GetOrSet(key, _ => 10, TimeSpan.FromHours(10));
 		var v2 = cache2.GetOrSet(key, _ => 20, TimeSpan.FromHours(10));
@@ -289,10 +298,12 @@ public class L1L2BackplaneTests
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache2);
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache3);
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		await cache1.SetAsync(key1, 1, options => options.SetSize(1));
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
 		var maybe2 = await cache2.TryGetAsync<int>(key1);
@@ -303,7 +314,7 @@ public class L1L2BackplaneTests
 		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
 		await cache3.SetAsync(key2, 2);
 
-		await Task.Delay(1_000);
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
@@ -338,10 +349,12 @@ public class L1L2BackplaneTests
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache2);
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), memoryCache: memoryCache3);
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		cache1.Set(key1, 1, options => options.SetSize(1));
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
 		var maybe2 = cache2.TryGet<int>(key1);
@@ -352,7 +365,7 @@ public class L1L2BackplaneTests
 		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
 		cache3.Set(key2, 2);
 
-		Thread.Sleep(1_000);
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
@@ -396,7 +409,7 @@ public class L1L2BackplaneTests
 		cacheC.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheC.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-		await Task.Delay(TimeSpan.FromMilliseconds(200));
+		await Task.Delay(InitialBackplaneDelay);
 
 		// SET ON CACHE A
 		await cacheA.SetAsync<int>("foo", 42);
@@ -404,8 +417,14 @@ public class L1L2BackplaneTests
 		// GET ON CACHE A
 		var maybeFooA1 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
 
+		Assert.True(maybeFooA1.HasValue);
+		Assert.Equal(42, maybeFooA1.Value);
+
 		// GET ON CACHE B (WILL GET FROM DISTRIBUTED CACHE AND SAVE ON LOCAL MEMORY CACHE)
 		var maybeFooB1 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetFailSafe(true));
+
+		Assert.True(maybeFooB1.HasValue);
+		Assert.Equal(42, maybeFooB1.Value);
 
 		// NOW CACHE A + B HAVE THE VALUE CACHED IN THEIR LOCAL MEMORY CACHE, WHILE CACHE C DOES NOT
 
@@ -417,47 +436,39 @@ public class L1L2BackplaneTests
 		//   - DO NOTHING ON CACHE C (IT WAS NOT IN ITS MEMORY CACHE)
 		await cacheA.ExpireAsync("foo");
 
-		await Task.Delay(TimeSpan.FromMilliseconds(250));
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
-		var maybeFooA2 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFooA2 = await cacheA.TryGetAsync<int>("foo");
 
 		// GET ON CACHE B: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
-		var maybeFooB2 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFooB2 = await cacheB.TryGetAsync<int>("foo");
 
 		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
-		var maybeFooC2 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFooC2 = await cacheC.TryGetAsync<int>("foo");
+
+		Assert.False(maybeFooA2.HasValue);
+		Assert.False(maybeFooB2.HasValue);
+		Assert.False(maybeFooC2.HasValue);
 
 		TestOutput.WriteLine($"BEFORE");
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
 		var maybeFooA3 = await cacheA.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
-		TestOutput.WriteLine($"AFTER");
-
-		// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
-		var maybeFooB3 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
-
-		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
-		var maybeFooC3 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
-
-		await Task.Delay(TimeSpan.FromMilliseconds(200));
-
-		Assert.True(maybeFooA1.HasValue);
-		Assert.Equal(42, maybeFooA1.Value);
-
-		Assert.True(maybeFooB1.HasValue);
-		Assert.Equal(42, maybeFooB1.Value);
-
-		Assert.False(maybeFooA2.HasValue);
-		Assert.False(maybeFooB2.HasValue);
-		Assert.False(maybeFooC2.HasValue);
-
 		Assert.True(maybeFooA3.HasValue);
 		Assert.Equal(42, maybeFooA3.Value);
 
+		TestOutput.WriteLine($"AFTER");
+
+		// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
+		var maybeFooB3 = await cacheB.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
+
 		Assert.True(maybeFooB3.HasValue);
 		Assert.Equal(42, maybeFooB3.Value);
+
+		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
+		var maybeFooC3 = await cacheC.TryGetAsync<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
 		Assert.False(maybeFooC3.HasValue);
 	}
@@ -496,7 +507,7 @@ public class L1L2BackplaneTests
 		cacheC.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cacheC.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(200));
+		Thread.Sleep(InitialBackplaneDelay);
 
 		// SET ON CACHE A
 		cacheA.Set<int>("foo", 42);
@@ -504,8 +515,14 @@ public class L1L2BackplaneTests
 		// GET ON CACHE A
 		var maybeFooA1 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(true));
 
+		Assert.True(maybeFooA1.HasValue);
+		Assert.Equal(42, maybeFooA1.Value);
+
 		// GET ON CACHE B (WILL GET FROM DISTRIBUTED CACHE AND SAVE ON LOCAL MEMORY CACHE)
 		var maybeFooB1 = cacheB.TryGet<int>("foo", opt => opt.SetFailSafe(true));
+
+		Assert.True(maybeFooB1.HasValue);
+		Assert.Equal(42, maybeFooB1.Value);
 
 		// NOW CACHE A + B HAVE THE VALUE CACHED IN THEIR LOCAL MEMORY CACHE, WHILE CACHE C DOES NOT
 
@@ -517,47 +534,39 @@ public class L1L2BackplaneTests
 		//   - DO NOTHING ON CACHE C (IT WAS NOT IN ITS MEMORY CACHE)
 		cacheA.Expire("foo");
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(250));
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
-		var maybeFooA2 = cacheA.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFooA2 = cacheA.TryGet<int>("foo");
 
 		// GET ON CACHE B: SINCE IT'S EXPIRED AND FAIL-SAFE IS DISABLED, NOTHING WILL BE RETURNED
-		var maybeFooB2 = cacheB.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFooB2 = cacheB.TryGet<int>("foo");
 
 		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
-		var maybeFooC2 = cacheC.TryGet<int>("foo", opt => opt.SetFailSafe(false));
+		var maybeFooC2 = cacheC.TryGet<int>("foo");
+
+		Assert.False(maybeFooA2.HasValue);
+		Assert.False(maybeFooB2.HasValue);
+		Assert.False(maybeFooC2.HasValue);
 
 		TestOutput.WriteLine($"BEFORE");
 
 		// GET ON CACHE A: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
 		var maybeFooA3 = cacheA.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
+		Assert.True(maybeFooA3.HasValue);
+		Assert.Equal(42, maybeFooA3.Value);
+
 		TestOutput.WriteLine($"AFTER");
 
 		// GET ON CACHE B: SINCE IT'S EXPIRED BUT FAIL-SAFE IS ENABLED, THE STALE VALUE WILL BE RETURNED
 		var maybeFooB3 = cacheB.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
-		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
-		var maybeFooC3 = cacheC.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
-
-		Thread.Sleep(TimeSpan.FromMilliseconds(200));
-
-		Assert.True(maybeFooA1.HasValue);
-		Assert.Equal(42, maybeFooA1.Value);
-
-		Assert.True(maybeFooB1.HasValue);
-		Assert.Equal(42, maybeFooB1.Value);
-
-		Assert.False(maybeFooA2.HasValue);
-		Assert.False(maybeFooB2.HasValue);
-		Assert.False(maybeFooC2.HasValue);
-
-		Assert.True(maybeFooA3.HasValue);
-		Assert.Equal(42, maybeFooA3.Value);
-
 		Assert.True(maybeFooB3.HasValue);
 		Assert.Equal(42, maybeFooB3.Value);
+
+		// GET ON CACHE C: SINCE NOTHING IS THERE, NOTHING WILL BE RETURNED
+		var maybeFooC3 = cacheC.TryGet<int>("foo", opt => opt.SetAllowStaleOnReadOnly());
 
 		Assert.False(maybeFooC3.HasValue);
 	}
@@ -590,6 +599,8 @@ public class L1L2BackplaneTests
 		using var cacheB = new FusionCache(optionsB, logger: CreateXUnitLogger<FusionCache>());
 		cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
+
+		await Task.Delay(InitialBackplaneDelay);
 
 		// SET 10 ON CACHE-A AND DIST CACHE
 		var fooA1 = await cacheA.GetOrSetAsync("foo", async _ => 10, duration1);
@@ -673,6 +684,8 @@ public class L1L2BackplaneTests
 		cacheB.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 		cacheB.SetupBackplane(CreateBackplane(backplaneConnectionId));
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		// SET 10 ON CACHE-A AND DIST CACHE
 		var fooA1 = cacheA.GetOrSet("foo", _ => 10, duration1);
 
@@ -751,7 +764,7 @@ public class L1L2BackplaneTests
 		var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
 		fusionCache.SetupBackplane(chaosBackplane);
 
-		await Task.Delay(options.AutoRecoveryDelay.PlusALittleBit());
+		await Task.Delay(InitialBackplaneDelay);
 
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 		chaosBackplane.SetAlwaysDelayExactly(simulatedDelay);
@@ -794,7 +807,7 @@ public class L1L2BackplaneTests
 		var chaosBackplane = new ChaosBackplane(backplane, CreateXUnitLogger<ChaosBackplane>());
 		fusionCache.SetupBackplane(chaosBackplane);
 
-		Thread.Sleep(options.AutoRecoveryDelay.PlusALittleBit());
+		Thread.Sleep(InitialBackplaneDelay);
 
 		chaosDistributedCache.SetAlwaysDelayExactly(simulatedDelay);
 		chaosBackplane.SetAlwaysDelayExactly(simulatedDelay);
@@ -824,6 +837,8 @@ public class L1L2BackplaneTests
 		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+
+		await Task.Delay(InitialBackplaneDelay);
 
 		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
 		await cache2.SetAsync<int>("bar", 2, tags: ["y", "z"]);
@@ -885,6 +900,8 @@ public class L1L2BackplaneTests
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		cache1.Set<int>("foo", 1, tags: ["x", "y"]);
 		cache2.Set<int>("bar", 2, tags: ["y", "z"]);
 		cache3.GetOrSet<int>("baz", _ => 3, tags: ["x", "z"]);
@@ -942,6 +959,8 @@ public class L1L2BackplaneTests
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C3");
+
+		await Task.Delay(InitialBackplaneDelay);
 
 		await cache1.SetAsync<int>("milk", 1, tags: ["beverage", "white"]);
 		await cache1.SetAsync<int>("coconut", 1, tags: ["food", "white"]);
@@ -1056,6 +1075,8 @@ public class L1L2BackplaneTests
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), options => { options.CacheKeyPrefix = $"{cacheName}:"; }, cacheInstanceId: "C3");
+
+		Thread.Sleep(InitialBackplaneDelay);
 
 		cache1.Set<int>("milk", 1, tags: ["beverage", "white"]);
 		cache1.Set<int>("coconut", 1, tags: ["food", "white"]);
@@ -1176,6 +1197,8 @@ public class L1L2BackplaneTests
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
 		await cache1.SetAsync<int>("bar", 2, tags: ["y"]);
 		await cache1.GetOrSetAsync<int>("baz", async _ => 3, tags: ["z"]);
@@ -1284,6 +1307,8 @@ public class L1L2BackplaneTests
 		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		cache1.Set<int>("foo", 1, tags: ["x", "y"]);
 		cache1.Set<int>("bar", 2, tags: ["y"]);
 		cache1.GetOrSet<int>("baz", _ => 3, tags: ["z"]);
@@ -1386,6 +1411,8 @@ public class L1L2BackplaneTests
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y", "z"]);
 		await cache1.SetAsync<int>("bar", 1, tags: ["x", "y", "z"]);
 		await cache1.SetAsync<int>("baz", 1, tags: ["x", "y", "z"]);
@@ -1434,6 +1461,8 @@ public class L1L2BackplaneTests
 		var distributedCache = CreateDistributedCache();
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+
+		Thread.Sleep(InitialBackplaneDelay);
 
 		cache1.Set<int>("foo", 1, tags: ["x", "y", "z"]);
 		cache1.Set<int>("bar", 1, tags: ["x", "y", "z"]);
@@ -1494,6 +1523,8 @@ public class L1L2BackplaneTests
 		cache2.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		logger.LogInformation("STEP 1");
 
 		await cache1.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
@@ -1518,12 +1549,12 @@ public class L1L2BackplaneTests
 		logger.LogInformation("STEP 4");
 
 		await cache2.ClearAsync();
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 5");
 
 		await cache2.SetAsync<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 6");
 
@@ -1556,7 +1587,7 @@ public class L1L2BackplaneTests
 		logger.LogInformation("STEP 8");
 
 		await cache2.ClearAsync(false);
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 9");
 
@@ -1585,6 +1616,9 @@ public class L1L2BackplaneTests
 
 		Assert.Equal(0, cache2_foo_5);
 		Assert.Equal(0, cache2_bar_5);
+
+		// TODO: REMOVE THIS
+		await Task.Delay(2_000);
 	}
 
 	[Theory]
@@ -1608,6 +1642,8 @@ public class L1L2BackplaneTests
 		cache2.DefaultEntryOptions.IsFailSafeEnabled = true;
 		cache2.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+
+		Thread.Sleep(InitialBackplaneDelay);
 
 		logger.LogInformation("STEP 1");
 
@@ -1633,12 +1669,12 @@ public class L1L2BackplaneTests
 		logger.LogInformation("STEP 4");
 
 		cache2.Clear();
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 5");
 
 		cache2.Set<int>("bar", 22, options => options.SetDuration(TimeSpan.FromSeconds(10)));
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 6");
 
@@ -1671,7 +1707,7 @@ public class L1L2BackplaneTests
 		logger.LogInformation("STEP 8");
 
 		cache2.Clear(false);
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		logger.LogInformation("STEP 9");
 
@@ -1700,6 +1736,9 @@ public class L1L2BackplaneTests
 
 		Assert.Equal(0, cache2_foo_5);
 		Assert.Equal(0, cache2_bar_5);
+
+		// TODO: REMOVE THIS
+		Thread.Sleep(2_000);
 	}
 
 	[Theory]
@@ -1716,6 +1755,8 @@ public class L1L2BackplaneTests
 
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 
+		await Task.Delay(InitialBackplaneDelay);
+
 		await cache1.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 		await cache1.SetAsync<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 
@@ -1726,8 +1767,7 @@ public class L1L2BackplaneTests
 		Assert.Equal(2, bar1_1);
 
 		await cache1.ClearAsync();
-
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(MultiNodeOperationsDelay);
 
 		var foo1_2 = await cache1.GetOrDefaultAsync<int>("foo");
 
@@ -1755,6 +1795,8 @@ public class L1L2BackplaneTests
 
 		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
 
+		Thread.Sleep(InitialBackplaneDelay);
+
 		cache1.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 		cache1.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)));
 
@@ -1765,8 +1807,7 @@ public class L1L2BackplaneTests
 		Assert.Equal(2, bar1_1);
 
 		cache1.Clear();
-
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(MultiNodeOperationsDelay);
 
 		var foo1_2 = cache1.GetOrDefault<int>("foo");
 
