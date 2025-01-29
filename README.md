@@ -58,6 +58,18 @@ Curious about what you can achieve from start to finish? There's a [👩‍🏫 
 
 In search of all the docs? There's a [page](docs/README.md) for that, too.
 
+## 🧬 Diagrams
+
+Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
+
+So, diagrams!
+
+<div align="center">
+
+[![FusionCache flow diagrams](docs/images/diagrams.png)](docs/Diagrams.md)
+
+</div>
+
 ## 📺 Media
 
 More into videos?

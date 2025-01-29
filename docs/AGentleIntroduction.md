@@ -137,6 +137,53 @@ Yes, yes: the abiltiy to clear seems like an easy one but when we consider thing
 Read more [**here**](Clear.md).
 
 
+## 🔃 Dependency Injection + Builder ([more](DependencyInjection.md))
+
+FusionCache fully supports [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
+
+It also supports the modern and easy to use Builder approach.
+
+Read more [**here**](DependencyInjection.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
+
+
+## 📛 Named Caches ([more](NamedCaches.md))
+
+Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
+
+Thanks to the native [builder](DependencyInjection.md) support, it's very easy to configure different caches identified by different names.
+
+Read more [**here**](NamedCaches.md).
+
+
+## Ⓜ️ Support for Microsoft HybridCache ([more](MicrosoftHybridCache.md))
+
+With .NET 9, Microsoft released their new [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0).
+
+This may turn the HybridCache abstract class into some sort of "lingua franca" for a basic set of common features for all hybrid caches in .NET.
+
+So FusionCache is available ALSO as an implementation of HybridCache, via an adapter class.
+
+> [!NOTE]
+> FusionCache is the FIRST 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the FIRST production-ready implementation of HybridCache AT ALL, including the one by Microsoft itself. Quite bonkers 😬
+
+Read more [**here**](MicrosoftHybridCache.md).
+
+
+## 🧬 Diagrams
+
+Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
+
+So, diagrams!
+
+<div align="center">
+
+[![FusionCache flow diagrams](images/diagrams.png)](Diagrams.md)
+
+</div>
+
+Read more [**here**](Diagrams.md).
+
+
 ## 🎚️ Options ([more](Options.md))
 
 There are 2 kinds of options:
@@ -178,38 +225,6 @@ Read more [**here**](CoreMethods.md).
 Everything is natively available for both the **sync** and **async** programming models.
 
 Any operation works seamlessly with any other, even if one is **sync** and the other is **async**: an example is multiple concurrent factory calls for the same cache key, some of them **sync** while others **async**, all coordinated together at the same time with no problems and a guarantee that only one will be executed at the same time.
-
-
-## 🔃 Dependency Injection + Builder ([more](DependencyInjection.md))
-
-FusionCache fully supports [Dependency Injection (DI)](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection), a design pattern to achieve a form of Inversion of Control (IoC) in our code.
-
-It also supports the modern and easy to use Builder approach.
-
-Read more [**here**](DependencyInjection.md), or enjoy the complete [**step by step**](StepByStep.md) guide.
-
-
-## 📛 Named Caches ([more](NamedCaches.md))
-
-Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
-
-Thanks to the native [builder](DependencyInjection.md) support, it's very easy to configure different caches identified by different names.
-
-Read more [**here**](NamedCaches.md).
-
-
-## Ⓜ️ Support for Microsoft HybridCache ([more](MicrosoftHybridCache.md))
-
-With .NET 9, Microsoft released their new [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0).
-
-This may turn the HybridCache abstract class into some sort of "lingua franca" for a basic set of common features for all hybrid caches in .NET.
-
-So FusionCache is available ALSO as an implementation of HybridCache, via an adapter class.
-
-> [!NOTE]
-> FusionCache is the FIRST 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the FIRST production-ready implementation of HybridCache AT ALL, including the one by Microsoft itself. Quite bonkers 😬
-
-Read more [**here**](MicrosoftHybridCache.md).
 
 
 ## 📞 Events ([more](Events.md))
