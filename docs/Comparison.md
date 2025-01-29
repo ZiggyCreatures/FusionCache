@@ -48,6 +48,7 @@ The general features I've identified are:
 - [**Multi-provider**](CacheLevels.md): the abilty to use the same caching api towards different implementations (memory, Redis, MongoDb, etc)
 - [**Multi-level**](CacheLevels.md): the ability to handle more than one caching level, transparently. This can give you - at the same time - the benefits of a local in-memory cache (high performance + data locality) and the benefits of a distributed cache (sharing of cached data + better cold start) without having to handle them separately
 - [**Backplane**](Backplane.md): available with different names, it allows a change in a distributed cache to be reflected in the local memory cache
+- [**Named Caches**](NamedCaches.md): it's possible to register multiple instances via DI and later request them via either keyed services or a different mechanism (eg: like `IFusionCacheProvider`)
 - [**Auto-Recovery**](AutoRecovery.md): a way to automatically handle transient errors so that they can be solved, automatically, without doing anything
 - [**Events**](Events.md): the ability to be notified when certain events happen in the cache, useful to collect custom metrics, etc
 - [**OpenTelemetry**](OpenTelemetry.md): support for full observability via [OpenTelemetry](https://opentelemetry.io/)
@@ -75,6 +76,7 @@ This is how they compare:
 | **Multi-provider**    | ✔          | ✔               | ✔            | ✔          | ✔              | ❌           |
 | **Multi-level**       | ✔          | ✔               | ✔            | ✔          | ⚠              | ❌           |
 | **Backplane**         | ✔          | ✔               | ✔            | ✔          | ✔              | ❌           |
+| **Named Caches**      | ✔          | ❌              | ❌           | ❌         | ❌             | ❌           |
 | **Auto-Recovery**     | ✔          | ❌              | ❌           | ❌         | ❌             | ❌           |
 | **Events**            | ✔          | ❌              | ✔            | ❌         | ❌             | ❌           |
 | **OpenTelemetry**     | ✔          | ❓              | ❌           | ❌         | ❌             | ❌           |
