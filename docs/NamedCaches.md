@@ -8,7 +8,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| It's possible do register, configure and request multiple named caches: simply register each one and give them a different name (and configuration) and they'll all just work, both via `IFusionCacheProvider` and via [Keyed Services](DependencyInjection.md). |
+| It's possible to register, configure and request multiple named caches: simply register each one and give them a different name (and configuration) and they'll all just work, both via `IFusionCacheProvider` and via [Keyed Services](DependencyInjection.md#-keyed-services). |
 
 Just like with the standard [named http clients](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-7.0#named-clients) in .NET, with FusionCache it's possible to have multiple named caches.
 
@@ -90,7 +90,7 @@ public class MyController : Controller
 }
 ```
 
-And of course if you want to access 2 caches at the same time you can just do it:
+And of course if we want to access 2 caches at the same time we can just do it:
 
 ```csharp
 public class MyController : Controller
@@ -108,6 +108,10 @@ public class MyController : Controller
 }
 ```
 
+One last thing: so are we forced to use `IFusionCacheProvider`?
+
+The answer is of course not: we can even use [Keyed Services](DependencyInjection.md#-keyed-services)!
+
 ## ⭐ Default Cache
 
 But wait, does the "normal" way of using FusionCache - by declaring a param of type `IFusionCache` - still works?
@@ -118,7 +122,8 @@ It will just return the default cache, that is the one registered via `services.
 
 Our existing code that was not using named caches will still work, without changes 🎉
 
-**ℹ NOTE:** nitpicking corner here, but the _default cache_ has a cache name equals to `FusionCacheOptions.DefaultCacheName`.
+> [!NOTE]
+> Nitpicking corner here, but the _default cache_ has a cache name equals to `FusionCacheOptions.DefaultCacheName`.
 
 ## ⭐ Default Cache + Named Caches
 
@@ -275,7 +280,7 @@ Normally the answer would be yes, but in this case is a resounding _"nope!"_ bec
 
 ### 🔑 Cache Key Prefix
 
-If you notice in the code above we also added `WithCacheKeyPrefix()`: that tells FusionCache to add a prefix to each cache key we will pass to it, solving the issue automatically.
+In the code above we also added `WithCacheKeyPrefix()`: that tells FusionCache to add a prefix to each cache key we will pass to it, solving the issue automatically.
 
 By default, when no specific prefix is specified, the `CacheName` plus a little `":"` separator will be used.
 
