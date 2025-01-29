@@ -36,7 +36,7 @@ Other than that I've used a couple of their free [Observability Office Hours](ht
 
 ## OpenTelemetry in .NET
 
-Normally in other languages there's an OpenTelemetry SDK being made available but the kind folks working on it, so that library authors can use that SDK to integrate into the OpenTelemetry world and communicate with processors, exporters and so no.
+Normally in other languages there's an OpenTelemetry SDK being made available by the kind folks working on it, so that library authors can use that SDK to integrate into the OpenTelemetry world and communicate with processors, exporters and so no.
 
 This is also true for .NET, but with a nice catch: in .NET there's always been some form of observability support via core primitives like `Activity`, `ActivitySource`, `Meter` and similar classes already part of the BCL, so instead of creating new primitives the OpenTelemetry team decided to use the existing abstractions and "talk" to them: in this way it's possible for library authors **not** to take a hard dependency on the OpenTelemetry packages and simply use the existing primitives and have the consuming side of the whole OpenTelemetry pipeline interact with them.
 
