@@ -35,4 +35,4 @@ Something else to know is that now the serializers adapters are not depending on
 
 ### 👴 Very, very old stuff
 
-Some options/properties/methods have been marked as `[Obsolete]` for wuite a while: up until now they generated a _warning_, but with `v2` they now generate an _error_.
+Some options/properties/methods have been marked as `[Obsolete]` for quite a while: up until now they generated a _warning_, but with `v2` they now generate an _error_.
