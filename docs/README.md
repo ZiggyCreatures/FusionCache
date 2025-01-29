@@ -21,11 +21,16 @@ A complete step by step example of why a cache is useful, why FusionCache could 
 
 A feature comparison between existing .NET caching solutions, to  help you choose which one to use.
 
+## [**🧬 Diagrams**](Diagrams.md)
+Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
+
+So, diagrams!
+
 ## [**🎚️ Options**](Options.md)
 
 How global and entry options work in FusionCache, how to use them better and things to know.
 
-## 📖 Features
+## ✔️ Features
 
 FusionCache has a lot of features, let's see them grouped together:
 
