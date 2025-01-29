@@ -5,6 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -726,6 +727,27 @@ public static partial class FusionCacheBuilderExtMethods
 		builder.MemoryLockerFactory = factory;
 		builder.ThrowIfMissingMemoryLocker = true;
 
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify custom configuration for <see cref="IKeyedFusionCacheEntryOptionsProvider" /> registration. />
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="config">The configuration action to adjust the registration.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithKeyDependentEntryOptionsProvider(
+		this IFusionCacheBuilder builder,
+		Action<CustomServiceRegistration<IKeyedFusionCacheEntryOptionsProvider>> config)
+	{
+		var registration = new CustomServiceRegistration<IKeyedFusionCacheEntryOptionsProvider>
+		{
+			ThrowIfMissing = true
+		};
+
+		config(registration);
+
+		builder.KeyDependentEntryOptionsProvider = registration;
 		return builder;
 	}
 

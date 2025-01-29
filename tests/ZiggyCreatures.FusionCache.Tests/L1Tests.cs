@@ -1808,6 +1808,42 @@ public class L1Tests
 	}
 
 	[Fact]
+	public async Task CanSkipMemoryCacheDueToKeyDependentOptionsAsync()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions()
+		{
+			KeyDependentEntryOptions = [
+				new KeyDependentFusionCacheEntryOptions
+				{
+					KeyTemplate = "f",
+					Options = new FusionCacheEntryOptions().SetSkipMemoryCache()
+				}
+			]
+		});
+
+		await cache.SetAsync<int>("foo", 42);
+		var maybeFoo1 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCache(false));
+		await cache.SetAsync<int>("foo", 42, opt => opt.SetSkipMemoryCache(false));
+		var maybeFoo2 = await cache.TryGetAsync<int>("foo");
+		var maybeFoo3 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCache(false));
+		await cache.RemoveAsync("foo");
+		var maybeFoo4 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCache(false));
+		await cache.RemoveAsync("foo", opt => opt.SetSkipMemoryCache(false));
+		var maybeFoo5 = await cache.TryGetAsync<int>("foo", opt => opt.SetSkipMemoryCache(false));
+
+		await cache.GetOrSetAsync<int>("bar", 42);
+		var maybeBar = await cache.TryGetAsync<int>("bar");
+
+		Assert.False(maybeFoo1.HasValue);
+		Assert.False(maybeFoo2.HasValue);
+		Assert.True(maybeFoo3.HasValue);
+		Assert.True(maybeFoo4.HasValue);
+		Assert.False(maybeFoo5.HasValue);
+
+		Assert.True(maybeBar.HasValue);
+	}
+
+	[Fact]
 	public void CanSkipMemoryCache()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
@@ -1832,6 +1868,42 @@ public class L1Tests
 		Assert.False(maybeFoo5.HasValue);
 
 		Assert.False(maybeBar.HasValue);
+	}
+
+	[Fact]
+	public void CanSkipMemoryCacheDueToKeyDependentOptions()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions()
+		{
+			KeyDependentEntryOptions = [
+				new KeyDependentFusionCacheEntryOptions
+				{
+					KeyTemplate = "f", 
+					Options = new FusionCacheEntryOptions().SetSkipMemoryCache()
+				}
+			]
+		});
+
+		cache.Set<int>("foo", 42);
+		var maybeFoo1 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCache(false));
+		cache.Set<int>("foo", 42, opt => opt.SetSkipMemoryCache(false));
+		var maybeFoo2 = cache.TryGet<int>("foo");
+		var maybeFoo3 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCache(false));
+		cache.Remove("foo");
+		var maybeFoo4 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCache(false));
+		cache.Remove("foo", opt => opt.SetSkipMemoryCache(false));
+		var maybeFoo5 = cache.TryGet<int>("foo", opt => opt.SetSkipMemoryCache(false));
+
+		cache.GetOrSet<int>("bar", 42);
+		var maybeBar = cache.TryGet<int>("bar");
+
+		Assert.False(maybeFoo1.HasValue);
+		Assert.False(maybeFoo2.HasValue);
+		Assert.True(maybeFoo3.HasValue);
+		Assert.True(maybeFoo4.HasValue);
+		Assert.False(maybeFoo5.HasValue);
+
+		Assert.True(maybeBar.HasValue);
 	}
 
 	[Fact]

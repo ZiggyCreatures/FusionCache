@@ -19,6 +19,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
+using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -336,6 +337,75 @@ public class DependencyInjectionTests
 
 		Assert.NotNull(cache);
 		Assert.IsType<StandardMemoryLocker>(memoryLocker);
+	}
+
+	[Fact]
+	public void CanUseRegisteredKeyDependentEntryOptionsProvider()
+	{
+		var services = new ServiceCollection();
+
+		var instance = new NullKeyedEntryOptionsProvider();
+		services.AddTransient<IKeyedFusionCacheEntryOptionsProvider>(_ => instance);
+
+		services.AddFusionCache()
+			.WithKeyDependentEntryOptionsProvider(registration => registration.UseRegistered = true);
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+		var keyedEntryOptionsProvider = TestsUtils.GetKeyedEntryOptionsProvider(cache);
+
+		Assert.Equal(instance, keyedEntryOptionsProvider);
+	}
+
+	[Fact]
+	public void CanThrowWithoutKeyDependentEntryOptionsProvider()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache()
+			.WithKeyDependentEntryOptionsProvider(registration => { });
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			_ = serviceProvider.GetRequiredService<IFusionCache>();
+		});
+	}
+
+	[Fact]
+	public void CanUseCustomKeyDependentEntryOptionsProvider()
+	{
+		var services = new ServiceCollection();
+
+		var instance = new NullKeyedEntryOptionsProvider();
+		services.AddFusionCache()
+			.WithKeyDependentEntryOptionsProvider(registration => registration.Instance = instance);
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var keyedEntryOptionsProvider = TestsUtils.GetKeyedEntryOptionsProvider(cache);
+
+		Assert.Equal(instance, keyedEntryOptionsProvider);
+	}
+
+	[Fact]
+	public void UsesPrefixBasedEntryOptionsProviderByDefault()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache();
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		var keyedEntryOptionsProvider = TestsUtils.GetKeyedEntryOptionsProvider(cache);
+
+		Assert.IsType<KeyPrefixBasedEntryOptionsProvider>(keyedEntryOptionsProvider);
 	}
 
 	[Fact]

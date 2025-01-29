@@ -193,7 +193,7 @@ public static class LoggingScenario
 		Console.WriteLine($"tmp5: {tmp5}");
 		Console.WriteLine();
 
-		await fusionCache.SetAsync("foo", 123, fusionCache.CreateEntryOptions(entry => entry.SetDurationSec(1).SetFailSafe(UseFailSafe)));
+		await fusionCache.SetAsync("foo", 123, fusionCache.CreateEntryOptions("foo", entry => entry.SetDurationSec(1).SetFailSafe(UseFailSafe)));
 		await Task.Delay(1_500);
 		Console.WriteLine();
 

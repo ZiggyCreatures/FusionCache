@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,6 +17,7 @@ public class FusionCacheOptions
 {
 	private string _cacheName;
 	private FusionCacheEntryOptions _defaultEntryOptions;
+	private KeyDependentFusionCacheEntryOptions[] _keyDependentDefaultEntryOptions;
 	private FusionCacheEntryOptions _tagsDefaultEntryOptions;
 
 	/// <summary>
@@ -61,6 +63,7 @@ public class FusionCacheOptions
 		_cacheName = DefaultCacheName;
 
 		_defaultEntryOptions = new FusionCacheEntryOptions();
+		_keyDependentDefaultEntryOptions = [];
 
 		_tagsDefaultEntryOptions = new FusionCacheEntryOptions
 		{
@@ -156,6 +159,18 @@ public class FusionCacheOptions
 
 			_defaultEntryOptions = value;
 		}
+	}
+
+	/// <summary>
+	/// The default <see cref="FusionCacheEntryOptions"/> per key template to use when none will be specified explicitly,
+	/// and as the starting point when duplicating one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public KeyDependentFusionCacheEntryOptions[] KeyDependentEntryOptions
+	{
+		get { return _keyDependentDefaultEntryOptions ?? []; }
+		set { _keyDependentDefaultEntryOptions = value; }
 	}
 
 	/// <summary>
@@ -533,6 +548,9 @@ public class FusionCacheOptions
 			CacheKeyPrefix = CacheKeyPrefix,
 
 			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
+			KeyDependentEntryOptions = KeyDependentEntryOptions
+				.Select(opt => opt.Duplicate())
+				.ToArray(),
 			TagsDefaultEntryOptions = TagsDefaultEntryOptions.Duplicate(),
 
 			EnableAutoRecovery = EnableAutoRecovery,

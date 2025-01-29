@@ -35,6 +35,7 @@ public sealed partial class FusionCache
 	private readonly ILogger<FusionCache>? _logger;
 	internal readonly FusionCacheEntryOptions _defaultEntryOptions;
 	internal readonly FusionCacheEntryOptions _tryUpdateEntryOptions;
+	private readonly IKeyedFusionCacheEntryOptionsProvider _keyDependentEntryOptionsProvider;
 
 	// MEMORY LOCKER
 	private IFusionCacheMemoryLocker _memoryLocker;
@@ -85,7 +86,13 @@ public sealed partial class FusionCache
 	/// <param name="memoryCache">The <see cref="IMemoryCache"/> instance to use. If null, one will be automatically created and managed.</param>
 	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
 	/// <param name="memoryLocker">The <see cref="IFusionCacheMemoryLocker"/> instance to use. If <see langword="null"/>, a standard one will be automatically created and managed.</param>
-	public FusionCache(IOptions<FusionCacheOptions> optionsAccessor, IMemoryCache? memoryCache = null, ILogger<FusionCache>? logger = null, IFusionCacheMemoryLocker? memoryLocker = null)
+	/// <param name="keyDependentEntryOptionsProvider">The <see cref="IKeyedFusionCacheEntryOptionsProvider"/> instance to use for key-dependent entry options. If <see langwork="null"/>, a default <see cref="KeyPrefixBasedEntryOptionsProvider"/> will be used.</param>
+	public FusionCache(
+		IOptions<FusionCacheOptions> optionsAccessor, 
+		IMemoryCache? memoryCache = null, 
+		ILogger<FusionCache>? logger = null, 
+		IFusionCacheMemoryLocker? memoryLocker = null,
+		IKeyedFusionCacheEntryOptionsProvider? keyDependentEntryOptionsProvider = null)
 	{
 		if (optionsAccessor is null)
 			throw new ArgumentNullException(nameof(optionsAccessor));
@@ -97,6 +104,8 @@ public sealed partial class FusionCache
 		_options = _options.Duplicate();
 
 		_defaultEntryOptions = _options.DefaultEntryOptions;
+		_keyDependentEntryOptionsProvider = keyDependentEntryOptionsProvider ?? 
+		                                    new KeyPrefixBasedEntryOptionsProvider(_options);
 
 		// TRY UPDATE OPTIONS
 		_tryUpdateEntryOptions ??= new FusionCacheEntryOptions()
@@ -238,6 +247,17 @@ public sealed partial class FusionCache
 		setupAction?.Invoke(res);
 		return res;
 	}
+
+	/// <inheritdoc/>
+	public FusionCacheEntryOptions CreateEntryOptions(string key, Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
+	{
+		var res = GetEntryOptions(key).Duplicate(duration);
+		setupAction?.Invoke(res);
+		return res;
+	}
+
+	private FusionCacheEntryOptions GetEntryOptions(string key) => 
+		_keyDependentEntryOptionsProvider.GetEntryOptions(key) ?? _defaultEntryOptions;
 
 	private static void ValidateCacheKey(string key)
 	{
@@ -1086,10 +1106,8 @@ public sealed partial class FusionCache
 		}
 	}
 
-	internal TValue GetValueFromMemoryEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions? options)
+	internal TValue GetValueFromMemoryEntry<TValue>(string operationId, string key, IFusionCacheMemoryEntry entry, FusionCacheEntryOptions options)
 	{
-		options ??= _defaultEntryOptions;
-
 		if (options.EnableAutoClone == false)
 			return entry.GetValue<TValue>();
 

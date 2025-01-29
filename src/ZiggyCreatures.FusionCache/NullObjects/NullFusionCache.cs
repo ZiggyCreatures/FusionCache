@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
@@ -22,6 +23,7 @@ public class NullFusionCache
 {
 	private readonly FusionCacheOptions _options;
 	private readonly FusionCacheEventsHub _events;
+	private readonly PrefixLookup<FusionCacheEntryOptions> _keyDependentCacheEntryOptionsLookup;
 
 	/// <summary>
 	/// Creates a new <see cref="NullFusionCache"/> instance.
@@ -37,6 +39,10 @@ public class NullFusionCache
 
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
+		_keyDependentCacheEntryOptionsLookup = new PrefixLookup<FusionCacheEntryOptions>(
+			_options.KeyDependentEntryOptions.ToDictionary(
+				entry => entry.KeyTemplate,
+				entry => entry.Options));
 
 		// GLOBALLY UNIQUE INSTANCE ID
 		InstanceId = _options.InstanceId ?? Guid.NewGuid().ToString("N");
@@ -64,6 +70,15 @@ public class NullFusionCache
 	public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 	{
 		var res = _options.DefaultEntryOptions.Duplicate(duration);
+		setupAction?.Invoke(res);
+		return res;
+	}
+
+	/// <inheritdoc/>
+	public FusionCacheEntryOptions CreateEntryOptions(string key, Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
+	{
+		var options = _keyDependentCacheEntryOptionsLookup.TryFind(key) ?? _options.DefaultEntryOptions;
+		var res = options.Duplicate(duration);
 		setupAction?.Invoke(res);
 		return res;
 	}

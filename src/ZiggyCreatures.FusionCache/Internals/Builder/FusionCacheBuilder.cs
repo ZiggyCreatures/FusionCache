@@ -28,6 +28,8 @@ internal sealed class FusionCacheBuilder
 
 		UseRegisteredSerializer = true;
 
+		KeyDependentEntryOptionsProvider = new CustomServiceRegistration<IKeyedFusionCacheEntryOptionsProvider>();
+
 		IgnoreRegisteredMemoryDistributedCache = true;
 
 		Plugins = [];
@@ -90,6 +92,8 @@ internal sealed class FusionCacheBuilder
 	public object? PluginsServiceKey { get; set; }
 	public List<IFusionCachePlugin> Plugins { get; }
 	public List<Func<IServiceProvider, IFusionCachePlugin>> PluginsFactories { get; }
+	
+	public CustomServiceRegistration<IKeyedFusionCacheEntryOptionsProvider> KeyDependentEntryOptionsProvider { get; set; }
 
 	public Action<IServiceProvider, IFusionCache>? PostSetupAction { get; set; }
 
@@ -246,8 +250,10 @@ internal sealed class FusionCacheBuilder
 			throw new InvalidOperationException("A memory locker has not been specified, or found in the DI container.");
 		}
 
+		IKeyedFusionCacheEntryOptionsProvider? keyDependentEntryOptionsProvider = GetInstance(KeyDependentEntryOptionsProvider, serviceProvider);
+
 		// CREATE THE CACHE
-		var cache = new FusionCache(options, memoryCache, logger, memoryLocker);
+		var cache = new FusionCache(options, memoryCache, logger, memoryLocker, keyDependentEntryOptionsProvider);
 
 		// SERIALIZER
 		IFusionCacheSerializer? serializer = null;
@@ -402,5 +408,28 @@ internal sealed class FusionCacheBuilder
 		_cache ??= cache;
 
 		return cache;
+	}
+
+	private static T? GetInstance<T>(CustomServiceRegistration<T> registration, IServiceProvider serviceProvider) 
+		where T : class
+	{
+		T? instance = null;
+		if (registration.UseRegistered)
+		{
+			instance = registration.ServiceKey is null 
+				? serviceProvider.GetService<T>() 
+				: serviceProvider.GetKeyedService<T>(registration.ServiceKey);
+		}
+
+		instance ??= registration.InstanceFactory is null
+			? registration.Instance
+			: registration.InstanceFactory(serviceProvider);
+
+		if (instance is null && registration.ThrowIfMissing)
+		{
+			throw new InvalidOperationException($"An instance of {typeof(T).Name} has not been specified, or found in the DI container.");
+		}
+
+		return instance;
 	}
 }
