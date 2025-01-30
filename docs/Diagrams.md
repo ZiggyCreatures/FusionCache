@@ -132,7 +132,7 @@ As said, it cannot contain every little detail of every little feature and every
 Having said that, it should be a quite complete picture of the finer inner steps, enough for anyone to get familiar with how  everything works.
 
 > [!NOTE]
-> It's possible to execute some distributed operations (L2 and Backplane) in the background to speed things up via `AllowBackgroundDistributedCacheOperations` and `AllowBackgroundDistributedCacheOperations` options: in that case those parts will not be blocking, but I'm not showing both here to avoid the diagram becoming even bigger.
+> It's possible to execute some distributed operations (L2 and Backplane) in the background to speed things up via the options `AllowBackgroundDistributedCacheOperations` and `AllowBackgroundBackplaneOperations`: in that case those parts will not be blocking, but I'm not showing both here to avoid the diagram becoming even bigger.
 
 <div align="center">
 
