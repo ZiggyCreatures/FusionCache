@@ -812,15 +812,18 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveBackplane()
 	{
-		lock (_backplaneLock)
+		if (_bpa is not null)
 		{
-			if (_bpa is not null)
+			lock (_backplaneLock)
 			{
-				_bpa.Unsubscribe();
-				_bpa = null;
+				if (_bpa is not null)
+				{
+					_bpa.Unsubscribe();
+					_bpa = null;
 
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: backplane removed", CacheName, InstanceId);
+					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: backplane removed", CacheName, InstanceId);
+				}
 			}
 		}
 
