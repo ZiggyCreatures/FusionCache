@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!--<TargetFramework>net7.0</TargetFramework>-->
+		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+		<Version>2.0.0</Version>
+		<PackageId>ZiggyCreatures.FusionCache.AspNetCore.OutputCaching</PackageId>
+		<Description>ASP.NET Output Cache based on FusionCache</Description>
+		<PackageTags>aspnet;outputcache;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.AspNetCore.OutputCaching</RootNamespace>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageReleaseNotes>
+			- Initial implementation
+		</PackageReleaseNotes>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+</Project>
