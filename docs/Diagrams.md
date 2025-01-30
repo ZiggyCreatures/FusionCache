@@ -127,7 +127,7 @@ flowchart TD
 
 This is the most comprehensive one.
 
-As said, it cannot contain every little detail of every little feature and every possible combination of options, otherwise it would a gargantuan monster as big as Stephen Toub's annual perf [blogposts](https://devblogs.microsoft.com/dotnet/performance-improvements-in-net-9/) 😅.
+As said, it cannot contain every little detail of every little feature and every possible combination of options, otherwise it would be a gargantuan monster as big as Stephen Toub's annual perf [blogposts](https://devblogs.microsoft.com/dotnet/performance-improvements-in-net-9/) 😅.
 
 Having said that, it should be a quite complete picture of the finer inner steps, enough for anyone to get familiar with how  everything works.
 
