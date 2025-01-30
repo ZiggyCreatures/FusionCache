@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion;
 
@@ -9,6 +10,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// It contains a <see cref="bool"/> indicating if the value is there and, if so, the value itself.
 /// </summary>
 /// <typeparam name="TValue">The type of the value.</typeparam>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public readonly struct MaybeValue<TValue>
 	: IEquatable<MaybeValue<TValue>>
 {
@@ -130,5 +132,10 @@ public readonly struct MaybeValue<TValue>
 		hashCode = (hashCode * -1521134295) + EqualityComparer<TValue>.Default.GetHashCode(_value!);
 		hashCode = (hashCode * -1521134295) + HasValue.GetHashCode();
 		return hashCode;
+	}
+
+	private string GetDebuggerDisplay()
+	{
+		return $"MaybeValue HasValue={HasValue}";
 	}
 }

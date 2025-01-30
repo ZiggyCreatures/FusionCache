@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,6 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// <br/><br/>
 /// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 /// </summary>
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class FusionCacheOptions
 	: IOptions<FusionCacheOptions>
 {
@@ -584,5 +586,10 @@ public class FusionCacheOptions
 		};
 
 		return res;
+	}
+
+	private string GetDebuggerDisplay()
+	{
+		return $"Options Name={CacheName}";
 	}
 }
