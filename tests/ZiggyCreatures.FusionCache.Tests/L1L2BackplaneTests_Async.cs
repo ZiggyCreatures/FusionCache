@@ -334,6 +334,8 @@ public partial class L1L2BackplaneTests
 		// THEIR CACHE ENTRIES
 		await Task.Delay(simulatedFactoryDuration.PlusALittleBit());
 
+		await Task.Delay(MultiNodeOperationsDelay);
+
 		// GET THE UPDATED VALUES FROM CACHE-A AND CACHE-B
 		var fooA3 = await cacheA.GetOrDefaultAsync<int>("foo");
 		var fooB3 = await cacheB.GetOrDefaultAsync<int>("foo");

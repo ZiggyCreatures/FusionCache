@@ -334,6 +334,8 @@ public partial class L1L2BackplaneTests
 		// THEIR CACHE ENTRIES
 		Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
 
+		Thread.Sleep(MultiNodeOperationsDelay);
+
 		// GET THE UPDATED VALUES FROM CACHE-A AND CACHE-B
 		var fooA3 = cacheA.GetOrDefault<int>("foo");
 		var fooB3 = cacheB.GetOrDefault<int>("foo");
