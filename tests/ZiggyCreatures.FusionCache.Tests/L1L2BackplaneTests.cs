@@ -832,12 +832,14 @@ public class L1L2BackplaneTests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+
 		var backplaneConnectionId = FusionCacheInternalUtils.GenerateOperationId();
 
 		var distributedCache = CreateDistributedCache();
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
 
 		await Task.Delay(InitialBackplaneDelay);
 
