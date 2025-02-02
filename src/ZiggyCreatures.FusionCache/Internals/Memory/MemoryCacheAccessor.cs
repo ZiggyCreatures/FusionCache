@@ -65,7 +65,7 @@ internal sealed class MemoryCacheAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving entry in memory {Entry}", _options.CacheName, _options.InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] saving memory entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 			var (memoryEntryOptions, absoluteExpiration) = options.ToMemoryCacheEntryOptionsOrAbsoluteExpiration(_events, _options, _logger, operationId, key, entry.Metadata?.Size, entry.Metadata?.Priority);
 
@@ -190,7 +190,7 @@ internal sealed class MemoryCacheAccessor
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] removing memory entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 			_cache.Remove(key);
 
@@ -228,13 +228,13 @@ internal sealed class MemoryCacheAccessor
 			if (timestampThreshold is not null && entry.Timestamp >= timestampThreshold.Value)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] timestamp of cached entry {TimestampCached} was greater than the specified threshold {TimestampThreshold}", _options.CacheName, _options.InstanceId, operationId, key, entry.Timestamp, timestampThreshold.Value);
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] timestamp of cached memory entry {TimestampCached} was greater than the specified threshold {TimestampThreshold}", _options.CacheName, _options.InstanceId, operationId, key, entry.Timestamp, timestampThreshold.Value);
 
 				return false;
 			}
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring data (from memory)", _options.CacheName, _options.InstanceId, operationId, key);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring memory entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 			// MAKE THE ENTRY LOGICALLY EXPIRE
 			entry.LogicalExpirationTimestamp = 0L;

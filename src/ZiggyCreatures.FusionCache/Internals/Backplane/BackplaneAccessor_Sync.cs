@@ -150,6 +150,9 @@ internal partial class BackplaneAccessor
 
 	public bool PublishSet(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] publishing set", _options.CacheName, _options.InstanceId, operationId, key);
+
 		var message = BackplaneMessage.CreateForEntrySet(_cache.InstanceId, key, timestamp);
 
 		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
@@ -157,6 +160,9 @@ internal partial class BackplaneAccessor
 
 	public bool PublishRemove(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] publishing remove", _options.CacheName, _options.InstanceId, operationId, key);
+
 		var message = BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);
 
 		return Publish(operationId, message, options, isAutoRecovery, isBackground, token);
@@ -164,6 +170,9 @@ internal partial class BackplaneAccessor
 
 	public bool PublishExpire(string operationId, string key, long timestamp, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] publishing expire", _options.CacheName, _options.InstanceId, operationId, key);
+
 		var message = options.IsFailSafeEnabled
 			? BackplaneMessage.CreateForEntryExpire(_cache.InstanceId, key, timestamp)
 			: BackplaneMessage.CreateForEntryRemove(_cache.InstanceId, key, timestamp);

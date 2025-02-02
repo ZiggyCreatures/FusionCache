@@ -66,14 +66,17 @@ internal partial class DistributedCacheAccessor
 			return true;
 		}
 
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] saving distributed entry", _options.CacheName, _options.InstanceId, operationId, key);
+
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 		// SERIALIZATION
 		byte[]? data;
 		try
 		{
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
 			data = _serializer.Serialize(distributedEntry);
 		}
@@ -266,6 +269,9 @@ internal partial class DistributedCacheAccessor
 
 		// ACTIVITY
 		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedRemove, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
+
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] removing distributed entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 		return ExecuteOperation(
 			operationId,
