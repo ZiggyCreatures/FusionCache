@@ -2,15 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.0.0</Version>
+		<Version>2.1.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
 		<Description>FusionCache backplane for Redis based on the StackExchange.Redis library</Description>
 		<PackageTags>backplane;redis;stackexchange;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Add: Tagging support
-			- Add: Clear support
+			- Change: better async support for subscribe/unsubscribe/publish
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
