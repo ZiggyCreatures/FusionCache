@@ -163,7 +163,7 @@ This may turn the HybridCache abstract class into some sort of "lingua franca" f
 
 So FusionCache is available ALSO as an implementation of HybridCache, via an adapter class.
 
-> [!NOTE]
+> [!IMPORTANT]
 > FusionCache is the FIRST 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the FIRST production-ready implementation of HybridCache AT ALL, including the one by Microsoft itself. Quite bonkers 😬
 
 Read more [**here**](MicrosoftHybridCache.md).
