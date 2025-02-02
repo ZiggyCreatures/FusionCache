@@ -13,6 +13,10 @@ public static class FusionOutputCacheServiceCollectionExtensions
 {
 	/// <summary>
 	/// Adds services to the specified <see cref="IServiceCollection" /> to have output caching based on FusionCache.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> please remember to call services.AddFusionCache(...) BEFORE calling this method to register a FusionCache instance, either the default one or a specific named one (in this case please specify the same name in <see cref="FusionOutputCacheOptions.CacheName"/>).
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> please remember to call services.AddOutputCache(...) AFTER calling this method, to setup the core OutputCache services.
 	/// </summary>
 	/// <param name="services">The <see cref="IServiceCollection" /> to add services to.</param>
 	/// <param name="setupAction">An <see cref="Action{FusionOutputCacheOptions}"/> to configure the provided <see cref="FusionOutputCacheOptions"/>.</param>
