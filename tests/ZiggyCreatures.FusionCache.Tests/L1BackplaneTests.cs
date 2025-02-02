@@ -32,6 +32,7 @@ public class L1BackplaneTests
 	{
 		var res = new FusionCacheOptions
 		{
+			WaitForInitialBackplaneSubscribe = true,
 			CacheKeyPrefix = TestingCacheKeyPrefix,
 			IncludeTagsInLogs = true,
 		};

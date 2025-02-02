@@ -10,6 +10,79 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 
 internal partial class BackplaneAccessor
 {
+	public async ValueTask SubscribeAsync()
+	{
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
+
+		var channelName = _options.GetBackplaneChannelName();
+
+		try
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] before subscribing to backplane on channel {BackplaneChannel}", _cache.CacheName, _cache.InstanceId, operationId, channelName);
+
+			var retriesLeft = 3;
+			while (retriesLeft > 0)
+			{
+				retriesLeft--;
+
+				try
+				{
+					await _backplane.SubscribeAsync(
+						new BackplaneSubscriptionOptions(
+							_cache.CacheName,
+							_cache.InstanceId,
+							channelName,
+							HandleConnect,
+							HandleIncomingMessage,
+							HandleConnectAsync,
+							HandleIncomingMessageAsync
+						)
+					).ConfigureAwait(false);
+
+					break;
+				}
+				catch (Exception exc)
+				{
+					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+						_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] an error occurred while subscribing to a backplane of type {BackplaneType} on channel {BackplaneChannel} ({RetriesLeft} retries left)", _cache.CacheName, _cache.InstanceId, operationId, _backplane.GetType().FullName, channelName, retriesLeft);
+
+					if (retriesLeft <= 0)
+						throw;
+
+					await Task.Delay(250).ConfigureAwait(false);
+				}
+			}
+
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] after subscribing to backplane on channel {BackplaneChannel}", _cache.CacheName, _cache.InstanceId, operationId, channelName);
+		}
+		catch (Exception exc)
+		{
+			ProcessError(operationId, "", exc, $"subscribing to a backplane of type {_backplane.GetType().FullName}");
+		}
+	}
+
+	public async ValueTask UnsubscribeAsync()
+	{
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
+
+		try
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] before unsubscribing to backplane", _cache.CacheName, _cache.InstanceId, operationId);
+
+			await _backplane.UnsubscribeAsync().ConfigureAwait(false);
+
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] after unsubscribing to backplane", _cache.CacheName, _cache.InstanceId, operationId);
+		}
+		catch (Exception exc)
+		{
+			ProcessError(operationId, "", exc, $"unsubscribing from a backplane of type {_backplane.GetType().FullName}");
+		}
+	}
+
 	private async ValueTask<bool> PublishAsync(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		if (CheckMessage(operationId, message, isAutoRecovery) == false)

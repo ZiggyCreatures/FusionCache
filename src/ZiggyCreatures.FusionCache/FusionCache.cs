@@ -703,10 +703,10 @@ public sealed partial class FusionCache
 		if (serializer is null)
 			throw new ArgumentNullException(nameof(serializer));
 
-		_serializer = serializer;
-
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup serializer (SERIALIZER={SerializerType})", CacheName, InstanceId, _serializer.GetType().FullName);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup serializer (SERIALIZER={SerializerType})", CacheName, InstanceId, serializer.GetType().FullName);
+
+		_serializer = serializer;
 
 		return this;
 	}
@@ -722,10 +722,10 @@ public sealed partial class FusionCache
 		if (_serializer is null)
 			throw new InvalidOperationException("The serializer must be set before setting up the distributed cache");
 
-		_dca = new DistributedCacheAccessor(distributedCache, _serializer, _options, _logger, _events.Distributed);
-
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup distributed cache (CACHE={DistributedCacheType})", CacheName, InstanceId, distributedCache.GetType().FullName);
+
+		_dca = new DistributedCacheAccessor(distributedCache, _serializer, _options, _logger, _events.Distributed);
 
 		return this;
 	}
@@ -772,28 +772,30 @@ public sealed partial class FusionCache
 			RemoveBackplane();
 		}
 
+		var shouldSubscribe = false;
 		lock (_backplaneLock)
 		{
+			shouldSubscribe = true;
 			_bpa = new BackplaneAccessor(this, backplane, _options, _logger);
 		}
 
-		RunUtils.RunSyncActionAdvanced(
-			_ =>
-			{
-				lock (_backplaneLock)
-				{
-					_bpa.Subscribe();
+		if (shouldSubscribe)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup backplane (BACKPLANE={BackplaneType})", CacheName, InstanceId, backplane.GetType().FullName);
 
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup backplane (BACKPLANE={BackplaneType})", CacheName, InstanceId, backplane.GetType().FullName);
-				}
-			},
-			Timeout.InfiniteTimeSpan,
-			false,
-			DefaultEntryOptions.AllowBackgroundBackplaneOperations == false,
-			null,
-			false
-		);
+			if (_options.WaitForInitialBackplaneSubscribe)
+			{
+				_bpa.Subscribe();
+			}
+			else
+			{
+				_ = Task.Run(async () =>
+				{
+					await _bpa.SubscribeAsync().ConfigureAwait(false);
+				});
+			}
+		}
 
 		// CHECK: WARN THE USER IN CASE OF
 		// - HAS A MEMORY CACHE (ALWAYS)

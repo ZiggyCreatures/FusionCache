@@ -15,9 +15,20 @@ public interface IFusionCacheBackplane
 	void Subscribe(BackplaneSubscriptionOptions options);
 
 	/// <summary>
+	/// Subscribe to receive messages from other nodes.
+	/// </summary>
+	/// <param name="options">The backplane subscription options.</param>
+	ValueTask SubscribeAsync(BackplaneSubscriptionOptions options);
+
+	/// <summary>
 	/// Unsubscribe from receiving messages from other nodes.
 	/// </summary>
 	void Unsubscribe();
+
+	/// <summary>
+	/// Unsubscribe from receiving messages from other nodes.
+	/// </summary>
+	ValueTask UnsubscribeAsync();
 
 	/// <summary>
 	/// Send a notification to the other connected nodes, if any.

@@ -11,6 +11,30 @@ public class NullBackplane
 	: IFusionCacheBackplane
 {
 	/// <inheritdoc/>
+	public void Subscribe(BackplaneSubscriptionOptions options)
+	{
+		// EMPTY
+	}
+
+	/// <inheritdoc/>
+	public ValueTask SubscribeAsync(BackplaneSubscriptionOptions options)
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
+	public void Unsubscribe()
+	{
+		// EMPTY
+	}
+
+	/// <inheritdoc/>
+	public ValueTask UnsubscribeAsync()
+	{
+		return new ValueTask();
+	}
+
+	/// <inheritdoc/>
 	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		// EMPTY
@@ -20,17 +44,5 @@ public class NullBackplane
 	public ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		return new ValueTask();
-	}
-
-	/// <inheritdoc/>
-	public void Subscribe(BackplaneSubscriptionOptions options)
-	{
-		// EMPTY
-	}
-
-	/// <inheritdoc/>
-	public void Unsubscribe()
-	{
-		// EMPTY
 	}
 }

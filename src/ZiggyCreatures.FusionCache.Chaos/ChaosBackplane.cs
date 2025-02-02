@@ -32,20 +32,6 @@ public class ChaosBackplane
 	}
 
 	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
-	{
-		MaybeChaos(token);
-		_innerBackplane.Publish(message, options, token);
-	}
-
-	/// <inheritdoc/>
-	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
-	{
-		await MaybeChaosAsync(token).ConfigureAwait(false);
-		await _innerBackplane.PublishAsync(message, options, token).ConfigureAwait(false);
-	}
-
-	/// <inheritdoc/>
 	public void Subscribe(BackplaneSubscriptionOptions options)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -72,6 +58,32 @@ public class ChaosBackplane
 	}
 
 	/// <inheritdoc/>
+	public async ValueTask SubscribeAsync(BackplaneSubscriptionOptions options)
+	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: Subscribe");
+
+		await MaybeChaosAsync();
+
+		_innerConnectHandler = options.ConnectHandler;
+		_innerIncomingMessageHandler = options.IncomingMessageHandler;
+		_innerConnectHandlerAsync = options.ConnectHandlerAsync;
+		_innerIncomingMessageHandlerAsync = options.IncomingMessageHandlerAsync;
+
+		var innerOptions = new BackplaneSubscriptionOptions(
+			options.CacheName,
+			options.CacheInstanceId,
+			options.ChannelName,
+			OnConnect,
+			OnIncomingMessage,
+			OnConnectAsync,
+			OnIncomingMessageAsync
+		);
+
+		await _innerBackplane.SubscribeAsync(innerOptions);
+	}
+
+	/// <inheritdoc/>
 	public void Unsubscribe()
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
@@ -85,6 +97,36 @@ public class ChaosBackplane
 		_innerIncomingMessageHandlerAsync = null;
 
 		_innerBackplane.Unsubscribe();
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask UnsubscribeAsync()
+	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: Unsubscribe");
+
+		MaybeChaos();
+
+		_innerConnectHandler = null;
+		_innerIncomingMessageHandler = null;
+		_innerConnectHandlerAsync = null;
+		_innerIncomingMessageHandlerAsync = null;
+
+		await _innerBackplane.UnsubscribeAsync();
+	}
+
+	/// <inheritdoc/>
+	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	{
+		MaybeChaos(token);
+		_innerBackplane.Publish(message, options, token);
+	}
+
+	/// <inheritdoc/>
+	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	{
+		await MaybeChaosAsync(token).ConfigureAwait(false);
+		await _innerBackplane.PublishAsync(message, options, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -106,14 +148,6 @@ public class ChaosBackplane
 		_innerConnectHandler?.Invoke(info);
 	}
 
-	void OnIncomingMessage(BackplaneMessage message)
-	{
-		if (ShouldThrow())
-			return;
-
-		_innerIncomingMessageHandler?.Invoke(message);
-	}
-
 	async ValueTask OnConnectAsync(BackplaneConnectionInfo info)
 	{
 		if (ShouldThrow())
@@ -125,6 +159,14 @@ public class ChaosBackplane
 			return;
 
 		await tmp(info).ConfigureAwait(false);
+	}
+
+	void OnIncomingMessage(BackplaneMessage message)
+	{
+		if (ShouldThrow())
+			return;
+
+		_innerIncomingMessageHandler?.Invoke(message);
 	}
 
 	async ValueTask OnIncomingMessageAsync(BackplaneMessage message)
