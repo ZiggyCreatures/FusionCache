@@ -72,7 +72,7 @@ So, diagrams!
 
 ## 📺 Media
 
-More intro videos?
+Are you more into videos?
 
 I've been lucky enough to be invited on some shows and podcasts here and there: you can find them in the [Media](docs/Media.md) section.
 
