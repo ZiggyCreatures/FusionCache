@@ -72,7 +72,7 @@ Also, as a cherry on top, in the case of FusionCache specifically we also need t
 
 We have a seemingly insurmountable task ahead.
 
-Oh, finally we should also consider multiple [named caches](NamedCaches.md), which may or may not share the same underlying memory and/or distributed cache: this means that a proper remove by tag" may touch entries for logically separate caches that are stored in the same L2 instance.
+Oh, finally we should also consider multiple [named caches](NamedCaches.md), which may or may not share the same underlying memory and/or distributed cache: this means that a proper "remove by tag" may touch entries for logically separate caches that are stored in the same L2 instance.
 
 Yeah, there's that too.
 
@@ -80,7 +80,7 @@ Damn 🥲
 
 This is one of the hardest tasks in the world of caching, because it involves multiple entries all at once and can _potentially_ mean an upfront massive operation that also, ideally, hopefully, should not block or slow down our entire cache.
 
-Imagine having a cache composed of millions of entries (been there, dont that) and, of those, tens of thousands are tagged with a certain tag: when we _remove by tag_ for that tag what needs to happen is similar to something like this (pseudo-code):
+Imagine having a cache composed of millions of entries (been there, done that) and, of those, tens of thousands are tagged with a certain tag: when we _remove by tag_ for that tag what needs to happen is similar to something like this (pseudo-code):
 
 `DELETE * FROM table WHERE "my-tag" IN tags`
 
@@ -245,7 +245,7 @@ This is known as a [Crinkle Crankle wall](https://en.wikipedia.org/wiki/Crinkle_
 
 Ok, so?
 
-Well, I discovered them some time ago while doomscrolling Wikipedia at late night and I kept a screenshot around, feeling there was something to it but not knowing exactly why: then it recently clicked, and they've been an inspiration for how to design tagging in FusionCache.
+Well, I discovered them some time ago while doomscrolling Wikipedia late at night and I kept a screenshot around, feeling there was something to it but not knowing exactly why: then it recently clicked, and they've been an inspiration for how to design tagging in FusionCache.
 
 You see, most people when looking at them may think _"that's stupid, what a waste of bricks!"_, but the reality is the opposite.
 
