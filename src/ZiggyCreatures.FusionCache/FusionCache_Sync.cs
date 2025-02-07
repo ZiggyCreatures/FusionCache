@@ -323,12 +323,9 @@ public partial class FusionCache
 			}
 
 			// SAVING THE DATA IN THE MEMORY CACHE
-			if (entry is not null)
+			if (_mca.ShouldWrite(options))
 			{
-				if (_mca.ShouldWrite(options))
-				{
-					_mca.SetEntry<TValue>(operationId, key, entry, options, ReferenceEquals(memoryEntry, entry));
-				}
+				_mca.SetEntry<TValue>(operationId, key, entry, options, ReferenceEquals(memoryEntry, entry));
 			}
 		}
 		finally
