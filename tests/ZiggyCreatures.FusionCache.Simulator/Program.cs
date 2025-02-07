@@ -78,8 +78,8 @@ internal class Program
 {
 	// INTERNAL
 	private static string CacheKey = "foo";
-	private static readonly Random RNG = new Random();
-	private static readonly SemaphoreSlim GlobalMutex = new SemaphoreSlim(1, 1);
+	private static readonly Random RNG = new();
+	private static readonly SemaphoreSlim GlobalMutex = new(1, 1);
 	private static int LastValue = 0;
 	private static int? LastUpdatedClusterIdx = null;
 	private static readonly ConcurrentDictionary<int, SimulatedCluster> CacheClusters = [];
@@ -111,7 +111,7 @@ internal class Program
 	// FROM THE SAME PROCESS, PARTICULARLY REGARDING PUBSUB
 	private static bool ReUseConnectionMultiplexers = false;
 
-	private static ConcurrentDictionary<string, IConnectionMultiplexer> _connectionMultiplexerCache = new ConcurrentDictionary<string, IConnectionMultiplexer>();
+	private static ConcurrentDictionary<string, IConnectionMultiplexer> _connectionMultiplexerCache = new();
 
 	private static IConnectionMultiplexer GetRedisConnectionMultiplexer(int clusterIdx, int nodeIdx)
 	{
