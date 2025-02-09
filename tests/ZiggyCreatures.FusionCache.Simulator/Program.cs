@@ -1,11 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using FASTERCache;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,7 +17,6 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
-using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 using ZiggyCreatures.Caching.Fusion.Simulator.Stuff;
 
@@ -373,6 +370,17 @@ internal class Program
 
 		swAll.Stop();
 		logger?.LogInformation("SETUP (ALL) TOOK: {ElapsedMs} ms", swAll.ElapsedMilliseconds);
+	}
+
+	private static void DisposeClusters()
+	{
+		foreach (var cluster in CacheClusters.Values)
+		{
+			foreach (var node in cluster.Nodes)
+			{
+				node.Cache.Dispose();
+			}
+		}
 	}
 
 	private static async Task DisplayDashboardAsync(ILogger<FusionCache>? logger, bool getValues)
@@ -838,6 +846,7 @@ internal class Program
 		} while (shouldExit == false);
 
 		cts.Cancel();
+		DisposeClusters();
 		await Task.Delay(1_000);
 	}
 }
