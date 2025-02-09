@@ -61,6 +61,7 @@ Also, if needed, we can use a different `Duration` specific for the distributed 
 
 Finally we can even execute the distributed cache operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
+
 ## 📢 Backplane
 
 When using a distributed 2nd level, each local memory cache may become out of sync with the other nodes after a change: to solve this, it is suggested to also use a backplane.
@@ -68,6 +69,21 @@ When using a distributed 2nd level, each local memory cache may become out of sy
 All the existing code will remain the same, it's just a 1 line change at setup time.
 
 Read [here](Backplane.md) for more.
+
+
+## 🧬 Diagrams
+
+Good, good, so FusionCache takes care of coordinating everything between L1, L2 and maybe the backplane, if enabled.
+
+But... it can still be complicated to make up our mind about it, right? It would be just nice to be able to _visualize_ what we just said... so, diagrams!
+
+<div align="center">
+
+[![FusionCache flow diagrams](images/diagrams.png)](Diagrams.md)
+
+</div>
+
+Read [here](Diagrams.md) for more.
 
 
 ## 🗃 Wire Format Versioning
