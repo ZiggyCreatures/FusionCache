@@ -17,5 +17,5 @@ internal static partial class OverloadsCallsTryouts
 
 	static readonly TimeSpan Duration = TimeSpan.FromMinutes(10);
 	static readonly Action<FusionCacheEntryOptions> OptionsLambda = options => options.SetDuration(Duration);
-	static readonly FusionCacheEntryOptions Options = new FusionCacheEntryOptions(Duration);
+	static readonly FusionCacheEntryOptions Options = new(Duration);
 }

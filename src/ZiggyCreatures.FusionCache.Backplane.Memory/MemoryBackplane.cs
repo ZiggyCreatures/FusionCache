@@ -14,7 +14,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 public partial class MemoryBackplane
 	: IFusionCacheBackplane
 {
-	private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, List<MemoryBackplane>>> _connections = new ConcurrentDictionary<string, ConcurrentDictionary<string, List<MemoryBackplane>>>();
+	private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, List<MemoryBackplane>>> _connections = new();
 
 	private readonly MemoryBackplaneOptions _options;
 	private BackplaneSubscriptionOptions? _subscriptionOptions;

@@ -9,7 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 /// </summary>
 internal static class RunUtils
 {
-	private static readonly TaskFactory _taskFactory = new TaskFactory(
+	private static readonly TaskFactory _taskFactory = new(
 		CancellationToken.None,
 		TaskCreationOptions.None,
 		TaskContinuationOptions.None,
