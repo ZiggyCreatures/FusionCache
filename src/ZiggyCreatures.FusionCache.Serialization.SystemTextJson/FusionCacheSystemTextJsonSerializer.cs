@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,7 +50,14 @@ public class FusionCacheSystemTextJsonSerializer
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		return JsonSerializer.Deserialize<T>(data, _serializerOptions);
+		var deserializedObject = JsonSerializer.Deserialize<T>(data, _serializerOptions);
+
+		if (deserializedObject is JsonElement jsonElement)
+		{
+			return JsonSerializer.Deserialize<T>(jsonElement.GetRawText(), _serializerOptions);
+		}
+
+		return deserializedObject;
 	}
 
 	/// <inheritdoc />

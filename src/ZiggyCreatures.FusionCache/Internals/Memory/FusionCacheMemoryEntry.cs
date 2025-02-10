@@ -1,7 +1,9 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization;
+using System.Text.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -65,6 +67,16 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 	public TValue1 GetValue<TValue1>()
 	{
+		if (Value is JsonElement jsonElement)
+		{
+			// Use the appropriate deserializer to convert JsonElement to TValue1
+			return JsonSerializer.Deserialize<TValue1>(jsonElement.GetRawText())!;
+		}
+		else if (Value is JToken jToken)
+		{
+			// Use the appropriate deserializer to convert JToken to TValue1
+			return jToken.ToObject<TValue1>()!;
+		}
 		return (TValue1)Value!;
 	}
 

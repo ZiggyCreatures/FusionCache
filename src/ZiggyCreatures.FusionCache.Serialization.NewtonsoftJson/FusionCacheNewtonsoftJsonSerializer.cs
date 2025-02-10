@@ -1,9 +1,10 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 using ZiggyCreatures.Caching.Fusion.Internals;
 
@@ -77,7 +78,14 @@ public class FusionCacheNewtonsoftJsonSerializer
 		using var reader = new StreamReader(stream, _encoding);
 		using var jsonReader = new JsonTextReader(reader);
 		jsonReader.ArrayPool = JsonArrayPool.Shared;
-		return _jsonSerializer.Deserialize<T>(jsonReader);
+		var deserializedObject = _jsonSerializer.Deserialize<T>(jsonReader);
+
+		if (deserializedObject is JToken jToken)
+		{
+			return jToken.ToObject<T>();
+		}
+
+		return deserializedObject;
 	}
 
 	/// <inheritdoc />
