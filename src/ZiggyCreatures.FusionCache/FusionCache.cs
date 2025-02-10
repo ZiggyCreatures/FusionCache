@@ -49,18 +49,18 @@ public sealed partial class FusionCache
 
 	// BACKPLANE
 	private BackplaneAccessor? _bpa;
-	private readonly object _backplaneLock = new object();
+	private readonly object _backplaneLock = new();
 
 	// AUTO-RECOVERY
 	private AutoRecoveryService? _autoRecovery;
-	private readonly object _autoRecoveryLock = new object();
+	private readonly object _autoRecoveryLock = new();
 
 	// EVENTS
 	private FusionCacheEventsHub _events;
 
 	// PLUGINS
 	private List<IFusionCachePlugin>? _plugins;
-	private readonly object _pluginsLock = new object();
+	private readonly object _pluginsLock = new();
 
 	// TAGGING
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
