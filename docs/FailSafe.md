@@ -18,9 +18,15 @@ Setting an **expiration** to a cache entry is also good thing: it prevents us fr
 
 Sometimes though when the entry **expires** and we go get an updated value from the database, things **may go bad**: the database may be totally down or overloaded, there may be temporary network congestion or really anything else bad that can happen, and this will result in the factory throwing an exception.
 
-In these cases what happens is your service will be down or super slow, like this:
+And the factory throwing an exception, without any value to use as a fallback, will lead to the exception itself flowing to the enduser, which is not good:
 
-![Situation Without Fail Safe](images/stepbystep-01-memorycache.png)
+![Situation without fail-safe](images/fail-safe-before.png)
+
+In cases like these, problems with the database will be reflected directly to our service, so what happens is your service will be down or super slow.
+
+Something like this:
+
+![Consequences without fail-safe](images/stepbystep-01-memorycache.png)
 
 Typically in these situations we would be out of luck because the expired value **is already gone for good**, even though we would have preferred to use it for a little bit longer, instead of having to most probably surface the error to our users. After all, we are using a cache because we are ok with using slightly stale data, that's the whole point.
 
@@ -30,11 +36,17 @@ This is exactly what the **Fail-Safe** mechanism does.
 
 It allows us to specify for how long each cache entry should be "kept around" after it expires, so that in case of problems (that is, when the factory throws an exception) we can re-use it that instead of having a factory exception bubble up to our calling code, all while at the same time let them *logically* expire at the right time.
 
-To do that we simply have to enable it by using the `IsFailSafeEnabled` option on the `FusionCacheEntryOptions`.
+The scenario becomes something like this, where our service is _shielded_ from database problems:
 
-Also, if we want, we can also set two additional options to have more control:
-- `FailSafeThrottleDuration`: how long an expired value (used because of a fail-safe *activation*) should be temporarily considered as non-expired, to avoid going to check the database for every consecutive request
-- `FailSafeMaxDuration`: how long a value should be kept around at most, after its *logical* expiration
+![Situation with fail-safe](images/fail-safe-after.png)
+
+How can we do this?
+
+Easy, we simply have to enable it by using the `IsFailSafeEnabled` option on the `FusionCacheEntryOptions`.
+
+Also, if we want, we can set two additional options to have more control:
+- `FailSafeThrottleDuration`: how long an expired value (used because of a fail-safe *activation*) should be temporarily used again, to avoid going to check the database for every consecutive request after a fail
+- `FailSafeMaxDuration`: how long a value should be kept around in total, including after its *logical* expiration
 
 > [!NOTE]
 > Please note that fail-safe **must** be enabled when saving an entry in the cache for it to work, not just when getting a value from the cache.
@@ -42,7 +54,7 @@ Also, if we want, we can also set two additional options to have more control:
 
 The end result (also adding some [timeouts](Timeouts.md)) would be something like this:
 
-![Situation With Fail Safe](images/stepbystep-04-factorytimeouts.png)
+![Consequences with fail-safe](images/stepbystep-04-factorytimeouts.png)
 
 Isn't it great?
 
