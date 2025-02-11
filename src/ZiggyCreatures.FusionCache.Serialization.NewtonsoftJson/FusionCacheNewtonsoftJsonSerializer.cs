@@ -12,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 internal class JsonArrayPool : IArrayPool<char>
 {
-	internal static JsonArrayPool Shared { get; } = new JsonArrayPool();
+	internal static JsonArrayPool Shared { get; } = new();
 	public char[] Rent(int minimumLength) => ArrayPool<char>.Shared.Rent(minimumLength);
 	public void Return(char[]? array) => ArrayPool<char>.Shared.Return(array);
 }

@@ -160,7 +160,7 @@ public class CacheStampedeTests
 					await Task.Delay(FactoryDuration);
 					return 42;
 				},
-				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+				new HybridCacheEntryOptions { LocalCacheExpiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task.AsTask());
 		});
@@ -208,7 +208,7 @@ public class CacheStampedeTests
 					await Task.Delay(FactoryDuration);
 					return 42;
 				},
-				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+				new HybridCacheEntryOptions { LocalCacheExpiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task2.AsTask());
 		});
@@ -256,7 +256,7 @@ public class CacheStampedeTests
 					await Task.Delay(FactoryDuration);
 					return 42;
 				},
-				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+				new HybridCacheEntryOptions { LocalCacheExpiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task.AsTask());
 		});

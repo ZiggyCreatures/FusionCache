@@ -22,7 +22,7 @@ internal static class FusionCacheInternalUtils
 	{
 		private static readonly char[] _chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV".ToCharArray();
 		private static long _lastId = DateTime.UtcNow.Ticks;
-		private static readonly ThreadLocal<char[]> _buffer = new ThreadLocal<char[]>(() => new char[13]);
+		private static readonly ThreadLocal<char[]> _buffer = new(() => new char[13]);
 
 		private static string GenerateOperationId(long id)
 		{
