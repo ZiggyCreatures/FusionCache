@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ZiggyCreatures.Caching.Fusion.Events;
+﻿namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
 /// The specific <see cref="EventArgs"/> object for events related to opening/closing of a circuit breaker.

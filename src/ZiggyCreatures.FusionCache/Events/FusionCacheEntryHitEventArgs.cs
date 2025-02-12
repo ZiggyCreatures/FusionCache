@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ZiggyCreatures.Caching.Fusion.Events;
+﻿namespace ZiggyCreatures.Caching.Fusion.Events;
 
 /// <summary>
 /// The specific <see cref="EventArgs"/> object for events related to cache entries' hits (eg: with a cache key and a stale flag).

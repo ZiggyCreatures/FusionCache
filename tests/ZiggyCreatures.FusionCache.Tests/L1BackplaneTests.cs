@@ -1,5 +1,4 @@
-﻿using System;
-using FusionCacheTests.Stuff;
+﻿using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;

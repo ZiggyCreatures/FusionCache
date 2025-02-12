@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ZiggyCreatures.Caching.Fusion;
+﻿namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// The exception thrown when a factory fails via the Fail() method and fail-safe was not enabled or possible.

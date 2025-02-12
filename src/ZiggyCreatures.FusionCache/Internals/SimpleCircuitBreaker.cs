@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-
-namespace ZiggyCreatures.Caching.Fusion.Internals;
+﻿namespace ZiggyCreatures.Caching.Fusion.Internals;
 
 /// <summary>
 /// A simple, reusable circuit-breaker.

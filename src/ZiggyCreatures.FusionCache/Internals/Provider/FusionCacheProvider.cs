@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Frozen;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Frozen;
 using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Provider;
