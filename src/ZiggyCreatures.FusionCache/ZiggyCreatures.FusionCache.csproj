@@ -3,7 +3,6 @@
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
 		<Version>2.1.0</Version>
-		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
