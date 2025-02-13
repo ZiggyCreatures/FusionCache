@@ -2,7 +2,6 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.1.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.ProtoBufNet</PackageId>
 		<Description>FusionCache serializer based on protobuf-net</Description>
 		<PackageTags>protobuf;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
