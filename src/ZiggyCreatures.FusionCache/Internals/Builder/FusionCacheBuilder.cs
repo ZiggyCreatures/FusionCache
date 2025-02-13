@@ -365,19 +365,18 @@ internal sealed class FusionCacheBuilder
 			plugins.AddRange(serviceProvider.GetKeyedServices<IFusionCachePlugin>(PluginsServiceKey));
 		}
 
-		if (Plugins?.Count > 0)
+		if (Plugins.Count > 0)
 		{
 			plugins.AddRange(Plugins);
 		}
 
-		if (PluginsFactories?.Count > 0)
+		if (PluginsFactories.Count > 0)
 		{
 			foreach (var pluginFactory in PluginsFactories)
 			{
-				var plugin = pluginFactory?.Invoke(serviceProvider);
+				var plugin = pluginFactory.Invoke(serviceProvider);
 
-				if (plugin is not null)
-					plugins.Add(plugin);
+				plugins.Add(plugin);
 			}
 		}
 
