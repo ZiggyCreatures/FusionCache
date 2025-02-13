@@ -2,6 +2,6 @@
 
 public class SimulatedCluster
 {
-	public List<SimulatedNode> Nodes { get; } = new List<SimulatedNode>();
+	public List<SimulatedNode> Nodes { get; } = new();
 	public int? LastUpdatedNodeIndex { get; set; }
 }
