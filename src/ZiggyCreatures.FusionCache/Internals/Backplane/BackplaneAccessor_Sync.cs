@@ -21,7 +21,7 @@ internal partial class BackplaneAccessor
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] before subscribing to backplane on channel {BackplaneChannel}", _cache.CacheName, _cache.InstanceId, operationId, channelName);
 
 			var retriesLeft = 3;
-			while (retriesLeft > 0)
+			while (true)
 			{
 				retriesLeft--;
 
