@@ -116,7 +116,7 @@ internal static class FusionCacheInternalUtils
 		if (entry.Metadata.EagerExpirationTimestamp.HasValue == false)
 			return false;
 
-		if (entry.Metadata.EagerExpirationTimestamp.Value >= DateTimeOffset.UtcNow.UtcTicks)
+		if (entry.Metadata.EagerExpirationTimestamp.Value > DateTimeOffset.UtcNow.UtcTicks)
 			return false;
 
 		if (entry.IsLogicallyExpired())

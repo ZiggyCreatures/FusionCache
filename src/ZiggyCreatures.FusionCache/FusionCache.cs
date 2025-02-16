@@ -331,7 +331,7 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
 				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", CacheName, InstanceId, operationId, key);
 
-			var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(options.FailSafeThrottleDuration, options, true);
+			var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(options.FailSafeThrottleDuration, options, false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger?.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): SHIFTING A MEMORY ENTRY FROM {OldExp} TO {NewExp} ({Diff} DIFF)", CacheName, InstanceId, operationId, key, new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero) - new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero));

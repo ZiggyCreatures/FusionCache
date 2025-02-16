@@ -264,7 +264,7 @@ public partial class L1L2Tests
 
 		Assert.Equal("sloths, sloths everywhere", foo1);
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(TimeSpan.FromMilliseconds(100).PlusALittleBit());
 
 		logger.LogInformation("STEP 3");
 

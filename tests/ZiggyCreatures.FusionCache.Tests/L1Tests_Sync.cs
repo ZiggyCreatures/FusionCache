@@ -1409,4 +1409,31 @@ public partial class L1Tests
 
 		Assert.Equal(0, v5);
 	}
+
+	[Fact]
+	public void JitteringIsNotUsedWhenActivatingFailSafe()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		cache.DefaultEntryOptions
+			.SetDuration(TimeSpan.FromMinutes(180))
+			.SetJittering(TimeSpan.FromMinutes(30))
+			.SetFailSafe(true, throttleDuration: TimeSpan.Zero);
+
+		var expectedNegOne = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) => ctx.Fail("test"),
+			failSafeDefaultValue: -1
+		);
+
+		Thread.Sleep(TimeSpan.FromMilliseconds(250));
+
+		var expectedOne = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) => ctx.Modified(1),
+			failSafeDefaultValue: -1
+		);
+
+		Assert.Equal(-1, expectedNegOne);
+		Assert.Equal(1, expectedOne);
+	}
 }
