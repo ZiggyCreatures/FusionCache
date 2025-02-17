@@ -193,3 +193,26 @@ services.AddFusionCache()
 ```
 
 Easy peasy.
+
+> [!WARNING]  
+> Due to how serialization to L2 works, make sure your serialization configuration is correct
+> (e.g. for JSON serializers, use the correct `TypeNameHandling` setting). For instance, abstract types or interfaces
+> can not be deserialized (because they can't be instantiated; a concrete type is needed).
+> 
+> To catch (de)serialization issues during development, you can configure a distributed memory cache:
+> ```csharp
+> builder.Services.AddFusionCache()
+>   .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+>       SkipMemoryCacheRead = true,
+>   })
+>   .WithDistributedCache(
+>       new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
+>   )
+>   .WithSerializer(
+>   new FusionCacheNewtonsoftJsonSerializer()
+>   );
+> ```
+> 
+> Other ways to catch these issues:
+> 1. Use [**♊ Auto-Clone**](AutoClone.md).
+> 2. Write unit tests to test serialization and deserialization of your types.
