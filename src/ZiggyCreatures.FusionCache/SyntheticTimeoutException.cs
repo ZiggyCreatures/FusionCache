@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ZiggyCreatures.Caching.Fusion;
+﻿namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// The exception that is thrown when the time allotted for a process or operation has expired.

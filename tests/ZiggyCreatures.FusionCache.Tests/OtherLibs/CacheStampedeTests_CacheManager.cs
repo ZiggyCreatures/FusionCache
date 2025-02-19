@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using CacheManager.Core;
+﻿using CacheManager.Core;
 using Xunit;
 
 namespace FusionCacheTests.OtherLibs;

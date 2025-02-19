@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace ZiggyCreatures.Caching.Fusion.Internals;
+﻿namespace ZiggyCreatures.Caching.Fusion.Internals;
 
 /// <summary>
 /// A writable stream that uses an <see cref="ArrayPoolBufferWriter"/> to manage its buffer.

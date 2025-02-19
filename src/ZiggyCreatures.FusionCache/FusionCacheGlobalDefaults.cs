@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Threading;
+﻿using System.ComponentModel;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion;

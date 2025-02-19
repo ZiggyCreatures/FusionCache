@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
+﻿namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 
 public class SamplePayload : IEquatable<SamplePayload?>
 {

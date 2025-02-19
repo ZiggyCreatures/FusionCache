@@ -1,6 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
