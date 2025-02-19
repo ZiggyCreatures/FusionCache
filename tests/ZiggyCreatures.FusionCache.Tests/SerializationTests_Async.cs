@@ -1,6 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using FusionCacheTests.Stuff;
+﻿using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Internals;

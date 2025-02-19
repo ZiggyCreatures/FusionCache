@@ -25,6 +25,8 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<!--<CheckEolTargetFramework>false</CheckEolTargetFramework>-->
 		<SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+
+		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">

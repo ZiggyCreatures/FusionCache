@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Hybrid;
 using Xunit;

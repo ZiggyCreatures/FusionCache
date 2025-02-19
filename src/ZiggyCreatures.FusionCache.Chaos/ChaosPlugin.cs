@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Chaos.Internals;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 
