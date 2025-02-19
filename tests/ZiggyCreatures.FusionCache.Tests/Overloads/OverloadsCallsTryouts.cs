@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using ZiggyCreatures.Caching.Fusion;
+﻿using ZiggyCreatures.Caching.Fusion;
 
 namespace FusionCacheTests.Overloads;
 

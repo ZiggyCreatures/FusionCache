@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.OutputCaching;
+﻿using Microsoft.AspNetCore.OutputCaching;
 
 namespace ZiggyCreatures.Caching.Fusion.AspNetCore.OutputCaching;
 

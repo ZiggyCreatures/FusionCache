@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.OutputCaching;
+﻿using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.AspNetCore.OutputCaching;

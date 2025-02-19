@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using ZiggyCreatures.Caching.Fusion.Playground.Scenarios;
+﻿using ZiggyCreatures.Caching.Fusion.Playground.Scenarios;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground;
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ZiggyCreatures.Caching.Fusion;
+﻿namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// The generic exception that is thrown when a serialization error occurs: the InnerException contains the original exception.

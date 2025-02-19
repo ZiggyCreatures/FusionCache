@@ -1,5 +1,4 @@
-﻿using System;
-using ZiggyCreatures.Caching.Fusion.Backplane;
+﻿using ZiggyCreatures.Caching.Fusion.Backplane;
 
 namespace ZiggyCreatures.Caching.Fusion.Events;
 
