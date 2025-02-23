@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace ZiggyCreatures.Caching.Fusion.Backplane;
+﻿namespace ZiggyCreatures.Caching.Fusion.Backplane;
 
 /// <summary>
 /// The core interface to create a FusionCache backplane.

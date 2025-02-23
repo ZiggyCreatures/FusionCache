@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FusionCacheTests.Stuff;
+﻿namespace FusionCacheTests.Stuff;
 
 internal class SimpleDisposable
 	: IDisposable

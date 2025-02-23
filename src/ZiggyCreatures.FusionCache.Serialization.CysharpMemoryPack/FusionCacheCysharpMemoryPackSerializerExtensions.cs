@@ -1,5 +1,4 @@
-﻿using System;
-using MemoryPack;
+﻿using MemoryPack;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Serialization;

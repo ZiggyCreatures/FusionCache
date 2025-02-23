@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace ZiggyCreatures.Caching.Fusion.Serialization;
+﻿namespace ZiggyCreatures.Caching.Fusion.Serialization;
 
 /// <summary>
 /// A generic serializer that converts any object instance to and from byte[], used along the <see cref="Microsoft.Extensions.Caching.Distributed.IDistributedCache"/> .

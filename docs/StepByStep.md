@@ -19,7 +19,7 @@ Imagine we have our simple ASP.NET Core service receiving requests to get produc
 
 Easy peasy.
 
-We observe it over a **10 min** period, where the database will be sometimes **fast** to respond, sometimes **slow** and sometimes would just be totally **down**, maybe with eccessive timeouts due to overloading, network congestion issues towards the database or anything else.
+We observe it over a **10 min** period, where the database will be sometimes **fast** to respond, sometimes **slow** and sometimes would just be totally **down**, maybe with excessive timeouts due to overloading, network congestion issues towards the database or anything else.
 
 So, something like this:
 
