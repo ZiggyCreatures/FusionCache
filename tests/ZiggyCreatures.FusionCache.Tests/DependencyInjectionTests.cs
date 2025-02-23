@@ -15,7 +15,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Locking;
-using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
+//using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
@@ -1476,34 +1476,34 @@ public class DependencyInjectionTests
 		});
 	}
 
-	[Fact]
-	public void CanUseAsHybridCache()
-	{
-		var services = new ServiceCollection();
+	//[Fact]
+	//public void CanUseAsHybridCache()
+	//{
+	//	var services = new ServiceCollection();
 
-		services
-			.AddFusionCache()
-			.AsHybridCache()
-			.AsKeyedHybridCache("Foo")
-		;
+	//	services
+	//		.AddFusionCache()
+	//		.AsHybridCache()
+	//		.AsKeyedHybridCache("Foo")
+	//	;
 
-		using var serviceProvider = services.BuildServiceProvider();
+	//	using var serviceProvider = services.BuildServiceProvider();
 
-		var fusionCache = serviceProvider.GetRequiredService<IFusionCache>();
-		var hybridCache1 = serviceProvider.GetRequiredService<HybridCache>();
-		var hybridCache2 = serviceProvider.GetRequiredKeyedService<HybridCache>("Foo");
-		var fusionHybridCache1 = (FusionHybridCache)hybridCache1;
-		var fusionHybridCache2 = (FusionHybridCache)hybridCache2;
+	//	var fusionCache = serviceProvider.GetRequiredService<IFusionCache>();
+	//	var hybridCache1 = serviceProvider.GetRequiredService<HybridCache>();
+	//	var hybridCache2 = serviceProvider.GetRequiredKeyedService<HybridCache>("Foo");
+	//	var fusionHybridCache1 = (FusionHybridCache)hybridCache1;
+	//	var fusionHybridCache2 = (FusionHybridCache)hybridCache2;
 
-		Assert.NotNull(fusionCache);
-		Assert.NotNull(hybridCache1);
-		Assert.NotNull(hybridCache2);
-		Assert.NotNull(fusionHybridCache1);
-		Assert.NotNull(fusionHybridCache2);
-		Assert.IsType<FusionHybridCache>(hybridCache1);
-		Assert.IsType<FusionHybridCache>(hybridCache2);
-		Assert.NotSame(hybridCache1, hybridCache2);
-		Assert.Same(fusionCache, fusionHybridCache1.InnerFusionCache);
-		Assert.Same(fusionCache, fusionHybridCache2.InnerFusionCache);
-	}
+	//	Assert.NotNull(fusionCache);
+	//	Assert.NotNull(hybridCache1);
+	//	Assert.NotNull(hybridCache2);
+	//	Assert.NotNull(fusionHybridCache1);
+	//	Assert.NotNull(fusionHybridCache2);
+	//	Assert.IsType<FusionHybridCache>(hybridCache1);
+	//	Assert.IsType<FusionHybridCache>(hybridCache2);
+	//	Assert.NotSame(hybridCache1, hybridCache2);
+	//	Assert.Same(fusionCache, fusionHybridCache1.InnerFusionCache);
+	//	Assert.Same(fusionCache, fusionHybridCache2.InnerFusionCache);
+	//}
 }

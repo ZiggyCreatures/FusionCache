@@ -2,13 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.1.0</Version>
+		<Version>2.0.1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
 		<Description>FusionCache backplane for Redis based on the StackExchange.Redis library</Description>
 		<PackageTags>backplane;redis;stackexchange;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- LTS-only release: this version references only .NET 8 core packages, so it can be used in scenarios where only LTS packages can be referenced
 			- Change: better async support for subscribe/unsubscribe/publish
 			- Update: package dependencies
 		</PackageReleaseNotes>

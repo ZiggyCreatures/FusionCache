@@ -292,7 +292,7 @@ public partial class FusionCache
 					{
 						// ACTIVITY
 						activityForFactory?.SetStatus(ActivityStatusCode.Error, exc.Message);
-						activityForFactory?.AddException(exc);
+						activityForFactory?.AddExceptionInternal(exc);
 						activityForFactory?.Dispose();
 
 						throw;
@@ -408,7 +408,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -456,7 +456,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -630,7 +630,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -677,7 +677,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -728,7 +728,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -763,7 +763,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -812,7 +812,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -989,7 +989,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -1065,7 +1065,7 @@ public partial class FusionCache
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}

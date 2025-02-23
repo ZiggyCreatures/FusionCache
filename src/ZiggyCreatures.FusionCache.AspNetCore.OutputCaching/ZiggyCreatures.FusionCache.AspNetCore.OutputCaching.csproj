@@ -3,13 +3,14 @@
 	<PropertyGroup>
 		<!--<TargetFramework>net7.0</TargetFramework>-->
 		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
-		<Version>2.1.0</Version>
+		<Version>2.0.1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.AspNetCore.OutputCaching</PackageId>
 		<Description>ASP.NET Output Cache based on FusionCache</Description>
 		<PackageTags>aspnet;outputcache;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.AspNetCore.OutputCaching</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- LTS-only release: this version references only .NET 8 core packages, so it can be used in scenarios where only LTS packages can be referenced
 			- Initial version
 		</PackageReleaseNotes>
 	</PropertyGroup>

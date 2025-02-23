@@ -15,7 +15,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using ZiggyCreatures.Caching.Fusion.Locking;
-using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
+//using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 
@@ -91,7 +91,7 @@ public class ParallelComparisonBenchmark
 		_LazyCache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
 		_HybridCache = ServiceProvider.GetRequiredService<HybridCache>();
 		_FusionCacheForHybrid = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
-		_FusionHybridCache = new FusionHybridCache(_FusionCacheForHybrid);
+		//_FusionHybridCache = new FusionHybridCache(_FusionCacheForHybrid);
 	}
 
 	[GlobalCleanup]
