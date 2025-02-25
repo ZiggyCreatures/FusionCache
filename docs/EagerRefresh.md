@@ -74,7 +74,7 @@ product = cache.GetOrSet<Product>(
 
 This means that any request coming in during these `10 min` will be served the value in the cache, and the first request coming in after `10 min` will start the refresh in a blocking way.
 
-To alleviate blocking, We can set a `FatorySoftTimeout` to `100 ms` so we wouldn't be blocked by a refresh by no more than `100 ms`:
+To alleviate blocking, We can set a `FactorySoftTimeout` to `100 ms` so we wouldn't be blocked by a refresh by no more than `100 ms`:
 
 ```csharp
 product = cache.GetOrSet<Product>(
@@ -123,6 +123,7 @@ product = cache.GetOrSet<Product>(
 ```
 
 This means that:
+
 - ANY request coming in for the first `9 min` (`90%` of the `Duration`) will be served the fresh data immediately
 - ANY request coming in after `9 min` (but before `10 min`) will also be served fresh data immediately. On top of that, IF it's the FIRST to do so, it will start the background refresh in a non-blocking way. If this happens, the cache will be updated as soon as the background refresh finishes
 - the FIRST request coming in after `10 min` (if no request previously started an eager refresh) will start a normal refresh, and:
