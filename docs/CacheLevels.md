@@ -194,25 +194,27 @@ services.AddFusionCache()
 
 Easy peasy.
 
-> [!WARNING]  
-> Due to how serialization to L2 works, make sure your serialization configuration is correct
-> (e.g. for JSON serializers, use the correct `TypeNameHandling` setting). For instance, abstract types or interfaces
-> can not be deserialized (because they can't be instantiated; a concrete type is needed).
-> 
-> To catch (de)serialization issues during development, you can configure a distributed memory cache:
-> ```csharp
-> builder.Services.AddFusionCache()
->   .WithDefaultEntryOptions(new FusionCacheEntryOptions {
->       SkipMemoryCacheRead = true,
->   })
->   .WithDistributedCache(
->       new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
->   )
->   .WithSerializer(
->   new FusionCacheNewtonsoftJsonSerializer()
->   );
-> ```
-> 
-> Other ways to catch these issues:
-> 1. Use [**♊ Auto-Clone**](AutoClone.md).
-> 2. Write unit tests to test serialization and deserialization of your types.
+## ⚠️ Catch Serialization Issues Early On
+
+Due to how serialization to L2 works, we should make sure our serialization configuration is correct (e.g. for JSON serializers, use the correct `TypeNameHandling` setting): for instance, abstract types or interfaces cannot be deserialized, because they can't be instantiated (eg: a concrete type is needed).
+
+To catch (de)serialization issues earlier during development, we can configure a locally available distributed cache like an [in-memory one](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.caching.distributed.memorydistributedcache?view=net-9.0-pp) or a SQLite-based [one](https://github.com/neosmart/SqliteCache):
+
+Here's an example:
+
+```csharp
+builder.Services.AddFusionCache()
+  .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+    SkipMemoryCacheRead = true,
+  })
+  .WithDistributedCache(
+    new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
+  )
+  .WithSerializer(
+    new FusionCacheNewtonsoftJsonSerializer() // OR ANOTHER ONE OF YOUR CHOOSING
+  );
+```
+
+Other ways to catch these issues:
+1. use [**♊ Auto-Clone**](AutoClone.md)
+2. write proper unit tests to check serialization and deserialization of all your types
