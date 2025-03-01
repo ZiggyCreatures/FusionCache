@@ -16,7 +16,7 @@ An example can be caching multiple entries related to a certain category: when s
 
 So, how to do that?
 
-### 😎 Super Easy, Barely An Inconvenience
+## 😎 Super Easy, Barely An Inconvenience
 
 When saving cache entries we can specify some tags, like this:
 
@@ -36,7 +36,7 @@ After this call, only the entry for `"bar"` will remain.
 
 What if we know the tags only when getting the data from the database?
 
-Well, FusionCache supports [Adaptive Caching](AdaptiveCaching.md), so the question is: are tags are supported with it, too?
+Well, FusionCache supports [Adaptive Caching](AdaptiveCaching.md), so the question is: are tags supported with it, too?
 
 Of course they are, by simply doing this:
 
@@ -95,6 +95,7 @@ Something to deal with, first and foremost, is a _design_ decision that sits at 
 In particular for L2 this means [`IDistributedCache`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.caching.distributed.idistributedcache?view=net-8.0#methods): this decision paid a lot of dividends along the years, because any implementation of `IDistributedCache` is automatically usable with FusionCache and, since there are [a lot of them readily available](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md#-packages) covering very different needs, this is a **very powerful** characteristic to have available.
 
 On the other hand `IDistributedCache` has a very limited set of functionalities available, basically only 3 methods:
+
 - `Set`
 - `Get`
 - `Remove`
@@ -106,6 +107,7 @@ So, what can be done?
 ## 🛬 Approaches
 
 There are basically 2 different approaches:
+
 - **Server-Assisted**: the L2 (eg: Redis or Memcached) makes a real "remove by tag" in some way
 - **Client-Assisted**: the client library (eg: FusionCache) does "something" so that the end result _looks like_ the same
 
@@ -167,7 +169,7 @@ What about app restarts?
 <br/>
 No big deal, since everything is based on the common plumbing of FusionCache, all will work normally and tag-eviction data will get re-populated again automatically, lazily, and based on only the effective usage.
 
-What about needing tag expiration for "tag1" by 2 difference cache entries at the same time?
+What about needing tag expiration for "tag1" by 2 different cache entries at the same time?
 <br/>
 Only one load will happen, thanks to the [Cache Stampede](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md) protection.
 
@@ -206,6 +208,7 @@ Let me explain.
 A `SELECT N+1` problem happens when, to get a piece of data, we do a first select that returns N elements and then, for each element, we do an additional SELECT.
 
 Here this does not happen, because:
+
 - as soon as a tag returns a timestamp that makes the entry expired, the process stops, reducing the SELECT amount to the minimum
 - because of how tags are used, meaning shared between different entries, one load of tag expiration data will be used for multiple entries, reducing again the SELECT amount
 - some internal optimizations in FusionCache such that the amount of read operations is reduced even more
