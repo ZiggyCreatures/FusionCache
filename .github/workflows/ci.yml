@@ -17,7 +17,7 @@ jobs:
 
     - run: dotnet --info
     - name: Build solution and run all tests
-      run: dotnet test --verbosity normal -l trx --results-directory '${{ env.TEST_RESULTS }}'
+      run: dotnet test --verbosity minimal -l trx --results-directory '${{ env.TEST_RESULTS }}'
 
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/linux@v2
