@@ -12,7 +12,9 @@ If you are more into videos than text, here's a list you may enjoy.
 
 
 <br/>
+
 <hr>
+
 <br/>
 
 
@@ -38,12 +40,13 @@ This is a very good introduction on the general approach and features of FusionC
 
 ### Open At Microsoft (2024)
 
-In this quick talk [Davide Mauri](https://twitter.com/mauridb) let me introduce FusionCache to the audience of Open at Microsoft.
+In this quick talk with [Davide Mauri](https://twitter.com/mauridb) we introduced FusionCache to the audience of Open at Microsoft.
+
 Quick and to the point.
 
 <div align="center">
 
-[![On .NET Talk](images/talks/open-at-microsoft.jpg)](https://www.youtube.com/watch?v=wGKSNqxN4KE)
+[![Open At Microsoft Talk](images/talks/open-at-microsoft.jpg)](https://www.youtube.com/watch?v=wGKSNqxN4KE)
 
 </div>
 
@@ -58,17 +61,45 @@ Thanks Anna!
 
 <div align="center">
 
-[![On .NET Talk](images/talks/data-exposed.jpg)](https://www.youtube.com/watch?v=V2fCUoJgVAo)
+[![Data Exposed Talk](images/talks/data-exposed.jpg)](https://www.youtube.com/watch?v=V2fCUoJgVAo)
 
 </div>
 
 
 <br/>
+
 <hr>
+
 <br/>
 
 
 ## Italian Language 🤌
+
+
+
+
+### Live Coding - Alla Scoperta Di FusionCache (2025)
+
+Marco Minerva invited me for a talk with his viewers on all things FusionCache.
+
+<div align="center">
+
+[![Live Coding - Alla Scoperta Di FusionCache Talk](images/talks/live-coding-alla-scoperta-di-fusioncache.jpg)](https://www.youtube.com/live/tj6w4V_cGRo)
+
+</div>
+
+
+
+
+### DotNetConf Italia (2024)
+
+I've been lucky enough to be selected for a session at the italian version of DotNetConf, where I talked about, you guessed it, hybrid caching in .NET
+
+<div align="center">
+
+[![DotNetConf Italia 2024](images/talks/dotnetconf-italia.jpg)](https://www.improove.tech/videos/3593/Hybrid-Caching-in-NET)
+
+</div>
 
 
 
@@ -81,7 +112,7 @@ Oh, and also about Genziana and arrosticini 🙂
 
 <div align="center">
 
-[![On .NET Talk](images/talks/continuous-delivery.jpg)](https://www.youtube.com/watch?v=E6PBkalmUn8)
+[![Continuous Delivery Talk](images/talks/continuous-delivery.jpg)](https://www.youtube.com/watch?v=E6PBkalmUn8)
 
 </div>
 
@@ -96,7 +127,7 @@ Thanks Alberto!
 
 <div align="center">
 
-[![On .NET Talk](images/talks/spike-time.jpg)](https://www.youtube.com/watch?v=hvcHIEXzaWM)
+[![Spike Time Talk](images/talks/spike-time.jpg)](https://www.youtube.com/watch?v=hvcHIEXzaWM)
 
 </div>
 
@@ -111,7 +142,7 @@ Thanks Roberto!
 
 <div align="center">
 
-[![On .NET Talk](images/talks/small-talks.jpg)](https://www.youtube.com/watch?v=DovOX0zIuJ8)
+[![Small Talks Talk](images/talks/small-talks.jpg)](https://www.youtube.com/watch?v=DovOX0zIuJ8)
 
 </div>
 
@@ -126,7 +157,7 @@ It has been a really nice talk about all things caching, thanks Mauro!
 
 <div align="center">
 
-[![On .NET Talk](images/talks/dotnet-podcast.jpg)](https://www.youtube.com/watch?v=TdPFULPDq-Y)
+[![dotNET{podcast} Talk](images/talks/dotnet-podcast.jpg)](https://www.youtube.com/watch?v=TdPFULPDq-Y)
 
 </div>
 

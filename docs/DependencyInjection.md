@@ -140,6 +140,7 @@ The same is available for other components, like the backplane for example:
 and so on.
 
 This approach is currently available for these components:
+
 - logger
 - memory locker
 - memory cache
@@ -154,7 +155,8 @@ Of course we can mix these approach for the different components for example by 
 A slightly particular case is the distributed cache, since it requires a serializer to do its job and there's a common case that we may want to ignore.
 
 Because of this, in these methods there are some extra params like:
-- `bool throwIfMissingSerializer`: tells FusionCache if it should throw in case if finds a valid distributed cache but no serializer, to avoid surprises down the road like _"I specified a distributed cache, but it's not using it and it didn't tell me anything, why?"_
+
+- `bool throwIfMissingSerializer`: tells FusionCache if it should throw in case it finds a valid distributed cache but no serializer, to avoid surprises down the road like _"I specified a distributed cache, but it's not using it and it didn't tell me anything, why?"_
 - `bool ignoreMemoryDistributedCache`: tells FusionCache if it should accept an instance of `MemoryDistributedCache`, which is not really a distributed cache and is typically registered automatically by ASP.NET MVC without us being able to avoid it, and using it is just a waste of resources
 
 ### ⚙️ Plugins configuration
