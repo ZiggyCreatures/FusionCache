@@ -13,6 +13,7 @@
 A seemingly simple feature for a cache is to be able to _clear_ it, just like we do with a `Dictionary`, right?
 
 The idea seems obvious, but in reality it's quite hard to do (and even more so for a hybrid cache like FusionCache) because we have to consider a lot of other things and scenarios, like:
+
 - L1 only
 - L1+L2 (optional)
 - backplane (optional)
@@ -22,6 +23,7 @@ The idea seems obvious, but in reality it's quite hard to do (and even more so f
 - usage of a cache-key prefix
 
 Then we need to multiply all of these for cases like:
+
 - single node
 - multiple nodes
 
@@ -60,6 +62,7 @@ Now, in reality the `Clear()` method has an additional, optional parameter: `boo
 But why is that?
 
 Well, since FusionCache has the powerful [fail-safe](FailSafe.md) feature, we can pick between two operations:
+
 - `Clear(true)`: basically like an "expire all", where entries with fail-safe enabled wil be marked as expired so they can be used as a fallback later on. This uses the special `"*"` tag
 - `Clear(false)`: basically like a "remove all", where entries wil be removed for good. This uses the special `"!"` tag
 
@@ -69,7 +72,7 @@ On one hand, using Tagging to achieve `Clear()` support is a great design choice
 
 Nice, really.
 
-On the other hand, we can go one step further: since the special tags used for clear are 2 one only 2, we may special-case them to get even better results.
+On the other hand, we can go one step further: since the special tags used for clear are 2 and only 2, we may special-case them to get even better results.
 
 This is why FusionCache is also saving the expiration timestamp for the 2 special tags ("clear expire" and "clear remove") directly in memory, meaning in 2 normal variables, so that FusionCache will keep them there forever and every `Clear(true/false)` call will also update them: in this way the speed for checking them would be even greater than checking the cache entry for the special tag.
 
