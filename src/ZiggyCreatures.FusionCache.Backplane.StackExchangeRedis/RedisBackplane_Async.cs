@@ -88,25 +88,23 @@ public partial class RedisBackplane
 		if (_subscriber is null)
 			throw new NullReferenceException("The backplane subscriber is null");
 
-		_subscriber.Subscribe(_channel, (_, v) =>
+		await _subscriber.SubscribeAsync(_channel, (rc, value) =>
 		{
-			var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
+			var message = GetMessageFromRedisValue(value, _logger, _subscriptionOptions);
+			if (message is null) return;
 
-			if (message is null)
-				return;
-
-			OnMessage(message);
+			_ = Task.Run(async () =>
+			{
+				try
+				{
+					await OnMessageAsync(message).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					_logger?.LogError(ex, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] error in incoming message handler", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
+				}
+			}, CancellationToken.None);
 		});
-
-		//_subscriber.SubscribeAsync(_channel, (_, v) =>
-		//{
-		//	var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
-
-		//	if (message is null)
-		//		return;
-
-		//	OnMessage(message);
-		//});
 	}
 
 	/// <inheritdoc/>
