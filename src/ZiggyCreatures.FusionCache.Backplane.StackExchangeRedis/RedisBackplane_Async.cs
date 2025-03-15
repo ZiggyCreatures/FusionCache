@@ -91,25 +91,17 @@ public partial class RedisBackplane
 		if (_subscriber is null)
 			throw new NullReferenceException("The backplane subscriber is null");
 
-		_subscriber.Subscribe(_channel, (_, v) =>
+		await _subscriber.SubscribeAsync(_channel, (rc, value) =>
 		{
-			var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
+			var message = GetMessageFromRedisValue(value, _logger, _subscriptionOptions);
+			if (message is null) return;
 
-			if (message is null)
-				return;
-
-			OnMessage(message);
+			_ = Task.Run(async () =>
+			{
+				// Now we can await internally, but the caller won't.
+				await OnMessageAsync(message).ConfigureAwait(false);
+			});
 		});
-
-		//_subscriber.SubscribeAsync(_channel, (_, v) =>
-		//{
-		//	var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
-
-		//	if (message is null)
-		//		return;
-
-		//	OnMessage(message);
-		//});
 	}
 
 	/// <inheritdoc/>
