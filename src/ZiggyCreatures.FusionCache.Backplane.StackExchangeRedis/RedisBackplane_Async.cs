@@ -98,9 +98,15 @@ public partial class RedisBackplane
 
 			_ = Task.Run(async () =>
 			{
-				// Now we can await internally, but the caller won't.
-				await OnMessageAsync(message).ConfigureAwait(false);
-			});
+				try
+				{
+					await OnMessageAsync(message).ConfigureAwait(false);
+				}
+				catch (Exception ex)
+				{
+					_logger?.LogError(ex, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] error in incoming message handler", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
+				}
+			}, CancellationToken.None);
 		});
 	}
 
