@@ -418,7 +418,7 @@ Again, we set these options at registration time:
 ```csharp
 services.AddFusionCache()
     .WithOptions(options => {
-        // DISTIBUTED CACHE CIRCUIT-BREAKER
+        // DISTRIBUTED CACHE CIRCUIT-BREAKER
         options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
     })
     .WithDefaultEntryOptions(new FusionCacheEntryOptions {
