@@ -91,20 +91,14 @@ public partial class RedisBackplane
 		await _subscriber.SubscribeAsync(_channel, (rc, value) =>
 		{
 			var message = GetMessageFromRedisValue(value, _logger, _subscriptionOptions);
-			if (message is null) return;
+			if (message is null)
+				return;
 
 			_ = Task.Run(async () =>
 			{
-				try
-				{
-					await OnMessageAsync(message).ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					_logger?.LogError(ex, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] error in incoming message handler", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
-				}
-			}, CancellationToken.None);
-		});
+				await OnMessageAsync(message).ConfigureAwait(false);
+			});
+		}).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

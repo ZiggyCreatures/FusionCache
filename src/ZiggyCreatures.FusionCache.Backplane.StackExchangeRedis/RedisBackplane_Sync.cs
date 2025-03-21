@@ -89,14 +89,16 @@ public partial class RedisBackplane
 		if (_subscriber is null)
 			throw new NullReferenceException("The backplane subscriber is null");
 
-		_subscriber.Subscribe(_channel, (_, v) =>
+		_subscriber.Subscribe(_channel, (rc, value) =>
 		{
-			var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
-
+			var message = GetMessageFromRedisValue(value, _logger, _subscriptionOptions);
 			if (message is null)
 				return;
 
-			OnMessage(message);
+			_ = Task.Run(async () =>
+			{
+				await OnMessageAsync(message).ConfigureAwait(false);
+			});
 		});
 	}
 
@@ -132,12 +134,10 @@ public partial class RedisBackplane
 
 	private void OnReconnect(object sender, ConnectionFailedEventArgs e)
 	{
-		if (e.ConnectionType == ConnectionType.Subscription)
+		Task.Run(async () =>
 		{
-			EnsureSubscriber();
-
-			_connectHandler?.Invoke(new BackplaneConnectionInfo(true));
-		}
+			await OnReconnectAsync(sender, e).ConfigureAwait(false);
+		});
 	}
 
 	internal void OnMessage(BackplaneMessage message)
