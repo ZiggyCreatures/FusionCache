@@ -95,7 +95,7 @@ public sealed partial class FusionCache
 		_defaultEntryOptions = _options.DefaultEntryOptions;
 
 		// TRY UPDATE OPTIONS
-		_tryUpdateEntryOptions ??= new FusionCacheEntryOptions()
+		_tryUpdateEntryOptions = new FusionCacheEntryOptions
 		{
 			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
 			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
