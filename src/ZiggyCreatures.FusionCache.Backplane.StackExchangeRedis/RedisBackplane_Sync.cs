@@ -98,16 +98,6 @@ public partial class RedisBackplane
 
 			OnMessage(message);
 		});
-
-		//_subscriber.SubscribeAsync(_channel, (_, v) =>
-		//{
-		//	var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
-
-		//	if (message is null)
-		//		return;
-
-		//	OnMessage(message);
-		//});
 	}
 
 	/// <inheritdoc/>
