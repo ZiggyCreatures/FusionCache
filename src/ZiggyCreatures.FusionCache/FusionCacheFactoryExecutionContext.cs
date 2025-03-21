@@ -1,5 +1,4 @@
-﻿using System;
-using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+﻿using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
 namespace ZiggyCreatures.Caching.Fusion;

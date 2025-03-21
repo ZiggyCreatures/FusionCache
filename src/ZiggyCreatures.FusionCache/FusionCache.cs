@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -49,18 +45,18 @@ public sealed partial class FusionCache
 
 	// BACKPLANE
 	private BackplaneAccessor? _bpa;
-	private readonly object _backplaneLock = new object();
+	private readonly object _backplaneLock = new();
 
 	// AUTO-RECOVERY
 	private AutoRecoveryService? _autoRecovery;
-	private readonly object _autoRecoveryLock = new object();
+	private readonly object _autoRecoveryLock = new();
 
 	// EVENTS
 	private FusionCacheEventsHub _events;
 
 	// PLUGINS
 	private List<IFusionCachePlugin>? _plugins;
-	private readonly object _pluginsLock = new object();
+	private readonly object _pluginsLock = new();
 
 	// TAGGING
 	private readonly FusionCacheEntryOptions _tagsDefaultEntryOptions;
@@ -335,7 +331,7 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
 				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from memory)", CacheName, InstanceId, operationId, key);
 
-			var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(options.FailSafeThrottleDuration, options, true);
+			var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(options.FailSafeThrottleDuration, options, false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger?.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): SHIFTING A MEMORY ENTRY FROM {OldExp} TO {NewExp} ({Diff} DIFF)", CacheName, InstanceId, operationId, key, new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero) - new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero));

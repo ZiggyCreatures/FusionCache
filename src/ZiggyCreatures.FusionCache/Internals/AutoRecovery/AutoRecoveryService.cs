@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
@@ -18,8 +13,8 @@ internal sealed class AutoRecoveryService
 	private readonly FusionCacheOptions _options;
 	private readonly ILogger<FusionCache>? _logger;
 
-	private readonly ConcurrentDictionary<string, AutoRecoveryItem> _queue = new ConcurrentDictionary<string, AutoRecoveryItem>();
-	private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+	private readonly ConcurrentDictionary<string, AutoRecoveryItem> _queue = new();
+	private readonly SemaphoreSlim _lock = new(1, 1);
 	private readonly int _maxItems;
 	private readonly int _maxRetryCount;
 	private readonly TimeSpan _delay;

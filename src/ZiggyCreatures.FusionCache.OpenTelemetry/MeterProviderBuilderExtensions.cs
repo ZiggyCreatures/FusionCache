@@ -1,5 +1,4 @@
-﻿using System;
-using ZiggyCreatures.Caching.Fusion;
+﻿using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.OpenTelemetry;
 
 namespace OpenTelemetry.Metrics;

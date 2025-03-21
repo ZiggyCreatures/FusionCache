@@ -1,8 +1,5 @@
-﻿using System;
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using ServiceStack.Text;
 
 using ZiggyCreatures.Caching.Fusion.Internals;

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -33,7 +30,7 @@ public abstract class CacheStampedeTests_HybridCache
 
 		var entryOptions = new HybridCacheEntryOptions
 		{
-			Expiration = TimeSpan.FromMinutes(5)
+			LocalCacheExpiration = TimeSpan.FromMinutes(5)
 		};
 
 		var tasks = new ConcurrentBag<Task>();

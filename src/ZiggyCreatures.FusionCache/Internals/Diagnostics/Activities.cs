@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 internal static class Activities
 {
-	public static readonly ActivitySource Source = new ActivitySource(FusionCacheDiagnostics.ActivitySourceName, FusionCacheDiagnostics.FusionCacheVersion);
-	public static readonly ActivitySource SourceMemoryLevel = new ActivitySource(FusionCacheDiagnostics.ActivitySourceNameMemoryLevel, FusionCacheDiagnostics.FusionCacheVersion);
-	public static readonly ActivitySource SourceDistributedLevel = new ActivitySource(FusionCacheDiagnostics.ActivitySourceNameDistributedLevel, FusionCacheDiagnostics.FusionCacheVersion);
-	public static readonly ActivitySource SourceBackplane = new ActivitySource(FusionCacheDiagnostics.ActivitySourceNameBackplane, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly ActivitySource Source = new(FusionCacheDiagnostics.ActivitySourceName, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly ActivitySource SourceMemoryLevel = new(FusionCacheDiagnostics.ActivitySourceNameMemoryLevel, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly ActivitySource SourceDistributedLevel = new(FusionCacheDiagnostics.ActivitySourceNameDistributedLevel, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly ActivitySource SourceBackplane = new(FusionCacheDiagnostics.ActivitySourceNameBackplane, FusionCacheDiagnostics.FusionCacheVersion);
 
 	internal static class Names
 	{
@@ -58,10 +57,10 @@ internal static class Activities
 	{
 		var res = new List<KeyValuePair<string, object?>>
 		{
-			new KeyValuePair<string, object?>(Tags.Names.CacheName, cacheName),
-			new KeyValuePair<string, object?>(Tags.Names.CacheInstanceId, cacheInstanceId),
-			new KeyValuePair<string, object?>(Tags.Names.OperationKey, key),
-			new KeyValuePair<string, object?>(Tags.Names.OperationId, operationId),
+			new(Tags.Names.CacheName, cacheName),
+			new(Tags.Names.CacheInstanceId, cacheInstanceId),
+			new(Tags.Names.OperationKey, key),
+			new(Tags.Names.OperationId, operationId),
 		};
 
 		if (levelKind is not null)

@@ -20,7 +20,7 @@ This of course sparked a lot of [questions](https://x.com/markjerz/status/178565
 If you like you can read [my thoughts](https://github.com/ZiggyCreatures/FusionCache/discussions/266#discussioncomment-9915972) about it, but the main take away is:
 
 > FusionCache will NOT leverage the new HybridCache, in the sense that it will not be built "on top of it", BUT it will do 2 main things:
-> 
+>
 > 1. be available ALSO as an implementation of HybridCache
 > 2. it may take advantage of some of the new underlying bits being created FOR it
 
@@ -77,13 +77,14 @@ Oh, and we'll still be able to get `IFusionCache` too at the same time, so anoth
 public class SomeService2(IFusionCache cache)
 {
     private IFusionCache _cache = cache;
-    
+
     // ...
 ```
 
 and the **SAME** FusionCache instance will be used for both, directly as well as via the HybridCache adapter.
 
 As FusionCache users this means we'll have 2 options available:
+
 - use `FusionCache` directly, as we did up until today
 - depend on the `HybridCache` shared _abstraction_ by Microsoft, but use the `FusionCache` _implementation_ (the adapter)
 
@@ -95,7 +96,7 @@ Also, when using the adapter based on FusionCache, we'll have more features anyw
 
 Yep, more features: read on.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > Again, to be clear, this does **NOT** mean that FusionCache will now be based **ON** `HybridCache` from Microsoft, but that it will **ALSO** be available **AS** an implementation of it, via an adapter class.
 
 ## 🆎 Feature Comparison
@@ -103,6 +104,7 @@ Yep, more features: read on.
 Let's see which features are on the table.
 
 For the Microsoft implementation, the features will be:
+
 - cache stampede protection (also [in FusionCache](CacheStampede.md))
 - usable as L1 only (memory) or L1+L2 (memory + distributed) (also [in FusionCache](CacheLevels.md))
 - multi-node notifications (also [in FusionCache](Backplane.md))
@@ -110,6 +112,7 @@ For the Microsoft implementation, the features will be:
 - serialization compression (not there yet, but already working on it)
 
 FusionCache on the other hand has more, like:
+
 - [fail-safe](FailSafe.md)
 - [soft/hard timeouts](Timeouts.md)
 - [adaptive caching](AdaptiveCaching.md)
@@ -133,6 +136,7 @@ This includes the resiliency of [fail-safe](FailSafe.md), the speed of [soft/har
 Oh (x2), and we'll be even able to read and write from **BOTH** at the **SAME TIME**, fully protected from Cache Stampede! Yup, this means that when doing `hybridCache.GetOrCreateAsync("foo", ...)` at the same time as `fusionCache.GetOrSetAsync("foo", ...)`, they both will do only ONE database call, at all, among the 2 of them.
 
 Oh (x3), and since FusionCache supports both the sync and async programming model in a unified way (while HybridCache only supports the async one), this also means that Cache Stampede protection and every other feature will work perfectly well even when calling at the same time:
+
 - `hybridCache.GetOrCreateAsync("foo", ...)` (async call from the HybridCache adapter)
 - `fusionCache.GetOrSet("foo", ...)` (sync call from FusionCache directly)
 
@@ -145,11 +149,12 @@ Nice 😬
 Ok, here's something crazy to think about.
 
 The `HybridCache` implementation from Microsoft currently available (it's in preview, the GA is not out yet) has some limitations, in particular:
+
 - **NO L2 OPT-OUT**: there's no way to control the use of `IDistributedCache` or not. If it's registered in the DI container it will be used, otherwise it will not, meaning if another component needs it, you'll be then forced to use it in HybridCache too
 - **SINGLE INSTANCE:** it does not support multiple named caches, there can be only one
 - **NO KEYED SERVICES**: since it does not support multiple caches, it means it cannot support Microsoft's own [Keyed Services](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-9.0#keyed-services)
 
-Now these are the limitation of the (current) HybridCache _implementation_ , not the _abstraction_: does this mean that when using FusionCache via the HybridCache adapter, we can go above and beyound those limits?
+Now these are the limitation of the (current) HybridCache _implementation_, not the _abstraction_: does this mean that when using FusionCache via the HybridCache adapter, we can go above and beyound those limits?
 
 Yup 🎉
 
@@ -165,7 +170,7 @@ Instead of registering it like this:
 
 ```csharp
 services.AddFusionCache()
-	.AsHybridCache();
+    .AsHybridCache();
 ```
 
 and then request it via `serviceProvider.GetRequiredService<HybridCache>()` or via a param injection like this:
@@ -180,7 +185,7 @@ we can register it like this:
 
 ```csharp
 services.AddFusionCache()
-	.AsKeyedHybridCache("Foo");
+    .AsKeyedHybridCache("Foo");
 ```
 
 and then request it via `serviceProvider.GetRequiredKeyedService<HybridCache>("Foo")` or via a param injection like this:

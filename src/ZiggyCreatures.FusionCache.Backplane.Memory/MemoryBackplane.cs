@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -14,7 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 public partial class MemoryBackplane
 	: IFusionCacheBackplane
 {
-	private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, List<MemoryBackplane>>> _connections = new ConcurrentDictionary<string, ConcurrentDictionary<string, List<MemoryBackplane>>>();
+	private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, List<MemoryBackplane>>> _connections = new();
 
 	private readonly MemoryBackplaneOptions _options;
 	private BackplaneSubscriptionOptions? _subscriptionOptions;

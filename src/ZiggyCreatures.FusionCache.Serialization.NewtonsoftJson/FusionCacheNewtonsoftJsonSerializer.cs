@@ -1,8 +1,5 @@
 ﻿using System.Buffers;
-using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -11,7 +8,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
 
 internal class JsonArrayPool : IArrayPool<char>
 {
-	internal static JsonArrayPool Shared { get; } = new JsonArrayPool();
+	internal static JsonArrayPool Shared { get; } = new();
 	public char[] Rent(int minimumLength) => ArrayPool<char>.Shared.Rent(minimumLength);
 	public void Return(char[]? array) => ArrayPool<char>.Shared.Return(array);
 }

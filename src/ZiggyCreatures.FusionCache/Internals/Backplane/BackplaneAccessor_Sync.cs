@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
@@ -21,7 +19,7 @@ internal partial class BackplaneAccessor
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] before subscribing to backplane on channel {BackplaneChannel}", _cache.CacheName, _cache.InstanceId, operationId, channelName);
 
 			var retriesLeft = 3;
-			while (retriesLeft > 0)
+			while (true)
 			{
 				retriesLeft--;
 

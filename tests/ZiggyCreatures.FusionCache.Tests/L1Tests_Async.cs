@@ -1,9 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using FusionCacheTests.Stuff;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -1412,5 +1408,32 @@ public partial class L1Tests
 		var v5 = await cache.GetOrDefaultAsync<long>("foo");
 
 		Assert.Equal(0, v5);
+	}
+
+	[Fact]
+	public async Task JitteringIsNotUsedWhenActivatingFailSafeAsync()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		cache.DefaultEntryOptions
+			.SetDuration(TimeSpan.FromMinutes(180))
+			.SetJittering(TimeSpan.FromMinutes(30))
+			.SetFailSafe(true, throttleDuration: TimeSpan.Zero);
+
+		var expectedNegOne = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) => ctx.Fail("test"),
+			failSafeDefaultValue: -1
+		);
+
+		await Task.Delay(TimeSpan.FromMilliseconds(250));
+
+		var expectedOne = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) => ctx.Modified(1),
+			failSafeDefaultValue: -1
+		);
+
+		Assert.Equal(-1, expectedNegOne);
+		Assert.Equal(1, expectedOne);
 	}
 }

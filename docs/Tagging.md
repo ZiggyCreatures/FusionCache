@@ -16,7 +16,7 @@ An example can be caching multiple entries related to a certain category: when s
 
 So, how to do that?
 
-### 😎 Super Easy, Barely An Inconvenience
+## 😎 Super Easy, Barely An Inconvenience
 
 When saving cache entries we can specify some tags, like this:
 
@@ -36,7 +36,7 @@ After this call, only the entry for `"bar"` will remain.
 
 What if we know the tags only when getting the data from the database?
 
-Well, FusionCache supports [Adaptive Caching](AdaptiveCaching.md), so the question is: are tags are supported with it, too?
+Well, FusionCache supports [Adaptive Caching](AdaptiveCaching.md), so the question is: are tags supported with it, too?
 
 Of course they are, by simply doing this:
 
@@ -72,7 +72,7 @@ Also, as a cherry on top, in the case of FusionCache specifically we also need t
 
 We have a seemingly insurmountable task ahead.
 
-Oh, finally we should also consider multiple [named caches](NamedCaches.md), which may or may not share the same underlying memory and/or distributed cache: this means that a proper remove by tag" may touch entries for logically separate caches that are stored in the same L2 instance.
+Oh, finally we should also consider multiple [named caches](NamedCaches.md), which may or may not share the same underlying memory and/or distributed cache: this means that a proper "remove by tag" may touch entries for logically separate caches that are stored in the same L2 instance.
 
 Yeah, there's that too.
 
@@ -80,7 +80,7 @@ Damn 🥲
 
 This is one of the hardest tasks in the world of caching, because it involves multiple entries all at once and can _potentially_ mean an upfront massive operation that also, ideally, hopefully, should not block or slow down our entire cache.
 
-Imagine having a cache composed of millions of entries (been there, dont that) and, of those, tens of thousands are tagged with a certain tag: when we _remove by tag_ for that tag what needs to happen is similar to something like this (pseudo-code):
+Imagine having a cache composed of millions of entries (been there, done that) and, of those, tens of thousands are tagged with a certain tag: when we _remove by tag_ for that tag what needs to happen is similar to something like this (pseudo-code):
 
 `DELETE * FROM table WHERE "my-tag" IN tags`
 
@@ -95,6 +95,7 @@ Something to deal with, first and foremost, is a _design_ decision that sits at 
 In particular for L2 this means [`IDistributedCache`](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.caching.distributed.idistributedcache?view=net-8.0#methods): this decision paid a lot of dividends along the years, because any implementation of `IDistributedCache` is automatically usable with FusionCache and, since there are [a lot of them readily available](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md#-packages) covering very different needs, this is a **very powerful** characteristic to have available.
 
 On the other hand `IDistributedCache` has a very limited set of functionalities available, basically only 3 methods:
+
 - `Set`
 - `Get`
 - `Remove`
@@ -106,6 +107,7 @@ So, what can be done?
 ## 🛬 Approaches
 
 There are basically 2 different approaches:
+
 - **Server-Assisted**: the L2 (eg: Redis or Memcached) makes a real "remove by tag" in some way
 - **Client-Assisted**: the client library (eg: FusionCache) does "something" so that the end result _looks like_ the same
 
@@ -167,7 +169,7 @@ What about app restarts?
 <br/>
 No big deal, since everything is based on the common plumbing of FusionCache, all will work normally and tag-eviction data will get re-populated again automatically, lazily, and based on only the effective usage.
 
-What about needing tag expiration for "tag1" by 2 difference cache entries at the same time?
+What about needing tag expiration for "tag1" by 2 different cache entries at the same time?
 <br/>
 Only one load will happen, thanks to the [Cache Stampede](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md) protection.
 
@@ -206,6 +208,7 @@ Let me explain.
 A `SELECT N+1` problem happens when, to get a piece of data, we do a first select that returns N elements and then, for each element, we do an additional SELECT.
 
 Here this does not happen, because:
+
 - as soon as a tag returns a timestamp that makes the entry expired, the process stops, reducing the SELECT amount to the minimum
 - because of how tags are used, meaning shared between different entries, one load of tag expiration data will be used for multiple entries, reducing again the SELECT amount
 - some internal optimizations in FusionCache such that the amount of read operations is reduced even more
@@ -245,7 +248,7 @@ This is known as a [Crinkle Crankle wall](https://en.wikipedia.org/wiki/Crinkle_
 
 Ok, so?
 
-Well, I discovered them some time ago while doomscrolling Wikipedia at late night and I kept a screenshot around, feeling there was something to it but not knowing exactly why: then it recently clicked, and they've been an inspiration for how to design tagging in FusionCache.
+Well, I discovered them some time ago while doomscrolling Wikipedia late at night and I kept a screenshot around, feeling there was something to it but not knowing exactly why: then it recently clicked, and they've been an inspiration for how to design tagging in FusionCache.
 
 You see, most people when looking at them may think _"that's stupid, what a waste of bricks!"_, but the reality is the opposite.
 

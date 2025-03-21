@@ -1,7 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using ZiggyCreatures.Caching.Fusion;
+﻿using ZiggyCreatures.Caching.Fusion;
 
 namespace FusionCacheTests.Overloads;
 
@@ -17,5 +14,5 @@ internal static partial class OverloadsCallsTryouts
 
 	static readonly TimeSpan Duration = TimeSpan.FromMinutes(10);
 	static readonly Action<FusionCacheEntryOptions> OptionsLambda = options => options.SetDuration(Duration);
-	static readonly FusionCacheEntryOptions Options = new FusionCacheEntryOptions(Duration);
+	static readonly FusionCacheEntryOptions Options = new(Duration);
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.Tracing;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,7 +45,7 @@ public class FusionCacheInstrumentationTracesOptions
 public static class OpenTelemetryScenario
 {
 	private static readonly string ServiceName = "FusionCachePlayground.OpenTelemetryScenario";
-	private static readonly ActivitySource Source = new ActivitySource("FusionCachePlayground.OpenTelemetryScenario");
+	private static readonly ActivitySource Source = new("FusionCachePlayground.OpenTelemetryScenario");
 
 	private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(5);
 	private static readonly TimeSpan FailSafeMaxDuration = TimeSpan.FromSeconds(30);
@@ -79,7 +75,7 @@ public static class OpenTelemetryScenario
 		});
 	}
 
-	private static readonly ActivitySource Activity = new ActivitySource(nameof(OpenTelemetryScenario));
+	private static readonly ActivitySource Activity = new(nameof(OpenTelemetryScenario));
 
 	public static async Task RunAsync()
 	{

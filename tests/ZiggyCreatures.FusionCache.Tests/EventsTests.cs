@@ -1,5 +1,4 @@
-﻿using System;
-using FusionCacheTests.Stuff;
+﻿using FusionCacheTests.Stuff;
 using Xunit.Abstractions;
 
 namespace FusionCacheTests;

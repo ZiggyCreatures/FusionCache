@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -22,7 +17,7 @@ internal static class FusionCacheInternalUtils
 	{
 		private static readonly char[] _chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV".ToCharArray();
 		private static long _lastId = DateTime.UtcNow.Ticks;
-		private static readonly ThreadLocal<char[]> _buffer = new ThreadLocal<char[]>(() => new char[13]);
+		private static readonly ThreadLocal<char[]> _buffer = new(() => new char[13]);
 
 		private static string GenerateOperationId(long id)
 		{
@@ -118,10 +113,11 @@ internal static class FusionCacheInternalUtils
 		if (entry?.Metadata is null)
 			return false;
 
-		if (entry.Metadata.EagerExpirationTimestamp.HasValue == false)
+		var tmp = entry.Metadata.EagerExpirationTimestamp;
+		if (tmp.HasValue == false)
 			return false;
 
-		if (entry.Metadata.EagerExpirationTimestamp.Value >= DateTimeOffset.UtcNow.UtcTicks)
+		if (tmp.Value > DateTimeOffset.UtcNow.UtcTicks)
 			return false;
 
 		if (entry.IsLogicallyExpired())

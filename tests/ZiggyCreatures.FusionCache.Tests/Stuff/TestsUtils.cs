@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
@@ -54,8 +50,10 @@ public static class TestsUtils
 		{
 			case MemoryLockerType.Standard:
 				return new StandardMemoryLocker();
-			case MemoryLockerType.Probabilistic:
-				return new ProbabilisticMemoryLocker();
+			//case MemoryLockerType.Probabilistic:
+			//	return new ProbabilisticMemoryLocker();
+			//case MemoryLockerType.Experimental:
+			//	return new ExperimentalMemoryLocker();
 			default:
 				throw new ArgumentException("Invalid memory locker type specified", nameof(memoryLockerType));
 		}

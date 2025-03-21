@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
@@ -34,7 +33,7 @@ internal sealed partial class DistributedCacheAccessor
 		_events = events;
 
 		// CIRCUIT-BREAKER
-		_breaker = new SimpleCircuitBreaker(distributedCache is null ? TimeSpan.Zero : options.DistributedCacheCircuitBreakerDuration);
+		_breaker = new SimpleCircuitBreaker(options.DistributedCacheCircuitBreakerDuration);
 
 		// WIRE FORMAT SETUP
 		_wireFormatToken = _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Prefix

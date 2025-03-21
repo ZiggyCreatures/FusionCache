@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
 namespace FusionCacheTests.Stuff;
 
@@ -16,7 +14,7 @@ public class ListLogger<T>
 	}
 
 	private readonly LogLevel _minLogLevel;
-	public readonly List<(LogLevel LogLevel, string Message)> Items = new List<(LogLevel LogLevel, string Message)>();
+	public readonly List<(LogLevel LogLevel, string Message)> Items = new();
 
 	public ListLogger(LogLevel minLogLevel)
 	{

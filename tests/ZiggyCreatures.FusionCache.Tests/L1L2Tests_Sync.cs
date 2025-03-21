@@ -1,8 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Diagnostics;
 using FusionCacheTests.Stuff;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -267,7 +264,7 @@ public partial class L1L2Tests
 
 		Assert.Equal("sloths, sloths everywhere", foo1);
 
-		Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		Thread.Sleep(TimeSpan.FromMilliseconds(100).PlusALittleBit());
 
 		logger.LogInformation("STEP 3");
 

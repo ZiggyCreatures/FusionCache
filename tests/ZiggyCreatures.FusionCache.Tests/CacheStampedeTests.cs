@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -160,7 +157,7 @@ public class CacheStampedeTests
 					await Task.Delay(FactoryDuration);
 					return 42;
 				},
-				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+				new HybridCacheEntryOptions { LocalCacheExpiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task.AsTask());
 		});
@@ -208,7 +205,7 @@ public class CacheStampedeTests
 					await Task.Delay(FactoryDuration);
 					return 42;
 				},
-				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+				new HybridCacheEntryOptions { LocalCacheExpiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task2.AsTask());
 		});
@@ -256,7 +253,7 @@ public class CacheStampedeTests
 					await Task.Delay(FactoryDuration);
 					return 42;
 				},
-				new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }
+				new HybridCacheEntryOptions { LocalCacheExpiration = TimeSpan.FromSeconds(10) }
 			);
 			tasks.Add(task.AsTask());
 		});

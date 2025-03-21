@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 

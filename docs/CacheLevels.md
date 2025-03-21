@@ -61,6 +61,7 @@ Also, if needed, we can use a different `Duration` specific for the distributed 
 
 Finally we can even execute the distributed cache operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
+
 ## 📢 Backplane
 
 When using a distributed 2nd level, each local memory cache may become out of sync with the other nodes after a change: to solve this, it is suggested to also use a backplane.
@@ -68,6 +69,21 @@ When using a distributed 2nd level, each local memory cache may become out of sy
 All the existing code will remain the same, it's just a 1 line change at setup time.
 
 Read [here](Backplane.md) for more.
+
+
+## 🧬 Diagrams
+
+Good, good, so FusionCache takes care of coordinating everything between L1, L2 and maybe the backplane, if enabled.
+
+But... it can still be complicated to make up our mind about it, right? It would be just nice to be able to _visualize_ what we just said... so, diagrams!
+
+<div align="center">
+
+[![FusionCache flow diagrams](images/diagrams.png)](Diagrams.md)
+
+</div>
+
+Read [here](Diagrams.md) for more.
 
 
 ## 🗃 Wire Format Versioning
@@ -177,3 +193,28 @@ services.AddFusionCache()
 ```
 
 Easy peasy.
+
+## ⚠️ Catch Serialization Issues Early On
+
+Due to how serialization to L2 works, we should make sure our serialization configuration is correct (e.g. for JSON serializers, use the correct `TypeNameHandling` setting): for instance, abstract types or interfaces cannot be deserialized, because they can't be instantiated (eg: a concrete type is needed).
+
+To catch (de)serialization issues earlier during development, we can configure a locally available distributed cache like an [in-memory one](https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.caching.distributed.memorydistributedcache?view=net-9.0-pp) or a SQLite-based [one](https://github.com/neosmart/SqliteCache):
+
+Here's an example:
+
+```csharp
+builder.Services.AddFusionCache()
+  .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+    SkipMemoryCacheRead = true,
+  })
+  .WithDistributedCache(
+    new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
+  )
+  .WithSerializer(
+    new FusionCacheNewtonsoftJsonSerializer() // OR ANOTHER ONE OF YOUR CHOOSING
+  );
+```
+
+Other ways to catch these issues:
+1. use [**♊ Auto-Clone**](AutoClone.md)
+2. write proper unit tests to check serialization and deserialization of all your types

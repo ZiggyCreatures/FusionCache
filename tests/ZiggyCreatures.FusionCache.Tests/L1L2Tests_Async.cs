@@ -1,6 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -267,7 +265,7 @@ public partial class L1L2Tests
 
 		Assert.Equal("sloths, sloths everywhere", foo1);
 
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(TimeSpan.FromMilliseconds(100).PlusALittleBit());
 
 		logger.LogInformation("STEP 3");
 

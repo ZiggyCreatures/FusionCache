@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Provider;
 
@@ -35,7 +34,7 @@ internal sealed class LazyNamedCache : IDisposable
 		_cache = cache;
 	}
 
-	private readonly object _mutex = new object();
+	private readonly object _mutex = new();
 	private IFusionCache? _cache;
 	private readonly Func<IFusionCache>? _cacheFactory;
 

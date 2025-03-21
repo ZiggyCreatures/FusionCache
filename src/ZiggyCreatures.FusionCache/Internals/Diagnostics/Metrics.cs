@@ -1,14 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 internal static class Metrics
 {
-	public static readonly Meter Meter = new Meter(FusionCacheDiagnostics.MeterName, FusionCacheDiagnostics.FusionCacheVersion);
-	public static readonly Meter MeterMemoryLevel = new Meter(FusionCacheDiagnostics.MeterNameMemoryLevel, FusionCacheDiagnostics.FusionCacheVersion);
-	public static readonly Meter MeterDistributedLevel = new Meter(FusionCacheDiagnostics.MeterNameDistributedLevel, FusionCacheDiagnostics.FusionCacheVersion);
-	public static readonly Meter MeterBackplane = new Meter(FusionCacheDiagnostics.MeterNameBackplane, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly Meter Meter = new(FusionCacheDiagnostics.MeterName, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly Meter MeterMemoryLevel = new(FusionCacheDiagnostics.MeterNameMemoryLevel, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly Meter MeterDistributedLevel = new(FusionCacheDiagnostics.MeterNameDistributedLevel, FusionCacheDiagnostics.FusionCacheVersion);
+	public static readonly Meter MeterBackplane = new(FusionCacheDiagnostics.MeterNameBackplane, FusionCacheDiagnostics.FusionCacheVersion);
 
 	// HIGH-LEVEL
 	public static readonly Counter<long> CounterSet = Meter.CreateCounter<long>("fusioncache.cache.set");

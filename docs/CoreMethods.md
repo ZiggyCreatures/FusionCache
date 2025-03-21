@@ -23,7 +23,6 @@ Finally, most of them have a set of **overloads** for a better ease of use.
 
 If you are thinking *"which one should I use?"* please keep reading.
 
-
 ## Set[Async]
 
 It is used to **SET** a value in the cache for the specified key using the specified options. If something is already there, it will be overwritten.
@@ -38,7 +37,6 @@ cache.Set("foo", 42);
 cache.Set("foo", 42, TimeSpan.FromSeconds(30));
 ```
 
-
 ## GetOrSet[Async]
 
 This is the most important and powerful method available, and it does **a lot** for you.
@@ -50,7 +48,6 @@ Easy peasy.
 If instead the value is not in the cache (or is expired) it can automatically **SET** a value in the cache, obtained in different ways, based on what you passed to the method after the `key` param:
 
 - a **DEFAULT VALUE**: that will be **SET** in the cache and returned to you
-
 - a [**FACTORY**](CacheStampede.md) method: it will be executed, and if the execution goes well the obtained value will be **SET** in the cache and returned to you
 
 These are the happy paths.
@@ -87,7 +84,7 @@ var foo = cache.GetOrSet<int>(
     TimeSpan.FromMinutes(1)
 );
 
-// OR 
+// OR
 var foo = cache.GetOrSet<int>(
     "foo",
     _ => GetFooFromDb()
@@ -149,7 +146,6 @@ var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns", false);
 var enableUnicorns = cache.GetOrDefault<bool>("flags.unicorns");
 ```
 
-
 ## TryGet[Async]
 
 It is used to **CHECK** if a value is in the cache for the specified key and, if so, to **GET** the value itself all at once.
@@ -190,19 +186,19 @@ var result = maybeFoo.GetValueOrDefault();
 int result = maybeFoo;
 ```
 
-> [!NOTE]  
+> [!NOTE]
 > It's not possible to use the classic method signature of `bool TryGet<TValue>(string key, out TValue value)` to set a value with an `out` parameter because .NET does not allow it on async methods (for good reasons) and I wanted to keep the same signature for every method in both sync/async versions.
-
 
 ## Expire[Async]
 
 It is used to explicitly **EXPIRE** the value in the cache for the specified key.
 
 But wait, what is the difference between `Expire()` and `Remove()`? With `Remove()` the value is actually removed, totally. With `Expire()` instead, it depends on how [fail-safe](FailSafe.md) is configured:
+
 - if fail-safe is enabled: the entry will marked as _logically_ expired, but will still be available as a fallback value in case of future problems
 - if fail-safe is disabled: the entry will be effectively removed
 
-This method may be is useful in case we want to threat something as remove, but with the ability to say _"better than nothing"_ in the future, in case of problems (thanks to fail-safe).
+This method may be is useful in case we want to treat something as remove, but with the ability to say _"better than nothing"_ in the future, in case of problems (thanks to fail-safe).
 
 ### Example
 
@@ -247,6 +243,7 @@ You can choose between passing:
 - **Duration**: you simply pass a `TimeSpan` value for the duration. This is the same as the previous one (start from default + duplicate + lambda) but for the common scenario of when you only want to change the duration
 
 ## 🤷‍♂️ `MaybeValue<T>`
+
 The special type `MaybeValue<T>` is similar to the standard `Nullable<T>` type in .NET, but usable for both value types and reference types.
 
 The type has a `bool HasValue` property to know if it contains a value or not (like standard nullables), and a `T Value` property with the value itself: if `HasValue` is false, trying to access the `Value` property would throw an `InvalidOperationException`, again like standard nullables.
@@ -265,6 +262,7 @@ Oh, and if you are into *functional programming* you may smell a scent of Option
 
 
 ## 🤔 Why no `Get<T>` ?
+
 You may be wondering why the quite common `Get<T>` method is missing.
 
 It is because its behavior would correspond to FusionCache's `GetOrDefault<T>` method above, but with 2 problems:
