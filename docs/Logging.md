@@ -304,7 +304,7 @@ Normally though, logging all of that will result in a huge amount of resources c
 
 We should log a lot in a development environment, because typically that goes to the console or similar, and even if it goes on the disk we can easily keep that clean and anyway nobody else will use our own dev env, right?
 
-In production though we should only log problems (`Error` level) or potential problems (`Warning` level), and nothing more, unless it is strictly necessary, like when there's a problem we're having a hard time solving: even then though, we should set the min level to `Debug` (typically avoid `Trace`, which is uber verbose) for the lowest amount of time, and then turn it back to `Warning` as soon as possible.
+In production though we should only log problems (`Error` level) or potential problems (`Warning` level), and nothing more, unless it is strictly necessary, like when there's a problem we're having a hard time solving: even then though, we should set the min level to `Debug` (typically avoid `Trace`, which is super verbose) for the lowest amount of time, and then turn it back to `Warning` as soon as possible.
 
 So the suggestion is:
 - **DEV ENV**: set the min level to `Debug`

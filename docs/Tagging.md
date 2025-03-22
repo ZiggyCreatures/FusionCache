@@ -60,7 +60,7 @@ Easy peasy.
 
 ## 🗿 Monumentally Complex
 
-As we all know, cache invalidation in general is an [uber complex beast](https://martinfowler.com/bliki/TwoHardThings.html) to approach.
+As we all know, cache invalidation in general is a [super complex beast](https://martinfowler.com/bliki/TwoHardThings.html) to approach.
 
 This is already true with "just" a memory cache, although it's doable.
 
