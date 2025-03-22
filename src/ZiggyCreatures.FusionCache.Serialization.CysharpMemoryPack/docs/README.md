@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package is an implementation for a FusionCache serializer to be used with the optional distributed cache level, based on the uber fast new serializer [MemoryPack](https://github.com/Cysharp/MemoryPack).
+This package is an implementation for a FusionCache serializer to be used with the optional distributed cache level, based on the super fast new serializer [MemoryPack](https://github.com/Cysharp/MemoryPack).

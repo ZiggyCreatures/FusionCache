@@ -9,7 +9,7 @@
 
 FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
-Being a hybrid cache means that it can work both as a normal memory cache (L1) or, optionally, as a multi-level cache (L1+L2) where the 2nd level can be any implementation of the standard `IDistributedCache` interface. This will get us better better scalability, better performance and more resiliency in a multi-node scenario or even just to ease cold starts (initial empty cache, maybe after a restart).
+Being a hybrid cache means that it can work both as a normal memory cache (L1) or, optionally, as a multi-level cache (L1+L2) where the 2nd level can be any implementation of the standard `IDistributedCache` interface. This will get us better scalability, better performance and more resiliency in a multi-node scenario or even just to ease cold starts (initial empty cache, maybe after a restart).
 
 Optionally, it can also use a **backplane**: in a multi-node scenario this will send notifications to the other nodes to keep each node's memory cache perfectly synchronized, without any additional work.
 
@@ -112,14 +112,14 @@ Without some extra care what can happen is that data would not be saved in the d
 
 wouldn't it be nice if FusionCache would help us is some way when transient error happens?
 
-Enter **Auto-Recovery**.: everything is done automatically, and it just works.
+Enter **Auto-Recovery**: everything is done automatically, and it just works.
 
 Read more [**here**](AutoRecovery.md).
 
 
 ## 🏷️ Tagging ([more](Tagging.md))
 
-Tagging is an incredibly powerful feature: cache entries can be tagged with one or more tags, and later they can be evicted all at once by just by calling `RemoveByTag("my-tag")`.
+Tagging is an incredibly powerful feature: cache entries can be tagged with one or more tags, and later they can be evicted all at once by just calling `RemoveByTag("my-tag")`.
 
 The overall [design](https://github.com/ZiggyCreatures/FusionCache/issues/319) used to achieve this is such that, even when working against a massive cache with millions of entries, will not incur in any upfront cost (yes, even a distributed L2 like a Redis gigantic instance).
 
