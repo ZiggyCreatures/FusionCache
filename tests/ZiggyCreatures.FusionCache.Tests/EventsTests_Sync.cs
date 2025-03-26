@@ -153,6 +153,57 @@ public partial class EventsTests
 	}
 
 	[Fact]
+	public void GetOrSetMultipleTimes()
+	{
+		var stats = new EntryActionsStats();
+
+		var duration = TimeSpan.FromSeconds(2);
+		var maxDuration = TimeSpan.FromDays(1);
+		var throttleDuration = TimeSpan.FromSeconds(3);
+
+		using var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true });
+		cache.DefaultEntryOptions.Duration = duration;
+		cache.DefaultEntryOptions.IsFailSafeEnabled = true;
+		cache.DefaultEntryOptions.FailSafeMaxDuration = maxDuration;
+		cache.DefaultEntryOptions.FailSafeThrottleDuration = throttleDuration;
+
+		EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
+		EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
+		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+		EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
+		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
+
+		// SETUP HANDLERS
+		cache.Events.Miss += onMiss;
+		cache.Events.Hit += onHit;
+		cache.Events.Set += onSet;
+		cache.Events.Remove += onRemove;
+		cache.Events.FailSafeActivate += onFailSafeActivate;
+
+		// MISS: +1
+		// SET: +1
+		cache.GetOrSet<int>("foo", 42);
+
+		// HIT: +1
+		cache.GetOrSet<int>("foo", 42);
+
+		// HIT: +1
+		cache.GetOrSet<int>("foo", 42);
+
+		// REMOVE HANDLERS
+		cache.Events.Miss -= onMiss;
+		cache.Events.Hit -= onHit;
+		cache.Events.Set -= onSet;
+		cache.Events.Remove -= onRemove;
+		cache.Events.FailSafeActivate -= onFailSafeActivate;
+
+		Assert.Equal(1, stats.Data[EntryActionKind.Miss]); // Fails with 2
+		Assert.Equal(1, stats.Data[EntryActionKind.Set]); // Fails with 2
+		Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
+		Assert.Equal(4, stats.Data.Values.Sum()); // Fails with 6
+	}
+
+	[Fact]
 	public void GetOrSetStale()
 	{
 		var stats = new EntryActionsStats();
