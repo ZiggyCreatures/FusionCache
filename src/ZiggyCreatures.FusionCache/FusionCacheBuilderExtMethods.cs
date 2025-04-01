@@ -109,7 +109,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder)
 	{
-		return builder.WithCacheKeyPrefix(builder.CacheName + ":");
+		return builder.WithCacheKeyPrefix(builder.CacheName + FusionCacheOptions.CacheKeyPrefixSeparator);
 	}
 
 	/// <summary>
