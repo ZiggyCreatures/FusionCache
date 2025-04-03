@@ -100,8 +100,14 @@ public sealed partial class FusionCache
 			DistributedCacheSoftTimeout = Timeout.InfiniteTimeSpan,
 			DistributedCacheHardTimeout = Timeout.InfiniteTimeSpan,
 			AllowBackgroundDistributedCacheOperations = false,
-			ReThrowDistributedCacheExceptions = true,
-			ReThrowSerializationExceptions = true,
+			ReThrowDistributedCacheExceptions = false,
+			ReThrowSerializationExceptions = false,
+			ReThrowBackplaneExceptions = false,
+			SkipMemoryCacheRead = false,
+			SkipMemoryCacheWrite = false,
+			SkipDistributedCacheRead = false,
+			SkipDistributedCacheWrite = false,
+			SkipBackplaneNotifications = false,
 		};
 
 		// TAGGING
