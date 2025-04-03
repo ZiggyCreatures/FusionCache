@@ -158,7 +158,9 @@ This is the only way for me to know how it is helping people.
 
 ## 💰 Support
 
-Nothing to do here: after years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
+Nothing to do here.
+
+After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
 
 Will FusionCache one day switch to a commercial model? Nope, not gonna happen.
 
