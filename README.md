@@ -336,20 +336,24 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling billions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **10 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **14 million times** (thanks everybody!) it may very well be used even more.
 
 Oh, and it is being used in products by Microsoft itself, like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/)!
 
-## 💰 Support
-
-Nothing to do here.
-
-After years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
-
-If you really want to talk about money, please consider making  **❤ a donation to a good cause** of your choosing, and let me know about that.
-
 ## 😍 Are you using it?
 
-If you find FusionCache useful please [let me know](https://github.com/ZiggyCreatures/FusionCache/discussions/new?category=show-and-tell&title=I%27m%20using%20FusionCache!&body=%23%23%20Scenario%0ADescribe%20how%20you%20are%20using%20FusionCache:%20commercial%20product,%20oss%20project,%20monolith,%20microservice,%20web,%20mobile%20app,%20CLI,%20etc%0A%0A%23%23%20Liked%0AWhat%20you%20liked,%20features,%20docs%20or%20anything%0A%0A%23%23%20Unliked/Missing%0AThings%20you%20didn%27t%20like%20or%20felt%20was%20missing%0A%0A%23%23%20Closing%20Thoughts%0AAny%20closing%20thoughts), I'm  really interested!
+If you find FusionCache useful please [let me know](https://github.com/ZiggyCreatures/FusionCache/discussions/new?category=show-and-tell&title=I%27m%20using%20FusionCache!&body=%23%23%20Scenario%0ADescribe%20how%20you%20are%20using%20FusionCache:%20commercial%20product,%20oss%20project,%20monolith,%20microservice,%20web,%20mobile%20app,%20CLI,%20etc%0A%0A%23%23%20Liked%0AWhat%20you%20liked,%20features,%20docs%20or%20anything%0A%0A%23%23%20Unliked/Missing%0AThings%20you%20didn%27t%20like%20or%20felt%20was%20missing%0A%0A%23%23%20Closing%20Thoughts%0AAny%20closing%20thoughts), I'm  interested in knowing your use case!
 
 This is the only way for me to know how it is helping people.
+
+## 💰 Support
+
+Nothing to do here: after years of using a lot of open source stuff for free, this is just me trying to give something back to the community.
+
+Will FusionCache one day switch to a commercial model? Nope, not gonna happen.
+
+Mind you: nothing against other projects making the switch, if done in a proper way, but no thanks not interested. And FWIW I don't even accept donations, which are btw a great thing: that should tell you how much I'm into this for the money.
+
+Again, this is me trying to give something back to the community.
+
+If you really want to talk about money, please consider making  **🩷 a donation to a good cause** of your choosing, and let me know about that.
