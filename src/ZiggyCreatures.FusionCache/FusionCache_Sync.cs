@@ -913,15 +913,25 @@ public partial class FusionCache
 		// CHECK: CLEAR (EXPIRE)
 		if (ClearExpireTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 		{
-			var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
-
-			var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
-
-			if (_tmp2 != _tmp)
+			if (CanExecuteRawClear())
 			{
-				// NEW CLEAR (EXPIRE) TIMESTAMP
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				// OPTIMIZATION: IF IT'S THE FIRST CHECK AND WE CAN EXECUTE RAW CLEAR
+				// -> DIRECTLY SET IT WITHOUT CHECKING THE SPECIAL CACHE ENTRY, SINCE
+				// NOBODY ELSE CAN HAVE CHANGED IT
+				Interlocked.Exchange(ref ClearExpireTimestamp, 0L);
+			}
+			else
+			{
+				var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
+
+				var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
+
+				if (_tmp2 != _tmp)
+				{
+					// NEW CLEAR (EXPIRE) TIMESTAMP
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				}
 			}
 		}
 
