@@ -761,6 +761,12 @@ public sealed partial class FusionCache
 		get { return _dca is not null; }
 	}
 
+	/// <inheritdoc/>
+	public IDistributedCache? DistributedCache
+	{
+		get { return _dca?.DistributedCache; }
+	}
+
 	// BACKPLANE
 
 	/// <inheritdoc/>
@@ -838,6 +844,12 @@ public sealed partial class FusionCache
 	public bool HasBackplane
 	{
 		get { return _bpa is not null; }
+	}
+
+	/// <inheritdoc/>
+	public IFusionCacheBackplane? Backplane
+	{
+		get { return _bpa?.Backplane; }
 	}
 
 	// EVENTS
