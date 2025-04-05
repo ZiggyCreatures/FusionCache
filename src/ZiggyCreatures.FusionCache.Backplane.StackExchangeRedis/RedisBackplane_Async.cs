@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
@@ -139,18 +138,5 @@ public partial class RedisBackplane
 
 			_connectHandler?.Invoke(new BackplaneConnectionInfo(true));
 		}
-	}
-
-	internal async ValueTask OnMessageAsync(BackplaneMessage message)
-	{
-		var tmp = _incomingMessageHandlerAsync;
-		if (tmp is null)
-		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] incoming message handler was null", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
-			return;
-		}
-
-		await tmp(message).ConfigureAwait(false);
 	}
 }
