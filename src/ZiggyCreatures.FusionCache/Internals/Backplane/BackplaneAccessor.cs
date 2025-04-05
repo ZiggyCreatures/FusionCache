@@ -33,6 +33,11 @@ internal sealed partial class BackplaneAccessor
 		_breaker = new SimpleCircuitBreaker(options.BackplaneCircuitBreakerDuration);
 	}
 
+	public IFusionCacheBackplane Backplane
+	{
+		get { return _backplane; }
+	}
+
 	private void UpdateLastError(string operationId, string key)
 	{
 		// NO DISTRIBUTEC CACHE

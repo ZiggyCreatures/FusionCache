@@ -22,7 +22,7 @@ public partial class FusionCache
 			// TRY WITH DISTRIBUTED CACHE (IF ANY)
 			try
 			{
-				var dca = DistributedCache;
+				var dca = DistributedCacheAccessor;
 				if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 				{
 					FusionCacheDistributedEntry<TValue>? distributedEntry;
@@ -189,7 +189,7 @@ public partial class FusionCache
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
-			var dca = DistributedCache;
+			var dca = DistributedCacheAccessor;
 			if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 			{
 				if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false)
@@ -494,7 +494,7 @@ public partial class FusionCache
 			return memoryEntry;
 		}
 
-		var dca = DistributedCache;
+		var dca = DistributedCacheAccessor;
 
 		// EARLY RETURN: NO USABLE DISTRIBUTED CACHE
 		if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) || dca.CanBeUsed(operationId, key) == false)
@@ -1096,7 +1096,7 @@ public partial class FusionCache
 			ct1 =>
 			{
 				// DISTRIBUTED CACHE
-				var dca = DistributedCache;
+				var dca = DistributedCacheAccessor;
 				if (dca.ShouldWrite(options))
 				{
 					var dcaSuccess = false;
@@ -1127,7 +1127,7 @@ public partial class FusionCache
 					ct2 =>
 					{
 						// BACKPLANE
-						var bpa = Backplane;
+						var bpa = BackplaneAccessor;
 						if (bpa.ShouldWrite(options))
 						{
 							var bpaSuccess = false;
@@ -1245,7 +1245,7 @@ public partial class FusionCache
 				return (false, false, false);
 			}
 
-			var dca = DistributedCache;
+			var dca = DistributedCacheAccessor;
 
 			if (dca is null)
 			{

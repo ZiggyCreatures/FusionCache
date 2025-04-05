@@ -51,6 +51,11 @@ internal sealed partial class DistributedCacheAccessor
 		};
 	}
 
+	public IDistributedCache DistributedCache
+	{
+		get { return _cache; }
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private string MaybeProcessCacheKey(string key)
 	{

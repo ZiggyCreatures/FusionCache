@@ -284,21 +284,21 @@ public sealed partial class FusionCache
 
 	// MEMORY ACCESSOR
 
-	internal MemoryCacheAccessor MemoryCache
+	internal MemoryCacheAccessor MemoryCacheAccessor
 	{
 		get { return _mca; }
 	}
 
 	// DISTRIBUTED ACCESSOR
 
-	internal DistributedCacheAccessor? DistributedCache
+	internal DistributedCacheAccessor? DistributedCacheAccessor
 	{
 		get { return _dca; }
 	}
 
 	// BACKPLANE ACCESSOR
 
-	internal BackplaneAccessor? Backplane
+	internal BackplaneAccessor? BackplaneAccessor
 	{
 		get { return _bpa; }
 	}
