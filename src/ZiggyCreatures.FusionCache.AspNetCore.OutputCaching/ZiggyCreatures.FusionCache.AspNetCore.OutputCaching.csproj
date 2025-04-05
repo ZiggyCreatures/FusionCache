@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!--<TargetFramework>net7.0</TargetFramework>-->
 		<TargetFrameworks>net7.0;net8.0</TargetFrameworks>
 		<Version>2.1.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.AspNetCore.OutputCaching</PackageId>
