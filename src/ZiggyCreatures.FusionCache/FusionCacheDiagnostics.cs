@@ -8,7 +8,7 @@ public static class FusionCacheDiagnostics
 	/// <summary>
 	/// The current version of FusionCache.
 	/// </summary>
-	public const string FusionCacheVersion = "2.1.0";
+	public const string FusionCacheVersion = "2.2.0-preview-1";
 
 	/// <summary>
 	/// The activity source name for FusionCache.
