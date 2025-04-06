@@ -6,4 +6,7 @@ public enum MemoryLockerType
 	Standard = 0,
 	//Probabilistic = 1,
 	//Experimental = 2
+
+	// 3RD PARTY
+	AsyncKeyed = 10
 }

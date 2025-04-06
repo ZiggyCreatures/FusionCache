@@ -10,6 +10,7 @@ using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
@@ -50,6 +51,8 @@ public static class TestsUtils
 		{
 			case MemoryLockerType.Standard:
 				return new StandardMemoryLocker();
+			case MemoryLockerType.AsyncKeyed:
+				return new AsyncKeyedMemoryLocker();
 			//case MemoryLockerType.Probabilistic:
 			//	return new ProbabilisticMemoryLocker();
 			//case MemoryLockerType.Experimental:

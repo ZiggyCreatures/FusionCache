@@ -15,6 +15,7 @@ using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
@@ -42,7 +43,7 @@ public class ParallelComparisonBenchmark
 	[Params(10, 1000)]
 	public int Accessors;
 
-	[Params(100)]
+	[Params(100, 1_000)]
 	public int KeysCount;
 
 	[Params(1, 10)]
@@ -54,7 +55,8 @@ public class ParallelComparisonBenchmark
 
 	private FusionCache _FusionCache = null!;
 	private FusionCache _FusionCacheNoTagging = null!;
-	private FusionCache _FusionCacheProbabilistic = null!;
+	private FusionCache _FusionCacheExperimental = null!;
+	private FusionCache _FusionCacheAsyncKeyed = null!;
 	private CacheStack _CacheTower = null!;
 	private IEasyCachingProvider _EasyCaching = null!;
 	private CachingService _LazyCache = null!;
@@ -76,20 +78,20 @@ public class ParallelComparisonBenchmark
 		// SETUP DI
 		var services = new ServiceCollection();
 		services.AddEasyCaching(options => { options.UseInMemory("default"); });
-#pragma warning disable EXTEXP0018 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 		services.AddHybridCache();
-#pragma warning restore EXTEXP0018 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
 		ServiceProvider = services.BuildServiceProvider();
 
 		// SETUP CACHES
 		_FusionCache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
 		_FusionCacheNoTagging = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration), DisableTagging = true });
-		_FusionCacheProbabilistic = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new ProbabilisticMemoryLocker());
+		_FusionCacheExperimental = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new ExperimentalMemoryLocker());
+		_FusionCacheAsyncKeyed = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new AsyncKeyedMemoryLocker());
 		_CacheTower = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))] });
 		_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
 		_LazyCache = new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions())));
 		_LazyCache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
-		_HybridCache = ServiceProvider.GetRequiredService<HybridCache>();
+		//_HybridCache = ServiceProvider.GetRequiredService<HybridCache>();
 		_FusionCacheForHybrid = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
 		_FusionHybridCache = new FusionHybridCache(_FusionCacheForHybrid);
 	}
@@ -99,7 +101,7 @@ public class ParallelComparisonBenchmark
 	{
 		_FusionCache.Dispose();
 		_FusionCacheNoTagging.Dispose();
-		_FusionCacheProbabilistic.Dispose();
+		_FusionCacheExperimental.Dispose();
 		_CacheTower.DisposeAsync().AsTask().Wait();
 		_FusionCacheForHybrid.Dispose();
 	}
@@ -166,32 +168,67 @@ public class ParallelComparisonBenchmark
 		}
 	}
 
-	//[Benchmark]
-	//public async Task FusionCacheProbabilistic()
-	//{
-	//	for (int i = 0; i < Rounds; i++)
-	//	{
-	//		var tasks = new ConcurrentBag<Task>();
+	[Benchmark]
+	public async Task FusionCache_AsyncKeyed()
+	{
+		for (int i = 0; i < Rounds; i++)
+		{
+			var tasks = new ConcurrentBag<Task>();
 
-	//		Parallel.ForEach(Keys, key =>
-	//		{
-	//			Parallel.For(0, Accessors, _ =>
-	//			{
-	//				var t = _FusionCacheProbabilistic.GetOrSetAsync<SamplePayload>(
-	//				   key,
-	//				   async ct =>
-	//				   {
-	//					   await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-	//					   return new SamplePayload();
-	//				   }
-	//			   );
-	//				tasks.Add(t.AsTask());
-	//			});
-	//		});
+			Parallel.ForEach(Keys, key =>
+			{
+				Parallel.For(0, Accessors, _ =>
+				{
+					var t = _FusionCacheAsyncKeyed.GetOrSetAsync<SamplePayload>(
+						key,
+						async (ctx, ct) =>
+						{
+							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+							return new SamplePayload();
+						},
+						default,
+						null,
+						null,
+						default
+					);
+					tasks.Add(t.AsTask());
+				});
+			});
 
-	//		await Task.WhenAll(tasks).ConfigureAwait(false);
-	//	}
-	//}
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+	}
+
+	[Benchmark]
+	public async Task FusionCache_Experimental()
+	{
+		for (int i = 0; i < Rounds; i++)
+		{
+			var tasks = new ConcurrentBag<Task>();
+
+			Parallel.ForEach(Keys, key =>
+			{
+				Parallel.For(0, Accessors, _ =>
+				{
+					var t = _FusionCacheExperimental.GetOrSetAsync<SamplePayload>(
+						key,
+						async (ctx, ct) =>
+						{
+							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+							return new SamplePayload();
+						},
+						default,
+						null,
+						null,
+						default
+					);
+					tasks.Add(t.AsTask());
+				});
+			});
+
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+	}
 
 	[Benchmark]
 	public async Task CacheTower()
