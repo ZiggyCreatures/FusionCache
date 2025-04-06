@@ -53,6 +53,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZiggyCreatures.FusionCache.Locking.AsyncKeyed", "src\ZiggyCreatures.FusionCache.Locking.AsyncKeyed\ZiggyCreatures.FusionCache.Locking.AsyncKeyed.csproj", "{5F66F031-412F-43E3-946B-1034DBD3ED4D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AOTTester", "tests\AOTTester\AOTTester.csproj", "{A1321882-2C76-4105-A0BD-9500D2402A2B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{5F66F031-412F-43E3-946B-1034DBD3ED4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F66F031-412F-43E3-946B-1034DBD3ED4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F66F031-412F-43E3-946B-1034DBD3ED4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1321882-2C76-4105-A0BD-9500D2402A2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1321882-2C76-4105-A0BD-9500D2402A2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1321882-2C76-4105-A0BD-9500D2402A2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1321882-2C76-4105-A0BD-9500D2402A2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -159,6 +165,7 @@ Global
 		{B9E04359-B835-443C-8D04-BBDD03F00A89} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
 		{9BC9B26A-E73F-46D4-B788-06C3A8AE63EB} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
 		{5F66F031-412F-43E3-946B-1034DBD3ED4D} = {34B53F49-F5C5-4850-B79E-59AD130379C6}
+		{A1321882-2C76-4105-A0BD-9500D2402A2B} = {C6F3C570-C68C-4A95-960E-82778306BDBA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {92916FA2-FCAC-406E-BF3F-0A2CE9512EF0}
