@@ -20,6 +20,7 @@
 		<EnablePackageValidation>true</EnablePackageValidation>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 		-->
+		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsAotCompatible>
 	</PropertyGroup>
 
 	<ItemGroup>
