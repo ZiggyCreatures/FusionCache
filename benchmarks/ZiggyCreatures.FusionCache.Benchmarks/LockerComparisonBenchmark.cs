@@ -28,13 +28,11 @@ public class LockerComparisonBenchmark
 	[Params(200, 1_000)]
 	public int NumberOfLocks;
 
-	[Params(200, 1_000)]
+	[Params(100, 1_000)]
 	public int Contention;
 
-	[Params(0, 1, 5)]
+	[Params(0, 10)]
 	public int GuidReversals;
-
-	private readonly Dictionary<int, List<int>> _shuffledIntegers = new();
 
 	private StandardMemoryLocker _StandardMemoryLocker = null!;
 	private ParallelQuery<Task> _StandardMemoryLockerTasks = null!;
@@ -48,51 +46,46 @@ public class LockerComparisonBenchmark
 	private AsyncKeyedMemoryLocker _AsyncKeyedMemoryLocker = null!;
 	private ParallelQuery<Task> _AsyncKeyedMemoryLockerTasks = null!;
 
-	private AsyncKeyedMemoryLocker2 _AsyncKeyedMemoryLocker2 = null!;
-	private ParallelQuery<Task> _AsyncKeyedMemoryLocker2Tasks = null!;
-
 	private StripedAsyncKeyedMemoryLocker _StripedAsyncKeyedMemoryLocker = null!;
 	private ParallelQuery<Task> _StripedAsyncKeyedMemoryLockerTasks = null!;
+
+	private const int StandardPoolSize = 210;
+	private const int ProbabilisticPoolSize = 8440;
 
 	[GlobalSetup]
 	public void Setup()
 	{
-		_StandardMemoryLocker = new StandardMemoryLocker();
-		_ProbabilisticMemoryLocker = new ProbabilisticMemoryLocker();
+		_StandardMemoryLocker = new StandardMemoryLocker(StandardPoolSize);
+		_ProbabilisticMemoryLocker = new ProbabilisticMemoryLocker(ProbabilisticPoolSize);
 		_ExperimentalMemoryLocker = new ExperimentalMemoryLocker();
-		_AsyncKeyedMemoryLocker = new AsyncKeyedMemoryLocker();
-		_AsyncKeyedMemoryLocker2 = new AsyncKeyedMemoryLocker2();
-		_StripedAsyncKeyedMemoryLocker = new StripedAsyncKeyedMemoryLocker();
+		_AsyncKeyedMemoryLocker = new AsyncKeyedMemoryLocker(new AsyncKeyedLock.AsyncKeyedLockOptions(poolSize: StandardPoolSize, poolInitialFill: StandardPoolSize));
+		_StripedAsyncKeyedMemoryLocker = new StripedAsyncKeyedMemoryLocker(ProbabilisticPoolSize);
 	}
 
 	[IterationSetup]
 	public void IterationSetup()
 	{
-		if (!_shuffledIntegers.TryGetValue(Contention * NumberOfLocks, out var _shuffledIntegerList))
-		{
-			_shuffledIntegerList = Enumerable.Range(0, Contention * NumberOfLocks).ToList();
-			Shuffle(_shuffledIntegerList);
-			_shuffledIntegers[Contention * NumberOfLocks] = _shuffledIntegerList;
-		}
+		List<int> _shuffledIntegerList = [.. Enumerable.Range(0, Contention * NumberOfLocks)];
+		Shuffle(_shuffledIntegerList);
 
 		_StandardMemoryLockerTasks = _shuffledIntegerList
-					.Select(async i =>
-					{
-						var key = (i % NumberOfLocks).ToString();
+			.Select(async i =>
+			{
+				var key = (i % NumberOfLocks).ToString();
 
-						var mylock = await _StandardMemoryLocker.AcquireLockAsync(null, null, null, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
-						Operation();
-						_StandardMemoryLocker.ReleaseLock(null, null, null, key, mylock, null);
-					}).ToList().AsParallel();
+				var mylock = await _StandardMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
+				Operation();
+				_StandardMemoryLocker.ReleaseLock(null!, null!, null!, key, mylock, null);
+			}).ToList().AsParallel();
 
 		_ProbabilisticMemoryLockerTasks = _shuffledIntegerList
 			.Select(async i =>
 			{
 				var key = (i % NumberOfLocks).ToString();
 
-				var mylock = await _ProbabilisticMemoryLocker.AcquireLockAsync(null, null, null, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
+				var mylock = await _ProbabilisticMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
-				_ProbabilisticMemoryLocker.ReleaseLock(null, null, null, key, mylock, null);
+				_ProbabilisticMemoryLocker.ReleaseLock(null!, null!, null!, key, mylock, null);
 			}).ToList().AsParallel();
 
 		_ExperimentalMemoryLockerTasks = _shuffledIntegerList
@@ -100,9 +93,9 @@ public class LockerComparisonBenchmark
 			{
 				var key = (i % NumberOfLocks).ToString();
 
-				var mylock = await _ExperimentalMemoryLocker.AcquireLockAsync(null, null, null, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
+				var mylock = await _ExperimentalMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
-				_ExperimentalMemoryLocker.ReleaseLock(null, null, null, key, mylock, null);
+				_ExperimentalMemoryLocker.ReleaseLock(null!, null!, null!, key, mylock, null);
 			}).ToList().AsParallel();
 
 		_AsyncKeyedMemoryLockerTasks = _shuffledIntegerList
@@ -110,19 +103,9 @@ public class LockerComparisonBenchmark
 			{
 				var key = (i % NumberOfLocks).ToString();
 
-				var mylock = await _AsyncKeyedMemoryLocker.AcquireLockAsync(null, null, null, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
+				var mylock = await _AsyncKeyedMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
-				_AsyncKeyedMemoryLocker.ReleaseLock(null, null, null, key, mylock, null);
-			}).ToList().AsParallel();
-
-		_AsyncKeyedMemoryLocker2Tasks = _shuffledIntegerList
-			.Select(async i =>
-			{
-				var key = (i % NumberOfLocks).ToString();
-
-				var mylock = await _AsyncKeyedMemoryLocker2.AcquireLockAsync(null, null, null, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
-				Operation();
-				_AsyncKeyedMemoryLocker2.ReleaseLock(null, null, null, key, mylock, null);
+				_AsyncKeyedMemoryLocker.ReleaseLock(null!, null!, null!, key, mylock, null);
 			}).ToList().AsParallel();
 
 		_StripedAsyncKeyedMemoryLockerTasks = _shuffledIntegerList
@@ -130,9 +113,9 @@ public class LockerComparisonBenchmark
 			{
 				var key = (i % NumberOfLocks).ToString();
 
-				var mylock = await _StripedAsyncKeyedMemoryLocker.AcquireLockAsync(null, null, null, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
+				var mylock = await _StripedAsyncKeyedMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
-				_StripedAsyncKeyedMemoryLocker.ReleaseLock(null, null, null, key, mylock, null);
+				_StripedAsyncKeyedMemoryLocker.ReleaseLock(null!, null!, null!, key, mylock, null);
 			}).ToList().AsParallel();
 	}
 
@@ -152,7 +135,6 @@ public class LockerComparisonBenchmark
 		_ProbabilisticMemoryLocker.Dispose();
 		_ExperimentalMemoryLocker.Dispose();
 		_AsyncKeyedMemoryLocker.Dispose();
-		_AsyncKeyedMemoryLocker2.Dispose();
 		_StripedAsyncKeyedMemoryLocker.Dispose();
 	}
 
@@ -163,7 +145,6 @@ public class LockerComparisonBenchmark
 		_ProbabilisticMemoryLockerTasks = null!;
 		_ExperimentalMemoryLockerTasks = null!;
 		_AsyncKeyedMemoryLockerTasks = null!;
-		_AsyncKeyedMemoryLocker2Tasks = null!;
 		_StripedAsyncKeyedMemoryLockerTasks = null!;
 	}
 
@@ -196,7 +177,7 @@ public class LockerComparisonBenchmark
 		}
 	}
 
-	//[Benchmark(Baseline = true)]
+	[Benchmark(Baseline = true)]
 	public async Task TestLockStandard()
 	{
 		await RunTests(_StandardMemoryLockerTasks).ConfigureAwait(false);
@@ -215,16 +196,10 @@ public class LockerComparisonBenchmark
 		await RunTests(_ExperimentalMemoryLockerTasks).ConfigureAwait(false);
 	}
 
-	[Benchmark(Baseline = true)]
+	[Benchmark]
 	public async Task TestLockAsyncKeyedLock()
 	{
 		await RunTests(_AsyncKeyedMemoryLockerTasks).ConfigureAwait(false);
-	}
-
-	[Benchmark]
-	public async Task TestLockAsyncKeyedLock2()
-	{
-		await RunTests(_AsyncKeyedMemoryLocker2Tasks).ConfigureAwait(false);
 	}
 
 	//[Benchmark]
