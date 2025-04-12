@@ -1107,4 +1107,28 @@ public partial class L1L2Tests
 		// DISTRIBUTED CACHE HAS -NOT- BEEN UPDATED
 		Assert.Null(distributedCache.GetString(preProcessedCacheKey));
 	}
+
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public async Task MemoryExpirationPreservedWhenL1L2DurationsAreDifferentAsync(SerializerType serializerType)
+	//{
+	//	var memoryDuration = TimeSpan.FromSeconds(2);
+	//	var distributedDuration = TimeSpan.FromSeconds(10);
+
+	//	var dc = CreateDistributedCache();
+	//	using var fc1 = new FusionCache(CreateFusionCacheOptions());
+	//	fc1.SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
+	//	using var fc2 = new FusionCache(CreateFusionCacheOptions());
+	//	fc2.SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
+
+	//	await fc1.SetAsync<int>("foo", 21, opt => opt.SetDuration(memoryDuration).SetDistributedCacheDuration(distributedDuration));
+	//	//await Task.Delay(memoryDuration.PlusALittleBit());
+	//	var v1 = await fc2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(memoryDuration).SetDistributedCacheDuration(distributedDuration));
+	//	await dc.RemoveAsync("foo");
+	//	await Task.Delay(memoryDuration.PlusALittleBit());
+	//	var v2 = await fc2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(memoryDuration).SetDistributedCacheDuration(distributedDuration));
+
+	//	Assert.Equal(21, v1);
+	//	Assert.Equal(42, v2);
+	//}
 }
