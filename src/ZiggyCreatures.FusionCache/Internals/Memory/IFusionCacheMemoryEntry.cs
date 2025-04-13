@@ -9,7 +9,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal interface IFusionCacheMemoryEntry
 	: IFusionCacheEntry
 {
-	object? Value { get; set; }
+	object? Value { get; }
 
 	byte[] GetSerializedValue(IFusionCacheSerializer serializer);
 

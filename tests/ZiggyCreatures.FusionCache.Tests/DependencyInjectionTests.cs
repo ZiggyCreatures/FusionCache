@@ -1466,15 +1466,16 @@ public class DependencyInjectionTests
 		var barCache = cacheProvider.GetCache("Bar");
 
 		fooCache.Set("foo", 123);
-		barCache.Set("bar", 456);
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			barCache.Set("bar", 456);
+		});
 
 		var foo = fooCache.GetOrDefault<int>("foo");
 		Assert.Equal(123, foo);
 
-		Assert.Throws<InvalidOperationException>(() =>
-		{
-			var bar = barCache.GetOrDefault<int>("bar");
-		});
+		var maybeBar = barCache.TryGet<int>("bar");
+		Assert.False(maybeBar.HasValue);
 	}
 
 	[Fact]
