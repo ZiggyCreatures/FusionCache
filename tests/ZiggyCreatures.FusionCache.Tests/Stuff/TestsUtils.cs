@@ -53,6 +53,8 @@ public static class TestsUtils
 				return new StandardMemoryLocker();
 			case MemoryLockerType.AsyncKeyed:
 				return new AsyncKeyedMemoryLocker();
+			case MemoryLockerType.StripedAsyncKeyed:
+				return new StripedAsyncKeyedMemoryLocker();
 			//case MemoryLockerType.Probabilistic:
 			//	return new ProbabilisticMemoryLocker();
 			//case MemoryLockerType.Experimental:
