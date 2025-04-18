@@ -388,7 +388,7 @@ public sealed partial class FusionCache
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
 			if (factoryTask.Exception is not null)
-				activity?.AddException(factoryTask.Exception);
+				activity?.AddExceptionInternal(factoryTask.Exception);
 			activity?.Dispose();
 
 			return;
@@ -428,7 +428,7 @@ public sealed partial class FusionCache
 				// ACTIVITY
 				activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
 				if (factoryTask.Exception is not null)
-					activity?.AddException(factoryTask.Exception);
+					activity?.AddExceptionInternal(factoryTask.Exception);
 				activity?.Dispose();
 			}
 
@@ -451,7 +451,7 @@ public sealed partial class FusionCache
 					// ACTIVITY
 					activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
 					if (factoryTask.Exception is not null)
-						activity?.AddException(factoryTask.Exception);
+						activity?.AddExceptionInternal(factoryTask.Exception);
 					activity?.Dispose();
 
 					// EVENT

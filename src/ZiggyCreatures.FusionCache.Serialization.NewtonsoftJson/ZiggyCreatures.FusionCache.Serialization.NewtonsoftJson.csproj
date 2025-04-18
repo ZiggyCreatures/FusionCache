@@ -2,13 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.2.0</Version>
+		<Version>2.0.2</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson</PackageId>
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
 		<PackageTags>json;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- LTS-only release: this version references only .NET 8 core packages, so it can be used in scenarios where only LTS packages can be referenced
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>

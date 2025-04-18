@@ -2,13 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.2.0</Version>
+		<Version>2.0.2</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Locking.AsyncKeyed</PackageId>
 		<Description>FusionCache memory locker based on the AsyncKeyedLock library</Description>
 		<PackageTags>memory-locker;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- LTS-only release: this version references only .NET 8 core packages, so it can be used in scenarios where only LTS packages can be referenced
 			- Initial release
 		</PackageReleaseNotes>
 	</PropertyGroup>

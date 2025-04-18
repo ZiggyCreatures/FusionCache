@@ -2,6 +2,10 @@
 
 ![FusionCache logo](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/logo-256x256.png)
 
+| 📣 LTS-ONLY RELEASE |
+|:--|
+| This version references only .NET 8 core packages, so it can be used in scenarios where only LTS packages can be referenced. |
+
 ### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It was born after years of dealing with all sorts of different types of caches: memory caching, distributed caching, http caching, CDNs, browser cache, offline cache, you name it. So I've tried to put together these experiences and came up with FusionCache.

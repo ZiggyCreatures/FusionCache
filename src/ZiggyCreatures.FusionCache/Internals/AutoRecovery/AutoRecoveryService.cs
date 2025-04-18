@@ -332,7 +332,7 @@ internal sealed class AutoRecoveryService
 				catch (Exception exc)
 				{
 					activityForItem?.SetStatus(ActivityStatusCode.Error, exc.Message);
-					activityForItem?.AddException(exc);
+					activityForItem?.AddExceptionInternal(exc);
 					throw;
 				}
 
@@ -358,7 +358,7 @@ internal sealed class AutoRecoveryService
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery canceled after having processed {Count} items", _cache.CacheName, _cache.InstanceId, operationId, processedCount);
 
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 		}
 		catch (Exception exc)
 		{
@@ -368,7 +368,7 @@ internal sealed class AutoRecoveryService
 				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred during a auto-recovery of an item ({RetryCount} retries left)", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, lastProcessedItem?.RetryCount);
 
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 		}
 		finally
 		{

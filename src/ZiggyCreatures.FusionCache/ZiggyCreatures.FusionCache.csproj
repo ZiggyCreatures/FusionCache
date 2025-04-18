@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.2.0</Version>
+		<TargetFrameworks>netstandard2.0;net8.0;</TargetFrameworks>
+		<Version>2.0.2</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- LTS-only release: this version references only .NET 8 core packages, so it can be used in scenarios where only LTS packages can be referenced
 			- Change: updated multi-targeting to be more slim and to include only the currently supported versions
 			- Add: make the AOT support official
 			- Add: expose the current distributed cache, if any
@@ -37,13 +38,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
+		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" />
-		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
+		<PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
 	</ItemGroup>
 
 </Project>

@@ -16,7 +16,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
-using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 
@@ -60,9 +59,6 @@ public class ParallelComparisonBenchmark
 	private CacheStack _CacheTower = null!;
 	private IEasyCachingProvider _EasyCaching = null!;
 	private CachingService _LazyCache = null!;
-	private HybridCache _HybridCache = null!;
-	private FusionCache _FusionCacheForHybrid = null!;
-	private HybridCache _FusionHybridCache = null!;
 
 	[GlobalSetup]
 	public void Setup()
@@ -91,9 +87,6 @@ public class ParallelComparisonBenchmark
 		_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
 		_LazyCache = new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions())));
 		_LazyCache.DefaultCachePolicy = new CacheDefaults { DefaultCacheDurationSeconds = (int)(CacheDuration.TotalSeconds) };
-		//_HybridCache = ServiceProvider.GetRequiredService<HybridCache>();
-		_FusionCacheForHybrid = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });
-		_FusionHybridCache = new FusionHybridCache(_FusionCacheForHybrid);
 	}
 
 	[GlobalCleanup]
@@ -103,7 +96,6 @@ public class ParallelComparisonBenchmark
 		_FusionCacheNoTagging.Dispose();
 		_FusionCacheExperimental.Dispose();
 		_CacheTower.DisposeAsync().AsTask().Wait();
-		_FusionCacheForHybrid.Dispose();
 	}
 
 	[Benchmark(Baseline = true)]
@@ -308,60 +300,6 @@ public class ParallelComparisonBenchmark
 						}
 					);
 					tasks.Add(t);
-				});
-			});
-
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
-
-	[Benchmark]
-	public async Task HybridCache()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
-
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _HybridCache.GetOrCreateAsync<SamplePayload>(
-						key,
-						async _ =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						}
-					);
-					tasks.Add(t.AsTask());
-				});
-			});
-
-			await Task.WhenAll(tasks).ConfigureAwait(false);
-		}
-	}
-
-	[Benchmark]
-	public async Task FusionHybridCache()
-	{
-		for (int i = 0; i < Rounds; i++)
-		{
-			var tasks = new ConcurrentBag<Task>();
-
-			Parallel.ForEach(Keys, key =>
-			{
-				Parallel.For(0, Accessors, _ =>
-				{
-					var t = _FusionHybridCache.GetOrCreateAsync<SamplePayload>(
-						key,
-						async _ =>
-						{
-							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
-							return new SamplePayload();
-						}
-					);
-					tasks.Add(t.AsTask());
 				});
 			});
 

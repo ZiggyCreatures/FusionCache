@@ -27,7 +27,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			Activity.Current?.AddException(exc);
+			Activity.Current?.AddExceptionInternal(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
@@ -85,7 +85,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 
 			// EVENT
 			_events.OnSerializationError(operationId, key);
@@ -164,7 +164,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowDistributedCacheExceptions)
 			{
@@ -236,7 +236,7 @@ internal partial class DistributedCacheAccessor
 
 			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 
 			// EVENT
 			_events.OnDeserializationError(operationId, key);

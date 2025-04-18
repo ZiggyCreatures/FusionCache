@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Caching.Distributed;
@@ -594,5 +595,28 @@ internal static class FusionCacheInternalUtils
 		// don't trust interfaces and non-sealed types; we might have any concrete
 		// type that has different behaviour
 		return false;
+	}
+
+	internal static Activity AddExceptionInternal(this Activity activity, Exception exception)
+	{
+		if (exception is null)
+		{
+			throw new ArgumentNullException(nameof(exception));
+		}
+
+		ActivityTagsCollection exceptionTags = new ActivityTagsCollection();
+
+		//activity.Source.NotifyActivityAddException(this, exception, ref exceptionTags);
+
+		const string ExceptionEventName = "exception";
+		const string ExceptionMessageTag = "exception.message";
+		const string ExceptionStackTraceTag = "exception.stacktrace";
+		const string ExceptionTypeTag = "exception.type";
+
+		exceptionTags.Add(new KeyValuePair<string, object?>(ExceptionMessageTag, exception.Message));
+		exceptionTags.Add(new KeyValuePair<string, object?>(ExceptionStackTraceTag, exception.ToString()));
+		exceptionTags.Add(new KeyValuePair<string, object?>(ExceptionTypeTag, exception.GetType().ToString()));
+
+		return activity.AddEvent(new ActivityEvent(ExceptionEventName, DateTimeOffset.UtcNow, exceptionTags));
 	}
 }

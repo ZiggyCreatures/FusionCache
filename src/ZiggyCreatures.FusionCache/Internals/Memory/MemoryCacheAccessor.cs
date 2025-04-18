@@ -87,7 +87,7 @@ internal sealed class MemoryCacheAccessor
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -119,7 +119,7 @@ internal sealed class MemoryCacheAccessor
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -176,7 +176,7 @@ internal sealed class MemoryCacheAccessor
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -199,7 +199,7 @@ internal sealed class MemoryCacheAccessor
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
@@ -251,7 +251,7 @@ internal sealed class MemoryCacheAccessor
 		catch (Exception exc)
 		{
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			activity?.AddException(exc);
+			activity?.AddExceptionInternal(exc);
 			throw;
 		}
 	}
