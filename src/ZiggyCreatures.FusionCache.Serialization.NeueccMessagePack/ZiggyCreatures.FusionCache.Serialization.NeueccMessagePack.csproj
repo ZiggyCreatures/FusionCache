@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net7.0;net8.0</TargetFrameworks>
-		<Version>2.2.0-preview-1</Version>
+		<Version>2.2.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack</PackageId>
 		<Description>FusionCache serializer based on Neuecc's MessagePack serializer</Description>
 		<PackageTags>messagepack;msgpack;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
