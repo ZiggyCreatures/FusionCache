@@ -1466,15 +1466,16 @@ public class DependencyInjectionTests
 		var barCache = cacheProvider.GetCache("Bar");
 
 		fooCache.Set("foo", 123);
-		barCache.Set("bar", 456);
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			barCache.Set("bar", 456);
+		});
 
 		var foo = fooCache.GetOrDefault<int>("foo");
 		Assert.Equal(123, foo);
 
-		Assert.Throws<InvalidOperationException>(() =>
-		{
-			var bar = barCache.GetOrDefault<int>("bar");
-		});
+		var maybeBar = barCache.TryGet<int>("bar");
+		Assert.False(maybeBar.HasValue);
 	}
 
 	[Fact]
@@ -1511,6 +1512,7 @@ public class DependencyInjectionTests
 	{
 		var services = new ServiceCollection();
 
+		// NULL IMPLEMENTATION
 		services.AddFusionCache()
 			.WithNullImplementation()
 			.AsHybridCache()
@@ -1529,6 +1531,7 @@ public class DependencyInjectionTests
 				new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
 			);
 
+		// NULL IMPLEMENTATION
 		services.AddFusionCache("Foo")
 			.WithNullImplementation()
 			.AsKeyedServiceByCacheName()
@@ -1548,6 +1551,7 @@ public class DependencyInjectionTests
 				new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
 			);
 
+		// NORMAL IMPLEMENTATION
 		services.AddFusionCache("Bar")
 			.AsKeyedServiceByCacheName()
 			.AsKeyedHybridCacheByCacheName()
@@ -1582,18 +1586,21 @@ public class DependencyInjectionTests
 		var fhc3 = (FusionHybridCache)hc3;
 
 		Assert.NotNull(fc1);
+		Assert.IsType<NullFusionCache>(fc1);
 		Assert.NotNull(hc1);
 		Assert.NotNull(fhc1);
 		Assert.IsType<FusionHybridCache>(hc1);
 		Assert.Same(fc1, fhc1.InnerFusionCache);
 
 		Assert.NotNull(fc2);
+		Assert.IsType<NullFusionCache>(fc2);
 		Assert.NotNull(hc2);
 		Assert.NotNull(fhc2);
 		Assert.IsType<FusionHybridCache>(hc2);
 		Assert.Same(fc2, fhc2.InnerFusionCache);
 
 		Assert.NotNull(fc3);
+		Assert.IsType<FusionCache>(fc3);
 		Assert.NotNull(hc3);
 		Assert.NotNull(fhc3);
 		Assert.IsType<FusionHybridCache>(hc3);

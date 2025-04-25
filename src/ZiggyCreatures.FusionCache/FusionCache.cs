@@ -329,7 +329,7 @@ public sealed partial class FusionCache
 				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from distributed)", CacheName, InstanceId, operationId, key);
 
 			//entry = FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry, options);
-			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(distributedEntry.GetValue<TValue>(), distributedEntry.Timestamp, distributedEntry.Tags, options, true, distributedEntry.Metadata?.LastModifiedTimestamp, distributedEntry.Metadata?.ETag);
+			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(distributedEntry.GetValue<TValue>(), null, distributedEntry.Timestamp, distributedEntry.Tags, options, true, distributedEntry.Metadata?.LastModifiedTimestamp, distributedEntry.Metadata?.ETag);
 		}
 		else if (memoryEntry is not null && memoryEntry.Metadata is not null)
 		{
@@ -353,7 +353,7 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(_options.FailSafeActivationLogLevel) ?? false)
 				_logger.Log(_options.FailSafeActivationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FAIL-SAFE activated (from fail-safe default value)", CacheName, InstanceId, operationId, key);
 
-			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(failSafeDefaultValue.Value, null, null, options, true, null, null);
+			entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(failSafeDefaultValue.Value, null, null, null, options, true, null, null);
 		}
 
 		if (entry is not null)
@@ -483,7 +483,8 @@ public sealed partial class FusionCache
 					options.ReThrowBackplaneExceptions = false;
 
 					// ADAPTIVE CACHING UPDATE
-					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(antecedent.GetAwaiter().GetResult(), null, ctx.Tags, options, false, ctx.LastModified?.UtcTicks, ctx.ETag);
+					var tmp = antecedent.GetAwaiter().GetResult();
+					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(tmp, GetSerializedValueFromValue(operationId, key, tmp, options), null, ctx.Tags, options, false, ctx.LastModified?.UtcTicks, ctx.ETag);
 
 					if (_mca.ShouldWrite(options))
 					{
@@ -1064,6 +1065,45 @@ public sealed partial class FusionCache
 			else
 			{
 				throw new FusionCacheSerializationException("An error occurred while deserializing a value", exc);
+			}
+		}
+	}
+
+	internal byte[]? GetSerializedValueFromValue<TValue>(string operationId, string key, TValue value, FusionCacheEntryOptions? options)
+	{
+		options ??= _defaultEntryOptions;
+
+		if (options.EnableAutoClone == false)
+			return null;
+
+		if (_serializer is null)
+			throw new InvalidOperationException($"A serializer is needed when using {nameof(FusionCacheEntryOptions.EnableAutoClone)}.");
+
+		if (value is null)
+			return null;
+
+		if (_options.SkipAutoCloneForImmutableObjects && ImmutableTypeCache<TValue>.IsImmutable)
+			return null;
+
+		try
+		{
+			return _serializer.Serialize(value);
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
+				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while serializing a value", _options.CacheName, _options.InstanceId, operationId, key);
+
+			// EVENT
+			_events.Distributed.OnSerializationError(operationId, key);
+
+			if (_options.ReThrowOriginalExceptions)
+			{
+				throw;
+			}
+			else
+			{
+				throw new FusionCacheSerializationException("An error occurred while serializing a value", exc);
 			}
 		}
 	}
