@@ -1,11 +1,10 @@
-﻿using System.Runtime.CompilerServices;
-using AsyncKeyedLock;
+﻿using AsyncKeyedLock;
 using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 
 /// <summary>
-/// An implementation of <see cref="IFusionCacheMemoryLocker"/> based on AsyncKeyedLock.
+/// An implementation of <see cref="IFusionCacheMemoryLocker"/> based on StripedAsyncKeyedLocker.
 /// </summary>
 public sealed class StripedAsyncKeyedMemoryLocker
 	: IFusionCacheMemoryLocker
@@ -13,7 +12,7 @@ public sealed class StripedAsyncKeyedMemoryLocker
 	private readonly StripedAsyncKeyedLocker<string> _locker;
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="AsyncKeyedLocker"/> class.
+	/// Initializes a new instance of the <see cref="StripedAsyncKeyedLocker{TKey}"/> class.
 	/// </summary>
 	public StripedAsyncKeyedMemoryLocker(int numberOfStripes = 4049, int maxCount = 1, IEqualityComparer<string>? comparer = null)
 	{
@@ -33,7 +32,7 @@ public sealed class StripedAsyncKeyedMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
 	{
 		if (lockObj is null)
@@ -51,17 +50,17 @@ public sealed class StripedAsyncKeyedMemoryLocker
 	}
 
 	// IDISPOSABLE
-	private bool disposedValue;
+	private bool _disposedValue;
 	private void Dispose(bool disposing)
 	{
-		if (!disposedValue)
+		if (!_disposedValue)
 		{
 			if (disposing)
 			{
-				//_locker?.Dispose();
+				// EMPTY
 			}
 
-			disposedValue = true;
+			_disposedValue = true;
 		}
 	}
 

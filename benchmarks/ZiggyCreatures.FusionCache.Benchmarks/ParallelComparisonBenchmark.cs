@@ -57,6 +57,7 @@ public class ParallelComparisonBenchmark
 	private FusionCache _FusionCacheNoTagging = null!;
 	private FusionCache _FusionCacheExperimental = null!;
 	private FusionCache _FusionCacheAsyncKeyed = null!;
+	private FusionCache _FusionCacheStripedAsyncKeyed = null!;
 	private CacheStack _CacheTower = null!;
 	private IEasyCachingProvider _EasyCaching = null!;
 	private CachingService _LazyCache = null!;
@@ -87,6 +88,7 @@ public class ParallelComparisonBenchmark
 		_FusionCacheNoTagging = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration), DisableTagging = true });
 		_FusionCacheExperimental = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new ExperimentalMemoryLocker());
 		_FusionCacheAsyncKeyed = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new AsyncKeyedMemoryLocker());
+		_FusionCacheStripedAsyncKeyed = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) }, memoryLocker: new StripedAsyncKeyedMemoryLocker());
 		_CacheTower = new CacheStack(null, new CacheStackOptions([new MemoryCacheLayer()]) { Extensions = [new AutoCleanupExtension(TimeSpan.FromMinutes(5))] });
 		_EasyCaching = ServiceProvider.GetRequiredService<IEasyCachingProviderFactory>().GetCachingProvider("default");
 		_LazyCache = new CachingService(new MemoryCacheProvider(new MemoryCache(new MemoryCacheOptions())));
@@ -102,6 +104,8 @@ public class ParallelComparisonBenchmark
 		_FusionCache.Dispose();
 		_FusionCacheNoTagging.Dispose();
 		_FusionCacheExperimental.Dispose();
+		_FusionCacheAsyncKeyed.Dispose();
+		_FusionCacheStripedAsyncKeyed.Dispose();
 		_CacheTower.DisposeAsync().AsTask().Wait();
 		_FusionCacheForHybrid.Dispose();
 	}
@@ -169,6 +173,37 @@ public class ParallelComparisonBenchmark
 	}
 
 	[Benchmark]
+	public async Task FusionCache_Experimental()
+	{
+		for (int i = 0; i < Rounds; i++)
+		{
+			var tasks = new ConcurrentBag<Task>();
+
+			Parallel.ForEach(Keys, key =>
+			{
+				Parallel.For(0, Accessors, _ =>
+				{
+					var t = _FusionCacheExperimental.GetOrSetAsync<SamplePayload>(
+						key,
+						async (ctx, ct) =>
+						{
+							await Task.Delay(FactoryDurationMs).ConfigureAwait(false);
+							return new SamplePayload();
+						},
+						default,
+						null,
+						null,
+						default
+					);
+					tasks.Add(t.AsTask());
+				});
+			});
+
+			await Task.WhenAll(tasks).ConfigureAwait(false);
+		}
+	}
+
+	[Benchmark]
 	public async Task FusionCache_AsyncKeyed()
 	{
 		for (int i = 0; i < Rounds; i++)
@@ -200,7 +235,7 @@ public class ParallelComparisonBenchmark
 	}
 
 	[Benchmark]
-	public async Task FusionCache_Experimental()
+	public async Task FusionCache_StripedAsyncKeyed()
 	{
 		for (int i = 0; i < Rounds; i++)
 		{
@@ -210,7 +245,7 @@ public class ParallelComparisonBenchmark
 			{
 				Parallel.For(0, Accessors, _ =>
 				{
-					var t = _FusionCacheExperimental.GetOrSetAsync<SamplePayload>(
+					var t = _FusionCacheStripedAsyncKeyed.GetOrSetAsync<SamplePayload>(
 						key,
 						async (ctx, ct) =>
 						{

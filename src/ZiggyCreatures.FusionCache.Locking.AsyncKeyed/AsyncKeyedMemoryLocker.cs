@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 namespace ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 
 /// <summary>
-/// An implementation of <see cref="IFusionCacheMemoryLocker"/> based on AsyncKeyedLock.
+/// An implementation of <see cref="IFusionCacheMemoryLocker"/> based on AsyncKeyedLocker.
 /// </summary>
 public sealed class AsyncKeyedMemoryLocker
 	: IFusionCacheMemoryLocker
