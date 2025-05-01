@@ -130,7 +130,7 @@ public partial class RedisBackplane
 		await _subscriber!.PublishAsync(_channel, value).ConfigureAwait(false);
 	}
 
-	private async ValueTask OnReconnectAsync(object sender, ConnectionFailedEventArgs e)
+	private async ValueTask OnReconnectAsync(object? sender, ConnectionFailedEventArgs e)
 	{
 		if (e.ConnectionType == ConnectionType.Subscription)
 		{

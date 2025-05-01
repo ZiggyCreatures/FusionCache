@@ -131,7 +131,7 @@ public partial class RedisBackplane
 		_subscriber!.Publish(_channel, value);
 	}
 
-	private void OnReconnect(object sender, ConnectionFailedEventArgs e)
+	private void OnReconnect(object? sender, ConnectionFailedEventArgs e)
 	{
 		Task.Run(async () =>
 		{
