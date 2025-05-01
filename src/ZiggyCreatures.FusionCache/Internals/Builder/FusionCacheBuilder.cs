@@ -50,6 +50,7 @@ internal sealed class FusionCacheBuilder
 	public bool UseRegisteredOptions { get; set; }
 	public FusionCacheOptions? Options { get; set; }
 	public bool UseCacheKeyPrefix { get; set; }
+	public bool AddCacheKeyPrefixSeparator { get; set; }
 	public string? CacheKeyPrefix { get; set; }
 	public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
 
@@ -141,6 +142,10 @@ internal sealed class FusionCacheBuilder
 		if (UseCacheKeyPrefix)
 		{
 			options.CacheKeyPrefix = CacheKeyPrefix;
+			if (AddCacheKeyPrefixSeparator)
+			{
+				options.CacheKeyPrefix += options.CacheKeyPrefixSeparator;
+			}
 		}
 
 		// DEFAULT ENTRY OPTIONS

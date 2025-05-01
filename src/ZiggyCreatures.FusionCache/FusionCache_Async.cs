@@ -1056,7 +1056,7 @@ public partial class FusionCache
 				// CLEAR EXPIRE
 				Interlocked.Exchange(ref ClearExpireTimestamp, now);
 
-				await SetTagDataInternalAsync(ClearExpireTag, now, options, token).ConfigureAwait(false);
+				await SetTagDataInternalAsync(_options.ClearExpireTag, now, options, token).ConfigureAwait(false);
 			}
 			else
 			{
@@ -1065,7 +1065,7 @@ public partial class FusionCache
 
 				if (TryExecuteRawClear(operationId) == false)
 				{
-					await SetTagDataInternalAsync(ClearRemoveTag, now, options, token).ConfigureAwait(false);
+					await SetTagDataInternalAsync(_options.ClearRemoveTag, now, options, token).ConfigureAwait(false);
 				}
 			}
 

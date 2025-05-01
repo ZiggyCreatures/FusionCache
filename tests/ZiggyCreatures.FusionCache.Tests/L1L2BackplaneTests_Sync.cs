@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.RegularExpressions;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
@@ -879,5 +880,134 @@ public partial class L1L2BackplaneTests
 		var bar2_2 = cache2.GetOrDefault<int>("bar");
 
 		Assert.Equal(0, bar2_2);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanUseCustomInternalStrings(SerializerType serializerType)
+	{
+		static FusionCacheOptions _CreateOptions(string name, string instanceId)
+		{
+			var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+			var backplaneConnectionId = FusionCacheInternalUtils.GenerateOperationId();
+
+			var options = new FusionCacheOptions()
+			{
+				CacheName = name,
+				CacheKeyPrefix = name + "-",
+
+				CacheKeyPrefixSeparator = "-",
+				TagCacheKeyPrefix = "__fc_t_",
+				ClearRemoveTag = "_rem",
+				ClearExpireTag = "_exp",
+				DistributedCacheWireFormatSeparator = "-",
+				BackplaneWireFormatSeparator = "-",
+				BackplaneChannelNameSeparator = "-",
+
+				EnableSyncEventHandlersExecution = true,
+				IncludeTagsInLogs = true,
+
+				WaitForInitialBackplaneSubscribe = true,
+			};
+			options.SetInstanceId(instanceId);
+			options.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
+			options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+			options.DefaultEntryOptions.ReThrowDistributedCacheExceptions = true;
+			options.DefaultEntryOptions.ReThrowBackplaneExceptions = true;
+
+			return options;
+		}
+
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+		var backplaneConnectionId = FusionCacheInternalUtils.GenerateOperationId();
+
+		var innerDistributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+		var distributedCache = new LimitedCharsDistributedCache(innerDistributedCache, static key => Regex.IsMatch(key, "^[a-zA-Z0-9_-]+$"));
+
+		var options1 = _CreateOptions(cacheName, "C1");
+		using var cache1 = new FusionCache(options1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+		var innerBackplane1 = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+		var backplane1 = new LimitedCharsBackplane(innerBackplane1, static key => Regex.IsMatch(key, "^[a-zA-Z0-9_-]+$"));
+		cache1.SetupBackplane(backplane1);
+
+
+		var options2 = _CreateOptions(cacheName, "C2");
+		using var cache2 = new FusionCache(options2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+		var innerBackplane2 = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
+		var backplane2 = new LimitedCharsBackplane(innerBackplane2, static key => Regex.IsMatch(key, "^[a-zA-Z0-9_-]+$"));
+		cache2.SetupBackplane(backplane2);
+
+		Thread.Sleep(InitialBackplaneDelay);
+
+		// START DOING STUFF
+
+		// SET
+		cache1.Set<int>("foo", 1, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+		cache1.Set<int>("bar", 2, options => options.SetDuration(TimeSpan.FromSeconds(10)), tags: ["tag-1", "tag-2"]);
+		cache1.Set<int>("baz", 3, options => options.SetDuration(TimeSpan.FromSeconds(10)));
+
+		// GET OR DEFAULT
+		var cache1_foo_1 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar_1 = cache1.GetOrDefault<int>("bar");
+		var cache1_baz_1 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache1_foo_1);
+		Assert.Equal(2, cache1_bar_1);
+		Assert.Equal(3, cache1_baz_1);
+
+		// REMOVE BY TAG
+		cache1.RemoveByTag("tag-1");
+		Thread.Sleep(MultiNodeOperationsDelay);
+
+		// GET OR DEFAULT
+		var cache2_foo_1 = cache2.GetOrDefault<int>("foo");
+		var cache2_bar_1 = cache2.GetOrDefault<int>("bar");
+		var cache2_baz_1 = cache2.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache2_foo_1);
+		Assert.Equal(0, cache2_bar_1);
+		Assert.Equal(3, cache2_baz_1);
+
+		// CLEAR (ALLOW FAIL-SAFE -> EXPIRE ALL)
+		cache1.Clear();
+		Thread.Sleep(MultiNodeOperationsDelay);
+
+		// GET OR DEFAULT (ALLOW STALE)
+		var cache2_foo_2 = cache2.GetOrDefault<int>("foo", options => options.SetAllowStaleOnReadOnly());
+		var cache2_bar_2 = cache2.GetOrDefault<int>("bar");
+		var cache2_baz_2 = cache2.GetOrDefault<int>("baz");
+		var cache1_foo_2 = cache1.GetOrDefault<int>("foo");
+		var cache1_bar_2 = cache1.GetOrDefault<int>("bar");
+		var cache1_baz_2 = cache1.GetOrDefault<int>("baz");
+
+		Assert.Equal(1, cache2_foo_2);
+		Assert.Equal(0, cache2_bar_2);
+		Assert.Equal(0, cache2_baz_2);
+		Assert.Equal(0, cache1_foo_2);
+		Assert.Equal(0, cache1_bar_2);
+		Assert.Equal(0, cache1_baz_2);
+
+		// CLEAR (NO FAIL-SAFE -> REMOVE ALL)
+		cache1.Clear(false);
+		Thread.Sleep(MultiNodeOperationsDelay);
+
+		// GET OR DEFAULT
+		var cache2_foo_3 = cache2.GetOrDefault<int>("foo", options => options.SetAllowStaleOnReadOnly());
+		var cache2_bar_3 = cache2.GetOrDefault<int>("bar", options => options.SetAllowStaleOnReadOnly());
+		var cache2_baz_3 = cache2.GetOrDefault<int>("baz", options => options.SetAllowStaleOnReadOnly());
+		var cache1_foo_3 = cache1.GetOrDefault<int>("foo", options => options.SetAllowStaleOnReadOnly());
+		var cache1_bar_3 = cache1.GetOrDefault<int>("bar", options => options.SetAllowStaleOnReadOnly());
+		var cache1_baz_3 = cache1.GetOrDefault<int>("baz", options => options.SetAllowStaleOnReadOnly());
+
+		Assert.Equal(0, cache2_foo_3);
+		Assert.Equal(0, cache2_bar_3);
+		Assert.Equal(0, cache2_baz_3);
+		Assert.Equal(0, cache1_foo_3);
+		Assert.Equal(0, cache1_bar_3);
+		Assert.Equal(0, cache1_baz_3);
 	}
 }

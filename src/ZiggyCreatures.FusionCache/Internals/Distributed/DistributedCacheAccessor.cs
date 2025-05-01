@@ -36,16 +36,10 @@ internal sealed partial class DistributedCacheAccessor
 		_breaker = new SimpleCircuitBreaker(options.DistributedCacheCircuitBreakerDuration);
 
 		// WIRE FORMAT SETUP
-		_wireFormatToken = _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Prefix
-			? (FusionCacheOptions.DistributedCacheWireFormatVersion + FusionCacheOptions.DistributedCacheWireFormatSeparator)
-			: _options.DistributedCacheKeyModifierMode == CacheKeyModifierMode.Suffix
-				? FusionCacheOptions.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion
-				: string.Empty;
-
 		_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
 		{
-			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + FusionCacheOptions.DistributedCacheWireFormatSeparator,
-			CacheKeyModifierMode.Suffix => FusionCacheOptions.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
+			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + _options.DistributedCacheWireFormatSeparator,
+			CacheKeyModifierMode.Suffix => _options.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
 			CacheKeyModifierMode.None => string.Empty,
 			_ => throw new NotImplementedException(),
 		};

@@ -39,6 +39,13 @@ internal partial class BackplaneAccessor
 
 					break;
 				}
+				catch (FusionCacheInvalidOptionsException exc)
+				{
+					if (_logger?.IsEnabled(LogLevel.Critical) ?? false)
+						_logger.Log(LogLevel.Critical, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] invalid options detected while subscribing to a backplane of type {BackplaneType}", _cache.CacheName, _cache.InstanceId, operationId, _backplane.GetType().FullName);
+
+					throw;
+				}
 				catch (Exception exc)
 				{
 					if (_logger?.IsEnabled(LogLevel.Error) ?? false)
@@ -53,6 +60,10 @@ internal partial class BackplaneAccessor
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] after subscribing to backplane on channel {BackplaneChannel}", _cache.CacheName, _cache.InstanceId, operationId, channelName);
+		}
+		catch (FusionCacheInvalidOptionsException)
+		{
+			throw;
 		}
 		catch (Exception exc)
 		{

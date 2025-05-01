@@ -95,15 +95,16 @@ public static partial class FusionCacheBuilderExtMethods
 			throw new ArgumentNullException(nameof(builder));
 
 		builder.UseCacheKeyPrefix = true;
+		builder.AddCacheKeyPrefixSeparator = false;
 		builder.CacheKeyPrefix = cacheKeyPrefix;
 
 		return builder;
 	}
 
 	/// <summary>
-	/// Specify to use a cache key prefix, composed by the CacheName and a ":" separator.
+	/// Specify to use a cache key prefix, composed by the <see cref="FusionCacheOptions.CacheName"/> and <see cref="FusionCacheOptions.CacheKeyPrefixSeparator"/> separator.
 	/// <br/><br/>
-	/// <strong>EXAMPLE</strong>: if the CacheName is "MyCache" the CacheKeyPrefix will be "MyCache:", so that a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+	/// <strong>EXAMPLE</strong>: if the CacheName is "MyCache" and the separator is ":", the CacheKeyPrefix will be "MyCache:", so that a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
@@ -111,7 +112,9 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder)
 	{
-		return builder.WithCacheKeyPrefix(builder.CacheName + FusionCacheOptions.CacheKeyPrefixSeparator);
+		builder.WithCacheKeyPrefix(builder.CacheName);
+		builder.AddCacheKeyPrefixSeparator = true;
+		return builder;
 	}
 
 	/// <summary>
@@ -127,6 +130,7 @@ public static partial class FusionCacheBuilderExtMethods
 			throw new ArgumentNullException(nameof(builder));
 
 		builder.UseCacheKeyPrefix = false;
+		builder.AddCacheKeyPrefixSeparator = false;
 		builder.CacheKeyPrefix = null;
 
 		return builder;

@@ -64,12 +64,10 @@ public sealed partial class FusionCache
 
 	internal readonly string TagInternalCacheKeyPrefix;
 
-	internal const string ClearRemoveTag = "!";
 	internal readonly string ClearRemoveTagCacheKey;
 	internal readonly string ClearRemoveTagInternalCacheKey;
 	internal long ClearRemoveTimestamp;
 
-	internal const string ClearExpireTag = "*";
 	internal readonly string ClearExpireTagCacheKey;
 	internal readonly string ClearExpireTagInternalCacheKey;
 	internal long ClearExpireTimestamp;
@@ -87,7 +85,10 @@ public sealed partial class FusionCache
 			throw new ArgumentNullException(nameof(optionsAccessor));
 
 		// OPTIONS
-		_options = optionsAccessor.Value ?? throw new NullReferenceException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
+		_options = optionsAccessor.Value;
+
+		if (_options is null)
+			throw new NullReferenceException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
 
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
@@ -180,12 +181,12 @@ public sealed partial class FusionCache
 		TagInternalCacheKeyPrefix = GetTagInternalCacheKey("");
 
 		ClearRemoveTimestamp = -1;
-		ClearRemoveTagCacheKey = GetTagCacheKey(ClearRemoveTag);
-		ClearRemoveTagInternalCacheKey = GetTagInternalCacheKey(ClearRemoveTag);
+		ClearRemoveTagCacheKey = GetTagCacheKey(_options.ClearRemoveTag);
+		ClearRemoveTagInternalCacheKey = GetTagInternalCacheKey(_options.ClearRemoveTag);
 
 		ClearExpireTimestamp = -1;
-		ClearExpireTagCacheKey = GetTagCacheKey(ClearExpireTag);
-		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(ClearExpireTag);
+		ClearExpireTagCacheKey = GetTagCacheKey(_options.ClearExpireTag);
+		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(_options.ClearExpireTag);
 
 		// CHECK FOR CACHE KEY PREFIX
 		if (memoryCache is not null && CacheName != FusionCacheOptions.DefaultCacheName && string.IsNullOrWhiteSpace(_options.CacheKeyPrefix))
@@ -638,9 +639,9 @@ public sealed partial class FusionCache
 			throw new InvalidOperationException("This operation requires Tagging, which has been disabled via FusionCacheOptions.DisableTagging.");
 	}
 
-	private static string GetTagCacheKey(string tag)
+	private string GetTagCacheKey(string tag)
 	{
-		return $"__fc:t:{tag}";
+		return $"{_options.TagCacheKeyPrefix}{tag}";
 	}
 
 	private string GetTagInternalCacheKey(string tag)

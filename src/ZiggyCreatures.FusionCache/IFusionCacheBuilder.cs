@@ -74,6 +74,13 @@ public interface IFusionCacheBuilder
 	bool UseCacheKeyPrefix { get; set; }
 
 	/// <summary>
+	/// Indicates if a separator should be added to the <see cref="CacheKeyPrefix"/> or not.
+	/// <br/>
+	/// Typically when a prefix is specified by the user, a separator is considered already included, whereas when the users asks to use the <see cref="CacheName"/> as the prefix, an additional separator is required.
+	/// </summary>
+	bool AddCacheKeyPrefixSeparator { get; set; }
+
+	/// <summary>
 	/// A prefix that will be added to each cache key for each call: it can be useful when working with multiple named caches.
 	/// <br/><br/>
 	/// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".

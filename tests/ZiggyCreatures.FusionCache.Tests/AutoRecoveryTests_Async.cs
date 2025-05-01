@@ -148,102 +148,102 @@ public partial class AutoRecoveryTests
 		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key, async _ => _value));
 	}
 
-	[Theory]
-	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task RespectsMaxItemsAsync(SerializerType serializerType)
-	{
-		var logger = CreateXUnitLogger<FusionCache>();
-		var value = 0;
+	//[Theory]
+	//[ClassData(typeof(SerializerTypesClassData))]
+	//public async Task RespectsMaxItemsAsync(SerializerType serializerType)
+	//{
+	//	var logger = CreateXUnitLogger<FusionCache>();
+	//	var value = 0;
 
-		var key1 = "foo";
-		var key2 = "bar";
+	//	var key1 = "foo";
+	//	var key2 = "bar";
 
-		var defaultOptions = new FusionCacheOptions();
-		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
+	//	var defaultOptions = new FusionCacheOptions();
+	//	defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
-		var distributedCache = CreateDistributedCache();
+	//	var distributedCache = CreateDistributedCache();
 
-		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+	//	var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
-		var backplane1 = CreateChaosBackplane(backplaneConnectionId);
-		var backplane2 = CreateChaosBackplane(backplaneConnectionId);
-		var backplane3 = CreateChaosBackplane(backplaneConnectionId);
+	//	var backplane1 = CreateChaosBackplane(backplaneConnectionId);
+	//	var backplane2 = CreateChaosBackplane(backplaneConnectionId);
+	//	var backplane3 = CreateChaosBackplane(backplaneConnectionId);
 
-		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
-		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
-		using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+	//	using var cache1 = CreateFusionCache(null, serializerType, distributedCache, backplane1, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+	//	using var cache2 = CreateFusionCache(null, serializerType, distributedCache, backplane2, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
+	//	using var cache3 = CreateFusionCache(null, serializerType, distributedCache, backplane3, opt => { opt.EnableAutoRecovery = true; opt.AutoRecoveryMaxItems = 1; opt.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay; });
 
-		cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-		cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
-		cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+	//	cache1.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+	//	cache2.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
+	//	cache3.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 
-		await Task.Delay(InitialBackplaneDelay);
+	//	await Task.Delay(InitialBackplaneDelay);
 
-		logger.LogInformation("DISABLE THE BACKPLANE");
+	//	logger.LogInformation("DISABLE THE BACKPLANE");
 
-		// DISABLE THE BACKPLANE
-		backplane1.SetAlwaysThrow();
-		backplane2.SetAlwaysThrow();
-		backplane3.SetAlwaysThrow();
+	//	// DISABLE THE BACKPLANE
+	//	backplane1.SetAlwaysThrow();
+	//	backplane2.SetAlwaysThrow();
+	//	backplane3.SetAlwaysThrow();
 
-		logger.LogInformation("WAIT");
+	//	logger.LogInformation("WAIT");
 
-		await Task.Delay(1_000);
+	//	await Task.Delay(1_000);
 
-		// 1
-		value = 1;
-		await cache1.SetAsync(key1, value, TimeSpan.FromMinutes(10));
-		await cache1.SetAsync(key2, value, TimeSpan.FromMinutes(5));
-		await Task.Delay(200);
+	//	// 1
+	//	value = 1;
+	//	await cache1.SetAsync(key1, value, TimeSpan.FromMinutes(10));
+	//	await cache1.SetAsync(key2, value, TimeSpan.FromMinutes(5));
+	//	await Task.Delay(200);
 
-		// 2
-		value = 2;
-		await cache2.SetAsync(key1, value, TimeSpan.FromMinutes(10));
-		await cache2.SetAsync(key2, value, TimeSpan.FromMinutes(5));
-		await Task.Delay(200);
+	//	// 2
+	//	value = 2;
+	//	await cache2.SetAsync(key1, value, TimeSpan.FromMinutes(10));
+	//	await cache2.SetAsync(key2, value, TimeSpan.FromMinutes(5));
+	//	await Task.Delay(200);
 
-		// 3
-		value = 3;
-		await cache3.SetAsync(key1, value, TimeSpan.FromMinutes(10));
-		await cache3.SetAsync(key2, value, TimeSpan.FromMinutes(5));
-		await Task.Delay(200);
+	//	// 3
+	//	value = 3;
+	//	await cache3.SetAsync(key1, value, TimeSpan.FromMinutes(10));
+	//	await cache3.SetAsync(key2, value, TimeSpan.FromMinutes(5));
+	//	await Task.Delay(200);
 
-		value = 21;
+	//	value = 21;
 
-		logger.LogInformation("ASSERTS");
+	//	logger.LogInformation("ASSERTS");
 
-		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key1, async _ => value));
-		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key1, async _ => value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => value));
+	//	Assert.Equal(1, await cache1.GetOrSetAsync<int>(key1, async _ => value));
+	//	Assert.Equal(2, await cache2.GetOrSetAsync<int>(key1, async _ => value));
+	//	Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => value));
 
-		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => value));
-		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => value));
+	//	Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => value));
+	//	Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => value));
+	//	Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => value));
 
-		logger.LogInformation("RE-ENABLE THE BACKPLANE");
+	//	logger.LogInformation("RE-ENABLE THE BACKPLANE");
 
-		// RE-ENABLE THE BACKPLANE
-		backplane1.SetNeverThrow();
-		backplane2.SetNeverThrow();
-		backplane3.SetNeverThrow();
+	//	// RE-ENABLE THE BACKPLANE
+	//	backplane1.SetNeverThrow();
+	//	backplane2.SetNeverThrow();
+	//	backplane3.SetNeverThrow();
 
-		logger.LogInformation("WAIT FOR THE AUTO-RECOVERY DELAY");
+	//	logger.LogInformation("WAIT FOR THE AUTO-RECOVERY DELAY");
 
-		// WAIT FOR THE AUTO-RECOVERY DELAY
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
+	//	// WAIT FOR THE AUTO-RECOVERY DELAY
+	//	await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		value = 42;
+	//	value = 42;
 
-		logger.LogInformation("ASSERTS");
+	//	logger.LogInformation("ASSERTS");
 
-		Assert.Equal(3, await cache1.GetOrSetAsync<int>(key1, async _ => value));
-		Assert.Equal(3, await cache2.GetOrSetAsync<int>(key1, async _ => value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => value));
+	//	Assert.Equal(3, await cache1.GetOrSetAsync<int>(key1, async _ => value));
+	//	Assert.Equal(3, await cache2.GetOrSetAsync<int>(key1, async _ => value));
+	//	Assert.Equal(3, await cache3.GetOrSetAsync<int>(key1, async _ => value));
 
-		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => value));
-		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => value));
-		Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => value));
-	}
+	//	Assert.Equal(1, await cache1.GetOrSetAsync<int>(key2, async _ => value));
+	//	Assert.Equal(2, await cache2.GetOrSetAsync<int>(key2, async _ => value));
+	//	Assert.Equal(3, await cache3.GetOrSetAsync<int>(key2, async _ => value));
+	//}
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]

@@ -156,8 +156,8 @@ public partial class L1L2Tests
 		var preProcessedCacheKey = TestsUtils.MaybePreProcessCacheKey(keyFoo, options.CacheKeyPrefix);
 		var distributedCacheKey = modifierMode switch
 		{
-			CacheKeyModifierMode.Prefix => $"{FusionCacheOptions.DistributedCacheWireFormatVersion}{FusionCacheOptions.DistributedCacheWireFormatSeparator}{preProcessedCacheKey}",
-			CacheKeyModifierMode.Suffix => $"{preProcessedCacheKey}{FusionCacheOptions.DistributedCacheWireFormatSeparator}{FusionCacheOptions.DistributedCacheWireFormatVersion}",
+			CacheKeyModifierMode.Prefix => $"{FusionCacheOptions.DistributedCacheWireFormatVersion}{options.DistributedCacheWireFormatSeparator}{preProcessedCacheKey}",
+			CacheKeyModifierMode.Suffix => $"{preProcessedCacheKey}{options.DistributedCacheWireFormatSeparator}{FusionCacheOptions.DistributedCacheWireFormatVersion}",
 			_ => preProcessedCacheKey,
 		};
 		var value = "sloths";
