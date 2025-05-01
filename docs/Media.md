@@ -33,7 +33,7 @@ Spoiler: a lot!
 
 <div align="center">
 
-[![On .NET Talk 2025](images/talks/on-dotnet-2025.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+[![On .NET Talk 2025](images/talks/on-dotnet-2025.jpg)](https://www.youtube.com/watch?v=3eZCtQSq9g4)
 
 </div>
 
