@@ -390,7 +390,10 @@ internal sealed class FusionCacheBuilder
 			{
 				var plugin = pluginFactory.Invoke(serviceProvider);
 
-				plugins.Add(plugin);
+				if (plugin is not null)
+				{
+					plugins.Add(plugin);
+	 			}
 			}
 		}
 
