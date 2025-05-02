@@ -22,7 +22,7 @@ public partial class FusionCache
 			// TRY WITH DISTRIBUTED CACHE (IF ANY)
 			try
 			{
-				var dca = DistributedCache;
+				var dca = DistributedCacheAccessor;
 				if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 				{
 					FusionCacheDistributedEntry<TValue>? distributedEntry;
@@ -189,7 +189,7 @@ public partial class FusionCache
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
-			var dca = DistributedCache;
+			var dca = DistributedCacheAccessor;
 			if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 			{
 				if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false)
@@ -219,7 +219,7 @@ public partial class FusionCache
 					var value = factory(null!, token);
 					hasNewValue = true;
 
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tags, options, isStale, null, null);
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, tags, options, isStale, null, null);
 				}
 				else
 				{
@@ -282,7 +282,7 @@ public partial class FusionCache
 
 							UpdateAdaptiveOptions(ctx, ref options);
 
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
 
 							// EVENTS
 							_events.OnFactorySuccess(operationId, key);
@@ -494,7 +494,7 @@ public partial class FusionCache
 			return memoryEntry;
 		}
 
-		var dca = DistributedCache;
+		var dca = DistributedCacheAccessor;
 
 		// EARLY RETURN: NO USABLE DISTRIBUTED CACHE
 		if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) || dca.CanBeUsed(operationId, key) == false)
@@ -710,7 +710,7 @@ public partial class FusionCache
 		try
 		{
 			// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-			var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tagsArray, options, false, null, null);
+			var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, tagsArray, options, false, null, null);
 
 			if (_mca.ShouldWrite(options))
 			{
@@ -913,15 +913,25 @@ public partial class FusionCache
 		// CHECK: CLEAR (EXPIRE)
 		if (ClearExpireTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 		{
-			var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
-
-			var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
-
-			if (_tmp2 != _tmp)
+			if (CanExecuteRawClear())
 			{
-				// NEW CLEAR (EXPIRE) TIMESTAMP
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				// OPTIMIZATION: IF IT'S THE FIRST CHECK AND WE CAN EXECUTE RAW CLEAR
+				// -> DIRECTLY SET IT WITHOUT CHECKING THE SPECIAL CACHE ENTRY, SINCE
+				// NOBODY ELSE CAN HAVE CHANGED IT
+				Interlocked.Exchange(ref ClearExpireTimestamp, 0L);
+			}
+			else
+			{
+				var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
+
+				var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
+
+				if (_tmp2 != _tmp)
+				{
+					// NEW CLEAR (EXPIRE) TIMESTAMP
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				}
 			}
 		}
 
@@ -1086,7 +1096,7 @@ public partial class FusionCache
 			ct1 =>
 			{
 				// DISTRIBUTED CACHE
-				var dca = DistributedCache;
+				var dca = DistributedCacheAccessor;
 				if (dca.ShouldWrite(options))
 				{
 					var dcaSuccess = false;
@@ -1117,7 +1127,7 @@ public partial class FusionCache
 					ct2 =>
 					{
 						// BACKPLANE
-						var bpa = Backplane;
+						var bpa = BackplaneAccessor;
 						if (bpa.ShouldWrite(options))
 						{
 							var bpaSuccess = false;
@@ -1235,7 +1245,7 @@ public partial class FusionCache
 				return (false, false, false);
 			}
 
-			var dca = DistributedCache;
+			var dca = DistributedCacheAccessor;
 
 			if (dca is null)
 			{

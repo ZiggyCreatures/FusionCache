@@ -320,7 +320,7 @@ internal partial class BackplaneAccessor
 	{
 		var cacheKey = message.CacheKey!;
 
-		var mca = _cache.MemoryCache;
+		var mca = _cache.MemoryCacheAccessor;
 
 		if (mca is null)
 		{
@@ -355,7 +355,7 @@ internal partial class BackplaneAccessor
 			return;
 		}
 
-		var dca = _cache.DistributedCache;
+		var dca = _cache.DistributedCacheAccessor;
 
 		if (dca is not null)
 		{

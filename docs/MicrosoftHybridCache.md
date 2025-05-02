@@ -151,7 +151,7 @@ The `HybridCache` implementation from Microsoft currently available (it's in pre
 - **SINGLE INSTANCE:** it does not support multiple named caches, there can be only one
 - **NO KEYED SERVICES**: since it does not support multiple caches, it means it cannot support Microsoft's own [Keyed Services](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-9.0#keyed-services)
 
-Now these are the limitation of the (current) HybridCache _implementation_, not the _abstraction_: does this mean that when using FusionCache via the HybridCache adapter, we can go above and beyound those limits?
+Now these are the limitation of the (current) HybridCache _implementation_, not the _abstraction_: does this mean that when using FusionCache via the HybridCache adapter, we can go above and beyond those limits?
 
 Yup 🎉
 

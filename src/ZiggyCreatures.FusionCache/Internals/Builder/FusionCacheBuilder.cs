@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -35,6 +36,8 @@ internal sealed class FusionCacheBuilder
 	private IFusionCache? _cache;
 
 	public string CacheName { get; }
+
+	public Type? ImplementationType { get; set; }
 
 	public IServiceCollection Services { get; }
 
@@ -245,7 +248,20 @@ internal sealed class FusionCacheBuilder
 		}
 
 		// CREATE THE CACHE
-		var cache = new FusionCache(options, memoryCache, logger, memoryLocker);
+		IFusionCache cache;
+
+		if (ImplementationType is null)
+		{
+			cache = new FusionCache(options, memoryCache, logger, memoryLocker);
+		}
+		else if (ImplementationType == typeof(NullFusionCache))
+		{
+			cache = new NullFusionCache(options);
+		}
+		else
+		{
+			throw new InvalidOperationException($"The specified implementation type '{ImplementationType}' is not supported.");
+		}
 
 		// SERIALIZER
 		IFusionCacheSerializer? serializer = null;

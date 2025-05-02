@@ -27,6 +27,13 @@ public class FusionCacheOptions
 	public const string DefaultCacheName = "FusionCache";
 
 	/// <summary>
+	/// The cache key prefix separator used after the <see cref="CacheName"/>, when no specific <see cref="CacheKeyPrefix"/> has been specified.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
+	/// </summary>
+	public const string CacheKeyPrefixSeparator = ":";
+
+	/// <summary>
 	/// The wire format version identifier for the distributed cache wire format, used in the cache key processing.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>

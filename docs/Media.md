@@ -23,6 +23,23 @@ If you are more into videos than text, here's a list you may enjoy.
 
 
 
+### On .NET (2025)
+
+Here we go again: [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) hosted me for a "one year later" episode.
+
+I highlighted what happened since last year's episode, both in general in the world of .NET caching and in particular with FusionCache.
+
+Spoiler: a lot!
+
+<div align="center">
+
+[![On .NET Talk 2025](images/talks/on-dotnet-2025.jpg)](https://www.youtube.com/watch?v=3eZCtQSq9g4)
+
+</div>
+
+
+
+
 ### On .NET (2024)
 
 The fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) have been kind enough to invite me on the show and listen to me mumbling random caching stuff.
