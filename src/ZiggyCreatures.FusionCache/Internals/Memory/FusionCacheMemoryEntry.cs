@@ -9,9 +9,9 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal sealed class FusionCacheMemoryEntry<TValue>
 	: IFusionCacheMemoryEntry
 {
-	public FusionCacheMemoryEntry(object? value, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata)
+	private FusionCacheMemoryEntry(object? value, byte[]? serializedValue, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata)
 	{
-		Value = value;
+		SetValue(value, serializedValue);
 		Timestamp = timestamp;
 		LogicalExpirationTimestamp = logicalExpirationTimestamp;
 		Tags = tags;
@@ -26,14 +26,6 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		get
 		{
 			return _value;
-		}
-		set
-		{
-			_value = value;
-			lock (this)
-			{
-				_serializedValue = null;
-			}
 		}
 	}
 
@@ -68,7 +60,13 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 	public void SetValue<TValue1>(TValue1 value)
 	{
-		Value = value;
+		SetValue(value, null);
+	}
+
+	public void SetValue<TValue1>(TValue1 value, byte[]? serializedValue)
+	{
+		_value = value;
+		_serializedValue = serializedValue;
 	}
 
 	/// <inheritdoc/>
@@ -77,7 +75,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return FusionCacheInternalUtils.ToLogString(this, false) ?? "";
 	}
 
-	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, long? timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, long? lastModifiedTimestamp, string? etag)
+	public static FusionCacheMemoryEntry<TValue> CreateFromOptions(object? value, byte[]? serializedValue, long? timestamp, string[]? tags, FusionCacheEntryOptions options, bool isStale, long? lastModifiedTimestamp, string? etag)
 	{
 		var exp = FusionCacheInternalUtils.GetNormalizedAbsoluteExpirationTimestamp(isStale ? options.FailSafeThrottleDuration : options.Duration, options, isStale == false);
 
@@ -91,6 +89,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			value,
+			serializedValue,
 			timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp(),
 			exp,
 			tags,
@@ -118,6 +117,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
+			null,
 			entry.Timestamp,
 			entry.LogicalExpirationTimestamp,
 			entry.Tags,
@@ -127,7 +127,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 
 	public void UpdateFromDistributedEntry(FusionCacheDistributedEntry<TValue> distributedEntry)
 	{
-		Value = distributedEntry.Value;
+		SetValue(distributedEntry.Value);
 		Tags = distributedEntry.Tags;
 		Timestamp = distributedEntry.Timestamp;
 		LogicalExpirationTimestamp = distributedEntry.LogicalExpirationTimestamp;
@@ -143,11 +143,6 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 	{
 		return cache.TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(operationId, cacheKey, this);
 	}
-
-	//public bool SetDistributedEntry(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
-	//{
-	//	return dca.SetEntry<TValue>(operationId, key, this, options, isBackground, token);
-	//}
 
 	public ValueTask<bool> SetDistributedEntryAsync(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
 	{

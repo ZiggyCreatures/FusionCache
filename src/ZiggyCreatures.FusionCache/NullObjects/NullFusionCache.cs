@@ -234,6 +234,12 @@ public class NullFusionCache
 		get { return false; }
 	}
 
+	/// <inheritdoc/>
+	public IDistributedCache? DistributedCache
+	{
+		get { return null; }
+	}
+
 	// BACKPLANE
 
 	/// <inheritdoc/>
@@ -260,6 +266,12 @@ public class NullFusionCache
 	public FusionCacheEventsHub Events
 	{
 		get { return _events; }
+	}
+
+	/// <inheritdoc/>
+	public IFusionCacheBackplane? Backplane
+	{
+		get { return null; }
 	}
 
 	// PLUGINS

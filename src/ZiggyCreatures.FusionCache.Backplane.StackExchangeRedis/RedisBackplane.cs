@@ -122,4 +122,17 @@ public partial class RedisBackplane
 
 		return RedisValue.Null;
 	}
+
+	internal async ValueTask OnMessageAsync(BackplaneMessage message)
+	{
+		var tmp = _incomingMessageHandlerAsync;
+		if (tmp is null)
+		{
+			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] incoming message handler was null", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
+			return;
+		}
+
+		await tmp(message).ConfigureAwait(false);
+	}
 }

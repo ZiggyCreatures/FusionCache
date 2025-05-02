@@ -1024,6 +1024,10 @@ public partial class L1Tests
 
 		await cache.SetAsync("foo", foo);
 
+		foo.PropInt = 0;
+
+		var foo0 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
+
 		var foo1 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
 		foo1.PropInt = 1;
 
@@ -1033,7 +1037,11 @@ public partial class L1Tests
 		var foo3 = (await cache.GetOrDefaultAsync<ComplexType>("foo"))!;
 		foo3.PropInt = 3;
 
-		Assert.Equal(-1, foo.PropInt);
+		Assert.Equal(0, foo.PropInt);
+
+		Assert.NotNull(foo0);
+		Assert.NotSame(foo, foo0);
+		Assert.Equal(-1, foo0.PropInt);
 
 		Assert.NotNull(foo1);
 		Assert.NotSame(foo, foo1);

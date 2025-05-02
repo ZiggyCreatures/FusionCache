@@ -402,7 +402,7 @@ internal sealed class AutoRecoveryService
 	internal async ValueTask<bool> TryProcessItemSetAsync(string operationId, AutoRecoveryItem item, CancellationToken token)
 	{
 		// DISTRIBUTED CACHE
-		var dca = _cache.DistributedCache;
+		var dca = _cache.DistributedCacheAccessor;
 		if (dca.ShouldRead(item.Options) && dca.ShouldWrite(item.Options))
 		{
 			if (dca!.IsCurrentlyUsable(operationId, item.CacheKey) == false)
@@ -411,7 +411,7 @@ internal sealed class AutoRecoveryService
 			}
 
 			// TRY TO GET THE MEMORY CACHE
-			var mca = _cache.MemoryCache;
+			var mca = _cache.MemoryCacheAccessor;
 			if (mca.ShouldRead(item.Options) && mca.ShouldWrite(item.Options))
 			{
 				// TRY TO GET THE MEMORY ENTRY
@@ -459,7 +459,7 @@ internal sealed class AutoRecoveryService
 		}
 
 		// BACKPLANE
-		var bpa = _cache.Backplane;
+		var bpa = _cache.BackplaneAccessor;
 		if (bpa.ShouldWrite(item.Options))
 		{
 			var bpaSuccess = false;
@@ -487,7 +487,7 @@ internal sealed class AutoRecoveryService
 	internal async ValueTask<bool> TryProcessItemRemoveAsync(string operationId, AutoRecoveryItem item, CancellationToken token)
 	{
 		// DISTRIBUTED CACHE
-		var dca = _cache.DistributedCache;
+		var dca = _cache.DistributedCacheAccessor;
 		if (dca.ShouldWrite(item.Options))
 		{
 			var dcaSuccess = false;
@@ -510,7 +510,7 @@ internal sealed class AutoRecoveryService
 		}
 
 		// BACKPLANE
-		var bpa = _cache.Backplane;
+		var bpa = _cache.BackplaneAccessor;
 		if (bpa.ShouldWrite(item.Options))
 		{
 			var bpaSuccess = false;
@@ -538,7 +538,7 @@ internal sealed class AutoRecoveryService
 	internal async ValueTask<bool> TryProcessItemExpireAsync(string operationId, AutoRecoveryItem item, CancellationToken token)
 	{
 		// DISTRIBUTED CACHE
-		var dca = _cache.DistributedCache;
+		var dca = _cache.DistributedCacheAccessor;
 		if (dca.ShouldWrite(item.Options))
 		{
 			var dcaSuccess = false;
@@ -561,7 +561,7 @@ internal sealed class AutoRecoveryService
 		}
 
 		// BACKPLANE
-		var bpa = _cache.Backplane;
+		var bpa = _cache.BackplaneAccessor;
 		if (bpa.ShouldWrite(item.Options))
 		{
 			var bpaSuccess = false;

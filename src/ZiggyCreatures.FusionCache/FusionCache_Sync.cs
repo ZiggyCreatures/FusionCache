@@ -22,7 +22,7 @@ public partial class FusionCache
 			// TRY WITH DISTRIBUTED CACHE (IF ANY)
 			try
 			{
-				var dca = DistributedCache;
+				var dca = DistributedCacheAccessor;
 				if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 				{
 					FusionCacheDistributedEntry<TValue>? distributedEntry;
@@ -189,7 +189,7 @@ public partial class FusionCache
 			FusionCacheDistributedEntry<TValue>? distributedEntry = null;
 			bool distributedEntryIsValid = false;
 
-			var dca = DistributedCache;
+			var dca = DistributedCacheAccessor;
 			if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 			{
 				if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false)
@@ -219,7 +219,7 @@ public partial class FusionCache
 					var value = factory(null!, token);
 					hasNewValue = true;
 
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tags, options, isStale, null, null);
+					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, tags, options, isStale, null, null);
 				}
 				else
 				{
@@ -282,7 +282,7 @@ public partial class FusionCache
 
 							UpdateAdaptiveOptions(ctx, ref options);
 
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
 
 							// EVENTS
 							_events.OnFactorySuccess(operationId, key);
@@ -380,8 +380,8 @@ public partial class FusionCache
 
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrSet<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
@@ -397,8 +397,8 @@ public partial class FusionCache
 				throw new InvalidOperationException("The resulting FusionCache entry is null");
 			}
 
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrSet<T> return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
 
 			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
@@ -428,8 +428,8 @@ public partial class FusionCache
 
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling GetOrSet<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrSet<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrSet, CacheName, InstanceId, key, operationId);
@@ -445,8 +445,8 @@ public partial class FusionCache
 				throw new InvalidOperationException("The resulting FusionCache entry is null");
 			}
 
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrSet<T> return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
 
 			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
@@ -491,7 +491,7 @@ public partial class FusionCache
 			return memoryEntry;
 		}
 
-		var dca = DistributedCache;
+		var dca = DistributedCacheAccessor;
 
 		// EARLY RETURN: NO USABLE DISTRIBUTED CACHE
 		if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) || dca.CanBeUsed(operationId, key) == false)
@@ -601,8 +601,8 @@ public partial class FusionCache
 
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling TryGet<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): TryGet<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.TryGet, CacheName, InstanceId, key, operationId);
@@ -613,14 +613,14 @@ public partial class FusionCache
 
 			if (entry is null)
 			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return NO SUCCESS", CacheName, InstanceId, operationId, key);
+				if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+					_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): TryGet<T> return (no value)", CacheName, InstanceId, operationId, key);
 
 				return default;
 			}
 
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return SUCCESS", CacheName, InstanceId, operationId, key);
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): TryGet<T> return (has value)", CacheName, InstanceId, operationId, key);
 
 			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
@@ -648,8 +648,8 @@ public partial class FusionCache
 
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling GetOrDefault<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrDefault<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.GetOrDefault, CacheName, InstanceId, key, operationId);
@@ -660,14 +660,14 @@ public partial class FusionCache
 
 			if (entry is null)
 			{
-				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return DEFAULT VALUE", CacheName, InstanceId, operationId, key);
+				if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+					_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrDefault<T> return (default value)", CacheName, InstanceId, operationId, key);
 
 				return defaultValue;
 			}
 
-			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
+			if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrDefault<T> return {Entry}", CacheName, InstanceId, operationId, key, entry.ToLogString(_options.IncludeTagsInLogs));
 
 			return GetValueFromMemoryEntry<TValue>(operationId, key, entry, options);
 		}
@@ -698,8 +698,8 @@ public partial class FusionCache
 
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling Set<T> {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): Set<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Set, CacheName, InstanceId, key, operationId);
@@ -707,7 +707,7 @@ public partial class FusionCache
 		try
 		{
 			// TODO: MAYBE FIND A WAY TO PASS LASTMODIFIED/ETAG HERE
-			var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, null, tagsArray, options, false, null, null);
+			var entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, tagsArray, options, false, null, null);
 
 			if (_mca.ShouldWrite(options))
 			{
@@ -736,8 +736,8 @@ public partial class FusionCache
 	{
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling Remove {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): Remove call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Remove, CacheName, InstanceId, key, operationId);
@@ -785,8 +785,8 @@ public partial class FusionCache
 	{
 		var operationId = MaybeGenerateOperationId();
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling Expire {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): Expire call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Expire, CacheName, InstanceId, key, operationId);
@@ -910,15 +910,25 @@ public partial class FusionCache
 		// CHECK: CLEAR (EXPIRE)
 		if (ClearExpireTimestamp < 0 || (HasDistributedCache && HasBackplane == false))
 		{
-			var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
-
-			var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
-
-			if (_tmp2 != _tmp)
+			if (CanExecuteRawClear())
 			{
-				// NEW CLEAR (EXPIRE) TIMESTAMP
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				// OPTIMIZATION: IF IT'S THE FIRST CHECK AND WE CAN EXECUTE RAW CLEAR
+				// -> DIRECTLY SET IT WITHOUT CHECKING THE SPECIAL CACHE ENTRY, SINCE
+				// NOBODY ELSE CAN HAVE CHANGED IT
+				Interlocked.Exchange(ref ClearExpireTimestamp, 0L);
+			}
+			else
+			{
+				var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
+
+				var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
+
+				if (_tmp2 != _tmp)
+				{
+					// NEW CLEAR (EXPIRE) TIMESTAMP
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): new Clear (Expire) timestamp {ClearExpireTimestamp} (OLD: {OldClearExpireTimestamp})", CacheName, InstanceId, operationId, key, _tmp, _tmp2);
+				}
 			}
 		}
 
@@ -965,8 +975,8 @@ public partial class FusionCache
 
 		options ??= _tagsDefaultEntryOptions;
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling RemoveByTag {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): RemoveByTag call {Options}", CacheName, InstanceId, operationId, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.RemoveByTag, CacheName, InstanceId, null, operationId);
@@ -1028,8 +1038,8 @@ public partial class FusionCache
 
 		options ??= _tagsDefaultEntryOptions;
 
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): calling Clear({AllowFailSafe}) {Options}", CacheName, InstanceId, operationId, allowFailSafe, options.ToLogString());
+		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): Clear({AllowFailSafe}) call {Options}", CacheName, InstanceId, operationId, allowFailSafe, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.Clear, CacheName, InstanceId, null, operationId);
@@ -1083,7 +1093,7 @@ public partial class FusionCache
 			ct1 =>
 			{
 				// DISTRIBUTED CACHE
-				var dca = DistributedCache;
+				var dca = DistributedCacheAccessor;
 				if (dca.ShouldWrite(options))
 				{
 					var dcaSuccess = false;
@@ -1114,7 +1124,7 @@ public partial class FusionCache
 					ct2 =>
 					{
 						// BACKPLANE
-						var bpa = Backplane;
+						var bpa = BackplaneAccessor;
 						if (bpa.ShouldWrite(options))
 						{
 							var bpaSuccess = false;
@@ -1232,7 +1242,7 @@ public partial class FusionCache
 				return (false, false, false);
 			}
 
-			var dca = DistributedCache;
+			var dca = DistributedCacheAccessor;
 
 			if (dca is null)
 			{

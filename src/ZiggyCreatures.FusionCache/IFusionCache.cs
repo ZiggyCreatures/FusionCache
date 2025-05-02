@@ -312,6 +312,11 @@ public interface IFusionCache
 	/// </summary>
 	bool HasDistributedCache { get; }
 
+	/// <summary>
+	/// Returns the current distributed cache, if any.
+	/// </summary>
+	IDistributedCache? DistributedCache { get; }
+
 	// BACKPLANE
 
 	/// <summary>
@@ -331,6 +336,11 @@ public interface IFusionCache
 	/// Gets whether there is a backplane configured.
 	/// </summary>
 	bool HasBackplane { get; }
+
+	/// <summary>
+	///	Returns the current backplane, if any.
+	/// </summary>
+	IFusionCacheBackplane? Backplane { get; }
 
 	// EVENTS
 

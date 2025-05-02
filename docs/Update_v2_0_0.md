@@ -15,7 +15,7 @@ A couple of things to keep in mind are listed below.
 Updating the packages means 2 things:
 
 - update ALL the FusionCache packages, not just the main one
-- update the packages in FusionCache ALL connected projects/apps
+- update the FusionCache packages in ALL connected projects/apps
 
 If you are using a distributed level (L2) and/or a backplane where multiple apps are connected, keep reading for the next point.
 

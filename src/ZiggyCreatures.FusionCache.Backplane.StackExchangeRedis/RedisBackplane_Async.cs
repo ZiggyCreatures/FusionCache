@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
+﻿using StackExchange.Redis;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
@@ -88,25 +87,17 @@ public partial class RedisBackplane
 		if (_subscriber is null)
 			throw new NullReferenceException("The backplane subscriber is null");
 
-		_subscriber.Subscribe(_channel, (_, v) =>
+		await _subscriber.SubscribeAsync(_channel, (rc, value) =>
 		{
-			var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
-
+			var message = GetMessageFromRedisValue(value, _logger, _subscriptionOptions);
 			if (message is null)
 				return;
 
-			OnMessage(message);
-		});
-
-		//_subscriber.SubscribeAsync(_channel, (_, v) =>
-		//{
-		//	var message = GetMessageFromRedisValue(v, _logger, _subscriptionOptions);
-
-		//	if (message is null)
-		//		return;
-
-		//	OnMessage(message);
-		//});
+			_ = Task.Run(async () =>
+			{
+				await OnMessageAsync(message).ConfigureAwait(false);
+			});
+		}).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -147,18 +138,5 @@ public partial class RedisBackplane
 
 			_connectHandler?.Invoke(new BackplaneConnectionInfo(true));
 		}
-	}
-
-	internal async ValueTask OnMessageAsync(BackplaneMessage message)
-	{
-		var tmp = _incomingMessageHandlerAsync;
-		if (tmp is null)
-		{
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] incoming message handler was null", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId);
-			return;
-		}
-
-		await tmp(message).ConfigureAwait(false);
 	}
 }

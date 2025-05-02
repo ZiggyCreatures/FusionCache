@@ -4,8 +4,10 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
+using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -109,7 +111,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder)
 	{
-		return builder.WithCacheKeyPrefix(builder.CacheName + ":");
+		return builder.WithCacheKeyPrefix(builder.CacheName + FusionCacheOptions.CacheKeyPrefixSeparator);
 	}
 
 	/// <summary>
@@ -1616,6 +1618,9 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AsKeyedService(this IFusionCacheBuilder builder, object? serviceKey)
 	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
 		builder.Services.AddKeyedSingleton<IFusionCache>(serviceKey, (serviceProvider, key) =>
 		{
 			if (key is string stringKey && stringKey == FusionCacheOptions.DefaultCacheName)
@@ -1639,6 +1644,28 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AsKeyedServiceByCacheName(this IFusionCacheBuilder builder)
 	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
 		return builder.AsKeyedService(builder.CacheName);
+	}
+
+	/// <summary>
+	/// Instead of using the default implementation (<see cref="FusionCache"/>), use a null implementation (<see cref="NullFusionCache"/>)."/>
+	/// </summary>
+	/// <param name="builder"></param>
+	/// <returns></returns>
+	/// <exception cref="ArgumentNullException"></exception>
+	public static IFusionCacheBuilder WithNullImplementation(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (builder is not FusionCacheBuilder b)
+			throw new InvalidOperationException($"The builder must be of type {nameof(FusionCacheBuilder)}");
+
+		b.ImplementationType = typeof(NullFusionCache);
+
+		return builder;
 	}
 }

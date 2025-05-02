@@ -94,14 +94,14 @@ public partial class EventsTests
 		cache.Events.FactoryError -= onFactoryError;
 		cache.Events.FactorySuccess -= onFactorySuccess;
 
-		Assert.Equal(5, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(4, stats.Data[EntryActionKind.Miss]);
 		Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
 		Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(3, stats.Data[EntryActionKind.Set]);
+		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
 		Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
 		Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
 		Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
-		Assert.Equal(2, stats.Data[EntryActionKind.FactorySuccess]);
+		Assert.Equal(1, stats.Data[EntryActionKind.FactorySuccess]);
 	}
 
 	[Fact]
@@ -198,9 +198,9 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 		Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(4, stats.Data.Values.Sum());
+		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
+		Assert.Equal(2, stats.Data.Values.Sum());
 	}
 
 	[Fact]
@@ -290,7 +290,7 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
 		Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(3, stats.Data.Values.Sum());
+		Assert.Equal(1, stats.Data.Values.Sum());
 	}
 
 	[Fact]
@@ -337,8 +337,8 @@ public partial class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(3, stats.Data.Values.Sum());
+		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
+		Assert.Equal(1, stats.Data.Values.Sum());
 	}
 
 	[Fact]
@@ -474,7 +474,7 @@ public partial class EventsTests
 		Assert.Equal(21, secondValue);
 		Assert.Equal(21, thirdValue);
 		Assert.Equal(21, fourthValue);
-		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
+		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
 		Assert.Equal(1, stats.Data[EntryActionKind.HitNormal]);
 		Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
 		Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);

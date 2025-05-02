@@ -35,9 +35,9 @@ public class LoggingTests
 			cache.GetOrSet<int>("qux", _ => throw new Exception("Sloths!"), 123, opt => opt.SetFailSafe(true));
 		}
 
-		Assert.Equal(27, logger.Items.Count);
+		Assert.Equal(21, logger.Items.Count);
 		Assert.Equal(2, logger.Items.Count(x => x.LogLevel == LogLevel.Warning));
-		Assert.Equal(2, logger.Items.Count(x => x.LogLevel == LogLevel.Information));
+		Assert.Equal(11, logger.Items.Count(x => x.LogLevel == LogLevel.Information));
 	}
 
 	[Fact]
@@ -79,7 +79,7 @@ public class LoggingTests
 			cache.GetOrSet<int>("qux", _ => 123);
 		}
 
-		Assert.Single(logger.Items);
+		Assert.Equal(3, logger.Items.Count);
 		Assert.Single(logger.Items, x => x.LogLevel == LogLevel.Warning);
 
 		logger = CreateListLogger<FusionCache>(LogLevel.Information);
@@ -94,7 +94,7 @@ public class LoggingTests
 			cache.GetOrSet<int>("qux", _ => 123);
 		}
 
-		Assert.Empty(logger.Items);
+		Assert.Equal(2, logger.Items.Count);
 	}
 
 	[Fact]
