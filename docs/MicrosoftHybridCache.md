@@ -100,17 +100,17 @@ Yep, more features: read on.
 
 Let's see which features are on the table.
 
-For the Microsoft implementation, the features will be:
+For the Microsoft implementation, the features are:
 
 - cache stampede protection (also [in FusionCache](CacheStampede.md))
 - usable as L1 only (memory) or L1+L2 (memory + distributed) (also [in FusionCache](CacheLevels.md))
-- multi-node notifications (also [in FusionCache](Backplane.md))
 - tagging (also [in FusionCache](Tagging.md))
 - serialization compression (not there yet, but already working on it)
 
 FusionCache on the other hand has more, like:
 
 - [fail-safe](FailSafe.md)
+- [backplane](Backplane.md) for multi-node invalidations (⚠️ this is important, see below for more)
 - [soft/hard timeouts](Timeouts.md)
 - [adaptive caching](AdaptiveCaching.md)
 - [conditional refresh](ConditionalRefresh.md)
@@ -123,6 +123,48 @@ FusionCache on the other hand has more, like:
 - [background distributed operations](BackgroundDistributedOperations.md)
 - [full OpenTelemetry support](OpenTelemetry.md)
 - the API is both [sync+async](CoreMethods.md) (HybridCache is async-only)
+
+So FusionCache has more features, and that's ok, but one feature currently missing from the Microsoft implementation is pretty important:
+
+> [!WARNING]
+> Although initially planned, the current Microsoft implementation lacks multi-node invalidations (see [here](https://github.com/dotnet/extensions/issues/5517)). This means that when we update a value if the cache in a multi-node scenario, our nodes will be out-of-sync!
+
+Want to find out how to fixthis? Keep reading.
+
+## 📢 Multi-node invalidations
+
+As noted above, the current Microsoft implementation of HybridCache lacks support for multi-node invalidations.
+
+This can be really problematic when we need horizontal scalability (eg: a multi-nodes scenario) because it means that when we update a value on one node, all the other nodes will be out-of-sync.
+
+But wait, FusionCache has the [Backplane](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md) since ages to handle exactly this, so can this solve the problem?
+
+Yes, totally 😬
+
+By simply setting up a backplane, the HybridCache adapter will now auto-magically handle multi-nodes invalidations too, all without the need for use to do anything more.
+
+A quick example:
+
+```c#
+services.AddFusionCache()
+		// SPECIFY A SERIALIZER
+    .WithSerializer(
+        new FusionCacheNewtonsoftJsonSerializer()
+    )
+		// SPECIFY A DISTRIBUTED CACHE
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions { Configuration = "CONNECTION STRING" })
+    )
+		// SPECIFY A BACKPLANE
+    .WithBackplane(
+        new RedisBackplane(new RedisBackplaneOptions { Configuration = "CONNECTION STRING" })
+    )
+		// ENABLE THE HYBRIDCACHE ADAPTER
+		.AsHybridCache()
+;
+```
+
+And voilà: without changing your existing code all will work flawlessly, even when scaling horizontally 🎉
 
 ## 🚀 I Want Moar
 
