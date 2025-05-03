@@ -76,6 +76,14 @@ FusionCache has a lot of features, let's see them grouped together:
 - [**📜 Logging**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 - [**📞 Events**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
 
+## Ⓜ️ Microsoft HybridCache
+
+We've probably all heard about the new kid on the block introduced by Microsoft with .NET 9: `HybridCache`.
+
+So what does it mean for FusionCache? Does one replace the other? Or can they somehow work together?
+
+It's pretty cool actually, so let's [find out](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/MicrosoftHybridCache.md)!
+
 ## ⭐ Quick Start
 
 Just install the `ZiggyCreatures.FusionCache` Nuget package:
@@ -146,7 +154,7 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling billions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **14 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **15 million times** (thanks everybody!) it may very well be used even more.
 
 Oh, and it is being used in products by Microsoft itself, like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/)!
 

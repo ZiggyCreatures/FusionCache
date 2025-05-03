@@ -66,3 +66,11 @@ FusionCache has a lot of features, let's see them grouped together:
 - [**🔭 OpenTelemetry**](OpenTelemetry.md): native observability support via OpenTelemetry
 - [**📜 Logging**](Logging.md): comprehensive, structured and customizable, via the standard `ILogger` interface
 - [**📞 Events**](Events.md): a comprehensive set of events, both at a high level and at lower levels (memory/distributed)
+
+## Ⓜ️ Microsoft HybridCache
+
+We've probably all heard about the new kid on the block introduced by Microsoft with .NET 9: `HybridCache`.
+
+So what does it mean for FusionCache? Does one replace the other? Or can they somehow work together?
+
+It's pretty cool actually, so let's [find out](MicrosoftHybridCache.md)!
