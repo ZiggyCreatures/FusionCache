@@ -138,6 +138,15 @@ Also, FusionCache has some nice **additional features**:
 </details>
 
 
+## Ⓜ️ Microsoft HybridCache
+
+We've probably all heard about the new kid on the block introduced by Microsoft with .NET 9: `HybridCache`.
+
+So what does it mean for FusionCache? Does one replace the other? Or can they somehow work together?
+
+It's pretty cool actually, so let's [find out](docs/MicrosoftHybridCache.md)!
+
+
 ## 📦 Packages
 
 Main packages:
