@@ -153,8 +153,8 @@ public partial class L1L2Tests
 
 		var distributedCacheKey = modifierMode switch
 		{
-			CacheKeyModifierMode.Prefix => $"{FusionCacheOptions.DistributedCacheWireFormatVersion}{options.DistributedCacheWireFormatSeparator}{preProcessedCacheKey}",
-			CacheKeyModifierMode.Suffix => $"{preProcessedCacheKey}{options.DistributedCacheWireFormatSeparator}{FusionCacheOptions.DistributedCacheWireFormatVersion}",
+			CacheKeyModifierMode.Prefix => $"{FusionCacheOptions.DistributedCacheWireFormatVersion}{options.InternalStrings.DistributedCacheWireFormatSeparator}{preProcessedCacheKey}",
+			CacheKeyModifierMode.Suffix => $"{preProcessedCacheKey}{options.InternalStrings.DistributedCacheWireFormatSeparator}{FusionCacheOptions.DistributedCacheWireFormatVersion}",
 			_ => preProcessedCacheKey,
 		};
 		var value = "sloths";

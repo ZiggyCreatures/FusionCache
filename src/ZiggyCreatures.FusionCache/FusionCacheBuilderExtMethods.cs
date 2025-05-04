@@ -102,7 +102,7 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
-	/// Specify to use a cache key prefix, composed by the <see cref="FusionCacheOptions.CacheName"/> and <see cref="FusionCacheOptions.CacheKeyPrefixSeparator"/> separator.
+	/// Specify to use a cache key prefix, composed by the <see cref="FusionCacheOptions.CacheName"/> and <see cref="FusionCacheInternalStrings.CacheKeyPrefixSeparator"/> separator.
 	/// <br/><br/>
 	/// <strong>EXAMPLE</strong>: if the CacheName is "MyCache" and the separator is ":", the CacheKeyPrefix will be "MyCache:", so that a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
 	/// <br/><br/>
@@ -110,11 +110,26 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder)
+	public static IFusionCacheBuilder WithCacheKeyPrefixByCacheName(this IFusionCacheBuilder builder)
 	{
 		builder.WithCacheKeyPrefix(builder.CacheName);
 		builder.AddCacheKeyPrefixSeparator = true;
 		return builder;
+	}
+
+	/// <summary>
+	/// Specify to use a cache key prefix, composed by the <see cref="FusionCacheOptions.CacheName"/> and <see cref="FusionCacheInternalStrings.CacheKeyPrefixSeparator"/> separator.
+	/// <br/><br/>
+	/// <strong>EXAMPLE</strong>: if the CacheName is "MyCache" and the separator is ":", the CacheKeyPrefix will be "MyCache:", so that a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	[Obsolete("Please use the WithCacheKeyPrefixByCacheName() method: the behaviour is the same, but the new name is more explicit and uniform with all the existing ones with a similar behaviour.")]
+	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder)
+	{
+		return builder.WithCacheKeyPrefixByCacheName();
 	}
 
 	/// <summary>

@@ -899,12 +899,12 @@ public class DependencyInjectionTests
 
 		// FOO
 		services.AddFusionCache("FooCache")
-			.WithRegisteredMemoryCache().WithCacheKeyPrefix()
+			.WithRegisteredMemoryCache().WithCacheKeyPrefixByCacheName()
 		;
 
 		// BAR
 		services.AddFusionCache("BarCache")
-			.WithRegisteredMemoryCache().WithCacheKeyPrefix()
+			.WithRegisteredMemoryCache().WithCacheKeyPrefixByCacheName()
 		;
 
 		using var serviceProvider = services.BuildServiceProvider();

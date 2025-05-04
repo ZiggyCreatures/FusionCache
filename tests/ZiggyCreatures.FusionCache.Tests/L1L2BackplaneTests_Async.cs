@@ -893,14 +893,14 @@ public partial class L1L2BackplaneTests
 				WaitForInitialBackplaneSubscribe = true,
 			};
 			// LIMIT THE INTERNAL STRINGS
-			options.SetLimitedInternalStrings();
+			options.InternalStrings.SetToLimited();
 			options.SetInstanceId(instanceId);
 			options.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 			options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			options.DefaultEntryOptions.ReThrowDistributedCacheExceptions = true;
 			options.DefaultEntryOptions.ReThrowBackplaneExceptions = true;
 
-			logger.LogInformation("INTERNAL STRINGS: [{InternalStrings}]", string.Join(',', options.GetInternalStrings()));
+			logger.LogInformation("INTERNAL STRINGS: [{InternalStrings}]", string.Join(',', options.InternalStrings.GetAll()));
 
 			return options;
 		}

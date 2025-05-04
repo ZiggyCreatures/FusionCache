@@ -38,8 +38,8 @@ internal sealed partial class DistributedCacheAccessor
 		// WIRE FORMAT SETUP
 		_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
 		{
-			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + _options.DistributedCacheWireFormatSeparator,
-			CacheKeyModifierMode.Suffix => _options.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
+			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + _options.InternalStrings.DistributedCacheWireFormatSeparator,
+			CacheKeyModifierMode.Suffix => _options.InternalStrings.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
 			CacheKeyModifierMode.None => string.Empty,
 			_ => throw new NotImplementedException(),
 		};

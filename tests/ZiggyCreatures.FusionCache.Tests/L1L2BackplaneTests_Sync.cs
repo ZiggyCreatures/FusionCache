@@ -893,14 +893,14 @@ public partial class L1L2BackplaneTests
 				WaitForInitialBackplaneSubscribe = true,
 			};
 			// LIMIT THE INTERNAL STRINGS
-			options.SetLimitedInternalStrings();
+			options.InternalStrings.SetToLimited();
 			options.SetInstanceId(instanceId);
 			options.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 			options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 			options.DefaultEntryOptions.ReThrowDistributedCacheExceptions = true;
 			options.DefaultEntryOptions.ReThrowBackplaneExceptions = true;
 
-			logger.LogInformation("INTERNAL STRINGS: [{InternalStrings}]", string.Join(',', options.GetInternalStrings()));
+			logger.LogInformation("INTERNAL STRINGS: [{InternalStrings}]", string.Join(',', options.InternalStrings.GetAll()));
 
 			return options;
 		}
@@ -919,7 +919,6 @@ public partial class L1L2BackplaneTests
 		var innerBackplane1 = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
 		var backplane1 = new LimitedCharsBackplane(innerBackplane1, static key => Regex.IsMatch(key, "^[a-zA-Z0-9_-]+$"));
 		cache1.SetupBackplane(backplane1);
-
 
 		var options2 = _CreateOptions(cacheName, "C2", logger);
 		using var cache2 = new FusionCache(options2, logger: logger);

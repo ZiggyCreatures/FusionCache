@@ -181,12 +181,12 @@ public sealed partial class FusionCache
 		TagInternalCacheKeyPrefix = GetTagInternalCacheKey("");
 
 		ClearRemoveTimestamp = -1;
-		ClearRemoveTagCacheKey = GetTagCacheKey(_options.ClearRemoveTag);
-		ClearRemoveTagInternalCacheKey = GetTagInternalCacheKey(_options.ClearRemoveTag);
+		ClearRemoveTagCacheKey = GetTagCacheKey(_options.InternalStrings.ClearRemoveTag);
+		ClearRemoveTagInternalCacheKey = GetTagInternalCacheKey(_options.InternalStrings.ClearRemoveTag);
 
 		ClearExpireTimestamp = -1;
-		ClearExpireTagCacheKey = GetTagCacheKey(_options.ClearExpireTag);
-		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(_options.ClearExpireTag);
+		ClearExpireTagCacheKey = GetTagCacheKey(_options.InternalStrings.ClearExpireTag);
+		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(_options.InternalStrings.ClearExpireTag);
 
 		// CHECK FOR CACHE KEY PREFIX
 		if (memoryCache is not null && CacheName != FusionCacheOptions.DefaultCacheName && string.IsNullOrWhiteSpace(_options.CacheKeyPrefix))
@@ -641,7 +641,7 @@ public sealed partial class FusionCache
 
 	private string GetTagCacheKey(string tag)
 	{
-		return $"{_options.TagCacheKeyPrefix}{tag}";
+		return $"{_options.InternalStrings.TagCacheKeyPrefix}{tag}";
 	}
 
 	private string GetTagInternalCacheKey(string tag)
@@ -995,7 +995,7 @@ public sealed partial class FusionCache
 
 	// ADAPTIVE CACHING
 
-	private void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options)
+	private static void UpdateAdaptiveOptions<TValue>(FusionCacheFactoryExecutionContext<TValue> ctx, ref FusionCacheEntryOptions options)
 	{
 		// UPDATE ADAPTIVE OPTIONS
 		var maybeNewOptions = ctx.GetOptions();

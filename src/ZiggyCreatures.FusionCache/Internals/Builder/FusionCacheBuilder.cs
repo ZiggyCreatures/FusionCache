@@ -144,7 +144,7 @@ internal sealed class FusionCacheBuilder
 			options.CacheKeyPrefix = CacheKeyPrefix;
 			if (AddCacheKeyPrefixSeparator)
 			{
-				options.CacheKeyPrefix += options.CacheKeyPrefixSeparator;
+				options.CacheKeyPrefix += options.InternalStrings.CacheKeyPrefixSeparator;
 			}
 		}
 
@@ -398,7 +398,7 @@ internal sealed class FusionCacheBuilder
 				if (plugin is not null)
 				{
 					plugins.Add(plugin);
-	 			}
+				}
 			}
 		}
 

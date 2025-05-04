@@ -1056,7 +1056,7 @@ public partial class FusionCache
 				// CLEAR EXPIRE
 				Interlocked.Exchange(ref ClearExpireTimestamp, now);
 
-				SetTagDataInternal(_options.ClearExpireTag, now, options, token);
+				SetTagDataInternal(_options.InternalStrings.ClearExpireTag, now, options, token);
 			}
 			else
 			{
@@ -1065,7 +1065,7 @@ public partial class FusionCache
 
 				if (TryExecuteRawClear(operationId) == false)
 				{
-					SetTagDataInternal(_options.ClearRemoveTag, now, options, token);
+					SetTagDataInternal(_options.InternalStrings.ClearRemoveTag, now, options, token);
 				}
 			}
 
