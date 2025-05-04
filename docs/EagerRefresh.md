@@ -132,4 +132,4 @@ This means that:
 
 So basically fresh data as soon as possible + no blocking + complete protection from Cache Stampede.
 
-Ain't it nice 😬 ?
+Ain't it nice 😊 ?

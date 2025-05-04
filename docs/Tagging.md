@@ -143,7 +143,7 @@ For both types of operations when an entry must be expired or overwritten becaus
 
 So the system would automatically updates internally based on actual usage, only if and when needed, without massive updates to be made when expiring by a tag.
 
-Nice 😬
+Nice 😊
 
 ## 🎲 Of Statistics And Probability
 

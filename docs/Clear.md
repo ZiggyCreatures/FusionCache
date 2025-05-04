@@ -53,7 +53,7 @@ cache.Clear();
 var maybeFoo = cache.TryGet<int>("foo");
 ```
 
-Nice 😬
+Nice 😊
 
 Please be aware that since the design is based on the Tagging feature, the behaviour and considerations are the same, so it's suggested to get to know that feature.
 

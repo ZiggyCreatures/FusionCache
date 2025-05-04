@@ -288,4 +288,4 @@ Of course it can also be specified manually, by simply using the overload `WithC
 
 Basically when doing `_productsCache.Set("Foo123", myProduct)` from the example above the actual cache key used in both the underlying memory and distributed cache will be turned from `"Foo123"` to `"Products:Foo123"`, automatically and transparently avoiding any collision between different cache entries from different caches. The transformed cache key will be used consistently throughout the entire flow: memory cache, distributed cache, events, etc.
 
-Ain't it nice 😬 ?
+Ain't it nice 😊 ?
