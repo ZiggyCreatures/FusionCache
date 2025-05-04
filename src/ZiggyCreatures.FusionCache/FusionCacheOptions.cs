@@ -100,6 +100,8 @@ public class FusionCacheOptions
 	{
 		_cacheName = DefaultCacheName;
 
+		// NOTE: CAN'T CALL SetDefaultInternalStrings() HERE BECAUSE THE COMPILER WOULD KEEP
+		// COMPLAINING ABOUT THE UNINITIALIZED MEMBERS (CacheKeyPrefixSeparator, etc.)
 		CacheKeyPrefixSeparator = DefaultCacheKeyPrefixSeparator;
 		TagCacheKeyPrefix = DefaultTagCacheKeyPrefix;
 		ClearRemoveTag = DefaultClearRemoveTag;
@@ -619,6 +621,70 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
 	/// </summary>
 	public LogLevel MissingCacheKeyPrefixWarningLogLevel { get; set; }
+
+	/// <summary>
+	/// Set the internal strings used by FusionCache to use only a limited subset of commonly "safe" characters:
+	/// <br/>
+	/// - Latin alphanumeric chars (a-zA-Z0-9)
+	/// <br/>
+	/// - a preferred "separator" (default is "-")
+	/// <br/>
+	/// - a preferred "special char" (default is "_")
+	/// <br/><br/>
+	/// To see the end result, just call <see cref="GetInternalStrings"/>.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> if needed, the separator and special char can be the same.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <param name="separator">The preferred separator.</param>
+	/// <param name="specialChar">The preferred special character.</param>
+	public void SetLimitedInternalStrings(char separator = '-', char specialChar = '_')
+	{
+		var s = separator.ToString();
+		var sc = specialChar.ToString();
+
+		CacheKeyPrefixSeparator = s;
+		TagCacheKeyPrefix = $"{sc}{sc}fc{s}t{s}";
+		ClearRemoveTag = $"{s}rem";
+		ClearExpireTag = $"{s}exp";
+		DistributedCacheWireFormatSeparator = s;
+		BackplaneWireFormatSeparator = s;
+		BackplaneChannelNameSeparator = s;
+	}
+
+	/// <summary>
+	/// Set the internal strings used by FusionCache to the default ones.
+	/// </summary>
+	public void SetDefaultInternalStrings()
+	{
+		CacheKeyPrefixSeparator = DefaultCacheKeyPrefixSeparator;
+		TagCacheKeyPrefix = DefaultTagCacheKeyPrefix;
+		ClearRemoveTag = DefaultClearRemoveTag;
+		ClearExpireTag = DefaultClearExpireTag;
+		DistributedCacheWireFormatSeparator = DefaultDistributedCacheWireFormatSeparator;
+		BackplaneWireFormatSeparator = DefaultBackplaneWireFormatSeparator;
+		BackplaneChannelNameSeparator = DefaultBackplaneChannelNameSeparator;
+	}
+
+	/// <summary>
+	/// Get a list of all the internal strings used by FusionCache.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <returns>A string array with all the internal strings.</returns>
+	public string[] GetInternalStrings()
+	{
+		return [
+			CacheKeyPrefixSeparator,
+			TagCacheKeyPrefix,
+			ClearRemoveTag,
+			ClearExpireTag,
+			DistributedCacheWireFormatSeparator,
+			BackplaneWireFormatSeparator,
+			BackplaneChannelNameSeparator
+		];
+	}
 
 	FusionCacheOptions IOptions<FusionCacheOptions>.Value
 	{
