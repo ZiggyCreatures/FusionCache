@@ -111,7 +111,7 @@ internal sealed class AutoRecoveryService
 
 			try
 			{
-				var earliestToExpire = _queue.Values.ToArray().Where(x => x.ExpirationTicks is not null).OrderBy(x => x.ExpirationTicks).FirstOrDefault();
+				var earliestToExpire = _queue.Values.ToArray().OrderBy(x => x.ExpirationTicks).FirstOrDefault();
 				if (earliestToExpire is not null)
 				{
 					if (earliestToExpire.ExpirationTicks < expirationTicks)

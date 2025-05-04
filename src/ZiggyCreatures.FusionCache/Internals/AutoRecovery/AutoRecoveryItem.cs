@@ -5,7 +5,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.AutoRecovery;
 [DebuggerDisplay("{" + nameof(Action) + "} ON {" + nameof(CacheKey) + "} AT {" + nameof(Timestamp) + "} (EXP: {" + nameof(ExpirationTicks) + "} RET: {" + nameof(RetryCount) + "})")]
 internal sealed class AutoRecoveryItem
 {
-	public AutoRecoveryItem(string cacheKey, FusionCacheAction action, long timestamp, FusionCacheEntryOptions options, long? expirationTicks, int? maxRetryCount)
+	public AutoRecoveryItem(string cacheKey, FusionCacheAction action, long timestamp, FusionCacheEntryOptions options, long expirationTicks, int? maxRetryCount)
 	{
 		CacheKey = cacheKey;
 		Action = action;
@@ -19,7 +19,7 @@ internal sealed class AutoRecoveryItem
 	public FusionCacheAction Action { get; }
 	public long Timestamp { get; }
 	public FusionCacheEntryOptions Options { get; }
-	public long? ExpirationTicks { get; }
+	public long ExpirationTicks { get; }
 	public int? RetryCount { get; private set; }
 
 	public bool IsExpired()
