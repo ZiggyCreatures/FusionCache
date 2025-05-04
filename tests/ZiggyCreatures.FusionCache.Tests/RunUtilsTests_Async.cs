@@ -15,7 +15,7 @@ public partial class RunUtilsTests
 
 		await Assert.ThrowsAsync<SyntheticTimeoutException>(async () =>
 		{
-			await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
+			await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { }, TestContext.Current.CancellationToken);
 		});
 		Assert.False(_hasRun);
 	}
@@ -27,7 +27,7 @@ public partial class RunUtilsTests
 
 		await Assert.ThrowsAsync<SyntheticTimeoutException>(async () =>
 		{
-			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
+			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { }, TestContext.Current.CancellationToken);
 		});
 		Assert.False(_hasRun);
 	}
@@ -44,7 +44,7 @@ public partial class RunUtilsTests
 			var cts = new CancellationTokenSource(outerCancelDelay);
 			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryTerminated = true; return 42; }, Timeout.InfiniteTimeSpan, true, token: cts.Token);
 		});
-		await Task.Delay(innerDelay.PlusALittleBit());
+		await Task.Delay(innerDelay.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		Assert.Equal(-1, res);
 		Assert.False(factoryTerminated);
@@ -59,7 +59,7 @@ public partial class RunUtilsTests
 		var sw = Stopwatch.StartNew();
 		await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 		{
-			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); return 42; }, timeout);
+			res = await RunUtils.RunAsyncFuncWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); return 42; }, timeout, token: TestContext.Current.CancellationToken);
 		});
 		sw.Stop();
 
@@ -78,9 +78,9 @@ public partial class RunUtilsTests
 		var innerDelay = TimeSpan.FromSeconds(2);
 		await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 		{
-			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, true);
+			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, true, token: TestContext.Current.CancellationToken);
 		});
-		await Task.Delay(innerDelay.PlusALittleBit());
+		await Task.Delay(innerDelay.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		Assert.False(factoryCompleted);
 	}
@@ -93,9 +93,9 @@ public partial class RunUtilsTests
 		var innerDelay = TimeSpan.FromSeconds(2);
 		await Assert.ThrowsAnyAsync<TimeoutException>(async () =>
 		{
-			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, false);
+			await RunUtils.RunAsyncActionWithTimeoutAsync(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, false, token: TestContext.Current.CancellationToken);
 		});
-		await Task.Delay((innerDelay + timeout).PlusALittleBit());
+		await Task.Delay((innerDelay + timeout).PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		Assert.True(factoryCompleted);
 	}

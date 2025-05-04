@@ -42,29 +42,29 @@ public partial class EventsTests
 		cache.Events.FactorySuccess += onFactorySuccess;
 
 		// MISS: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
-		cache.TryGet<int>("bar");
+		cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
 
 		// SET: +1
-		cache.Set<int>("foo", 123);
+		cache.Set<int>("foo", 123, token: TestContext.Current.CancellationToken);
 
 		// HIT: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// HIT: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		Thread.Sleep(duration.PlusALittleBit());
 
 		// HIT (STALE): +1
 		// FAIL-SAFE: +1
 		// FACTORY ERROR: +1
-		_ = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
+		_ = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
-		cache.TryGet<int>("bar");
+		cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
 
 		// LET THE THROTTLE DURATION PASS
 		Thread.Sleep(throttleDuration.PlusALittleBit());
@@ -72,18 +72,18 @@ public partial class EventsTests
 		// HIT (STALE): +1
 		// FAIL-SAFE: +1
 		// FACTORY ERROR: +1
-		_ = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"));
+		_ = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), token: TestContext.Current.CancellationToken);
 
 		// REMOVE: +1
-		cache.Remove("foo");
+		cache.Remove("foo", token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
 		// SET: +1
 		// FACTORY SUCCESS: +1
-		_ = cache.GetOrSet<int>("foo", _ => 123);
+		_ = cache.GetOrSet<int>("foo", _ => 123, token: TestContext.Current.CancellationToken);
 
 		// REMOVE: +1
-		cache.Remove("bar");
+		cache.Remove("bar", token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -134,11 +134,11 @@ public partial class EventsTests
 
 		// MISS: +1
 		// SET: +1
-		cache.GetOrSet<int>("foo", _ => 42);
+		cache.GetOrSet<int>("foo", _ => 42, token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
 		// SET: +1
-		cache.GetOrSet<int>("foo2", 42);
+		cache.GetOrSet<int>("foo2", 42, token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -174,7 +174,7 @@ public partial class EventsTests
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// INITIAL, NON-TRACKED SET
-		cache.Set<int>("foo", 42);
+		cache.Set<int>("foo", 42, token: TestContext.Current.CancellationToken);
 
 		// SETUP HANDLERS
 		cache.Events.Miss += onMiss;
@@ -188,7 +188,7 @@ public partial class EventsTests
 
 		// MISS: +1
 		// SET: +1
-		cache.GetOrSet<int>("foo", _ => 42);
+		cache.GetOrSet<int>("foo", _ => 42, token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -232,7 +232,7 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// MISS: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -267,7 +267,7 @@ public partial class EventsTests
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// INITIAL, NON-TRACKED SET
-		cache.Set<int>("foo", 42);
+		cache.Set<int>("foo", 42, token: TestContext.Current.CancellationToken);
 
 		// SETUP HANDLERS
 		cache.Events.Miss += onMiss;
@@ -280,7 +280,7 @@ public partial class EventsTests
 		Thread.Sleep(duration.PlusALittleBit());
 
 		// HIT (STALE): +1
-		cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
+		cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(true), token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -315,7 +315,7 @@ public partial class EventsTests
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// INITIAL, NON-TRACKED SET
-		cache.Set<int>("foo", 42);
+		cache.Set<int>("foo", 42, token: TestContext.Current.CancellationToken);
 
 		// SETUP HANDLERS
 		cache.Events.Miss += onMiss;
@@ -328,7 +328,7 @@ public partial class EventsTests
 		Thread.Sleep(duration.PlusALittleBit());
 
 		// MISS: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -367,7 +367,7 @@ public partial class EventsTests
 
 		// MISS: +2
 		// SET: +1
-		cache.GetOrSet<int>("foo", _ => 42);
+		cache.GetOrSet<int>("foo", _ => 42, token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Memory.Miss -= onMiss;
@@ -417,11 +417,11 @@ public partial class EventsTests
 		cache3.Events.Backplane.MessageReceived += onMessageReceived3;
 
 		// CACHE 1
-		cache1.Set("foo", 21, opt => opt.SetSkipBackplaneNotifications(false));
-		cache1.Set("foo", 42, opt => opt.SetSkipBackplaneNotifications(false));
+		cache1.Set("foo", 21, opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
+		cache1.Set("foo", 42, opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
 
 		// CACHE 2
-		cache2.Remove("foo", opt => opt.SetSkipBackplaneNotifications(false));
+		cache2.Remove("foo", opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
 
@@ -455,15 +455,15 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// SET: +1
-		var firstValue = cache.GetOrSet<int>("foo", _ => 21, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var firstValue = cache.GetOrSet<int>("foo", _ => 21, new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 		// HIT (NORMAL): +1
-		var secondValue = cache.GetOrSet<int>("foo", _ => 10, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var secondValue = cache.GetOrSet<int>("foo", _ => 10, new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(duration.PlusALittleBit());
 		// FAIL-SAFE: +1
 		// HIT (STALE): +1
-		var thirdValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var thirdValue = cache.GetOrSet<int>("foo", _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 		// HIT (STALE): +1
-		var fourthValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var fourthValue = cache.GetOrSet<int>("foo", _ => 42, new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Hit -= onHit;

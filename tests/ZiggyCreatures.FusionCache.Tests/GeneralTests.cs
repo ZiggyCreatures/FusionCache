@@ -3,7 +3,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Xunit;
-using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace FusionCacheTests;
@@ -173,15 +172,13 @@ public partial class GeneralTests
 
 		for (int i = 0; i < 10; i++)
 		{
-			foo = cache.GetOrSet<object?>(
-				"foo",
-				_ =>
+			foo = cache.GetOrSet<object?>("foo", _ =>
 				{
 					factoryCallCount++;
 
 					return null;
 				}
-			);
+, token: TestContext.Current.CancellationToken);
 		}
 
 		Assert.Null(foo);
@@ -208,16 +205,16 @@ public partial class GeneralTests
 			memoryCache
 		);
 
-		cache.Set("foo", new SimpleDisposable());
+		cache.Set("foo", new SimpleDisposable(), token: TestContext.Current.CancellationToken);
 
-		var d1 = cache.GetOrDefault<SimpleDisposable>("foo");
+		var d1 = cache.GetOrDefault<SimpleDisposable>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.NotNull(d1);
 		Assert.False(d1.IsDisposed);
 
 		Thread.Sleep(duration.PlusALittleBit());
 
-		var d2 = cache.GetOrDefault<SimpleDisposable>("foo");
+		var d2 = cache.GetOrDefault<SimpleDisposable>("foo", token: TestContext.Current.CancellationToken);
 
 		memoryCache.Compact(1);
 
@@ -232,16 +229,16 @@ public partial class GeneralTests
 			((IDisposable?)args.Value)?.Dispose();
 		};
 
-		cache.Set("foo", new SimpleDisposable());
+		cache.Set("foo", new SimpleDisposable(), token: TestContext.Current.CancellationToken);
 
-		var d3 = cache.GetOrDefault<SimpleDisposable>("foo");
+		var d3 = cache.GetOrDefault<SimpleDisposable>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.NotNull(d3);
 		Assert.False(d3.IsDisposed);
 
 		Thread.Sleep(duration.PlusALittleBit());
 
-		var d4 = cache.GetOrDefault<SimpleDisposable>("foo");
+		var d4 = cache.GetOrDefault<SimpleDisposable>("foo", token: TestContext.Current.CancellationToken);
 
 		memoryCache.Compact(1);
 

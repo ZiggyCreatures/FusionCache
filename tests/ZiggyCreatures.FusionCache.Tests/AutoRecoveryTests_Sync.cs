@@ -50,22 +50,22 @@ public partial class AutoRecoveryTests
 
 		// 1
 		_value = 1;
-		cache1.Set(key, _value, TimeSpan.FromMinutes(10));
+		cache1.Set(key, _value, TimeSpan.FromMinutes(10), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(200);
 
 		// 2
 		_value = 2;
-		cache2.Set(key, _value, TimeSpan.FromMinutes(10));
+		cache2.Set(key, _value, TimeSpan.FromMinutes(10), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(200);
 
 		// 3
 		_value = 3;
-		cache3.Set(key, _value, TimeSpan.FromMinutes(10));
+		cache3.Set(key, _value, TimeSpan.FromMinutes(10), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(200);
 
-		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 
 		// RE-ENABLE THE BACKPLANE
 		backplane1.SetNeverThrow();
@@ -75,9 +75,9 @@ public partial class AutoRecoveryTests
 		// WAIT FOR THE AUTO-RECOVERY DELAY
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+		Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 	}
 
 	[Theory]
@@ -118,22 +118,22 @@ public partial class AutoRecoveryTests
 
 		// 1
 		_value = 1;
-		cache1.Set(key, _value, TimeSpan.FromMinutes(10));
+		cache1.Set(key, _value, TimeSpan.FromMinutes(10), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(200);
 
 		// 2
 		_value = 2;
-		cache2.Set(key, _value, TimeSpan.FromMinutes(10));
+		cache2.Set(key, _value, TimeSpan.FromMinutes(10), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(200);
 
 		// 3
 		_value = 3;
-		cache3.Set(key, _value, TimeSpan.FromMinutes(10));
+		cache3.Set(key, _value, TimeSpan.FromMinutes(10), token: TestContext.Current.CancellationToken);
 		Thread.Sleep(200);
 
-		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 
 		// RE-ENABLE THE BACKPLANE
 		backplane1.SetNeverThrow();
@@ -143,9 +143,9 @@ public partial class AutoRecoveryTests
 		// WAIT FOR THE AUTO-RECOVERY DELAY
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value));
-		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value));
+		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
+		Assert.Equal(3, cache3.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 	}
 
 	//[Theory]
@@ -286,10 +286,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(InitialBackplaneDelay);
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10);
+		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10, token: TestContext.Current.CancellationToken);
 
 		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-		var vB1 = cacheB.GetOrSet<int>("foo", _ => 20);
+		var vB1 = cacheB.GetOrSet<int>("foo", _ => 20, token: TestContext.Current.CancellationToken);
 
 		// IN-SYNC
 		Assert.Equal(10, vA1);
@@ -301,13 +301,13 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetAlwaysThrow();
 
 		// SET ON CACHE B (NO DISTRIBUTED CACHE OR BACKPLANE, BECAUSE CHAOS)
-		cacheB.Set<int>("foo", 30);
+		cacheB.Set<int>("foo", 30, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE A (MEMORY CACHE)
-		var vA2 = cacheA.GetOrDefault<int>("foo", 40);
+		var vA2 = cacheA.GetOrDefault<int>("foo", 40, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B (MEMORY CACHE)
-		var vB2 = cacheB.GetOrDefault<int>("foo", 50);
+		var vB2 = cacheB.GetOrDefault<int>("foo", 50, token: TestContext.Current.CancellationToken);
 
 		// NOT IN-SYNC
 		Assert.Equal(10, vA2);
@@ -322,10 +322,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
-		var vA3 = cacheA.GetOrSet<int>("foo", _ => 60);
+		var vA3 = cacheA.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B
-		var vB3 = cacheB.GetOrSet<int>("foo", _ => 70);
+		var vB3 = cacheB.GetOrSet<int>("foo", _ => 70, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(30, vA3);
 		Assert.Equal(30, vB3);
@@ -372,10 +372,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(InitialBackplaneDelay);
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10);
+		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10, token: TestContext.Current.CancellationToken);
 
 		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-		var vB1 = cacheB.GetOrSet<int>("foo", _ => 20);
+		var vB1 = cacheB.GetOrSet<int>("foo", _ => 20, token: TestContext.Current.CancellationToken);
 
 		// IN-SYNC
 		Assert.Equal(10, vA1);
@@ -387,13 +387,13 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetAlwaysThrow();
 
 		// SET ON CACHE B (NO DISTRIBUTED CACHE OR BACKPLANE, BECAUSE CHAOS)
-		cacheB.Set<int>("foo", 30);
+		cacheB.Set<int>("foo", 30, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE A (MEMORY CACHE)
-		var vA2 = cacheA.GetOrDefault<int>("foo", 40);
+		var vA2 = cacheA.GetOrDefault<int>("foo", 40, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B (MEMORY CACHE)
-		var vB2 = cacheB.GetOrDefault<int>("foo", 50);
+		var vB2 = cacheB.GetOrDefault<int>("foo", 50, token: TestContext.Current.CancellationToken);
 
 		// NOT IN-SYNC
 		Assert.Equal(10, vA2);
@@ -406,8 +406,8 @@ public partial class AutoRecoveryTests
 		// GIVE IT SOME TIME
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
-		var vA3 = cacheA.GetOrDefault<int>("foo");
-		var vB3 = cacheB.GetOrDefault<int>("foo");
+		var vA3 = cacheA.GetOrDefault<int>("foo", token: TestContext.Current.CancellationToken);
+		var vB3 = cacheB.GetOrDefault<int>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(10, vA3);
 		Assert.Equal(30, vB3);
@@ -419,10 +419,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
-		var vA4 = cacheA.GetOrSet<int>("foo", _ => 60);
+		var vA4 = cacheA.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B
-		var vB4 = cacheB.GetOrSet<int>("foo", _ => 70);
+		var vB4 = cacheB.GetOrSet<int>("foo", _ => 70, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(30, vA4);
 		Assert.Equal(30, vB4);
@@ -469,10 +469,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(InitialBackplaneDelay);
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-		var vA0 = cacheA.GetOrSet<int>("foo", _ => 10);
+		var vA0 = cacheA.GetOrSet<int>("foo", _ => 10, token: TestContext.Current.CancellationToken);
 
 		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-		var vB0 = cacheB.GetOrSet<int>("foo", _ => 20);
+		var vB0 = cacheB.GetOrSet<int>("foo", _ => 20, token: TestContext.Current.CancellationToken);
 
 		// IN-SYNC
 		Assert.Equal(10, vA0);
@@ -482,13 +482,13 @@ public partial class AutoRecoveryTests
 		chaosDistributedCache.SetAlwaysThrow();
 
 		// SET ON CACHE B
-		cacheB.Set<int>("foo", 30);
+		cacheB.Set<int>("foo", 30, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE A
-		var vA1 = cacheA.GetOrSet<int>("foo", _ => 31);
+		var vA1 = cacheA.GetOrSet<int>("foo", _ => 31, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B
-		var vB1 = cacheB.GetOrSet<int>("foo", _ => 40);
+		var vB1 = cacheB.GetOrSet<int>("foo", _ => 40, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(10, vA1);
 		Assert.Equal(30, vB1);
@@ -500,12 +500,12 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-		var vA2 = cacheA.GetOrSet<int>("foo", _ => 50);
+		var vA2 = cacheA.GetOrSet<int>("foo", _ => 50, token: TestContext.Current.CancellationToken);
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(500));
 
 		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-		var vB2 = cacheB.GetOrSet<int>("foo", _ => 60);
+		var vB2 = cacheB.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(30, vA2);
 		Assert.Equal(30, vB2);
@@ -543,10 +543,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(InitialBackplaneDelay);
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
-		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10);
+		var vA1 = cacheA.GetOrSet<int>("foo", _ => 10, token: TestContext.Current.CancellationToken);
 
 		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE B
-		var vB1 = cacheB.GetOrSet<int>("foo", _ => 10);
+		var vB1 = cacheB.GetOrSet<int>("foo", _ => 10, token: TestContext.Current.CancellationToken);
 
 		// IN-SYNC
 		Assert.Equal(10, vA1);
@@ -557,13 +557,13 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetAlwaysThrow();
 
 		// SET ON CACHE B (NO BACKPLANE, BECAUSE CHAOS)
-		cacheB.Set<int>("foo", 30, opt => opt.SetSkipBackplaneNotifications(false));
+		cacheB.Set<int>("foo", 30, opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE A (MEMORY CACHE)
-		var vA2 = cacheA.GetOrDefault<int>("foo", 40);
+		var vA2 = cacheA.GetOrDefault<int>("foo", 40, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B (MEMORY CACHE)
-		var vB2 = cacheB.GetOrDefault<int>("foo", 50);
+		var vB2 = cacheB.GetOrDefault<int>("foo", 50, token: TestContext.Current.CancellationToken);
 
 		// NOT IN-SYNC
 		Assert.Equal(10, vA2);
@@ -577,10 +577,10 @@ public partial class AutoRecoveryTests
 		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
 
 		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
-		var vA3 = cacheA.GetOrSet<int>("foo", _ => 30);
+		var vA3 = cacheA.GetOrSet<int>("foo", _ => 30, token: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE B
-		var vB3 = cacheB.GetOrSet<int>("foo", _ => 30);
+		var vB3 = cacheB.GetOrSet<int>("foo", _ => 30, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(30, vA3);
 		Assert.Equal(30, vB3);

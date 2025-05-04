@@ -42,48 +42,48 @@ public partial class EventsTests
 		cache.Events.FactorySuccess += onFactorySuccess;
 
 		// MISS: +1
-		await cache.TryGetAsync<int>("foo");
+		await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
-		await cache.TryGetAsync<int>("bar");
+		await cache.TryGetAsync<int>("bar", token: TestContext.Current.CancellationToken);
 
 		// SET: +1
-		await cache.SetAsync<int>("foo", 123);
+		await cache.SetAsync<int>("foo", 123, token: TestContext.Current.CancellationToken);
 
 		// HIT: +1
-		await cache.TryGetAsync<int>("foo");
+		await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// HIT: +1
-		await cache.TryGetAsync<int>("foo");
+		await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
 
-		await Task.Delay(duration.PlusALittleBit());
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// HIT (STALE): +1
 		// FAIL-SAFE: +1
 		// FACTORY ERROR: +1
-		_ = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"));
+		_ = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
-		await cache.TryGetAsync<int>("bar");
+		await cache.TryGetAsync<int>("bar", token: TestContext.Current.CancellationToken);
 
 		// LET THE THROTTLE DURATION PASS
-		await Task.Delay(throttleDuration.PlusALittleBit());
+		await Task.Delay(throttleDuration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// HIT (STALE): +1
 		// FAIL-SAFE: +1
 		// FACTORY ERROR: +1
-		_ = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"));
+		_ = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), token: TestContext.Current.CancellationToken);
 
 		// REMOVE: +1
-		await cache.RemoveAsync("foo");
+		await cache.RemoveAsync("foo", token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
 		// SET: +1
 		// FACTORY SUCCESS: +1
-		_ = await cache.GetOrSetAsync<int>("foo", async _ => 123);
+		_ = await cache.GetOrSetAsync<int>("foo", async _ => 123, token: TestContext.Current.CancellationToken);
 
 		// REMOVE: +1
-		await cache.RemoveAsync("bar");
+		await cache.RemoveAsync("bar", token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -134,11 +134,11 @@ public partial class EventsTests
 
 		// MISS: +1
 		// SET: +1
-		_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+		_ = await cache.GetOrSetAsync<int>("foo", async _ => 42, token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
 		// SET: +1
-		_ = await cache.GetOrSetAsync<int>("foo2", 42);
+		_ = await cache.GetOrSetAsync<int>("foo2", 42, token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -174,7 +174,7 @@ public partial class EventsTests
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// INITIAL, NON-TRACKED SET
-		await cache.SetAsync<int>("foo", 42);
+		await cache.SetAsync<int>("foo", 42, token: TestContext.Current.CancellationToken);
 
 		// SETUP HANDLERS
 		cache.Events.Miss += onMiss;
@@ -184,11 +184,11 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// LET IT BECOME STALE
-		await Task.Delay(duration.PlusALittleBit());
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// MISS: +1
 		// SET: +1
-		_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+		_ = await cache.GetOrSetAsync<int>("foo", async _ => 42, token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -232,7 +232,7 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// MISS: +1
-		_ = await cache.TryGetAsync<int>("foo");
+		_ = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -267,7 +267,7 @@ public partial class EventsTests
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// INITIAL, NON-TRACKED SET
-		await cache.SetAsync<int>("foo", 42);
+		await cache.SetAsync<int>("foo", 42, token: TestContext.Current.CancellationToken);
 
 		// SETUP HANDLERS
 		cache.Events.Miss += onMiss;
@@ -277,10 +277,10 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// LET IT BECOME STALE
-		await Task.Delay(duration.PlusALittleBit());
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// HIT (STALE): +1
-		_ = await cache.TryGetAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(true));
+		_ = await cache.TryGetAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(true), token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -315,7 +315,7 @@ public partial class EventsTests
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// INITIAL, NON-TRACKED SET
-		await cache.SetAsync<int>("foo", 42);
+		await cache.SetAsync<int>("foo", 42, token: TestContext.Current.CancellationToken);
 
 		// SETUP HANDLERS
 		cache.Events.Miss += onMiss;
@@ -325,10 +325,10 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// LET IT BECOME STALE
-		await Task.Delay(duration.PlusALittleBit());
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// MISS: +1
-		_ = await cache.TryGetAsync<int>("foo");
+		_ = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Miss -= onMiss;
@@ -367,7 +367,7 @@ public partial class EventsTests
 
 		// MISS: +2
 		// SET: +1
-		_ = await cache.GetOrSetAsync<int>("foo", async _ => 42);
+		_ = await cache.GetOrSetAsync<int>("foo", async _ => 42, token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Memory.Miss -= onMiss;
@@ -403,7 +403,7 @@ public partial class EventsTests
 		cache2.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
 		cache3.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));
 
-		await Task.Delay(InitialBackplaneDelay);
+		await Task.Delay(InitialBackplaneDelay, TestContext.Current.CancellationToken);
 
 		EventHandler<FusionCacheBackplaneMessageEventArgs> onMessagePublished2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessagePublished);
 		EventHandler<FusionCacheBackplaneMessageEventArgs> onMessageReceived2 = (s, e) => stats2.RecordAction(EntryActionKind.BackplaneMessageReceived);
@@ -417,11 +417,11 @@ public partial class EventsTests
 		cache3.Events.Backplane.MessageReceived += onMessageReceived3;
 
 		// CACHE 1
-		await cache1.SetAsync("foo", 21, opt => opt.SetSkipBackplaneNotifications(false));
-		await cache1.SetAsync("foo", 42, opt => opt.SetSkipBackplaneNotifications(false));
+		await cache1.SetAsync("foo", 21, opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
+		await cache1.SetAsync("foo", 42, opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
 
 		// CACHE 2
-		await cache2.RemoveAsync("foo", opt => opt.SetSkipBackplaneNotifications(false));
+		await cache2.RemoveAsync("foo", opt => opt.SetSkipBackplaneNotifications(false), token: TestContext.Current.CancellationToken);
 
 		Thread.Sleep(TimeSpan.FromMilliseconds(1_000));
 
@@ -455,15 +455,15 @@ public partial class EventsTests
 		cache.Events.FailSafeActivate += onFailSafeActivate;
 
 		// SET: +1
-		var firstValue = await cache.GetOrSetAsync<int>("foo", async _ => 21, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var firstValue = await cache.GetOrSetAsync<int>("foo", async _ => 21, new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 		// HIT (NORMAL): +1
-		var secondValue = await cache.GetOrSetAsync<int>("foo", async _ => 10, new FusionCacheEntryOptions(duration).SetFailSafe(true));
-		await Task.Delay(duration.PlusALittleBit());
+		var secondValue = await cache.GetOrSetAsync<int>("foo", async _ => 10, new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 		// FAIL-SAFE: +1
 		// HIT (STALE): +1
-		var thirdValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var thirdValue = await cache.GetOrSetAsync<int>("foo", async _ => throw new Exception("Sloths are cool"), new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 		// HIT (STALE): +1
-		var fourthValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(duration).SetFailSafe(true));
+		var fourthValue = await cache.GetOrSetAsync<int>("foo", async _ => 42, new FusionCacheEntryOptions(duration).SetFailSafe(true), token: TestContext.Current.CancellationToken);
 
 		// REMOVE HANDLERS
 		cache.Events.Hit -= onHit;

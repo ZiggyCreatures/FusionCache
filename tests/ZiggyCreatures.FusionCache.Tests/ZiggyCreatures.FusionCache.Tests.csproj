@@ -4,6 +4,7 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 		<RootNamespace>FusionCacheTests</RootNamespace>
+		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -20,7 +21,7 @@
 		<PackageReference Include="CacheTower" Version="0.14.0" />
 		<PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
 		<PackageReference Include="LazyCache" Version="2.4.0" />
-		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.v3" Version="2.0.1" />
 		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.3.0" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.0.2">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

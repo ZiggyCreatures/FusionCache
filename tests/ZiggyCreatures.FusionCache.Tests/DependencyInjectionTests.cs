@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
-using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
@@ -838,9 +837,9 @@ public class DependencyInjectionTests
 		var fooCache = cacheProvider.GetCache("FooCache");
 		var barCache = cacheProvider.GetCache("BarCache");
 
-		var defaultCacheValue = defaultCache.GetOrSet("sloth", 1);
-		var fooCacheValue = fooCache.GetOrSet("sloth", 2);
-		var barCacheValue = barCache.GetOrSet("sloth", 3);
+		var defaultCacheValue = defaultCache.GetOrSet("sloth", 1, token: TestContext.Current.CancellationToken);
+		var fooCacheValue = fooCache.GetOrSet("sloth", 2, token: TestContext.Current.CancellationToken);
+		var barCacheValue = barCache.GetOrSet("sloth", 3, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, defaultCacheValue);
 		Assert.Equal(2, fooCacheValue);
@@ -877,9 +876,9 @@ public class DependencyInjectionTests
 		var fooCache = cacheProvider.GetCache("FooCache");
 		var barCache = cacheProvider.GetCache("BarCache");
 
-		var defaultCacheValue = defaultCache.GetOrSet("sloth", 1);
-		var fooCacheValue = fooCache.GetOrSet("sloth", 2);
-		var barCacheValue = barCache.GetOrSet("sloth", 3);
+		var defaultCacheValue = defaultCache.GetOrSet("sloth", 1, token: TestContext.Current.CancellationToken);
+		var fooCacheValue = fooCache.GetOrSet("sloth", 2, token: TestContext.Current.CancellationToken);
+		var barCacheValue = barCache.GetOrSet("sloth", 3, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, defaultCacheValue);
 		Assert.Equal(1, fooCacheValue);
@@ -916,9 +915,9 @@ public class DependencyInjectionTests
 		var fooCache = cacheProvider.GetCache("FooCache");
 		var barCache = cacheProvider.GetCache("BarCache");
 
-		var defaultCacheValue = defaultCache.GetOrSet("sloth", 1);
-		var fooCacheValue = fooCache.GetOrSet("sloth", 2);
-		var barCacheValue = barCache.GetOrSet("sloth", 3);
+		var defaultCacheValue = defaultCache.GetOrSet("sloth", 1, token: TestContext.Current.CancellationToken);
+		var fooCacheValue = fooCache.GetOrSet("sloth", 2, token: TestContext.Current.CancellationToken);
+		var barCacheValue = barCache.GetOrSet("sloth", 3, token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, defaultCacheValue);
 		Assert.Equal(2, fooCacheValue);
@@ -1465,16 +1464,16 @@ public class DependencyInjectionTests
 		var fooCache = cacheProvider.GetCache("Foo");
 		var barCache = cacheProvider.GetCache("Bar");
 
-		fooCache.Set("foo", 123);
+		fooCache.Set("foo", 123, token: TestContext.Current.CancellationToken);
 		Assert.Throws<InvalidOperationException>(() =>
 		{
-			barCache.Set("bar", 456);
+			barCache.Set("bar", 456, token: TestContext.Current.CancellationToken);
 		});
 
-		var foo = fooCache.GetOrDefault<int>("foo");
+		var foo = fooCache.GetOrDefault<int>("foo", token: TestContext.Current.CancellationToken);
 		Assert.Equal(123, foo);
 
-		var maybeBar = barCache.TryGet<int>("bar");
+		var maybeBar = barCache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
 		Assert.False(maybeBar.HasValue);
 	}
 

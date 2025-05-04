@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Options;
-using Xunit.Abstractions;
+using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace FusionCacheTests;

@@ -7,7 +7,6 @@ using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
-using Xunit.Abstractions;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
@@ -74,9 +73,9 @@ public class HybridL1L2Tests
 		using var fc = new FusionCache(CreateFusionCacheOptions(), mc).SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
 		var cache = new FusionHybridCache(fc);
 
-		var initialValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) });
+		var initialValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }, cancellationToken: TestContext.Current.CancellationToken);
 		mc.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
-		var newValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => 21, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) });
+		var newValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => 21, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }, cancellationToken: TestContext.Current.CancellationToken);
 		Assert.Equal(initialValue, newValue);
 	}
 
@@ -93,10 +92,10 @@ public class HybridL1L2Tests
 		using var fc = new FusionCache(options).SetupDistributedCache(chaosdc, TestsUtils.GetSerializer(serializerType));
 		var cache = new FusionHybridCache(fc);
 
-		var initialValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) });
-		await Task.Delay(1_500);
+		var initialValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) }, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(1_500, TestContext.Current.CancellationToken);
 		chaosdc.SetAlwaysThrow();
-		var newValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => throw new Exception("Generic error"), new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) });
+		var newValue = await cache.GetOrCreateAsync<int>(keyFoo, async _ => throw new Exception("Generic error"), new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) }, cancellationToken: TestContext.Current.CancellationToken);
 		Assert.Equal(initialValue, newValue);
 	}
 
@@ -110,8 +109,8 @@ public class HybridL1L2Tests
 		using var fc = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
 		var cache = new FusionHybridCache(fc);
 
-		var task = cache.GetOrCreateAsync<int>(keyFoo, async _ => { await Task.Delay(2_000); return 42; }, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) });
-		await Task.Delay(500);
+		var task = cache.GetOrCreateAsync<int>(keyFoo, async _ => { await Task.Delay(2_000); return 42; }, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(500, TestContext.Current.CancellationToken);
 		fc.RemoveDistributedCache();
 		var value = await task;
 		Assert.Equal(42, value);
@@ -134,12 +133,12 @@ public class HybridL1L2Tests
 
 		var preProcessedCacheKey = TestsUtils.MaybePreProcessCacheKey(keyBar, options.CacheKeyPrefix);
 
-		await cache.GetOrCreateAsync<int>(keyBar, async _ => 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) });
+		await cache.GetOrCreateAsync<int>(keyBar, async _ => 42, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }, cancellationToken: TestContext.Current.CancellationToken);
 		Assert.NotNull(dc.GetString(preProcessedCacheKey));
 
 		preProcessedCacheKey = TestsUtils.MaybePreProcessCacheKey(keyFoo, options.CacheKeyPrefix);
-		var task = cache.GetOrCreateAsync<int>(keyFoo, async _ => { await Task.Delay(2_000); return 42; }, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) });
-		await Task.Delay(500);
+		var task = cache.GetOrCreateAsync<int>(keyFoo, async _ => { await Task.Delay(2_000); return 42; }, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10) }, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(500, TestContext.Current.CancellationToken);
 		chaosdc.SetAlwaysThrow();
 		var value = await task;
 		chaosdc.SetNeverThrow();
@@ -177,13 +176,13 @@ public class HybridL1L2Tests
 
 		fc.SetupDistributedCache(chaosdc, TestsUtils.GetSerializer(serializerType));
 
-		await cache.SetAsync<int>(keyFoo, 42);
-		await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
+		await cache.SetAsync<int>(keyFoo, 42, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit(), TestContext.Current.CancellationToken);
 		mc.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
 		chaosdc.SetAlwaysDelayExactly(simulatedDelayMs);
 		await Assert.ThrowsAsync<Exception>(async () =>
 		{
-			_ = await cache.GetOrCreateAsync<int>(keyFoo, _ => throw new Exception("Sloths are cool"));
+			_ = await cache.GetOrCreateAsync<int>(keyFoo, _ => throw new Exception("Sloths are cool"), cancellationToken: TestContext.Current.CancellationToken);
 		});
 	}
 
@@ -213,17 +212,14 @@ public class HybridL1L2Tests
 
 		fc.SetupDistributedCache(chaosdc, TestsUtils.GetSerializer(serializerType));
 
-		await cache.SetAsync<int>(keyFoo, 42);
-		await Task.Delay(duration.PlusALittleBit());
+		await cache.SetAsync<int>(keyFoo, 42, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		chaosdc.SetAlwaysDelayExactly(simulatedDelay);
 
 		var sw = Stopwatch.StartNew();
-		var res = await cache.GetOrCreateAsync<int>(
-			keyFoo,
-			async _ => throw new Exception("Sloths are cool"),
-			new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) }
-		);
+		var res = await cache.GetOrCreateAsync<int>(keyFoo, async _ => throw new Exception("Sloths are cool"), new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) }
+, cancellationToken: TestContext.Current.CancellationToken);
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
@@ -255,14 +251,14 @@ public class HybridL1L2Tests
 		fc.SetupDistributedCache(chaosdc, TestsUtils.GetSerializer(serializerType));
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>(keyFoo, 1);
+		await cache.SetAsync<int>(keyFoo, 1, cancellationToken: TestContext.Current.CancellationToken);
 		chaosdc.SetAlwaysThrow();
-		await cache.SetAsync<int>(keyFoo, 2);
+		await cache.SetAsync<int>(keyFoo, 2, cancellationToken: TestContext.Current.CancellationToken);
 		chaosdc.SetNeverThrow();
-		await cache.SetAsync<int>(keyFoo, 3);
-		await Task.Delay(circuitBreakerDuration.PlusALittleBit());
+		await cache.SetAsync<int>(keyFoo, 3, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(circuitBreakerDuration.PlusALittleBit(), TestContext.Current.CancellationToken);
 		mc.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
-		var res = await cache.GetOrDefaultAsync<int>(keyFoo, -1);
+		var res = await cache.GetOrDefaultAsync<int>(keyFoo, -1, ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, res);
 	}
@@ -288,12 +284,12 @@ public class HybridL1L2Tests
 
 		await Assert.ThrowsAsync<ChaosException>(async () =>
 		{
-			await cache.SetAsync<int>(keyFoo, 42);
+			await cache.SetAsync<int>(keyFoo, 42, cancellationToken: TestContext.Current.CancellationToken);
 		});
 
 		await Assert.ThrowsAsync<ChaosException>(async () =>
 		{
-			_ = await cache.GetOrDefaultAsync<int>(keyBar);
+			_ = await cache.GetOrDefaultAsync<int>(keyBar, ct: TestContext.Current.CancellationToken);
 		});
 	}
 
@@ -316,12 +312,12 @@ public class HybridL1L2Tests
 
 		await Assert.ThrowsAsync<FusionCacheDistributedCacheException>(async () =>
 		{
-			await cache.SetAsync<int>(keyFoo, 42);
+			await cache.SetAsync<int>(keyFoo, 42, cancellationToken: TestContext.Current.CancellationToken);
 		});
 
 		await Assert.ThrowsAsync<FusionCacheDistributedCacheException>(async () =>
 		{
-			_ = await cache.GetOrDefaultAsync<int>(keyBar);
+			_ = await cache.GetOrDefaultAsync<int>(keyBar, ct: TestContext.Current.CancellationToken);
 		});
 	}
 
@@ -342,15 +338,15 @@ public class HybridL1L2Tests
 
 		logger.LogInformation("STEP 1");
 
-		await cache.SetAsync<string>("foo", "sloths, sloths everywhere");
+		await cache.SetAsync<string>("foo", "sloths, sloths everywhere", cancellationToken: TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 2");
 
-		var foo1 = await cache.GetOrDefaultAsync<string>("foo");
+		var foo1 = await cache.GetOrDefaultAsync<string>("foo", ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal("sloths, sloths everywhere", foo1);
 
-		await Task.Delay(TimeSpan.FromMilliseconds(100));
+		await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 3");
 
@@ -360,7 +356,7 @@ public class HybridL1L2Tests
 		string? foo2 = null;
 		await Assert.ThrowsAsync<FusionCacheSerializationException>(async () =>
 		{
-			foo2 = await cache.GetOrDefaultAsync<string>("foo");
+			foo2 = await cache.GetOrDefaultAsync<string>("foo", ct: TestContext.Current.CancellationToken);
 		});
 
 		Assert.Null(foo2);
@@ -381,9 +377,9 @@ public class HybridL1L2Tests
 
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>(keyFoo, 21);
-		await Task.Delay(TimeSpan.FromSeconds(2));
-		var value = await cache.GetOrDefaultAsync<int>(keyFoo);
+		await cache.SetAsync<int>(keyFoo, 21, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+		var value = await cache.GetOrDefaultAsync<int>(keyFoo, ct: TestContext.Current.CancellationToken);
 		Assert.Equal(21, value);
 	}
 
@@ -401,9 +397,9 @@ public class HybridL1L2Tests
 
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>("foo", 21);
-		await Task.Delay(TimeSpan.FromSeconds(2));
-		var value = await cache.GetOrDefaultAsync<int>("foo");
+		await cache.SetAsync<int>("foo", 21, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
+		var value = await cache.GetOrDefaultAsync<int>("foo", ct: TestContext.Current.CancellationToken);
 		Assert.Equal(21, value);
 	}
 
@@ -427,9 +423,9 @@ public class HybridL1L2Tests
 
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>(keyFoo, 21);
-		await Task.Delay(maxDuration.PlusALittleBit());
-		var value = await cache.GetOrDefaultAsync<int>(keyFoo);
+		await cache.SetAsync<int>(keyFoo, 21, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(maxDuration.PlusALittleBit(), TestContext.Current.CancellationToken);
+		var value = await cache.GetOrDefaultAsync<int>(keyFoo, ct: TestContext.Current.CancellationToken);
 		Assert.Equal(21, value);
 	}
 
@@ -452,11 +448,11 @@ public class HybridL1L2Tests
 		var cache1 = new FusionHybridCache(fc1);
 		var cache2 = new FusionHybridCache(fc2);
 
-		await cache1.SetAsync<int>(keyFoo, 21, new HybridCacheEntryOptions { Expiration = firstDuration });
-		await Task.Delay(firstDuration / 2);
-		var v1 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = secondDuration });
-		await Task.Delay(firstDuration + TimeSpan.FromSeconds(1));
-		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = secondDuration });
+		await cache1.SetAsync<int>(keyFoo, 21, new HybridCacheEntryOptions { Expiration = firstDuration }, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(firstDuration / 2, TestContext.Current.CancellationToken);
+		var v1 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = secondDuration }, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(firstDuration + TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 42, new HybridCacheEntryOptions { Expiration = secondDuration }, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(21, v1);
 		Assert.Equal(42, v2);
@@ -484,14 +480,14 @@ public class HybridL1L2Tests
 		var cache1 = new FusionHybridCache(fc1);
 		var cache2 = new FusionHybridCache(fc2);
 
-		var v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 1, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10), Flags = HybridCacheEntryFlags.DisableDistributedCache });
-		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 2);
+		var v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 1, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(10), Flags = HybridCacheEntryFlags.DisableDistributedCache }, cancellationToken: TestContext.Current.CancellationToken);
+		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 2, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, v1);
 		Assert.Equal(2, v2);
 
-		var v3 = await cache1.GetOrCreateAsync<int>(keyBar, async _ => 3);
-		var v4 = await cache2.GetOrCreateAsync<int>(keyBar, async _ => 4, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(2), Flags = HybridCacheEntryFlags.DisableDistributedCache });
+		var v3 = await cache1.GetOrCreateAsync<int>(keyBar, async _ => 3, cancellationToken: TestContext.Current.CancellationToken);
+		var v4 = await cache2.GetOrCreateAsync<int>(keyBar, async _ => 4, new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(2), Flags = HybridCacheEntryFlags.DisableDistributedCache }, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(3, v3);
 		Assert.Equal(4, v4);
@@ -520,16 +516,16 @@ public class HybridL1L2Tests
 		var cache1 = new FusionHybridCache(fc1);
 		var cache2 = new FusionHybridCache(fc2);
 
-		var v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 1);
-		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 2);
+		var v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 1, cancellationToken: TestContext.Current.CancellationToken);
+		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 2, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, v1);
 		Assert.Equal(1, v2);
 
-		await Task.Delay(TimeSpan.FromSeconds(2).PlusALittleBit());
+		await Task.Delay(TimeSpan.FromSeconds(2).PlusALittleBit(), TestContext.Current.CancellationToken);
 
-		v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 3);
-		v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 4);
+		v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 3, cancellationToken: TestContext.Current.CancellationToken);
+		v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 4, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(3, v1);
 		Assert.Equal(4, v2);
@@ -556,10 +552,10 @@ public class HybridL1L2Tests
 		var cache1 = new FusionHybridCache(fc1);
 		var cache2 = new FusionHybridCache(fc2);
 
-		await cache1.SetAsync(keyFoo, 21);
+		await cache1.SetAsync(keyFoo, 21, cancellationToken: TestContext.Current.CancellationToken);
 
-		var v1 = await cache1.GetOrDefaultAsync<int>(keyFoo);
-		var v2 = await cache2.GetOrDefaultAsync<int>(keyFoo);
+		var v1 = await cache1.GetOrDefaultAsync<int>(keyFoo, ct: TestContext.Current.CancellationToken);
+		var v2 = await cache2.GetOrDefaultAsync<int>(keyFoo, ct: TestContext.Current.CancellationToken);
 
 		Assert.True(v1 > 0);
 		Assert.True(v2 > 0);
@@ -586,32 +582,32 @@ public class HybridL1L2Tests
 		var cache = new FusionHybridCache(fc);
 
 		// EXECUTE FACTORY
-		var v1 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v1 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// USE CACHED VALUE
-		var v2 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v2 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
 		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
-		await Task.Delay(eagerDuration);
+		await Task.Delay(eagerDuration, TestContext.Current.CancellationToken);
 
 		// EAGER REFRESH KICKS IN
-		var v3 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v3 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		await Task.Delay(TimeSpan.FromMilliseconds(500));
+		await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
 		// GET THE REFRESHED VALUE
-		var v4 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v4 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// WAIT FOR EXPIRATION
-		await Task.Delay(duration.PlusALittleBit());
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// EXECUTE FACTORY AGAIN
-		var v5 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v5 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// USE CACHED VALUE
-		var v6 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v6 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(v1, v2);
 		Assert.Equal(v2, v3);
@@ -643,21 +639,21 @@ public class HybridL1L2Tests
 		var cache = new FusionHybridCache(fc);
 
 		// EXECUTE FACTORY
-		var v1 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v1 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// USE CACHED VALUE
-		var v2 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v2 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
 		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
-		await Task.Delay(eagerDuration);
+		await Task.Delay(eagerDuration, TestContext.Current.CancellationToken);
 
 		// SET DELAY
 		chaosdc.SetAlwaysDelayExactly(syntheticDelay);
 
 		// EAGER REFRESH KICKS IN
 		var sw = Stopwatch.StartNew();
-		var v3 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks);
+		var v3 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
@@ -686,22 +682,22 @@ public class HybridL1L2Tests
 		var cache2 = new FusionHybridCache(fc2);
 
 		// SET ON CACHE 1 AND ON DISTRIBUTED CACHE
-		var v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 10);
+		var v1 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 10, cancellationToken: TestContext.Current.CancellationToken);
 
 		// GET FROM DISTRIBUTED CACHE AND SET IT ON CACHE 2
-		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 20);
+		var v2 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 20, cancellationToken: TestContext.Current.CancellationToken);
 
 		// SET ON DISTRIBUTED CACHE BUT SKIP CACHE 1
-		await cache1.SetAsync<int>(keyFoo, 30, new HybridCacheEntryOptions { Flags = HybridCacheEntryFlags.DisableLocalCache });
+		await cache1.SetAsync<int>(keyFoo, 30, new HybridCacheEntryOptions { Flags = HybridCacheEntryFlags.DisableLocalCache }, cancellationToken: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE 1 (10) AND DON'T CALL THE FACTORY
-		var v3 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 40);
+		var v3 = await cache1.GetOrCreateAsync<int>(keyFoo, async _ => 40, cancellationToken: TestContext.Current.CancellationToken);
 
 		// GET FROM CACHE 2 (10) AND DON'T CALL THE FACTORY
-		var v4 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 50);
+		var v4 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 50, cancellationToken: TestContext.Current.CancellationToken);
 
 		// SKIP CACHE 2, GET FROM DISTRIBUTED CACHE (30)
-		var v5 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 60, new HybridCacheEntryOptions { Flags = HybridCacheEntryFlags.DisableLocalCache });
+		var v5 = await cache2.GetOrCreateAsync<int>(keyFoo, async _ => 60, new HybridCacheEntryOptions { Flags = HybridCacheEntryFlags.DisableLocalCache }, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(10, v1);
 		Assert.Equal(10, v2);
@@ -730,28 +726,28 @@ public class HybridL1L2Tests
 
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>(keyFoo, 21);
-		await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit());
+		await cache.SetAsync<int>(keyFoo, 21, cancellationToken: TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromSeconds(1).PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		chaosdc.SetAlwaysDelayExactly(simulatedDelay);
 
 		var sw = Stopwatch.StartNew();
 		// SHOULD RETURN IMMEDIATELY
-		await cache.SetAsync<int>(keyFoo, 42);
+		await cache.SetAsync<int>(keyFoo, 42, cancellationToken: TestContext.Current.CancellationToken);
 		sw.Stop();
 		logger.Log(LogLevel.Information, "ELAPSED: {ElapsedMilliseconds}ms", sw.GetElapsedWithSafePad().TotalMilliseconds);
 
-		await Task.Delay(TimeSpan.FromMilliseconds(200));
+		await Task.Delay(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken);
 
 		chaosdc.SetNeverDelay();
 
 		mc.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
-		var foo1 = await cache.GetOrDefaultAsync<int>(keyFoo, -1);
+		var foo1 = await cache.GetOrDefaultAsync<int>(keyFoo, -1, ct: TestContext.Current.CancellationToken);
 
-		await Task.Delay(simulatedDelay.PlusALittleBit());
+		await Task.Delay(simulatedDelay.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		mc.Remove(TestsUtils.MaybePreProcessCacheKey(keyFoo, TestingCacheKeyPrefix));
-		var foo2 = await cache.GetOrDefaultAsync<int>(keyFoo, -1);
+		var foo2 = await cache.GetOrDefaultAsync<int>(keyFoo, -1, ct: TestContext.Current.CancellationToken);
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 		logger.LogTrace("Elapsed (with extra pad): {ElapsedMs} ms", elapsedMs);
@@ -785,7 +781,7 @@ public class HybridL1L2Tests
 
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>(keyFoo, 21);
+		await cache.SetAsync<int>(keyFoo, 21, cancellationToken: TestContext.Current.CancellationToken);
 		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
 
 		var didThrow = false;
@@ -795,8 +791,8 @@ public class HybridL1L2Tests
 		{
 			do
 			{
-				await Task.Delay(throttleDuration.PlusALittleBit());
-				await cache.GetOrCreateAsync<int>(keyFoo, async _ => throw new Exception(exceptionMessage));
+				await Task.Delay(throttleDuration.PlusALittleBit(), TestContext.Current.CancellationToken);
+				await cache.GetOrCreateAsync<int>(keyFoo, async _ => throw new Exception(exceptionMessage), cancellationToken: TestContext.Current.CancellationToken);
 			} while (sw.Elapsed < maxDuration + throttleDuration);
 		}
 		catch (Exception exc) when (exc.Message == exceptionMessage)
@@ -823,8 +819,8 @@ public class HybridL1L2Tests
 
 		var cache = new FusionHybridCache(fc);
 
-		await cache.SetAsync<int>(keyFoo, 21);
-		var v1 = await cache.GetOrDefaultAsync<int>(keyFoo);
+		await cache.SetAsync<int>(keyFoo, 21, cancellationToken: TestContext.Current.CancellationToken);
+		var v1 = await cache.GetOrDefaultAsync<int>(keyFoo, ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(21, v1);
 	}
@@ -875,15 +871,15 @@ public class HybridL1L2Tests
 
 		logger.LogInformation("STEP 1");
 
-		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"]);
-		await cache1.SetAsync<int>("bar", 2, tags: ["y", "z"]);
-		await cache2.GetOrCreateAsync<int>("baz", async _ => 3, tags: ["x", "z"]);
+		await cache1.SetAsync<int>("foo", 1, tags: ["x", "y"], cancellationToken: TestContext.Current.CancellationToken);
+		await cache1.SetAsync<int>("bar", 2, tags: ["y", "z"], cancellationToken: TestContext.Current.CancellationToken);
+		await cache2.GetOrCreateAsync<int>("baz", async _ => 3, tags: ["x", "z"], cancellationToken: TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 2");
 
-		var foo1 = await cache2.GetOrCreateAsync<int>("foo", async _ => 11, tags: ["x", "y"]);
-		var bar1 = await cache2.GetOrCreateAsync<int>("bar", async _ => 22, tags: ["y", "z"]);
-		var baz1 = await cache1.GetOrCreateAsync<int>("baz", async _ => 33, tags: ["x", "z"]);
+		var foo1 = await cache2.GetOrCreateAsync<int>("foo", async _ => 11, tags: ["x", "y"], cancellationToken: TestContext.Current.CancellationToken);
+		var bar1 = await cache2.GetOrCreateAsync<int>("bar", async _ => 22, tags: ["y", "z"], cancellationToken: TestContext.Current.CancellationToken);
+		var baz1 = await cache1.GetOrCreateAsync<int>("baz", async _ => 33, tags: ["x", "z"], cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, foo1);
 		Assert.Equal(2, bar1);
@@ -891,14 +887,14 @@ public class HybridL1L2Tests
 
 		logger.LogInformation("STEP 3");
 
-		await cache1.RemoveByTagAsync("x");
-		await Task.Delay(durationOverride.PlusALittleBit());
+		await cache1.RemoveByTagAsync("x", TestContext.Current.CancellationToken);
+		await Task.Delay(durationOverride.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 4");
 
-		var foo2 = await cache1.GetOrDefaultAsync<int>("foo");
-		var bar2 = await cache1.GetOrCreateAsync<int>("bar", async _ => 222, tags: ["y", "z"]);
-		var baz2 = await cache2.GetOrCreateAsync<int>("baz", async _ => 333, tags: ["x", "z"]);
+		var foo2 = await cache1.GetOrDefaultAsync<int>("foo", ct: TestContext.Current.CancellationToken);
+		var bar2 = await cache1.GetOrCreateAsync<int>("bar", async _ => 222, tags: ["y", "z"], cancellationToken: TestContext.Current.CancellationToken);
+		var baz2 = await cache2.GetOrCreateAsync<int>("baz", async _ => 333, tags: ["x", "z"], cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(0, foo2);
 		Assert.Equal(2, bar2);
@@ -906,14 +902,14 @@ public class HybridL1L2Tests
 
 		logger.LogInformation("STEP 5");
 
-		await cache2.RemoveByTagAsync("y");
-		await Task.Delay(durationOverride.PlusALittleBit());
+		await cache2.RemoveByTagAsync("y", TestContext.Current.CancellationToken);
+		await Task.Delay(durationOverride.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 6");
 
-		var foo3 = await cache2.GetOrCreateAsync<int>("foo", async _ => 1111, tags: ["x", "y"]);
-		var bar3 = await cache2.GetOrCreateAsync<int>("bar", async _ => 2222, tags: ["y", "z"]);
-		var baz3 = await cache1.GetOrCreateAsync<int>("baz", async _ => 3333, tags: ["x", "z"]);
+		var foo3 = await cache2.GetOrCreateAsync<int>("foo", async _ => 1111, tags: ["x", "y"], cancellationToken: TestContext.Current.CancellationToken);
+		var bar3 = await cache2.GetOrCreateAsync<int>("bar", async _ => 2222, tags: ["y", "z"], cancellationToken: TestContext.Current.CancellationToken);
+		var baz3 = await cache1.GetOrCreateAsync<int>("baz", async _ => 3333, tags: ["x", "z"], cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1111, foo3);
 		Assert.Equal(2222, bar3);
@@ -963,26 +959,26 @@ public class HybridL1L2Tests
 
 		logger.LogInformation("STEP 1");
 
-		await cache1.SetAsync<int>("foo", 1);
-		await cache1.SetAsync<int>("bar", 2);
+		await cache1.SetAsync<int>("foo", 1, cancellationToken: TestContext.Current.CancellationToken);
+		await cache1.SetAsync<int>("bar", 2, cancellationToken: TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 2");
 
-		var foo2_1 = await cache2.GetOrDefaultAsync<int>("foo");
-		var bar2_1 = await cache2.GetOrDefaultAsync<int>("bar");
+		var foo2_1 = await cache2.GetOrDefaultAsync<int>("foo", ct: TestContext.Current.CancellationToken);
+		var bar2_1 = await cache2.GetOrDefaultAsync<int>("bar", ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, foo2_1);
 		Assert.Equal(2, bar2_1);
 
 		logger.LogInformation("STEP 3");
 
-		await cache1.RemoveByTagAsync("*");
-		await Task.Delay(durationOverride.PlusALittleBit());
+		await cache1.RemoveByTagAsync("*", TestContext.Current.CancellationToken);
+		await Task.Delay(durationOverride.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 4");
 
-		var foo2_3 = await cache2.GetOrDefaultAsync<int>("foo");
-		var bar2_3 = await cache2.GetOrDefaultAsync<int>("bar");
+		var foo2_3 = await cache2.GetOrDefaultAsync<int>("foo", ct: TestContext.Current.CancellationToken);
+		var bar2_3 = await cache2.GetOrDefaultAsync<int>("bar", ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(0, foo2_3);
 		Assert.Equal(0, bar2_3);
@@ -1032,29 +1028,29 @@ public class HybridL1L2Tests
 		var cache3 = new FusionHybridCache(fc3);
 
 		// SET THE ENTRY (WITH SIZE) ON CACHE 1 (WITH SIZE LIMIT)
-		await cache1.SetAsync(key1, 1);
+		await cache1.SetAsync(key1, 1, cancellationToken: TestContext.Current.CancellationToken);
 
-		await Task.Delay(1_000);
+		await Task.Delay(1_000, TestContext.Current.CancellationToken);
 
 		// GET THE ENTRY (WITH SIZE) ON CACHE 2 (WITH SIZE LIMIT)
-		var maybe2 = await cache2.GetOrDefaultAsync<int>(key1);
+		var maybe2 = await cache2.GetOrDefaultAsync<int>(key1, ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, maybe2);
 
 		// SET THE ENTRY (WITH NO SIZE) ON CACHE 3 (WITH NO SIZE LIMIT)
-		await cache3.SetAsync(key2, 2);
+		await cache3.SetAsync(key2, 2, cancellationToken: TestContext.Current.CancellationToken);
 
-		await Task.Delay(1_000);
+		await Task.Delay(1_000, TestContext.Current.CancellationToken);
 
 		// GET THE ENTRY (WITH NO SIZE) ON CACHE 1 (WITH SIZE LIMIT)
 		// -> FALLBACK TO THE SIZE IN THE DEFAULT ENTRY OPTIONS
-		var maybe1 = await cache1.GetOrDefaultAsync<int>(key2);
+		var maybe1 = await cache1.GetOrDefaultAsync<int>(key2, ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(2, maybe1);
 
 		// GET THE ENTRY (WITH NO SIZE) ON CACHE 2 (WITH SIZE LIMIT)
 		// -> FALLBACK TO THE SIZE IN THE ENTRY OPTIONS
-		var maybe2bis = await cache2.GetOrDefaultAsync<int>(key2);
+		var maybe2bis = await cache2.GetOrDefaultAsync<int>(key2, ct: TestContext.Current.CancellationToken);
 
 		Assert.Equal(2, maybe2bis);
 	}
@@ -1088,16 +1084,16 @@ public class HybridL1L2Tests
 		var cache2 = new FusionHybridCache(fc2);
 
 		// SET ENTRY WITH NeverRemove PRIORITY
-		await cache1.SetAsync(key1, 1);
+		await cache1.SetAsync(key1, 1, cancellationToken: TestContext.Current.CancellationToken);
 		// SET ENTRY WITH NeverRemove PRIORITY
-		await cache1.SetAsync(key2, 1);
+		await cache1.SetAsync(key2, 1, cancellationToken: TestContext.Current.CancellationToken);
 
 		// CACHE2 HERE DOES NOT HAVE ENTRIES YET
 		Assert.Equal(2, mc1.Count);
 		Assert.Equal(0, mc2.Count);
 
-		var cache2_key1_1 = await cache2.GetOrCreateAsync<int>(key1, async _ => -1);
-		var cache2_key2_1 = await cache2.GetOrCreateAsync<int>(key2, async _ => -1);
+		var cache2_key1_1 = await cache2.GetOrCreateAsync<int>(key1, async _ => -1, cancellationToken: TestContext.Current.CancellationToken);
+		var cache2_key2_1 = await cache2.GetOrCreateAsync<int>(key2, async _ => -1, cancellationToken: TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, cache2_key1_1);
 		Assert.Equal(1, cache2_key2_1);
@@ -1106,8 +1102,8 @@ public class HybridL1L2Tests
 		Assert.Equal(2, mc1.Count);
 		Assert.Equal(2, mc2.Count);
 
-		await cache1.GetOrDefaultAsync<int>(key1);
-		await cache1.GetOrDefaultAsync<int>(key2);
+		await cache1.GetOrDefaultAsync<int>(key1, ct: TestContext.Current.CancellationToken);
+		await cache1.GetOrDefaultAsync<int>(key2, ct: TestContext.Current.CancellationToken);
 
 		// SAME AS BEFORE
 		Assert.Equal(2, mc1.Count);

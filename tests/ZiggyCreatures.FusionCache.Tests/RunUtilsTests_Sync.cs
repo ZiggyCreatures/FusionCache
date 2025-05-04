@@ -15,7 +15,7 @@ public partial class RunUtilsTests
 
 		Assert.Throws<SyntheticTimeoutException>(() =>
 		{
-			RunUtils.RunAsyncFuncWithTimeout(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { });
+			RunUtils.RunAsyncFuncWithTimeout(async ct => { _hasRun = true; return 42; }, TimeSpan.Zero, false, t => { }, TestContext.Current.CancellationToken);
 		});
 		Assert.False(_hasRun);
 	}
@@ -27,7 +27,7 @@ public partial class RunUtilsTests
 
 		Assert.Throws<SyntheticTimeoutException>(() =>
 		{
-			RunUtils.RunAsyncActionWithTimeout(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { });
+			RunUtils.RunAsyncActionWithTimeout(async ct => { _hasRun = true; }, TimeSpan.Zero, false, t => { }, TestContext.Current.CancellationToken);
 		});
 		Assert.False(_hasRun);
 	}
@@ -59,7 +59,7 @@ public partial class RunUtilsTests
 		var sw = Stopwatch.StartNew();
 		Assert.ThrowsAny<TimeoutException>(() =>
 		{
-			res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); return 42; }, timeout);
+			res = RunUtils.RunAsyncFuncWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); return 42; }, timeout, token: TestContext.Current.CancellationToken);
 		});
 		sw.Stop();
 
@@ -78,7 +78,7 @@ public partial class RunUtilsTests
 		var innerDelay = TimeSpan.FromSeconds(2);
 		Assert.ThrowsAny<TimeoutException>(() =>
 		{
-			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, true);
+			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, true, token: TestContext.Current.CancellationToken);
 		});
 		Thread.Sleep(innerDelay.PlusALittleBit());
 
@@ -93,7 +93,7 @@ public partial class RunUtilsTests
 		var innerDelay = TimeSpan.FromSeconds(2);
 		Assert.ThrowsAny<TimeoutException>(() =>
 		{
-			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, false);
+			RunUtils.RunAsyncActionWithTimeout(async ct => { await Task.Delay(innerDelay); ct.ThrowIfCancellationRequested(); factoryCompleted = true; }, timeout, false, token: TestContext.Current.CancellationToken);
 		});
 		Thread.Sleep((innerDelay + timeout).PlusALittleBit());
 

@@ -19,16 +19,16 @@ public partial class PluginsTests
 		cache.AddPlugin(plugin);
 
 		// MISS: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// MISS: +1
-		cache.GetOrDefault<int>("bar");
+		cache.GetOrDefault<int>("bar", token: TestContext.Current.CancellationToken);
 
 		// STOP PLUGIN AND REMOVE IT
 		cache.RemovePlugin(plugin);
 
 		// MISS: NO CHANGE (BECAUSE IN THEORY THE EVENT HANDLERS SHOULD HAVE BEEN REMOVED)
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.True(plugin.IsStarted, "Plugin has not started");
 		Assert.True(plugin.IsStopped, "Plugin has not stopped");
@@ -49,13 +49,13 @@ public partial class PluginsTests
 		});
 
 		// MISS: NO CHANGE (BECAUSE IN THEORY THE PLUGIN HASN'T BEEN ADDED, BECAUSE EXCEPTION DURING Start())
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		// STOP PLUGIN AND REMOVE IT
 		var isRemoved = cache.RemovePlugin(plugin);
 
 		// MISS: NO CHANGE (BECAUSE IN THEORY THE EVENT HANDLERS SHOULD HAVE BEEN REMOVED)
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.True(plugin.IsStarted, "Plugin has not been started");
 		Assert.False(plugin.IsStopped, "Plugin has been stopped");
@@ -85,7 +85,7 @@ public partial class PluginsTests
 		var plugin = serviceProvider.GetRequiredService<IFusionCachePlugin>() as SimpleEventsPlugin;
 
 		// MISS: +1
-		cache.TryGet<int>("foo");
+		cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.True(plugin!.IsStarted, "Plugin has not been started");
 		Assert.Equal(1, plugin.MissCount);
