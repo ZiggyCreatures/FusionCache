@@ -893,7 +893,7 @@ public partial class L1L2BackplaneTests
 				WaitForInitialBackplaneSubscribe = true,
 			};
 			// LIMIT THE INTERNAL STRINGS
-			options.InternalStrings.SetToLimited();
+			options.InternalStrings.SetToSafeStrings();
 			options.SetInstanceId(instanceId);
 			options.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 			options.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;

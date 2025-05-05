@@ -1,5 +1,14 @@
-﻿
-namespace ZiggyCreatures.Caching.Fusion;
+﻿namespace ZiggyCreatures.Caching.Fusion;
+
+// NOTE: EVERY TIME A NEW INTERNAL STRING IS ADDED,
+// THIS IS WHAT SHOULD BE DONE:
+// 1. ADD THE PROPERTY FOR THE INTERNAL STRING
+// 2. ADD THE CONST FOR THE DEFAULT VALUE
+// 3. SET THE DEFAULT VALUE IN THE CONSTRUCTOR
+// 4. SET THE DEFAULT VALUE IN THE SetToDefaultStrings() METHOD
+// 5. SET A SAFE VALUE IN THE SetToSafeStrings() METHOD
+// 6. ADD THE NEW PROPERTY TO THE GetAll() METHOD
+// 7. ADD THE PROPERTY TO THE Duplicate() METHOD
 
 /// <summary>
 /// Represents the internal strings used by FusionCache to process cache keys, tags, and more.
@@ -62,7 +71,7 @@ public class FusionCacheInternalStrings
 	/// </summary>
 	public FusionCacheInternalStrings()
 	{
-		// NOTE: CAN'T CALL SetToDefaults() HERE BECAUSE THE COMPILER WOULD ANYWAY KEEP
+		// NOTE: CAN'T CALL SetToDefaultStrings() HERE BECAUSE THE COMPILER WOULD ANYWAY KEEP
 		// COMPLAINING ABOUT THE UNINITIALIZED MEMBERS (CacheKeyPrefixSeparator, etc.)
 		CacheKeyPrefixSeparator = DefaultCacheKeyPrefixSeparator;
 		TagCacheKeyPrefix = DefaultTagCacheKeyPrefix;
@@ -139,7 +148,7 @@ public class FusionCacheInternalStrings
 	/// </summary>
 	/// <param name="separator">The preferred separator.</param>
 	/// <param name="specialChar">The preferred special character.</param>
-	public void SetToLimited(char separator = '-', char specialChar = '_')
+	public void SetToSafeStrings(char separator = '-', char specialChar = '_')
 	{
 		var s = separator.ToString();
 		var sc = specialChar.ToString();
@@ -156,7 +165,7 @@ public class FusionCacheInternalStrings
 	/// <summary>
 	/// Reset the internal strings used by FusionCache to the default values.
 	/// </summary>
-	public void SetToDefaults()
+	public void SetToDefaultStrings()
 	{
 		CacheKeyPrefixSeparator = DefaultCacheKeyPrefixSeparator;
 		TagCacheKeyPrefix = DefaultTagCacheKeyPrefix;
