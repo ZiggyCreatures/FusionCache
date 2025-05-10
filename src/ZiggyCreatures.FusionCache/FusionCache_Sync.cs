@@ -12,7 +12,7 @@ public partial class FusionCache
 {
 	// GET OR SET
 
-	private void ExecuteEagerRefreshWithSyncFactory<TValue>(string operationId, string key, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj)
+	private void ExecuteEagerRefreshWithSyncFactory<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj)
 	{
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
@@ -73,7 +73,7 @@ public partial class FusionCache
 			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
 			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
-			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, null, memoryEntry, tags);
+			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
 
 			var factoryTask = Task.Run(() => factory(ctx, default));
 
@@ -81,7 +81,7 @@ public partial class FusionCache
 		});
 	}
 
-	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
 	{
 		options ??= _defaultEntryOptions;
 
@@ -125,7 +125,7 @@ public partial class FusionCache
 						memoryEntry.Metadata.EagerExpirationTimestamp = null;
 
 					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, tags, factory, options, memoryEntry!, memoryLockObj);
+					ExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, memoryLockObj);
 				}
 			}
 
@@ -230,7 +230,7 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
 
-					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options, distributedEntry, memoryEntry, tags);
+					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, distributedEntry, memoryEntry, tags);
 
 					// ACTIVITY
 					var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
@@ -370,7 +370,7 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
-		MaybePreProcessCacheKey(ref key);
+		MaybePreProcessCacheKey(ref key, out var originalKey);
 
 		var tagsArray = tags.AsArray();
 
@@ -391,7 +391,7 @@ public partial class FusionCache
 
 		try
 		{
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, factory, true, failSafeDefaultValue, options, activity, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, originalKey, tagsArray, factory, true, failSafeDefaultValue, options, activity, token);
 
 			if (entry is null)
 			{
@@ -421,7 +421,7 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
-		MaybePreProcessCacheKey(ref key);
+		MaybePreProcessCacheKey(ref key, out var originalKey);
 
 		var tagsArray = tags.AsArray();
 
@@ -439,7 +439,7 @@ public partial class FusionCache
 
 		try
 		{
-			var entry = GetOrSetEntryInternal<TValue>(operationId, key, tagsArray, (_, _) => defaultValue, false, default, options, activity, token);
+			var entry = GetOrSetEntryInternal<TValue>(operationId, key, originalKey, tagsArray, (_, _) => defaultValue, false, default, options, activity, token);
 
 			if (entry is null)
 			{
@@ -522,7 +522,7 @@ public partial class FusionCache
 
 		if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
 		{
-		(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
+			(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
 		}
 
 		// TAGGING

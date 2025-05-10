@@ -1423,4 +1423,53 @@ public partial class L1Tests
 		Assert.Equal(-1, expectedNegOne);
 		Assert.Equal(1, expectedOne);
 	}
+
+	[Fact]
+	public async Task CanAccessCacheKeyInsideFactoryAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		// WITH PREFIX
+		var options1 = new FusionCacheOptions();
+		options1.CacheKeyPrefix = "MyPrefix:";
+		using var cache1 = new FusionCache(options1, logger: logger);
+
+		string? key1 = null;
+		string? originalKey1 = null;
+		await cache1.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) =>
+			{
+				key1 = ctx.Key;
+				originalKey1 = ctx.OriginalKey;
+
+				return 42;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal("MyPrefix:foo", key1);
+		Assert.Equal("foo", originalKey1);
+
+		// WITHOUT PREFIX
+		var options2 = new FusionCacheOptions();
+		using var cache2 = new FusionCache(options2, logger: logger);
+
+		string? key2 = null;
+		string? originalKey2 = null;
+		await cache2.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) =>
+			{
+				key2 = ctx.Key;
+				originalKey2 = ctx.OriginalKey;
+
+				return 42;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal("foo", key2);
+		Assert.Equal("foo", originalKey2);
+	}
 }

@@ -69,13 +69,13 @@ public class NullFusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return await factory(FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options ?? DefaultEntryOptions, null, null, FusionCacheInternalUtils.NoTags), token);
+		return await factory(FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, key, options ?? DefaultEntryOptions, null, null, FusionCacheInternalUtils.NoTags), token);
 	}
 
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return factory(FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(options ?? DefaultEntryOptions, null, null, FusionCacheInternalUtils.NoTags), token);
+		return factory(FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, key, options ?? DefaultEntryOptions, null, null, FusionCacheInternalUtils.NoTags), token);
 	}
 
 	/// <inheritdoc/>

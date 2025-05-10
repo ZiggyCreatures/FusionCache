@@ -277,6 +277,13 @@ public sealed partial class FusionCache
 			key = _cacheKeyPrefix + key;
 	}
 
+	private void MaybePreProcessCacheKey(ref string key, out string originalKey)
+	{
+		originalKey = key;
+		if (_cacheKeyPrefix is not null)
+			key = _cacheKeyPrefix + key;
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private string MaybeGenerateOperationId()
 	{

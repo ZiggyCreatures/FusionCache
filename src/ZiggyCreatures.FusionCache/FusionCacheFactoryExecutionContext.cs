@@ -14,18 +14,43 @@ namespace ZiggyCreatures.Caching.Fusion;
 /// </summary>
 public class FusionCacheFactoryExecutionContext<TValue>
 {
+	private string _key;
+	private string _originalKey;
 	private FusionCacheEntryOptions _options;
 
-	private FusionCacheFactoryExecutionContext(FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified, string[]? tags)
+	private FusionCacheFactoryExecutionContext(string key, string originalKey, FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified, string[]? tags)
 	{
 		if (options is null)
 			throw new ArgumentNullException(nameof(options));
+
+		_key = key;
+		_originalKey = originalKey;
 
 		_options = options;
 		LastModified = lastModified;
 		ETag = etag;
 		StaleValue = staleValue;
 		Tags = tags;
+	}
+
+	/// <summary>
+	/// The PROCESSED cache key: it can include the optional processing (eg: see <see cref="FusionCacheOptions.CacheKeyPrefix"/>).
+	/// <br/><br/>
+	/// <strong>EXAMPLE:</strong> if the CacheKeyPrefix is "MyPrefix:" and the key passed to a GetOrSet call is is "MyKey", Key will have a value of "MyPrefix:MyKey".
+	/// </summary>
+	public string Key
+	{
+		get { return _key; }
+	}
+
+	/// <summary>
+	/// The ORIGINAL cache key, as passed to a GetOrSet call: it will NOT include the optional processing (eg: see <see cref="FusionCacheOptions.CacheKeyPrefix"/>).
+	/// <br/><br/>
+	/// <strong>EXAMPLE:</strong> if the CacheKeyPrefix is "MyPrefix:" and the key passed to a GetOrSet call is is "MyKey", OriginalKey will have a value of "MyKey", without the CacheKeyPrefix applied.
+	/// </summary>
+	public string OriginalKey
+	{
+		get { return _originalKey; }
 	}
 
 	/// <summary>
@@ -173,7 +198,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		return default!;
 	}
 
-	internal static FusionCacheFactoryExecutionContext<TValue> CreateFromEntries(FusionCacheEntryOptions options, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry, string[]? tags)
+	internal static FusionCacheFactoryExecutionContext<TValue> CreateFromEntries(string key, string originalKey, FusionCacheEntryOptions options, FusionCacheDistributedEntry<TValue>? distributedEntry, IFusionCacheMemoryEntry? memoryEntry, string[]? tags)
 	{
 		MaybeValue<TValue> staleValue;
 		string? etag;
@@ -202,6 +227,6 @@ public class FusionCacheFactoryExecutionContext<TValue>
 			lastModified = null;
 		}
 
-		return new FusionCacheFactoryExecutionContext<TValue>(options, staleValue, etag, lastModified, tags);
+		return new FusionCacheFactoryExecutionContext<TValue>(key, originalKey, options, staleValue, etag, lastModified, tags);
 	}
 }
