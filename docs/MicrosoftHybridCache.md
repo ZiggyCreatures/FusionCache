@@ -127,7 +127,7 @@ FusionCache on the other hand has more, like:
 So FusionCache has more features, and that's ok, but one feature currently missing from the Microsoft implementation is pretty important:
 
 > [!WARNING]
-> Although initially planned, the current Microsoft implementation lacks multi-node invalidations (see [here](https://github.com/dotnet/extensions/issues/5517)). This means that when we update a value if the cache in a multi-node scenario, our nodes will be out-of-sync!
+> Although initially planned, the current Microsoft implementation lacks multi-node invalidations (see [here](https://github.com/dotnet/extensions/issues/5517)). This means that when we update a value in the cache in a multi-node scenario, our nodes will be out-of-sync!
 
 Want to find out how to fixthis? Keep reading.
 
@@ -235,13 +235,13 @@ public class SomeService([FromKeyedServices("Foo")] HybridCache cache) {
 }
 ```
 
-And is it possible to do both at the same time? Of course, simply register one FusionCache with `.AsHybridCache()` and or more with `.AsKeyedHybridCache(...)`, that's it.
+Is it possible to do both at the same time? Of course, simply register one FusionCache with `.AsHybridCache()`, then add any additional caches with `.AsKeyedHybridCache(...)`. That's it!
 
 Boom!
 
 ## 🚳 Limitations
 
-The HybridCache API surface area is more limited: for example for each `GetOrCreateAsync()` call we can pass a `HybridCacheEntryOptions` object instead of a `FusionCacheEntryOptions` object.
+The HybridCache API surface area is more limited: for example for each `GetOrCreateAsync()` call we can only pass a `HybridCacheEntryOptions` object instead of a `FusionCacheEntryOptions` object.
 
 Because of this, when using FusionCache via the HybridCache adapter we can configure all of this goodness only at startup, and not on a per-call basis: still, it's a lot of power to have available for when we need or want to depend on the Microsoft abstraction.
 
