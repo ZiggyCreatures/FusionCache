@@ -390,6 +390,29 @@ public partial class L1L2Tests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanSkipDistributedCacheOnReadOnly(SerializerType serializerType)
+	{
+		var keyFoo = CreateRandomCacheKey("foo");
+
+		var dc = new ChaosDistributedCache(CreateDistributedCache());
+		dc.SetAlwaysThrow();
+		using var fc = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
+
+		var v1 = fc.GetOrDefault<int>(
+			keyFoo,
+			options =>
+			{
+				options.ReThrowDistributedCacheExceptions = true;
+				options.SkipDistributedCacheRead = true;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(0, v1);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public void CanSkipDistributedReadWhenStale(SerializerType serializerType)
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
