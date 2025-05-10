@@ -517,10 +517,13 @@ public partial class FusionCache
 		}
 
 		// TRY WITH DISTRIBUTED CACHE
-		FusionCacheDistributedEntry<TValue>? distributedEntry;
-		bool distributedEntryIsValid;
+		FusionCacheDistributedEntry<TValue>? distributedEntry = null;
+		bool distributedEntryIsValid = false;
 
+		if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
+		{
 		(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
+		}
 
 		// TAGGING
 		if (distributedEntry is not null)
