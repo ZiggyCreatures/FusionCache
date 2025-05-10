@@ -235,7 +235,7 @@ public class SomeService([FromKeyedServices("Foo")] HybridCache cache) {
 }
 ```
 
-And is it possible to do both at the same time? Of course, simply register one FusionCache with `.AsHybridCache()` and (or more) with `.AsKeyedHybridCache(...)`, that's it.
+Is it possible to do both at the same time? Of course, simply register the default FusionCache with `.AsHybridCache()`, then add any additional caches with `.AsKeyedHybridCache(...)`. That's it!
 
 Boom!
 
