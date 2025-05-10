@@ -33,6 +33,7 @@ public static class ScratchpadScenario
 		// CACHE OPTIONS
 		var options = new FusionCacheOptions
 		{
+			CacheKeyPrefix = "MyCachePrefix:",
 			DefaultEntryOptions = new FusionCacheEntryOptions
 			{
 				Duration = TimeSpan.FromMinutes(1),
@@ -60,9 +61,11 @@ public static class ScratchpadScenario
 		var backplane = new MemoryBackplane(new MemoryBackplaneOptions());
 		cache.SetupBackplane(backplane);
 
-		const string Key1 = "test key 1";
-		const string Key2 = "test key 2";
+		const string Key1 = "test-key-1";
+		const string Key2 = "test-key-2";
 		const string Value = "test value";
+
+		logger.LogInformation("INFO -> INTERNAL STRINGS: {InternalStrings}", string.Join(',', options.InternalStrings.GetAll()));
 
 		await Task.Delay(250);
 
@@ -72,7 +75,12 @@ public static class ScratchpadScenario
 
 		logger.LogInformation("----------");
 
-		var foo2 = await cache.GetOrSetAsync(Key2, async _ => Value);
+		var foo2 = await cache.GetOrSetAsync<string>(Key2, async (ctx, ct) =>
+		{
+			logger.LogInformation("INFO -> KEY: {Key} - ORIGINAL KEY: {OriginalKey}", ctx.Key, ctx.OriginalKey);
+
+			return Value;
+		});
 
 		logger.LogInformation("----------");
 
