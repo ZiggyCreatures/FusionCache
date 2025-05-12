@@ -262,7 +262,7 @@ app.MapGet("/foo", (IFusionCacheProvider cacheProvider) => {
 or just mark a constructor param or web action param of type `IFusionCache` with the `FromKeyedServices` attribute:
 
 ```csharp
-app.MapGet("/foo", ([FromKeyedServices("MyCache")] IFusionCache) => {
+app.MapGet("/foo", ([FromKeyedServices("MyCache")] IFusionCache cache) => {
     cache.Set("cache-key", 42);
 });
 ```
