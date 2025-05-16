@@ -63,8 +63,8 @@ But why is that?
 
 Well, since FusionCache has the powerful [fail-safe](FailSafe.md) feature, we can pick between two operations:
 
-- `Clear(true)`: basically like an "expire all", where entries with fail-safe enabled wil be marked as expired so they can be used as a fallback later on. This uses the special `"*"` tag
-- `Clear(false)`: basically like a "remove all", where entries wil be removed for good. This uses the special `"!"` tag
+- `Clear(true)`: basically like an "expire all", where entries wil be marked as expired so they can be used as a fallback later on with fail-safe. This uses by default the special `"*"` tag
+- `Clear(false)`: basically like a "remove all", where entries wil be removed for good. This by default uses the special `"!"` tag
 
 ## 🚀 Performance Considerations
 

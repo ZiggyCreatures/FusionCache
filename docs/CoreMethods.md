@@ -12,8 +12,8 @@ At a high level there are 6 core methods:
 - `GetOrSet[Async]`
 - `GetOrDefault[Async]`
 - `TryGet[Async]`
-- `Expire[Async]`
 - `Remove[Async]`
+- `Expire[Async]`
 
 All of them work **on both the memory cache and the distributed cache** (if any) in a transparent way: you don't have to do anything extra for it to coordinate the 2 levels.
 
@@ -41,7 +41,7 @@ cache.Set("foo", 42, TimeSpan.FromSeconds(30));
 
 This is the most important and powerful method available, and it does **a lot** for you.
 
-It tries to **GET** the value in the cache for the specified key and, if there (and not expired), it returns it.
+It tries to **GET** the value in the cache for the specified key and, if there (and not expired), returns it.
 
 Easy peasy.
 
@@ -189,32 +189,6 @@ int result = maybeFoo;
 > [!NOTE]
 > It's not possible to use the classic method signature of `bool TryGet<TValue>(string key, out TValue value)` to set a value with an `out` parameter because .NET does not allow it on async methods (for good reasons) and I wanted to keep the same signature for every method in both sync/async versions.
 
-## Expire[Async]
-
-It is used to explicitly **EXPIRE** the value in the cache for the specified key.
-
-But wait, what is the difference between `Expire()` and `Remove()`? With `Remove()` the value is actually removed, totally. With `Expire()` instead, it depends on how [fail-safe](FailSafe.md) is configured:
-
-- if fail-safe is enabled: the entry will marked as _logically_ expired, but will still be available as a fallback value in case of future problems
-- if fail-safe is disabled: the entry will be effectively removed
-
-This method may be is useful in case we want to treat something as remove, but with the ability to say _"better than nothing"_ in the future, in case of problems (thanks to fail-safe).
-
-### Example
-
-```csharp
-cache.Set("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
-
-cache.Expire("foo", opt => opt.SetFailSafe(true));
-
-// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
-foo = cache.GetOrDefault<int>("foo");
-
-// THIS WILL GET BACK 42
-foo = cache.GetOrDefault<int>("foo", opt => opt.SetFailSafe(true));
-```
-
-
 ## Remove[Async]
 
 It is used to **REMOVE** a value from the cache for the specified key. If nothing is there, nothing will happen.
@@ -231,6 +205,40 @@ cache.Remove("foo");
 cache.Remove("foo");
 ```
 
+## Expire[Async]
+
+It is used to explicitly **EXPIRE** the value in the cache for the specified key.
+
+But wait, what is the difference between `Remove()` and `Expire()`?
+
+
+Well:
+- with `Remove()` the entry is actually removed, for real
+- with `Expire()` the entry is marked expired, like _logically_ removed, but remains available as a fallback (only if asked for explicitly)
+
+And how to explicitly say that we are ok with an expired value?
+
+Easy, on an entry options object (`FusionCacheEntryOptions`) we simply do this:
+- for read-only methods like `TryGet` and `GetOrDefault`, we can do `SetAllowStaleOnReadOnly(true)`
+- for read-write methods like `GetOrSet`, we can do `SetFailSafe(true)`
+
+Basically the `Expire()` method is useful in case we want to treat something as logically removed, but with the added ability to say _"better than nothing"_ in the future in case of problems.
+
+### Example
+
+```csharp
+cache.Set("foo", 42, opt => opt.SetDuration(TimeSpan.FromSeconds(10)).SetFailSafe(true));
+
+cache.Expire("foo");
+
+// THIS WILL GET BACK 0, WHICH IS THE DEFAULT VALUE FOR THE TYPE int
+foo = cache.GetOrDefault<int>("foo");
+
+// THIS WILL GET BACK 42
+foo = cache.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly(true));
+```
+
+
 ## ♻️ Common overloads
 
 Every core method that needs a set of options (`FusionCacheEntryOptions`) for how to behave has different overloads to let you specify these options, for better ease of use.
@@ -241,6 +249,8 @@ You can choose between passing:
 - **Options**: you directly pass a `FusionCacheEntryOptions` object. This gives you total control over each option, but you have to instantiate it yourself and **does not copy** the global `DefaultEntryOptions`
 - **Setup action**: you pass a `lambda` that receives a duplicate of the `DefaultEntryOptions` so you start from there and modify it as you like (there's also a set of *fluent methods* to do that easily)
 - **Duration**: you simply pass a `TimeSpan` value for the duration. This is the same as the previous one (start from default + duplicate + lambda) but for the common scenario of when you only want to change the duration
+
+We can read more about the available options (both per-cache and per-entry) at the dedicated [page](Options.md).
 
 ## 🤷‍♂️ `MaybeValue<T>`
 
@@ -258,12 +268,12 @@ Currently this type is used inside FusionCache in 2 places:
 - as the type for the `failSafeDefaultValue` param in the `GetOrSet[Async]` methods, so that it's possible to clearly specify with only 1 param both "no value" or the value itself, easily
 
 
-Oh, and if you are into *functional programming* you may smell a scent of Option/Maybe monad: yep, can confirm 👍
+Oh, and if you are into *functional programming* you may smell a scent of Option/Maybe monad: yep, can confirm.
 
 
 ## 🤔 Why no `Get<T>` ?
 
-You may be wondering why the quite common `Get<T>` method is missing.
+Some may be wondering why there is not simply a `Get<T>` method.
 
 It is because its behavior would correspond to FusionCache's `GetOrDefault<T>` method above, but with 2 problems:
 

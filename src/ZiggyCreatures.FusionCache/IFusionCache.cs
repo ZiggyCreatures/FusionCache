@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using System.ComponentModel;
+using Microsoft.Extensions.Caching.Distributed;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -176,10 +177,22 @@ public interface IFusionCache
 	// EXPIRE
 
 	/// <summary>
-	/// Expires the cache entry for the specified <paramref name="key"/>: that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
+	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// <br/>
+	/// Expiring an entry means that:
+	/// <br/>
+	/// - in L1 (memory cache) it's <strong>logically</strong> removed while <strong>physically</strong> kept around as a fallback (only if asked for explicitly)
+	/// <br/>
+	/// - in L2 (distributed cache), if any, the entry is always physically removed
 	/// <br/>
 	/// <br/>
-	/// In the distributed cache (if any), the entry will always be effectively removed.
+	/// How to explicitly say later on that we are ok with getting an expired value in a later call?
+	/// <br/>
+	/// Easy, in the entry options (<see cref="FusionCacheEntryOptions"/>) we simply do this:
+	/// <br/>
+	/// - for read-only methods like TryGet and GetOrDefault, we can do SetAllowStaleOnReadOnly(true)
+	/// <br/>
+	/// - for read-write methods like GetOrSet, we can do SetFailSafe(true)
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
@@ -188,10 +201,22 @@ public interface IFusionCache
 	ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default);
 
 	/// <summary>
-	/// Expires the cache entry for the specified <paramref name="key"/>: that can mean an Expire (if fail-safe was enabled when saving the entry) or a Remove (if fail-safe was NOT enabled when saving the entry), all automatically.
+	/// Expires the cache entry for the specified <paramref name="key"/>.
+	/// <br/>
+	/// Expiring an entry means that:
+	/// <br/>
+	/// - in L1 (memory cache) it's <strong>logically</strong> removed while <strong>physically</strong> kept around as a fallback (only if asked for explicitly)
+	/// <br/>
+	/// - in L2 (distributed cache), if any, the entry is always physically removed
 	/// <br/>
 	/// <br/>
-	/// In the distributed cache (if any), the entry will always be effectively removed.
+	/// How to explicitly say later on that we are ok with getting an expired value in a later call?
+	/// <br/>
+	/// Easy, in the entry options (<see cref="FusionCacheEntryOptions"/>) we simply do this:
+	/// <br/>
+	/// - for read-only methods like TryGet and GetOrDefault, we can do SetAllowStaleOnReadOnly(true)
+	/// <br/>
+	/// - for read-write methods like GetOrSet, we can do SetFailSafe(true)
 	/// </summary>
 	/// <param name="key">The cache key which identifies the entry in the cache.</param>
 	/// <param name="options">The options to adhere during this operation. If null is passed, <see cref="DefaultEntryOptions"/> will be used.</param>
