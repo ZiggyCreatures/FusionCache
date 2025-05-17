@@ -137,7 +137,7 @@ public class BackplaneMessage
 	/// Serializes a backplane message to a byte array.
 	/// </summary>
 	/// <param name="message">The backplane message to serialize.</param>
-	/// <returns></returns>
+	/// <returns>The message as a byte[].</returns>
 	public static byte[] ToByteArray(BackplaneMessage? message)
 	{
 		if (message is null)

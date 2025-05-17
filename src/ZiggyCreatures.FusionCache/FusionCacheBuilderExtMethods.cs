@@ -1511,7 +1511,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// Register this FusionCache instance also as a <see cref="HybridCache"/> service, so that it can be used even when you need to depend on Microsoft's own hybrid cache abstraction.
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <returns></returns>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AsHybridCache(this IFusionCacheBuilder builder)
 	{
 		builder.Services.AddSingleton<HybridCache>(sp =>
@@ -1531,7 +1531,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
 	/// <param name="serviceKey">The keyed service key to use.</param>
-	/// <returns></returns>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AsKeyedHybridCache(this IFusionCacheBuilder builder, object? serviceKey)
 	{
 		builder.Services.AddKeyedSingleton<HybridCache>(serviceKey, (sp, _) =>
@@ -1550,7 +1550,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <returns></returns>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder AsKeyedHybridCacheByCacheName(this IFusionCacheBuilder builder)
 	{
 		return builder.AsKeyedHybridCache(builder.CacheName);
@@ -1673,7 +1673,7 @@ public static partial class FusionCacheBuilderExtMethods
 	/// Instead of using the default implementation (<see cref="FusionCache"/>), use a null implementation (<see cref="NullFusionCache"/>)."/>
 	/// </summary>
 	/// <param name="builder"></param>
-	/// <returns></returns>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	/// <exception cref="ArgumentNullException"></exception>
 	public static IFusionCacheBuilder WithNullImplementation(this IFusionCacheBuilder builder)
 	{
