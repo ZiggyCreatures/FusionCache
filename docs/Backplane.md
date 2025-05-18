@@ -27,54 +27,69 @@ A backplane is like a message bus where change notifications will be published t
 
 By default, everything is handled transparently for us 🎉
 
-## 👩‍🏫 How it works
 
-As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N1`, `N2`, `N3`):
+## ✉️ Notifications: what they are?
 
+Each notifications contains the minimum set of informations needed for the system to be kept in-sync.
+
+Since notifications for a cache entry may not be needed on all the other nodes, this means that each notification does NOT contain the entire payload for a cache entry, meaning the cache value is NOT included.
+
+This is important, because it allows the backplane (and so, the network) to not be overloaded with potentialy big payloads for data that may not be used.
+
+
+## 📩 Notifications: then what?
+
+Ok so what happens when a notification is sent and received?
+
+When we think about it, there are 3 _potential_ ways in which FusionCache could handle an update on 1 node, at least theoretically:
+1. **ACTIVE:** send the change notification, including the updated data
+2. **PASSIVE:** send the change notification, and each node will update its L1 immediately, getting the value from L2
+3. **LAZY:** send the change notification, and each node will remove their L1 copy (since it's old now) so that a subsequent read will get it from L2
+
+The first approach (ACTIVE) is not really good, since it has these problems:
+- requires an extra serialization step for the data to be transmitted
+- requires a bigger payload for the notification, sent to all clients
+- all of this would be useless in case the data is not actually needed on all the other nodes (realistic)
+
+The second approach (PASSIVE) is not good either, since it has these problems:
+- every node will request the data from L2 immediately, even if that cache key is not used on its own L1, generating useless traffic
+- all of this would be useless in case the data is not actually needed on all the nodes (realistic)
+
+The third approach (LAZY) seems like the best approach, because it does not involve extra network traffic and in general the problems of the ACTIVE or PASSIVE approaches.
+
+Having said that, there's one extra optimization FusionCache does: if the receiving nodes already have the cache entry specified in the notification in their own L1, that means that those nodes already worked with that cache entry and potentially will do again. Without an immediate update to that cache entry, the next access will trigger a refresh, which could've been done earlier.
+
+So what FusionCache does is a mixture of LAZY and (adaptive) PASSIVE, getting the best of both worlds: it sends the notification without sending the data and immediately updates the data in L1 (taken from L2) but ONLY on the nodes where the cache entry is already present on their L1. So, if cache key `"foo"` is in the L1 of only 2 nodes out of 10, only those 2 nodes will get the data from L2.
+
+One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: `Set()`) and a notification for the removal of a piece of data (eg: `Remove()`) and one for the expire of a piece of data (eg: `Expire()`).
+
+But why is that?
+
+Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore, and if it has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md).
+
+
+## 👩‍🏫 Example
+
+As an example, let's look at the flow of a `GetOrSet` operation with 3 nodes (`N1`, `N2`, `N3`): each node has its own memory cache (L1) and is connected to the same distributed cache (L2).
+
+Let's follow the sequence of operations:
 - `GetOrSet` is called on `N1`
-- no data is found in the memory on `N1` or in the distributed cache (or it is expired): call to the database to grab fresh data
+- no data is found in the memory cache on `N1` or in the distributed cache (or it is expired): call to the database to grab fresh data
 - fresh data saved in memory cache on `N1` + distributed cache
 - a backplane notification is sent to notify the other nodes
-- the notification is received on `N2` and `N3` and they evict the entry from their own respective memory cache
+- the notification is received on `N2` and `N3`: they check their memory cache and see that the entry is not there
 - as soon as a new request for the same cache entry arrives on `N2` or `N3`, the new version is taken from the distributed cache and saved locally on their memory cache
 - `N1`, `N2`, `N3` live happily synchronized ever after
 
 As we can see we didn't have to do anything more than usual: everything else is done automatically for us.
 
-Finally we can even execute the backplane operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
+Finally, as a cherry on top, we can even execute the backplane operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
-## 📩 Notifications: then what?
-
-One detail that may be interesting to know is what happens when a notification is sent.
-
-When we think about it, there are 3 things that could be done after some data changes (at least theoretically):
-1. **ACTIVE:** send the change notification, including the updated data
-2. **PASSIVE:** send the change notification, and each client will update it immediately
-3. **LAZY:** send the change notification, and each client will remove their local version of the data (since it's old now)
-
-The first approach (ACTIVE) is not really good, since it has these problems:
-- requires an extra serialization step for the data to be transmitted
-- requires a bigger payload for the notification, sent to all clients
-- all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
-
-The second approach (PASSIVE) is not good either, since it has these problems:
-- every node will request the data from the distributed cache, generating useless traffic
-- all of this would be useless in case the data is not actually needed on all the nodes (very realistic)
-
-The third approach (LAZY) seems like the best approach, because it does not involve extra network traffic and in general the problems of ACTIVE or PASSIVE.
-Having said that, if the receiving nodes already have the entry related to the notification in the L1 cache, that means they already worked with that cache entry, and that may indicate they'll do that again: without an immediate update to that entry, the next access will trigger a refresh, which could've been done earlier.
-
-So what FusionCache does is a mixture of PASSIVE and LAZY, getting the best of both worlds: it sends the notification without sending the data and immediately updates the data in L1 (taken from L2) but ONLY if it's already there on that node's L1. So, if cache key `"foo"` is in the memory cache of only 2 of 10 nodes, only those 2 nodes will get the data from L2.
-
-One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: `Set()`) and a notification for the removal of a piece of data (eg: `Expire()` or `Remove()`).
-
-But why is that?
-
-Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore. On the other hand if a piece of data is changed, the other nodes will simply mark their local cached copies (if any) as expired, so that subsequent calls for the same data may return the old version in case of problems, if fail-safe will be enabled for those calls. Finally, `Expire()` or `Remove()` does not require any payload being sent over the network to be totally applied on every node.
 
 ## ↩️ Auto-Recovery
 
 Since the backplane is implemented on top of a distributed component (just like the distributed cache), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature: you can read more on the related [docs page](AutoRecovery.md).
+
 
 ## 📦 Packages
 
