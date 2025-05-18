@@ -73,9 +73,9 @@ but more something like this:
 Ok so what happens when a notification is sent and received?
 
 When we think about it, there are 3 _potential_ ways in which FusionCache could handle an update on 1 node, at least theoretically:
-1. **ACTIVE:** send the change notification, including the updated data
-2. **PASSIVE:** send the change notification, and each node will update its L1 immediately, getting the value from L2
-3. **LAZY:** send the change notification, and each node will remove their L1 copy (since it's old now) so that a subsequent read will get it from L2
+1. **ACTIVE:** send the notification, including the updated data
+2. **PASSIVE:** send the notification, and each node will update its L1 immediately, getting the value from L2
+3. **LAZY:** send the notification, and each node will remove their L1 copy (since it's old now) so the next request will get it from L2
 
 The first approach (ACTIVE) is not really good, since it has these problems:
 - requires an extra serialization step for the data to be transmitted
