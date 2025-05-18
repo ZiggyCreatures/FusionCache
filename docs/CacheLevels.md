@@ -8,7 +8,7 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| To ease cold starts and/or help with horizontal scalability (multiple nodes with their own local memory cache) it's possible to setup a 2nd level. At setup time, simply pass any implementation of `IDistributedCache` and a serializer: the existing code does not need to change, it all just works. |
+| To ease cold starts and/or help with horizontal scalability (multiple nodes with their own local memory cache) it's possible to setup a 2nd level, known as L2. At setup time, simply pass any implementation of `IDistributedCache` and a serializer: the existing code does not need to change, it all just works. |
 
 When our apps restarts and we are using only the 1st level (memory), the cache will need to be repopulated from scratch since the cached values are stored only in the memory space of the apps themselves.
 
@@ -39,32 +39,34 @@ Luckily, FusionCache can help us.
 
 FusionCache allows us to have 2 caching levels, transparently handled by FusionCache for us:
 
-- **1️⃣ Primary (Memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
-- **2️⃣ Secondary (Distributed)**: is an *optional* distributed cache and it serves the purpose of **easing a cold start** or **sharing data with other nodes**
+- **1️⃣ L1 (memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
+- **2️⃣ L2 (distributed)**: is an *optional* distributed cache and it serves the purpose of **easing a cold start** or **sharing data with other nodes**
 
 Everything required to have the 2 levels communicate between them is handled transparently for us.
 
-Since the 2nd level is distributed, and we know from the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) that stuff can bo bad, all the issues that may happend there can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation.
+Since L2 is distributed, and we know from the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) that stuff can go bad, all the issues that may happend there can be automatically handled by FusionCache to not impact the overall application, all while (optionally) tracking any detail of it for further investigation (via [Logging](Logging.md) and [OpenTelemetry](OpenTelemetry.md)).
 
 Any implementation of the standard `IDistributedCache` interface will work (see below for a list of the available ones), so we can pick Redis, Memcached or any technology we like.
 
-Because a distributed cache talks in binary data (meaning `byte[]`) we also need to specify a *serializer*: since .NET does not have a generic interface representing a binary serializer, FusionCache defined one named `IFusionCacheSerializer`. We simply provide an implementation of that by picking one of the existing ones, which natively support formats like Json, MessagePack and Protobuf (see below) or create our own.
+Because a distributed cache talks in binary data (meaning `byte[]`) we also need to specify a *serializer*: since .NET does not have a generic interface representing a binary serializer, FusionCache defined one named `IFusionCacheSerializer`. We simply provide an implementation of that by picking one of the existing ones, which natively support formats like Json, Protobuf, MessagePack and more (see below) or create our own.
 
-In the end this basically it boils down to 2 possible ways:
+In the end this boils down to 2 possible ways:
 
 - **MEMORY ONLY (L1):** FusionCache will act as a normal memory cache
-- **MEMORY + DISTRIBUTED (L1+L2):** if we also setup a 2nd level, FusionCache will automatically coordinate the 2 levels gracefully handling all edge cases to get a smooth experience
+- **MEMORY + DISTRIBUTED (L1+L2):** if we also setup an L2, FusionCache will automatically coordinate the 2 levels, while gracefully handling all edge cases to get a smooth experience
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), advanced [timeouts](Timeouts.md) and so on.
 
 Also, if needed, we can use a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option: in this way updates to the distributed cache can be picked up more frequently, in case we don't want to use a [backplane](Backplane.md) for some reason.
 
-Finally we can even execute the distributed cache operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
+Finally we can even execute the distributed operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
 
 ## 📢 Backplane
 
-When using a distributed 2nd level, each local memory cache may become out of sync with the other nodes after a change: to solve this, it is suggested to also use a backplane.
+When using multiple nodes for horizontal scalability we can use an L2 as a shared cache for all the nodes to use.
+
+But each L1 cache in each node may become out of sync with the other nodes after a change on a specific node: to solve this, it is suggested to also use a backplane.
 
 All the existing code will remain the same, it's just a 1 line change at setup time.
 
@@ -75,7 +77,7 @@ Read [here](Backplane.md) for more.
 
 Good, good, so FusionCache takes care of coordinating everything between L1, L2 and maybe the backplane, if enabled.
 
-But... it can still be complicated to make up our mind about it, right? It would be just nice to be able to _visualize_ what we just said... so, diagrams!
+But... it can still be complex to grasp all of that at once, right? Wouldn't it be nice to be able to _visualize_ what we just said? Yes, it would so: diagrams!
 
 <div align="center">
 
