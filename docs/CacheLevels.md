@@ -46,7 +46,7 @@ Everything required to have the 2 levels communicate between them is handled tra
 
 Since L2 is distributed, and we know from the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) that stuff can go bad, all the issues that may happend there can be automatically handled by FusionCache to not impact the overall application, all while (optionally) tracking any detail of it for further investigation (via [Logging](Logging.md) and [OpenTelemetry](OpenTelemetry.md)).
 
-Any implementation of the standard `IDistributedCache` interface will work (see below for a list of the available ones), so we can pick Redis, Memcached or any technology we like.
+Any implementation of the standard `IDistributedCache` interface will work (see [below](#-packages) for a list of the available ones), so we can pick Redis, Memcached or any technology we like.
 
 Because a distributed cache talks in binary data (meaning `byte[]`) we also need to specify a *serializer*: since .NET does not have a generic interface representing a binary serializer, FusionCache defined one named `IFusionCacheSerializer`. We simply provide an implementation of that by picking one of the existing ones, which natively support formats like Json, Protobuf, MessagePack and more (see below) or create our own.
 
