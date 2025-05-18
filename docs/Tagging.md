@@ -230,6 +230,21 @@ What about entries that are already expired, but kept around because of fail-saf
 
 There are also some internal optimizations made specifically for the Tagging feature, to make it even better: an example is that when we do a `RemoveByTag()` and we are using a [backplane](Backplane.md), the nodes receiving the notifications will already have the data needed to immediately update the local memory level (L1) with that data. This will avoid an extra remote read on L2 in the future when it would've been needed, making the information immediately available.
 
+## 🔍 Other Massive Operations
+
+Some may ask themselves if it would be possible to also support other massive operations, like "get by tag" or "search".
+
+The answer is no, because of 2 main reasons:
+- we are limited by what is available on the `IDistributedCache` abstraction
+- distributed caches don't physically support these operations anyway
+
+As we saw [above](#-limitations) we are limited by the operations available on the shared `IDistributedCache` abstraction, so it's not possible to support such operations.
+
+But even more than that, basically no existing distributed cache physically supports massive operations like a _"get by tags"_ or a more generic _"search"_.
+
+Distributed caches are typically key-value stores, working primarily on one single key at a time: some of them, like Redis, _may_ support operations like "get by (multiple) keys" or other techniques like lists, but there are a lot of limitations and caveats and it's generally a bad idea to try to pretend like those limits are not there.
+
+
 ## 🧱 Of Ancient Egypt and Suffolk, England
 
 Look at this beauty:
