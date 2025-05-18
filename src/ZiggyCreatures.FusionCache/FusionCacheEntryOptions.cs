@@ -1092,8 +1092,7 @@ public sealed class FusionCacheEntryOptions
 			Priority = Priority,
 			JitterMaxDuration = JitterMaxDuration,
 
-			// NOTE: PERF MICRO-OPT
-			_eagerRefreshThreshold = _eagerRefreshThreshold,
+			EagerRefreshThreshold = EagerRefreshThreshold,
 
 			AllowStaleOnReadOnly = AllowStaleOnReadOnly,
 
