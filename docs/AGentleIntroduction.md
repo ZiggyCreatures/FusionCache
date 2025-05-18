@@ -157,14 +157,14 @@ Read more [**here**](NamedCaches.md).
 
 ## Ⓜ️ Support for Microsoft HybridCache ([more](MicrosoftHybridCache.md))
 
-With .NET 9, Microsoft released their new [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0).
+With .NET 9, Microsoft released their new [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0) abstraction.
 
-This may turn the HybridCache abstract class into some sort of "lingua franca" for a basic set of common features for all hybrid caches in .NET.
+This may turn the `HybridCache` abstract class into some sort of "lingua franca" for a basic set of common features for all hybrid caches in .NET, just like the `IDistributedCache` interface did.
 
-So FusionCache is available ALSO as an implementation of HybridCache, via an adapter class.
+So FusionCache is ALSO available as an implementation of HybridCache, via an adapter class.
 
 > [!IMPORTANT]
-> FusionCache is the FIRST 3rd party implementation of HybridCache from Microsoft. But not just that: in a strange turn of events, since at the time of this writing (Jan 2025) Microsoft has not yet released their default implementation, FusionCache is the FIRST production-ready implementation of HybridCache AT ALL, including the one by Microsoft itself. Quite bonkers 🤯
+> FusionCache is the FIRST 3rd party implementation of Microsoft HybridCache. But not just that: since Microsoft released their default implementation later, in a strange turn of events FusionCache became the first production-ready implementation of HybridCache AT ALL, including Microsoft's own. Quite bonkers 🤯
 
 Read more [**here**](MicrosoftHybridCache.md).
 
