@@ -174,11 +174,19 @@ This means that, if we specified a `CacheKeyPrefix` like `"MyPrefix:"`, when we 
 cache.Set("foo", 123, tags: ["tag-1", "tag-2"])
 ```
 
-the actual cache key that will be used inside of our distributed cache will be:
+the cache key used inside our L1 (memory cache) will be this:
+
+```text
+MyPrefix:foo
+```
+
+while the cache key used inside our L2 (distributed cache) will be:
 
 ```text
 v2:MyPrefix:foo
 ```
+
+As one last note to recap: why does the cache key inside L1 doesn't need the extra `"v2:"` prefix? Because it's a _memory_ cache, meaning that at every restart of our app the memory cache will be empty, everything will start from scratch and therefore we can't have issues of old VS new structures.
 
 
 ## 💾 Disk Cache ([more](DiskCache.md))
