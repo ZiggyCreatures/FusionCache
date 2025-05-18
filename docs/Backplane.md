@@ -92,11 +92,11 @@ Having said that, there's one extra optimization FusionCache does: if the receiv
 
 So what FusionCache does is a mixture of LAZY and (adaptive) PASSIVE, getting the best of both worlds: it sends the notification without sending the data and immediately updates the data in L1 (taken from L2) but ONLY on the nodes where the cache entry is already present on their L1. So, if cache key `"foo"` is in the L1 of only 2 nodes out of 10, only those 2 nodes will get the data from L2.
 
-One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: `Set()`) and a notification for the removal of a piece of data (eg: `Remove()`) and one for the expire of a piece of data (eg: `Expire()`).
+One final thing to notice is that FusionCache automatically differentiates between a notification for a change in a piece of data (eg: `Set()`), a notification for the removal of a piece of data (eg: `Remove()`) and one for the expire of a piece of data (eg: `Expire()`).
 
 But why is that?
 
-Because if something has been removed from the cache, it will effectively be removed on all the other nodes, to avoid returning something that does not exist anymore, and if it has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md).
+Because if something has been removed from the cache, it should be effectively removed on all the other nodes to avoid returning something that does not exist anymore, while if something has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md).
 
 
 ## 👩‍🏫 Example
