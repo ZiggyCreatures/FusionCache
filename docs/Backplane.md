@@ -54,7 +54,7 @@ As an example using some **pseudo** code, a notifications is **NOT** something l
 }
 ```
 
-but moresomething like this:
+but more something like this:
 
 ```json5
 {
