@@ -110,7 +110,7 @@ At the same time though, if we have different apps and services that use the sam
 
 Again, nothing catastrophic, but something to consider.
 
-## 💾 Disk Cache
+## 💾 Disk Cache ([more](DiskCache.md))
 
 In certain situations we may like to have some of the benefits of a 2nd level like better cold starts (when the memory cache is initially empty) but at the same time we don't want to have a separate **actual** distributed cache to handle, or we simply cannot have it: a good example may be a mobile app, where everything should be self contained.
 
