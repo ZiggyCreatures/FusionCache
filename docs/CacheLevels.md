@@ -88,27 +88,98 @@ But... it can still be complex to grasp all of that at once, right? Wouldn't it 
 Read [here](Diagrams.md) for more.
 
 
+## ✉️ Wire Format Envelope
+
+Something that may surprise at first is that what ends up in L2 is not _only_ the values we want to cache: there's more.
+
+This is because to allow FusionCache to do all the things that it does, some extra bits of informations are needed, like the timestamp at which an entry has been created, or the entry's tags to support [Tagging](Tagging.md) or more.
+
+When we think about it, we need to put that data somewhere so it makes total sense right?
+
+So how is it stored? Well the value + the metadata is put into a structure we can call the _envelope_, which really is the cache entry itself.
+
+And this, in turn, means that if we do this:
+
+```c#
+cache.Set("foo", 123, tags: ["tag-1", "tag-2"])
+```
+
+and we are using, for example, a JSON serializer and Redis as L2, what ends up inside our beloved Redis instance for the cache key `"foo"` will NOT be this:
+
+```json
+123
+```
+
+but more something like this:
+
+```json5
+{
+  "value": 123,
+  "timestamp": 123456789,
+  "tags": ["tag-1", "tag-2"],
+  // MORE METADATA HERE...
+}
+```
+
+As said this all makes sense when we think about it, but sometimes it may surprise people looking into their Redis instance for the first time and finding "something more".
+
+
 ## 🗃 Wire Format Versioning
 
 When working with the memory cache, everything is easier: at every run of our apps or services everything starts clean, from scratch, so even if there's a change in the structure of the cache entries used by FusionCache there's no problem.
 
 The distributed cache, instead, is a different beast: when saving a cache entry in there, that data is shared between different instances of the same applications, between different applications altogether and maybe even with different applications that are using a different version of FusionCache.
 
-So when the structure of the cache entries need to change to evolve FusionCache, how can this be managed?
+As seen above what gets saved into our L2 is not just the value itself, but a structure which contains the value + some metadata, but what happens when the structure of the cache entries (envelope) needs to change to evolve FusionCache?
 
-Easy, by using an additional cache key modifier for the distributed cache, so that if and when the version of the cache entry structure changes, there will be no issues serializing or deserializing different versions of the saved data.
+See, the problem is that a distributed cache is _kinda_ like a database in this regard, meaning we can save data there, stop the app, change something, restart it and now the app will try to deserialize an old version of our data structures into a new one, and this can create problems.
 
-In practice this means that, when saving something for the cache key `"foo"`, in reality in the distributed cache it will be saved with the cache key `"v0:foo"`.
+So, how can FusionCache managed this?
 
-This has been planned from the beginning, and is the way to manage changes in the wire format used in the distributed cache between updates: it has been designed in this way specifically to support FusionCache to be updated safely and transparently, without interruptions or problems.
+Easy, by using an additional cache key modifier for the distributed cache, so that if and when the version of the cache entry structure changes, there will be no issues serializing or deserializing a new version of the data.
 
-So what happens when there are 2 versions of FusionCache running on the same distributed cache instance, for example when two different apps share the same distributed cache and one is updated and the other is not?
+In practice this means that when doing something like this:
 
-Since the old version will write to the distributed cache with a different cache key than the new version, this will not create conflicts during the update, and it means that we don't need to stop all the apps and services that works on it and wipe all the distributed cache data just to do the upgrade.
+```c#
+cache.Set("foo", 123, tags: ["tag-1", "tag-2"])
+```
 
-At the same time though, if we have different apps and services that use the same distributed cache shared between them, we need to understand that by updating only one app or service and not the others will mean that the ones updated will read/write using the new distributed cache keys, while the non updated ones will keep read/write using the old distributed cache keys.
+the actual cache key that will be used inside of our Redis instance will NOT be just:
+
+```text
+foo
+```
+
+but in reality something like:
+
+```text
+v2:foo
+```
+
+This has been planned from the beginning, and is the way to manage changes in the wire format (envelope) used in the distributed cache between updates: it has been designed in this way specifically to support FusionCache to be updated safely and transparently, without interruptions or problems, even when used by multiple app instances with different versions of FusionCache.
+
+So what happens when there are 2 versions of FusionCache running on the _same_ distributed cache instance, for example when two different apps share the same distributed cache and one is updated and the other is not?
+
+Since the old version will write to the distributed cache with a different cache key than the new version, this will not create conflicts during the update, and it means that we don't need to stop all the apps and services that works on it and wipe all the distributed cache data just to do the upgrade (not very pragmatic).
+
+At the same time though, if we have different apps and services that use the same distributed cache shared between them, we need to understand that by updating only one app or service and not the others will mean that the ones updated will read/write using the new distributed cache keys, while the non-updated ones will keep read/write using the old distributed cache keys.
 
 Again, nothing catastrophic, but something to consider.
+
+Since we are talking about L2 cache keys, something else to keep in mind is that if we are using a `CacheKeyPrefix` (see [here](NamedCaches.md#-cache-key-prefix)) that is also combined to form the final cache key used inside our distributed cache.
+
+This means that, if we specified a `CacheKeyPrefix` like `"MyPrefix:"`, when we do this:
+
+```c#
+cache.Set("foo", 123, tags: ["tag-1", "tag-2"])
+```
+
+the actual cache key that will be used inside of our distributed cache will be:
+
+```text
+v2:MyPrefix:foo
+```
+
 
 ## 💾 Disk Cache ([more](DiskCache.md))
 
