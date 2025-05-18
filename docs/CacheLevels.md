@@ -62,7 +62,7 @@ Also, if needed, we can use a different `Duration` specific for the distributed 
 Finally we can even execute the distributed operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
 
 
-## 📢 Backplane
+## 📢 Backplane ([more](Backplane.md))
 
 When using multiple nodes for horizontal scalability we can use an L2 as a shared cache for all the nodes to use.
 
@@ -73,7 +73,7 @@ All the existing code will remain the same, it's just a 1 line change at setup t
 Read [here](Backplane.md) for more.
 
 
-## 🧬 Diagrams
+## 🧬 Diagrams ([more](Diagrams.md))
 
 Good, good, so FusionCache takes care of coordinating everything between L1, L2 and maybe the backplane, if enabled.
 
@@ -120,7 +120,7 @@ Is this possible?
 
 Yes, totally, and there's a [dedicated page](DiskCache.md) to learn more.
 
-## ↩️ Auto-Recovery
+## ↩️ Auto-Recovery ([more](AutoRecovery.md))
 
 Since the distributed cache is a distributed component (just like the backplane), most of the transient errors that may occur on it are also covered by the Auto-Recovery feature.
 
