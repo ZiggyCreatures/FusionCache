@@ -36,6 +36,37 @@ Since notifications for a cache entry may not be needed on all the other nodes, 
 
 This is important, because it allows the backplane (and so, the network) to not be overloaded with potentialy big payloads for data that may not be used.
 
+As an example using some **pseudo** code, a notifications is **NOT** something like this:
+
+```json5
+{
+  "timestamp": 123456789,
+  "key": "person/1",
+  "action": "set",
+  "value": {
+    "firstName": "Jon",
+    "lastName": "Doe",
+    "age": 42,
+    "address": {
+      // ...
+    }
+  }
+}
+```
+
+but moresomething like this:
+
+```json5
+{
+  "timestamp": 123456789,
+  "key": "person/1",
+  "action": "set"
+}
+```
+
+> [!NOTE]
+> Again, the example above are in pseudo code, meaning the data structure is NOT the real one, it's just to explain the concept.
+
 
 ## 📩 Notifications: then what?
 
