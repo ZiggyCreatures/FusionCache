@@ -38,7 +38,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	[Obsolete("Please use InternalStrings.DistributedCacheWireFormatSeparator instead.", true)]
+	[Obsolete("Please use InternalStrings.DistributedCacheWireFormatSeparator instead.")]
 	public const string DistributedCacheWireFormatSeparator = ":";
 
 	/// <summary>
@@ -53,7 +53,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	[Obsolete("Please use InternalStrings.BackplaneWireFormatSeparator instead.", true)]
+	[Obsolete("Please use InternalStrings.BackplaneWireFormatSeparator instead.")]
 	public const string BackplaneWireFormatSeparator = ":";
 
 	/// <summary>
