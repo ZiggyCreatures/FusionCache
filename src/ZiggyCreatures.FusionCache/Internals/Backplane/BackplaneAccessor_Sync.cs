@@ -91,7 +91,7 @@ internal partial class BackplaneAccessor
 		}
 	}
 
-	private bool Publish(string operationId, BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
+	private bool Publish(string operationId, in BackplaneMessage message, FusionCacheEntryOptions options, bool isAutoRecovery, bool isBackground, CancellationToken token)
 	{
 		if (CheckMessage(operationId, message, isAutoRecovery) == false)
 			return false;
@@ -122,7 +122,7 @@ internal partial class BackplaneAccessor
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] before " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 
-			_backplane.Publish(message, options, token);
+			_backplane.Publish(in message, options, token);
 
 			// EVENT
 			_events.OnMessagePublished(operationId, message);
@@ -209,15 +209,6 @@ internal partial class BackplaneAccessor
 		}
 
 		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
-
-		// IGNORE NULL
-		if (message is null)
-		{
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
-
-			return;
-		}
 
 		// IGNORE MESSAGES FROM THIS SOURCE
 		if (message.SourceId == _cache.InstanceId)
