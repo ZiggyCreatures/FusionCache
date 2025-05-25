@@ -28,7 +28,7 @@ A backplane is like a message bus where change notifications will be published t
 By default, everything is handled transparently for us 🎉
 
 
-## ✉️ Notifications: what they are?
+## ✉️ Notifications: what they are
 
 Each notifications contains the minimum set of informations needed for the system to be kept in-sync.
 
