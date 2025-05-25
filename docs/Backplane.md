@@ -96,7 +96,7 @@ One final thing to notice is that FusionCache automatically differentiates betwe
 
 But why is that?
 
-Because if something has been removed from the cache, it should be effectively removed on all the other nodes to avoid returning something that does not exist anymore, while if something has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md).
+Because if something has been removed from the cache, it should be effectively removed on all the other nodes to avoid returning something that does not exist anymore, while if something has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md)).
 
 
 ## 👩‍🏫 Example
