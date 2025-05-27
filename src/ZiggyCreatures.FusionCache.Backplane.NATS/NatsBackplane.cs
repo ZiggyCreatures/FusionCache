@@ -25,7 +25,7 @@ public partial class NatsBackplane
 	private INatsSub<NatsMemoryOwner<byte>>? _subscription;
 
 	/// <summary>
-	/// Initializes a new instance of the RedisBackplane class.
+	/// Initializes a new instance of the NatsBackplane class.
 	/// </summary>
 	/// <param name="natsConnection">The NATS connection instance to use.</param>
 	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
