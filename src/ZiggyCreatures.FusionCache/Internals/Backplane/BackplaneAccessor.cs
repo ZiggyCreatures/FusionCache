@@ -90,15 +90,6 @@ internal sealed partial class BackplaneAccessor
 
 	private bool CheckMessage(string operationId, BackplaneMessage message, bool isAutoRecovery)
 	{
-		// CHECK: IGNORE NULL
-		if (message is null)
-		{
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] cannot send a null backplane message (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
-
-			return false;
-		}
-
 		// CHECK: IS VALID
 		if (message.IsValid() == false)
 		{

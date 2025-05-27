@@ -210,15 +210,6 @@ internal partial class BackplaneAccessor
 
 		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
-		// IGNORE NULL
-		if (message is null)
-		{
-			if (_logger?.IsEnabled(_options.BackplaneErrorsLogLevel) ?? false)
-				_logger.Log(_options.BackplaneErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): [BP] a null backplane notification has been received (what!?)", _cache.CacheName, _cache.InstanceId, operationId);
-
-			return;
-		}
-
 		// IGNORE MESSAGES FROM THIS SOURCE
 		if (message.SourceId == _cache.InstanceId)
 		{

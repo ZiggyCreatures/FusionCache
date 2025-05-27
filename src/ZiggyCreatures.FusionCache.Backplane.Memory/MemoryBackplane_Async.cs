@@ -48,9 +48,6 @@ public partial class MemoryBackplane
 	{
 		EnsureConnection();
 
-		if (message is null)
-			throw new ArgumentNullException(nameof(message));
-
 		if (message.IsValid() == false)
 			throw new InvalidOperationException("The message is invalid");
 
@@ -59,8 +56,6 @@ public partial class MemoryBackplane
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] about to send a backplane notification to {BackplanesCount} backplanes (including self)", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, _subscribers.Count);
-
-		var payload = BackplaneMessage.ToByteArray(message);
 
 		foreach (var backplane in _subscribers)
 		{
@@ -74,7 +69,7 @@ public partial class MemoryBackplane
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] before sending a backplane notification to channel {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, backplane._channelName);
 
-				await backplane.OnMessageAsync(payload).ConfigureAwait(false);
+				await backplane.OnMessageAsync(message).ConfigureAwait(false);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] after sending a backplane notification to channel {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, backplane._channelName);
@@ -87,10 +82,8 @@ public partial class MemoryBackplane
 		}
 	}
 
-	internal async ValueTask OnMessageAsync(byte[] payload)
+	internal async ValueTask OnMessageAsync(BackplaneMessage message)
 	{
-		var message = BackplaneMessage.FromByteArray(payload);
-
 		var handler = _incomingMessageHandlerAsync;
 
 		if (handler is null)

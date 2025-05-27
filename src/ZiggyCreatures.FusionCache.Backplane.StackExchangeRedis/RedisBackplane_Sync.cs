@@ -90,14 +90,15 @@ public partial class RedisBackplane
 
 		_subscriber.Subscribe(_channel, (rc, value) =>
 		{
-			var message = GetMessageFromRedisValue(value, _logger, _subscriptionOptions);
-			if (message is null)
-				return;
-
-			_ = Task.Run(async () =>
+			if (TryGetMessageFromRedisValue(value, _logger, _subscriptionOptions, out var message))
 			{
-				await OnMessageAsync(message).ConfigureAwait(false);
-			});
+				_ = Task.Run(async () =>
+				{
+					await OnMessageAsync(message).ConfigureAwait(false);
+				});
+			}
+
+			return;
 		});
 	}
 
@@ -116,7 +117,7 @@ public partial class RedisBackplane
 	}
 
 	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	public void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		// CONNECTION
 		EnsureConnection(token);
