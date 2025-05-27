@@ -12,7 +12,7 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 namespace ZiggyCreatures.Caching.Fusion.Backplane.NATS;
 
 /// <summary>
-/// A Redis based implementation of a FusionCache backplane.
+/// A NATS based implementation of a FusionCache backplane.
 /// </summary>
 public partial class NatsBackplane
 	: IFusionCacheBackplane
