@@ -1,0 +1,32 @@
+<Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/ZiggyCreatures.FusionCache.Benchmarks/ZiggyCreatures.FusionCache.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Backplane.Memory/ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Chaos/ZiggyCreatures.FusionCache.Chaos.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Locking.AsyncKeyed/ZiggyCreatures.FusionCache.Locking.AsyncKeyed.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.OpenTelemetry/ZiggyCreatures.FusionCache.OpenTelemetry.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson/ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet/ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson/ZiggyCreatures.FusionCache.Serialization.ServiceStackJson.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Serialization.SystemTextJson/ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache/ZiggyCreatures.FusionCache.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AOTTester/AOTTester.csproj" />
+    <Project Path="tests/SerializerPayloadGenerator/SerializerPayloadGenerator.csproj" />
+    <Project Path="tests/WebAppTest/WebAppTest.csproj" />
+    <Project Path="tests/ZiggyCreatures.FusionCache.Playground/ZiggyCreatures.FusionCache.Playground.csproj" />
+    <Project Path="tests/ZiggyCreatures.FusionCache.Simulator/ZiggyCreatures.FusionCache.Simulator.csproj" />
+    <Project Path="tests/ZiggyCreatures.FusionCache.Tests/ZiggyCreatures.FusionCache.Tests.csproj" />
+  </Folder>
+</Solution>
