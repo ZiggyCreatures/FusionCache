@@ -147,20 +147,20 @@ A quick example:
 
 ```c#
 services.AddFusionCache()
-		// SPECIFY A SERIALIZER
+    // SPECIFY A SERIALIZER
     .WithSerializer(
         new FusionCacheNewtonsoftJsonSerializer()
     )
-		// SPECIFY A DISTRIBUTED CACHE
+    // SPECIFY A DISTRIBUTED CACHE
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions { Configuration = "CONNECTION STRING" })
     )
-		// SPECIFY A BACKPLANE
+    // SPECIFY A BACKPLANE
     .WithBackplane(
         new RedisBackplane(new RedisBackplaneOptions { Configuration = "CONNECTION STRING" })
     )
-		// ENABLE THE HYBRIDCACHE ADAPTER
-		.AsHybridCache()
+    // ENABLE THE HYBRIDCACHE ADAPTER
+    .AsHybridCache()
 ;
 ```
 
