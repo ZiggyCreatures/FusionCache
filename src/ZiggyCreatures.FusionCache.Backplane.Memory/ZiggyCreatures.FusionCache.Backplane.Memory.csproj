@@ -16,7 +16,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
 		<None Include="docs\README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
