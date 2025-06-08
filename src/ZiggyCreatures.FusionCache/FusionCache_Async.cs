@@ -81,10 +81,8 @@ public partial class FusionCache
 		});
 	}
 
-	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		options ??= _defaultEntryOptions;
-
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
@@ -370,6 +368,8 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key, out var originalKey);
 
 		var tagsArray = tags.AsArray();
@@ -421,6 +421,8 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key, out var originalKey);
 
 		var tagsArray = tags.AsArray();
@@ -463,10 +465,8 @@ public partial class FusionCache
 
 	// TRY GET
 
-	private async ValueTask<IFusionCacheMemoryEntry?> TryGetEntryInternalAsync<TValue>(string operationId, string key, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> TryGetEntryInternalAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		options ??= _defaultEntryOptions;
-
 		token.ThrowIfCancellationRequested();
 
 		IFusionCacheMemoryEntry? memoryEntry = null;
@@ -601,6 +601,8 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
@@ -648,6 +650,8 @@ public partial class FusionCache
 
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
@@ -692,6 +696,8 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key);
 
 		var tagsArray = tags.AsArray();
@@ -699,8 +705,6 @@ public partial class FusionCache
 		ValidateTags(tagsArray);
 
 		token.ThrowIfCancellationRequested();
-
-		options ??= _defaultEntryOptions;
 
 		var operationId = MaybeGenerateOperationId();
 
@@ -776,11 +780,11 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
-
-		options ??= _defaultEntryOptions;
 
 		await RemoveInternalAsync(key, options, token).ConfigureAwait(false);
 	}
@@ -825,11 +829,11 @@ public partial class FusionCache
 	{
 		ValidateCacheKey(key);
 
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
+
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
-
-		options ??= _defaultEntryOptions;
 
 		await ExpireInternalAsync(key, options, token).ConfigureAwait(false);
 	}
@@ -1272,9 +1276,6 @@ public partial class FusionCache
 
 				if (distributedEntry is null || isValid == false)
 				{
-					//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
-					//return;
-
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry not found or stale, do not update memory entry", CacheName, InstanceId, operationId, key);
 
@@ -1303,7 +1304,6 @@ public partial class FusionCache
 
 
 				_mca.UpdateEntryFromDistributedEntry(operationId, key, memoryEntry, distributedEntry);
-				//memoryEntry.UpdateFromDistributedEntry(distributedEntry);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, key);
@@ -1317,8 +1317,6 @@ public partial class FusionCache
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to update a memory entry from a distributed entry", CacheName, InstanceId, operationId, key);
-
-				//MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 
 				return (true, false, false);
 			}

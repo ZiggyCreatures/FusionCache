@@ -95,6 +95,40 @@ internal static class FusionCacheInternalUtils
 		return ((ICollection<KeyValuePair<TKey, TValue>>)dictionary).Remove(new KeyValuePair<TKey, TValue>(key, value));
 	}
 
+	internal static FusionCacheEntryOptions GetOrCreateDefaultEntryOptions(this IFusionCache cache, string key, bool willMutate)
+	{
+		FusionCacheEntryOptions? _options = null;
+		bool canMutate = false;
+
+		// TRY WITH THE PROVIDER (IF ANY)
+		if (cache.DefaultEntryOptionsProvider is not null)
+		{
+			var defaultEntryOptionsProviderContext = (cache as FusionCache)?.DefaultEntryOptionsProviderContext ?? new FusionCacheEntryOptionsProviderContext(cache);
+
+			_options = cache.DefaultEntryOptionsProvider.GetEntryOptions(
+				defaultEntryOptionsProviderContext,
+				key,
+				out canMutate
+			);
+		}
+
+		// IF NO PROVIDER OR NO OPTIONS RETURNED -> FALLBACK TO DEFAULTS
+		if (_options is null)
+		{
+			_options = cache.DefaultEntryOptions;
+			canMutate = false;
+		}
+
+		// IF CAN MUTATE -> WE ARE GOOD ANYWAY
+		if (canMutate)
+			return _options;
+
+		// CANNOT MUTATE
+		return willMutate
+			? _options.Duplicate()
+			: _options;
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static bool IsLogicallyExpired(this IFusionCacheEntry? entry)
 	{

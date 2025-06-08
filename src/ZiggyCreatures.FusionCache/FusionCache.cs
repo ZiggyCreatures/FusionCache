@@ -30,6 +30,8 @@ public sealed partial class FusionCache
 	private readonly string? _cacheKeyPrefix;
 	private readonly ILogger<FusionCache>? _logger;
 	internal readonly FusionCacheEntryOptions _defaultEntryOptions;
+	internal readonly FusionCacheEntryOptionsProvider? _defaultEntryOptionsProvider;
+	internal FusionCacheEntryOptionsProviderContext _defaultEntryOptionsProviderContext;
 	internal readonly FusionCacheEntryOptions _tryUpdateEntryOptions;
 
 	// MEMORY LOCKER
@@ -94,6 +96,16 @@ public sealed partial class FusionCache
 		_options = _options.Duplicate();
 
 		_defaultEntryOptions = _options.DefaultEntryOptions;
+		_defaultEntryOptionsProvider = _options.DefaultEntryOptionsProvider;
+		if (_defaultEntryOptionsProvider is not null)
+		{
+			_defaultEntryOptionsProviderContext = new FusionCacheEntryOptionsProviderContext(this);
+		}
+		else
+		{
+			// NOTE: SINCE THERE IS NO PROVIDER, WE CAN SAFELY SET THIS TO NULL (IT WILL NOT BE USED)
+			_defaultEntryOptionsProviderContext = null!;
+		}
 
 		// TRY UPDATE OPTIONS
 		_tryUpdateEntryOptions = new FusionCacheEntryOptions
@@ -215,6 +227,12 @@ public sealed partial class FusionCache
 		get { return _defaultEntryOptions; }
 	}
 
+	/// <inheritdoc/>
+	public FusionCacheEntryOptionsProvider? DefaultEntryOptionsProvider
+	{
+		get { return _defaultEntryOptionsProvider; }
+	}
+
 	internal AutoRecoveryService AutoRecovery
 	{
 		get
@@ -232,6 +250,11 @@ public sealed partial class FusionCache
 
 			return _autoRecovery;
 		}
+	}
+
+	internal FusionCacheEntryOptionsProviderContext DefaultEntryOptionsProviderContext
+	{
+		get { return _defaultEntryOptionsProviderContext; }
 	}
 
 	/// <inheritdoc/>

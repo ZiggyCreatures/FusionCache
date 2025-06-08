@@ -186,6 +186,15 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
+	/// Specifies a custom logic to provide a default <see cref="FusionCacheEntryOptions"/> based on the cache key.
+	/// <br/>
+	/// If not set, or if it returns <see langword="null"/>, the <see cref="DefaultEntryOptions"/> will be used instead."/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public FusionCacheEntryOptionsProvider? DefaultEntryOptionsProvider { get; set; }
+
+	/// <summary>
 	/// The default <see cref="FusionCacheEntryOptions"/> to use for the tag expiration data when none will be specified, and as the starting point when duplicating one.
 	/// <br/>
 	/// This is used by features like RemoveByTag() and Clear().
@@ -569,6 +578,7 @@ public class FusionCacheOptions
 			InternalStrings = InternalStrings.Duplicate(),
 
 			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
+			DefaultEntryOptionsProvider = DefaultEntryOptionsProvider,
 			TagsDefaultEntryOptions = TagsDefaultEntryOptions.Duplicate(),
 
 			EnableAutoRecovery = EnableAutoRecovery,
