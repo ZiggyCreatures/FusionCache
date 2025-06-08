@@ -28,7 +28,7 @@ A backplane is like a message bus where change notifications will be published t
 By default, everything is handled transparently for us 🎉
 
 
-## ✉️ Notifications: what they are?
+## ✉️ Notifications: what they are
 
 Each notifications contains the minimum set of informations needed for the system to be kept in-sync.
 
@@ -96,7 +96,7 @@ One final thing to notice is that FusionCache automatically differentiates betwe
 
 But why is that?
 
-Because if something has been removed from the cache, it should be effectively removed on all the other nodes to avoid returning something that does not exist anymore, while if something has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md).
+Because if something has been removed from the cache, it should be effectively removed on all the other nodes to avoid returning something that does not exist anymore, while if something has been marked as expired the other nodes will simply mark their local cached copies (if any) as expired so that subsequent calls for the same data may return the old version in case of problems (see [Fail-Safe](FailSafe.md)).
 
 
 ## 👩‍🏫 Example
