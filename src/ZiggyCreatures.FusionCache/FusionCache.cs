@@ -265,6 +265,14 @@ public sealed partial class FusionCache
 		return res;
 	}
 
+	private void CheckDisposed()
+	{
+		if (_disposedValue)
+		{
+			throw new ObjectDisposedException("The FusionCache instance has been disposed and cannot be used anymore.", (Exception?)null);
+		}
+	}
+
 	private static void ValidateCacheKey(string key)
 	{
 		if (key is null)

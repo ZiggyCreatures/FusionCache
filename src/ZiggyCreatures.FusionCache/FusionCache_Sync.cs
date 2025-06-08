@@ -363,10 +363,12 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		// METRIC
-		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+		CheckDisposed();
 
 		ValidateCacheKey(key);
+
+		// METRIC
+		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
@@ -416,10 +418,12 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public TValue GetOrSet<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		// METRIC
-		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+		CheckDisposed();
 
 		ValidateCacheKey(key);
+
+		// METRIC
+		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
@@ -596,10 +600,12 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public MaybeValue<TValue> TryGet<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
-		// METRIC
-		Metrics.CounterTryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+		CheckDisposed();
 
 		ValidateCacheKey(key);
+
+		// METRIC
+		Metrics.CounterTryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
@@ -645,10 +651,12 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public TValue? GetOrDefault<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
-		// METRIC
-		Metrics.CounterGetOrDefault.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
+		CheckDisposed();
 
 		ValidateCacheKey(key);
+
+		// METRIC
+		Metrics.CounterGetOrDefault.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
@@ -694,6 +702,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public void Set<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		ValidateCacheKey(key);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
@@ -778,6 +788,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public void Remove(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		ValidateCacheKey(key);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
@@ -827,6 +839,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public void Expire(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		ValidateCacheKey(key);
 
 		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
@@ -977,6 +991,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public void RemoveByTag(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		CheckTaggingEnabled();
 
 		ValidateTag(tag);
@@ -1014,6 +1030,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public void RemoveByTag(IEnumerable<string>? tags, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		CheckTaggingEnabled();
 
 		if (tags is null)
@@ -1042,6 +1060,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public void Clear(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		CheckTaggingEnabled();
 
 		var operationId = MaybeGenerateOperationId();

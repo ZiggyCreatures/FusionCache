@@ -225,4 +225,52 @@ public partial class GeneralTests
 		//Assert.Equal(TimeSpan.FromMinutes(456), duration);
 		//Assert.Equal(CacheItemPriority.Low, priority);
 	}
+
+	[Fact]
+	public async Task CanHandleDisposeAsync()
+	{
+		var cache = new FusionCache(new FusionCacheOptions());
+
+		cache.Dispose();
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.SetAsync("foo", 42, token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.TryGetAsync<object>("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.GetOrDefaultAsync<object>("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.ExpireAsync("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.RemoveAsync("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.RemoveByTagAsync("tag-1", token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.RemoveByTagAsync(["tag-1"], token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<ObjectDisposedException>(async () =>
+		{
+			await cache.ClearAsync(token: TestContext.Current.CancellationToken);
+		});
+	}
 }
