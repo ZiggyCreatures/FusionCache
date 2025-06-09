@@ -9,7 +9,7 @@
 <div align="center">
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache)
+[![NuGet](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache)
 
 </div>
 
