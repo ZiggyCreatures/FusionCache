@@ -129,7 +129,7 @@ So FusionCache has more features, and that's ok, but one feature currently missi
 > [!WARNING]
 > Although initially planned, the current Microsoft implementation lacks multi-node invalidations (see [here](https://github.com/dotnet/extensions/issues/5517)). This means that when we update a value in the cache in a multi-node scenario, our nodes will be out-of-sync!
 
-Want to find out how to fixthis? Keep reading.
+Want to find out how to fixt his? Keep reading.
 
 ## 📢 Multi-node invalidations
 
