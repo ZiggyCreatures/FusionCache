@@ -10,6 +10,34 @@ namespace FusionCacheTests;
 public partial class GeneralTests
 	: AbstractTests
 {
+	public class MyEntryOptionsProvider
+		: FusionCacheEntryOptionsProvider
+	{
+		public override FusionCacheEntryOptions? GetEntryOptions(FusionCacheEntryOptionsProviderContext ctx, string key, out bool canMutate)
+		{
+			if (key.Contains("foo"))
+			{
+				canMutate = true;
+				return ctx.DuplicateDefaultEntryOptions()
+					.SetFailSafe(false)
+					.SetDuration(TimeSpan.FromMinutes(456))
+					.SetPriority(CacheItemPriority.Low);
+			}
+
+			if (key.Contains("bar"))
+			{
+				canMutate = true;
+				return new FusionCacheEntryOptions()
+					.SetFailSafe(false)
+					.SetDuration(TimeSpan.FromMinutes(789))
+					.SetPriority(CacheItemPriority.High);
+			}
+
+			canMutate = true;
+			return null;
+		}
+	}
+
 	public GeneralTests(ITestOutputHelper output)
 		: base(output, null)
 	{

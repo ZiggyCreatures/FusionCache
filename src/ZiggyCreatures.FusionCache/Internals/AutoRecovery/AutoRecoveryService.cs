@@ -235,7 +235,7 @@ internal sealed class AutoRecoveryService
 		if (_options.EnableAutoRecovery == false)
 			return false;
 
-		if (_queue.Count == 0)
+		if (_queue.IsEmpty)
 			return false;
 
 		var newBarrier = DateTimeOffset.UtcNow.Ticks + _delay.Ticks;
@@ -265,7 +265,7 @@ internal sealed class AutoRecoveryService
 		if (_options.EnableAutoRecovery == false)
 			return false;
 
-		if (_queue.Count == 0)
+		if (_queue.IsEmpty)
 			return false;
 
 		// ACQUIRE THE LOCK
@@ -618,7 +618,7 @@ internal sealed class AutoRecoveryService
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): instead of the standard auto-recovery delay of {AutoRecoveryNormalDelay} the new delay is {AutoRecoveryNewDelay} ({AutoRecoveryNewDelayMs} ms, {AutoRecoveryNewDelayTicks} ticks)", _cache.CacheName, _cache.InstanceId, operationId, oldDelay, delay, delay.TotalMilliseconds, newDelayTicks);
 				}
 
-				if (_queue.Count > 0)
+				if (_queue.IsEmpty == false)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): waiting {AutoRecoveryCurrentDelay} before the next try of auto-recovery", _cache.CacheName, _cache.InstanceId, operationId, delay);
@@ -638,7 +638,7 @@ internal sealed class AutoRecoveryService
 
 				ct.ThrowIfCancellationRequested();
 
-				if (_queue.Count > 0)
+				if (_queue.IsEmpty == false)
 				{
 					_ = await TryProcessQueueAsync(operationId, ct).ConfigureAwait(false);
 				}

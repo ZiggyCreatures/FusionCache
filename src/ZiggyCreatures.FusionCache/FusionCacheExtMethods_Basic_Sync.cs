@@ -17,7 +17,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, CancellationToken token)
 	{
-		return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.GetOrCreateDefaultEntryOptions(key, true).SetDuration(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -32,7 +32,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, TimeSpan duration, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return cache.GetOrSet<TValue>(key, defaultValue, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), tags, token);
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.GetOrCreateDefaultEntryOptions(key, true).SetDuration(duration).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -46,7 +46,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token)
 	{
-		return cache.GetOrSet<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -61,7 +61,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static TValue GetOrSet<TValue>(this IFusionCache cache, string key, TValue defaultValue, Action<FusionCacheEntryOptions> setupAction, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		return cache.GetOrSet<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
+		return cache.GetOrSet<TValue>(key, defaultValue, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	#endregion
@@ -80,7 +80,7 @@ public static partial class FusionCacheExtMethods
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	public static TValue? GetOrDefault<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, TValue? defaultValue = default, CancellationToken token = default)
 	{
-		return cache.GetOrDefault<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.GetOrDefault<TValue>(key, defaultValue, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	/// <summary>
@@ -95,7 +95,7 @@ public static partial class FusionCacheExtMethods
 	/// <returns>The value in the cache or the <paramref name="defaultValue"/> .</returns>
 	public static TValue? GetOrDefault<TValue>(this IFusionCache cache, string key, TValue? defaultValue, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		return cache.GetOrDefault<TValue>(key, defaultValue, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.GetOrDefault<TValue>(key, defaultValue, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion
@@ -112,7 +112,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static MaybeValue<TValue> TryGet<TValue>(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		return cache.TryGet<TValue>(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		return cache.TryGet<TValue>(key, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion
@@ -130,7 +130,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static void Set<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, CancellationToken token)
 	{
-		cache.Set<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		cache.Set<TValue>(key, value, cache.GetOrCreateDefaultEntryOptions(key, true).SetDuration(duration).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -145,7 +145,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static void Set<TValue>(this IFusionCache cache, string key, TValue value, TimeSpan duration, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		cache.Set<TValue>(key, value, cache.DefaultEntryOptions.Duplicate(duration).SetIsSafeForAdaptiveCaching(), tags, token);
+		cache.Set<TValue>(key, value, cache.GetOrCreateDefaultEntryOptions(key, true).SetDuration(duration).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -159,7 +159,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static void Set<TValue>(this IFusionCache cache, string key, TValue value, Action<FusionCacheEntryOptions> setupAction, CancellationToken token)
 	{
-		cache.Set<TValue>(key, value, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
+		cache.Set<TValue>(key, value, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), FusionCacheInternalUtils.NoTags, token);
 	}
 
 	/// <summary>
@@ -174,7 +174,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static void Set<TValue>(this IFusionCache cache, string key, TValue value, Action<FusionCacheEntryOptions> setupAction, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
-		cache.Set<TValue>(key, value, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
+		cache.Set<TValue>(key, value, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), tags, token);
 	}
 
 	/// <summary>
@@ -204,7 +204,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static void Remove(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		cache.Remove(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		cache.Remove(key, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion
@@ -230,7 +230,7 @@ public static partial class FusionCacheExtMethods
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
 	public static void Expire(this IFusionCache cache, string key, Action<FusionCacheEntryOptions> setupAction, CancellationToken token = default)
 	{
-		cache.Expire(key, cache.CreateEntryOptions(setupAction).SetIsSafeForAdaptiveCaching(), token);
+		cache.Expire(key, cache.GetOrCreateDefaultEntryOptions(key, true).Setup(setupAction).SetIsSafeForAdaptiveCaching(), token);
 	}
 
 	#endregion

@@ -1136,4 +1136,11 @@ public sealed class FusionCacheEntryOptions
 
 		return Duplicate().SetIsSafeForAdaptiveCaching();
 	}
+
+	internal FusionCacheEntryOptions Setup(Action<FusionCacheEntryOptions>? setupAction)
+	{
+		setupAction?.Invoke(this);
+
+		return this;
+	}
 }

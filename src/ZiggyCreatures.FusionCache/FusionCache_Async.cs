@@ -81,10 +81,8 @@ public partial class FusionCache
 		});
 	}
 
-	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		options ??= _defaultEntryOptions;
-
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
@@ -365,10 +363,14 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, MaybeValue<TValue> failSafeDefaultValue = default, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
+		ValidateCacheKey(key);
+
 		// METRIC
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
-		ValidateCacheKey(key);
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key, out var originalKey);
 
@@ -416,10 +418,14 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue> GetOrSetAsync<TValue>(string key, TValue defaultValue, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
+		ValidateCacheKey(key);
+
 		// METRIC
 		Metrics.CounterGetOrSet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
-		ValidateCacheKey(key);
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key, out var originalKey);
 
@@ -463,10 +469,8 @@ public partial class FusionCache
 
 	// TRY GET
 
-	private async ValueTask<IFusionCacheMemoryEntry?> TryGetEntryInternalAsync<TValue>(string operationId, string key, FusionCacheEntryOptions? options, Activity? activity, CancellationToken token)
+	private async ValueTask<IFusionCacheMemoryEntry?> TryGetEntryInternalAsync<TValue>(string operationId, string key, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
-		options ??= _defaultEntryOptions;
-
 		token.ThrowIfCancellationRequested();
 
 		IFusionCacheMemoryEntry? memoryEntry = null;
@@ -596,10 +600,14 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<MaybeValue<TValue>> TryGetAsync<TValue>(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
+		ValidateCacheKey(key);
+
 		// METRIC
 		Metrics.CounterTryGet.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
-		ValidateCacheKey(key);
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key);
 
@@ -643,10 +651,14 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask<TValue?> GetOrDefaultAsync<TValue>(string key, TValue? defaultValue = default, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
+		ValidateCacheKey(key);
+
 		// METRIC
 		Metrics.CounterGetOrDefault.Maybe()?.AddWithCommonTags(1, _options.CacheName, _options.InstanceId!);
 
-		ValidateCacheKey(key);
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key);
 
@@ -690,7 +702,11 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask SetAsync<TValue>(string key, TValue value, FusionCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		ValidateCacheKey(key);
+
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key);
 
@@ -699,8 +715,6 @@ public partial class FusionCache
 		ValidateTags(tagsArray);
 
 		token.ThrowIfCancellationRequested();
-
-		options ??= _defaultEntryOptions;
 
 		var operationId = MaybeGenerateOperationId();
 
@@ -774,13 +788,15 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask RemoveAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		ValidateCacheKey(key);
+
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
-
-		options ??= _defaultEntryOptions;
 
 		await RemoveInternalAsync(key, options, token).ConfigureAwait(false);
 	}
@@ -823,13 +839,15 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask ExpireAsync(string key, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		ValidateCacheKey(key);
+
+		options ??= this.GetOrCreateDefaultEntryOptions(key, false);
 
 		MaybePreProcessCacheKey(ref key);
 
 		token.ThrowIfCancellationRequested();
-
-		options ??= _defaultEntryOptions;
 
 		await ExpireInternalAsync(key, options, token).ConfigureAwait(false);
 	}
@@ -973,6 +991,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask RemoveByTagAsync(string tag, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		CheckTaggingEnabled();
 
 		ValidateTag(tag);
@@ -1010,6 +1030,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask RemoveByTagAsync(IEnumerable<string>? tags, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		CheckTaggingEnabled();
 
 		if (tags is null)
@@ -1038,6 +1060,8 @@ public partial class FusionCache
 	/// <inheritdoc/>
 	public async ValueTask ClearAsync(bool allowFailSafe = true, FusionCacheEntryOptions? options = null, CancellationToken token = default)
 	{
+		CheckDisposed();
+
 		CheckTaggingEnabled();
 
 		var operationId = MaybeGenerateOperationId();
@@ -1272,9 +1296,6 @@ public partial class FusionCache
 
 				if (distributedEntry is null || isValid == false)
 				{
-					//_cache.MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
-					//return;
-
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry not found or stale, do not update memory entry", CacheName, InstanceId, operationId, key);
 
@@ -1303,7 +1324,6 @@ public partial class FusionCache
 
 
 				_mca.UpdateEntryFromDistributedEntry(operationId, key, memoryEntry, distributedEntry);
-				//memoryEntry.UpdateFromDistributedEntry(distributedEntry);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry updated from distributed", CacheName, InstanceId, operationId, key);
@@ -1317,8 +1337,6 @@ public partial class FusionCache
 			{
 				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to update a memory entry from a distributed entry", CacheName, InstanceId, operationId, key);
-
-				//MaybeExpireMemoryEntryInternal(operationId, cacheKey, true, null);
 
 				return (true, false, false);
 			}

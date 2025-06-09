@@ -1,4 +1,6 @@
-﻿namespace ZiggyCreatures.Caching.Fusion;
+﻿using ZiggyCreatures.Caching.Fusion.Internals;
+
+namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
 /// A set of extension methods that add some commonly used overloads to any instance of a <see cref="IFusionCache"/> instance and other common objects.
@@ -26,4 +28,18 @@ public static partial class FusionCacheExtMethods
 	}
 
 	#endregion
+
+	/// <inheritdoc/>
+	public static FusionCacheEntryOptions CreateEntryOptions(this IFusionCache cache, string key, Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
+	{
+		var res = cache.GetOrCreateDefaultEntryOptions(key, true);
+
+		if (duration is not null)
+			res.Duration = duration.Value;
+
+		setupAction?.Invoke(res);
+
+		return res;
+	}
+
 }

@@ -57,6 +57,12 @@ public class NullFusionCache
 	}
 
 	/// <inheritdoc/>
+	public FusionCacheEntryOptionsProvider? DefaultEntryOptionsProvider
+	{
+		get { return _options.DefaultEntryOptionsProvider; }
+	}
+
+	/// <inheritdoc/>
 	public FusionCacheEntryOptions CreateEntryOptions(Action<FusionCacheEntryOptions>? setupAction = null, TimeSpan? duration = null)
 	{
 		var res = _options.DefaultEntryOptions.Duplicate(duration);
