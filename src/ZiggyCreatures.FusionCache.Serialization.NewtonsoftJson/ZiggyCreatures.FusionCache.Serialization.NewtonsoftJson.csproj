@@ -2,12 +2,13 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.2.0</Version>
+		<Version>2.3.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson</PackageId>
 		<Description>FusionCache serializer based on Newtonsoft Json.NET</Description>
 		<PackageTags>json;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy;cache-stampede</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<PackageReleaseNotes>
 			- Update: package dependencies
 		</PackageReleaseNotes>

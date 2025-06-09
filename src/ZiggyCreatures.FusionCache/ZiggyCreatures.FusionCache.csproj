@@ -2,26 +2,18 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.2.0</Version>
+		<Version>2.3.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<PackageReleaseNotes>
-			- Change: updated multi-targeting to be more slim and to include only the currently supported versions
-			- Add: make the AOT support official
-			- Add: expose the current distributed cache, if any
-			- Add: expose the current backplane, if any
-			- Add NullFusionCache support via DI
-			- Add: new memory locker based on the 3rd party AsyncKeyedLock library
-			- Perf: better perf for Clear(true) when Raw Clear is possible (eg: L1 only)
-			- Change: more async usage with the backplane (less thread blocking)
-			- Change: better, more differentiated log levels
-			- Change: no more distributed cache errors in the logs when used internally, only warnings
-			- Fix: fixed a bug with Eager Refresh in high concurrency scenarios
-			- Fix: fixed a small bug happening when using jittering and fail-safe
-			- Fix: fixed a bug when setting a value with AutoClone
+			- Add: new options for internal strings
+			- Add: the cache key (processed + original) is available on the factory context
+			- Add: new DefaultEntryOptionsProvider to setup a per-key logic to provide default entry options
+			- Fix: fixed a bug that always checked L2 on read-only methods
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--
@@ -44,7 +36,7 @@
 		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" />
 		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Benchmarks" />
 		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Tests" />
