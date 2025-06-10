@@ -113,10 +113,10 @@ public class ChaosBackplane
 	}
 
 	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	public void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		MaybeChaos(token);
-		_innerBackplane.Publish(message, options, token);
+		_innerBackplane.Publish(in message, options, token);
 	}
 
 	/// <inheritdoc/>
