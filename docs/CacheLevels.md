@@ -4,7 +4,7 @@
 
 </div>
 
-# 🔀 Cache Levels: Primary and Secondary
+# 🔀 Cache Levels: L1 and L2
 
 | ⚡ TL;DR (quick version) |
 | -------- |

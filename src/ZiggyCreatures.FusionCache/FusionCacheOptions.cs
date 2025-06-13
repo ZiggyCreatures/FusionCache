@@ -38,7 +38,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	[Obsolete("Please use InternalStrings.DistributedCacheWireFormatSeparator instead.", true)]
+	[Obsolete("Please use InternalStrings.DistributedCacheWireFormatSeparator instead.")]
 	public const string DistributedCacheWireFormatSeparator = ":";
 
 	/// <summary>
@@ -53,7 +53,7 @@ public class FusionCacheOptions
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	[Obsolete("Please use InternalStrings.BackplaneWireFormatSeparator instead.", true)]
+	[Obsolete("Please use InternalStrings.BackplaneWireFormatSeparator instead.")]
 	public const string BackplaneWireFormatSeparator = ":";
 
 	/// <summary>
@@ -184,6 +184,15 @@ public class FusionCacheOptions
 			_defaultEntryOptions = value;
 		}
 	}
+
+	/// <summary>
+	/// Specifies a custom logic to provide a default <see cref="FusionCacheEntryOptions"/> based on the cache key.
+	/// <br/>
+	/// If not set, or if it returns <see langword="null"/>, the <see cref="DefaultEntryOptions"/> will be used instead."/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public FusionCacheEntryOptionsProvider? DefaultEntryOptionsProvider { get; set; }
 
 	/// <summary>
 	/// The default <see cref="FusionCacheEntryOptions"/> to use for the tag expiration data when none will be specified, and as the starting point when duplicating one.
@@ -569,6 +578,7 @@ public class FusionCacheOptions
 			InternalStrings = InternalStrings.Duplicate(),
 
 			DefaultEntryOptions = DefaultEntryOptions.Duplicate(),
+			DefaultEntryOptionsProvider = DefaultEntryOptionsProvider,
 			TagsDefaultEntryOptions = TagsDefaultEntryOptions.Duplicate(),
 
 			EnableAutoRecovery = EnableAutoRecovery,

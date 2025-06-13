@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Caching.Hybrid;
+using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 
@@ -33,7 +34,7 @@ public sealed class FusionHybridCache
 		get { return _fusionCache; }
 	}
 
-	private FusionCacheEntryOptions? CreateFusionEntryOptions(HybridCacheEntryOptions? options, out bool allowFactory)
+	private FusionCacheEntryOptions? CreateFusionCacheEntryOptions(string key, HybridCacheEntryOptions? options, out bool allowFactory)
 	{
 		allowFactory = true;
 
@@ -42,7 +43,7 @@ public sealed class FusionHybridCache
 			return NoEntryOptions;
 		}
 
-		var res = _fusionCache.CreateEntryOptions();
+		var res = _fusionCache.GetOrCreateDefaultEntryOptions(key, true);
 
 		if (options.Expiration is not null)
 		{
@@ -69,7 +70,7 @@ public sealed class FusionHybridCache
 	/// <inheritdoc/>
 	public override async ValueTask<T> GetOrCreateAsync<TState, T>(string key, TState state, Func<TState, CancellationToken, ValueTask<T>> factory, HybridCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken cancellationToken = default)
 	{
-		var feo = CreateFusionEntryOptions(options, out var allowFactory);
+		var feo = CreateFusionCacheEntryOptions(key, options, out var allowFactory);
 
 		if (allowFactory == false)
 		{
@@ -107,7 +108,7 @@ public sealed class FusionHybridCache
 	/// <inheritdoc/>
 	public override ValueTask SetAsync<T>(string key, T value, HybridCacheEntryOptions? options = null, IEnumerable<string>? tags = null, CancellationToken cancellationToken = default)
 	{
-		return _fusionCache.SetAsync(key, value, CreateFusionEntryOptions(options, out _), tags, cancellationToken);
+		return _fusionCache.SetAsync(key, value, CreateFusionCacheEntryOptions(key, options, out _), tags, cancellationToken);
 	}
 
 	private string GetDebuggerDisplay()

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
@@ -55,6 +56,221 @@ public partial class GeneralTests
 		Assert.Throws<UnreachableException>(() =>
 		{
 			_ = cache.GetOrSet<int>("qux", _ => throw new UnreachableException("Sloths"), token: TestContext.Current.CancellationToken);
+		});
+	}
+
+	[Fact]
+	public void CanUseDefaultEntryOptionsProvider()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions()
+		{
+			DefaultEntryOptions = new FusionCacheEntryOptions()
+			{
+				IsFailSafeEnabled = true,
+				Duration = TimeSpan.FromMinutes(123)
+			},
+			DefaultEntryOptionsProvider = new MyEntryOptionsProvider()
+		});
+
+		bool isFactoryRun = false;
+		bool isFailSafeEnabled = false;
+		TimeSpan duration = TimeSpan.Zero;
+		CacheItemPriority priority = CacheItemPriority.NeverRemove;
+
+		// GET OR SET: KEY MATCHING FOO
+		isFactoryRun = false;
+		isFailSafeEnabled = false;
+		duration = TimeSpan.Zero;
+		priority = CacheItemPriority.NeverRemove;
+		cache.GetOrSet<int>(
+			"my-foo-01",
+			(ctx, ct) =>
+			{
+				isFactoryRun = true;
+				isFailSafeEnabled = ctx.Options.IsFailSafeEnabled;
+				duration = ctx.Options.Duration;
+				priority = ctx.Options.Priority;
+
+				return 42;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(isFactoryRun);
+		Assert.False(isFailSafeEnabled);
+		Assert.Equal(TimeSpan.FromMinutes(456), duration);
+		Assert.Equal(CacheItemPriority.Low, priority);
+
+		// GET OR SET: KEY MATCHING FOO, BUT OPTIONS DIRECTLY SPECIFIED
+		isFactoryRun = false;
+		isFailSafeEnabled = false;
+		duration = TimeSpan.Zero;
+		priority = CacheItemPriority.NeverRemove;
+		cache.GetOrSet<int>(
+			"my-foo-02",
+			(ctx, ct) =>
+			{
+				isFactoryRun = true;
+				isFailSafeEnabled = ctx.Options.IsFailSafeEnabled;
+				duration = ctx.Options.Duration;
+				priority = ctx.Options.Priority;
+
+				return 42;
+			},
+			new FusionCacheEntryOptions()
+			{
+				IsFailSafeEnabled = false,
+				Duration = TimeSpan.FromMinutes(21),
+				Priority = CacheItemPriority.NeverRemove
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(isFactoryRun);
+		Assert.False(isFailSafeEnabled);
+		Assert.Equal(TimeSpan.FromMinutes(21), duration);
+		Assert.Equal(CacheItemPriority.NeverRemove, priority);
+
+		// GET OR SET: KEY MATCHING FOO, BUT OPTIONS DIRECTLY SPECIFIED
+		isFactoryRun = false;
+		isFailSafeEnabled = false;
+		duration = TimeSpan.Zero;
+		priority = CacheItemPriority.NeverRemove;
+		cache.GetOrSet<int>(
+			"my-foo-03",
+			(ctx, ct) =>
+			{
+				isFactoryRun = true;
+				isFailSafeEnabled = ctx.Options.IsFailSafeEnabled;
+				duration = ctx.Options.Duration;
+				priority = ctx.Options.Priority;
+
+				return 42;
+			},
+			options =>
+			{
+				// EMPTY
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(isFactoryRun);
+		Assert.False(isFailSafeEnabled);
+		Assert.Equal(TimeSpan.FromMinutes(456), duration);
+		Assert.Equal(CacheItemPriority.Low, priority);
+
+		// GET OR SET: KEY MATCHING BAR
+		isFactoryRun = false;
+		isFailSafeEnabled = false;
+		duration = TimeSpan.Zero;
+		priority = CacheItemPriority.NeverRemove;
+		cache.GetOrSet<int>(
+			"my-bar-01",
+			(ctx, ct) =>
+			{
+				isFactoryRun = true;
+				isFailSafeEnabled = ctx.Options.IsFailSafeEnabled;
+				duration = ctx.Options.Duration;
+				priority = ctx.Options.Priority;
+
+				return 42;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(isFactoryRun);
+		Assert.False(isFailSafeEnabled);
+		Assert.Equal(TimeSpan.FromMinutes(789), duration);
+		Assert.Equal(CacheItemPriority.High, priority);
+
+		// GET OR SET: KEY MATCHING NOTHING -> DEFAULT OPTIONS
+		isFactoryRun = false;
+		isFailSafeEnabled = false;
+		duration = TimeSpan.Zero;
+		priority = CacheItemPriority.NeverRemove;
+		cache.GetOrSet<int>(
+			"whatever-01",
+			(ctx, ct) =>
+			{
+				isFactoryRun = true;
+				isFailSafeEnabled = ctx.Options.IsFailSafeEnabled;
+				duration = ctx.Options.Duration;
+				priority = ctx.Options.Priority;
+
+				return 42;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(isFactoryRun);
+		Assert.True(isFailSafeEnabled);
+		Assert.Equal(TimeSpan.FromMinutes(123), duration);
+		Assert.Equal(CacheItemPriority.Normal, priority);
+
+		//// SET: KEY MATCHING FOO
+		//await cache.SetAsync<int>(
+		//	"my-foo-01",
+		//	async (ctx, ct) =>
+		//	{
+		//		isFailSafeEnabled = ctx.Options.IsFailSafeEnabled;
+		//		duration = ctx.Options.Duration;
+		//		priority = ctx.Options.Priority;
+
+		//		return 42;
+		//	},
+		//	token: TestContext.Current.CancellationToken
+		//);
+
+		//Assert.False(isFailSafeEnabled);
+		//Assert.Equal(TimeSpan.FromMinutes(456), duration);
+		//Assert.Equal(CacheItemPriority.Low, priority);
+	}
+
+	[Fact]
+	public void CanHandleDispose()
+	{
+		var cache = new FusionCache(new FusionCacheOptions());
+
+		cache.Dispose();
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.Set("foo", 42, token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.TryGet<object>("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.GetOrDefault<object>("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.Expire("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.Remove("foo", token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.RemoveByTag("tag-1", token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.RemoveByTag(["tag-1"], token: TestContext.Current.CancellationToken);
+		});
+
+		Assert.Throws<ObjectDisposedException>(() =>
+		{
+			cache.Clear(token: TestContext.Current.CancellationToken);
 		});
 	}
 }

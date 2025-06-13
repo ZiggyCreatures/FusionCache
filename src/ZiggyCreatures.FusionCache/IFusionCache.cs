@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.Extensions.Caching.Distributed;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -27,6 +26,11 @@ public interface IFusionCache
 	/// The default set of options that will be used either when none are provided or as a starting point for creating a new one with the fluent api.
 	/// </summary>
 	FusionCacheEntryOptions DefaultEntryOptions { get; }
+
+	/// <summary>
+	/// The optional provider for entry options based on the cache key.
+	/// </summary>
+	FusionCacheEntryOptionsProvider? DefaultEntryOptionsProvider { get; }
 
 	/// <summary>
 	/// Creates a new <see cref="FusionCacheEntryOptions"/> instance by duplicating the <see cref="DefaultEntryOptions"/> and optionally applying a setup action.
