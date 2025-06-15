@@ -70,7 +70,7 @@ This is how they compare:
 | **Timeouts**          | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
 | **Adaptive Caching**  | ✔          | ❌              | ❌               | ❌         | ❌             | ✔            |
 | **Tagging**           | ✔          | ✔               | ℹ️               | ❌         | ❌             | ✔            |
-| **Clear**             | ✔          | ❓              | ✔                | ❌         | ❌             | ✔            |
+| **Clear**             | ✔          | ❌              | ✔                | ❌         | ❌             | ✔            |
 | **MS HybridCache**    | ✔          | ✔               | ❌               | ❌         | ❌             | ✔            |
 | **Cancellation**      | ✔          | ✔               | ❌               | ❌         | ❌             | ❌           |
 | **Multi-provider**    | ✔          | ✔               | ✔                | ✔          | ✔              | ❌           |
