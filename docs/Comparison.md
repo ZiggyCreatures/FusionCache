@@ -75,7 +75,7 @@ This is how they compare:
 | **Cancellation**      | ✔          | ✔               | ❌               | ❌         | ❌             | ❌           |
 | **Multi-provider**    | ✔          | ✔               | ✔                | ✔          | ✔              | ❌           |
 | **Multi-level**       | ✔          | ✔               | ✔                | ✔          | ⚠              | ❌           |
-| **Backplane**         | ✔          | ✔               | ✔                | ✔          | ✔              | ❌           |
+| **Backplane**         | ✔          | ❌              | ✔                | ✔          | ✔              | ❌           |
 | **Named Caches**      | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
 | **Auto-Recovery**     | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
 | **Events**            | ✔          | ❌              | ✔                | ❌         | ❌             | ❌           |
