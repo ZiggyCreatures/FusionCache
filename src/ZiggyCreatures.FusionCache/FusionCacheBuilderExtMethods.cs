@@ -1103,12 +1103,12 @@ public static partial class FusionCacheBuilderExtMethods
 	}
 
 	/// <summary>
-	/// Specify a custom <see cref="IFusionCacheBackplane"/> factory to be used.
+	/// Specify a custom <see cref="IDistributedCache"/> factory to be used.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
 	/// </summary>
 	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="factory">The factory used to create the backplane, with access to the <see cref="IServiceProvider"/>.</param>
+	/// <param name="factory">The factory used to create the distributed cache, with access to the <see cref="IServiceProvider"/>.</param>
 	/// <param name="serializer">The <see cref="IFusionCacheSerializer"/> instance to use, or <see langword="null"/> to keep the one specified in another call.</param>
 	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
 	public static IFusionCacheBuilder WithDistributedCache(this IFusionCacheBuilder builder, Func<IServiceProvider, IDistributedCache> factory, IFusionCacheSerializer? serializer = null)
