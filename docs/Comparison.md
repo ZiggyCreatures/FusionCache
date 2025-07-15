@@ -69,9 +69,9 @@ This is how they compare:
 | **Fail-Safe**         | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
 | **Timeouts**          | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
 | **Adaptive Caching**  | ✔          | ❌              | ❌               | ❌         | ❌             | ✔            |
-| **Tagging**           | ✔          | ✔               | ℹ️               | ❌         | ❌             | ✔            |
-| **Clear**             | ✔          | ❌              | ✔                | ❌         | ❌             | ✔            |
-| **MS HybridCache**    | ✔          | ✔               | ❌               | ❌         | ❌             | ✔            |
+| **Tagging**           | ✔          | ✔               | ℹ️               | ❌         | ❌             | ❌           |
+| **Clear**             | ✔          | ❌              | ✔                | ❌         | ❌             | ❌           |
+| **MS HybridCache**    | ✔          | ✔               | ❌               | ❌         | ❌             | ❌           |
 | **Cancellation**      | ✔          | ✔               | ❌               | ❌         | ❌             | ❌           |
 | **Multi-provider**    | ✔          | ✔               | ✔                | ✔          | ✔              | ❌           |
 | **Multi-level**       | ✔          | ✔               | ✔                | ✔          | ⚠              | ❌           |
