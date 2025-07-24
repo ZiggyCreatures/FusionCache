@@ -765,7 +765,7 @@ public static partial class FusionCacheBuilderExtMethods
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
 
-		builder.UseRegisteredDistributedCache = true;
+		builder.UseRegisteredSerializer = true;
 		builder.Serializer = null;
 		builder.SerializerFactory = null;
 		builder.ThrowIfMissingSerializer = true;
