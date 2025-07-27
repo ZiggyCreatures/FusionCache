@@ -79,8 +79,8 @@ This is how they compare:
 | **Named Caches**      | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
 | **Auto-Recovery**     | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
 | **Events**            | ✔          | ❌             | ✔                | ❌         | ❌             | ❌           |
-| **OpenTelemetry**     | ✔          | ❓             | ❌               | ❌         | ❌             | ❌           |
-| **Logging**           | ✔          | ❌             | ✔                | ❌         | ✔              | ❌           |
+| **OpenTelemetry**     | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
+| **Logging**           | ✔          | ✔              | ✔                | ❌         | ✔              | ❌           |
 | **Portable**          | ✔          | ✔              | ✔                | ✔          | ✔              | ✔            |
 | **Tests**             | ✔          | ✔              | ✔                | ✔          | ✔              | ✔            |
 | **Xml Comments**      | ✔          | ❌             | ✔                | ✔          | ✔              | ❌           |
