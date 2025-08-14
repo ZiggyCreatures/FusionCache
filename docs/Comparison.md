@@ -89,5 +89,5 @@ This is how they compare:
 
 ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
-- (2): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `TryGet`). This may be perfectly fine for you or not, but it's good to know.
-- (3): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
+- (2): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
+- (3): **LazyCache** should not be compared to the others since it's memory-only and not hybrid/multi-level, so it's not fair. Having said that, since it's one of the very first OSS caches in .NET and still one of the most used, I thought about highlighting the differences for the general public to know.
