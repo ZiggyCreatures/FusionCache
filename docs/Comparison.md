@@ -61,31 +61,31 @@ The general features I've identified are:
 
 This is how they compare:
 
-|                       | FusionCache | HybridCache    | CacheManager (3) | CacheTower  | EasyCaching (1) | LazyCache (2) |
+|                       | FusionCache | HybridCache    | CacheManager (2) | CacheTower  | EasyCaching (1) | LazyCache (3) |
 | ---:                  | :---:       | :---:          | :---:            | :---:       | :---:           |:---:          |
-| **Cache Stampede**    | ✔          | ✔              | ❌               | ✔          | ✔              | ✔            |
-| **Sync Api**          | ✔          | ❌             | ✔                | ❌         | ✔              | ✔            |
-| **Async Api**         | ✔          | ✔              | ❌               | ✔          | ✔              | ⚠            |
-| **Fail-Safe**         | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
-| **Timeouts**          | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
-| **Adaptive Caching**  | ✔          | ❌             | ❌               | ❌         | ❌             | ✔            |
-| **Tagging**           | ✔          | ✔              | ℹ️               | ❌         | ❌             | ❌           |
-| **Clear**             | ✔          | ❌             | ✔                | ❌         | ❌             | ❌           |
-| **MS HybridCache**    | ✔          | ✔              | ❌               | ❌         | ❌             | ❌           |
-| **Cancellation**      | ✔          | ✔              | ❌               | ❌         | ❌             | ❌           |
-| **Multi-provider**    | ✔          | ✔              | ✔                | ✔          | ✔              | ❌           |
-| **Multi-level**       | ✔          | ✔              | ✔                | ✔          | ⚠              | ❌           |
-| **Backplane**         | ✔          | ❌             | ✔                | ✔          | ✔              | ❌           |
-| **Named Caches**      | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
-| **Auto-Recovery**     | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
-| **Events**            | ✔          | ❌             | ✔                | ❌         | ❌             | ❌           |
-| **OpenTelemetry**     | ✔          | ❌             | ❌               | ❌         | ❌             | ❌           |
-| **Logging**           | ✔          | ✔              | ✔                | ❌         | ✔              | ❌           |
-| **Portable**          | ✔          | ✔              | ✔                | ✔          | ✔              | ✔            |
-| **Tests**             | ✔          | ✔              | ✔                | ✔          | ✔              | ✔            |
-| **Xml Comments**      | ✔          | ❌             | ✔                | ✔          | ✔              | ❌           |
-| **Docs**              | ✔          | ✔              | ✔                | ✔          | ✔              | ✔            |
-| **License**           | `MIT`       | `Same as .NET` | `Apache 2.0`     | `MIT`       | `MIT`           | `MIT`        |
+| **Cache Stampede**    | ✔          | ✔              | ❌               | ✔          | ✔               | ✔            |
+| **Sync Api**          | ✔          | ❌             | ✔                | ❌         | ✔               | ✔            |
+| **Async Api**         | ✔          | ✔              | ❌               | ✔          | ✔               | ⚠            |
+| **Fail-Safe**         | ✔          | ❌             | ❌               | ❌         | ❌              | ❌           |
+| **Timeouts**          | ✔          | ❌             | ❌               | ❌         | ❌              | ❌           |
+| **Adaptive Caching**  | ✔          | ❌             | ❌               | ❌         | ❌              | ✔            |
+| **Tagging**           | ✔          | ✔              | ℹ️               | ❌         | ❌              | ❌           |
+| **Clear**             | ✔          | ❌             | ✔                | ❌         | ❌              | ❌           |
+| **MS HybridCache**    | ✔          | ✔              | ❌               | ❌         | ❌              | ❌           |
+| **Cancellation**      | ✔          | ✔              | ❌               | ❌         | ❌              | ❌           |
+| **Multi-provider**    | ✔          | ✔              | ✔                | ✔          | ✔               | ❌           |
+| **Multi-level**       | ✔          | ✔              | ✔                | ✔          | ⚠               | ❌           |
+| **Backplane**         | ✔          | ❌             | ✔                | ✔          | ✔               | ❌           |
+| **Named Caches**      | ✔          | ❌             | ❌               | ❌         | ❌              | ❌           |
+| **Auto-Recovery**     | ✔          | ❌             | ❌               | ❌         | ❌              | ❌           |
+| **Events**            | ✔          | ❌             | ✔                | ❌         | ❌              | ❌           |
+| **OpenTelemetry**     | ✔          | ❌             | ❌               | ❌         | ❌              | ❌           |
+| **Logging**           | ✔          | ✔              | ✔                | ❌         | ✔               | ❌           |
+| **Portable**          | ✔          | ✔              | ✔                | ✔          | ✔               | ✔            |
+| **Tests**             | ✔          | ✔              | ✔                | ✔          | ✔               | ✔            |
+| **Xml Comments**      | ✔          | ❌             | ✔                | ✔          | ✔               | ❌           |
+| **Docs**              | ✔          | ✔              | ✔                | ✔          | ✔               | ✔            |
+| **License**           | `MIT`       | `Same as .NET` | `Apache 2.0`     | `MIT`       | `MIT`           | `MIT`         |
 
 ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
