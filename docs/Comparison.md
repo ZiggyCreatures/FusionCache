@@ -64,32 +64,33 @@ The general features I've identified are:
 
 This is how they compare:
 
-|                       | FusionCache | HybridCache    | CacheManager (2) | CacheTower  | EasyCaching (1) | LazyCache |
+|                       | FusionCache | HybridCache (3)| CacheManager (2) | CacheTower  | EasyCaching (1) | LazyCache |
 | ---:                  | :---:       | :---:          | :---:            | :---:       | :---:           |:---:      |
-| **Cache Stampede**    | ✔          | ✔              | ❌               | ✔          | ✔               | ✔        |
-| **Sync Api**          | ✔          | ❌             | ✔                | ❌         | ✔               | ✔        |
-| **Async Api**         | ✔          | ✔              | ❌               | ✔          | ✔               | ⚠        |
-| **Fail-Safe**         | ✔          | ❌             | ❌               | ❌         | ❌              | ❌       |
-| **Timeouts**          | ✔          | ❌             | ❌               | ❌         | ❌              | ❌       |
-| **Adaptive Caching**  | ✔          | ❌             | ❌               | ❌         | ❌              | ✔        |
-| **Tagging**           | ✔          | ✔              | ℹ️               | ❌         | ❌              | ❌       |
-| **Clear**             | ✔          | ❌             | ✔                | ❌         | ❌              | ❌       |
-| **MS HybridCache**    | ✔          | ✔              | ❌               | ❌         | ❌              | ❌       |
-| **Cancellation**      | ✔          | ✔              | ❌               | ❌         | ❌              | ❌       |
-| **Multi-provider**    | ✔          | ✔              | ✔                | ✔          | ✔               | ❌       |
-| **Multi-level**       | ✔          | ✔              | ✔                | ✔          | ⚠               | ❌       |
-| **Backplane**         | ✔          | ❌             | ✔                | ✔          | ✔               | ❌       |
-| **Named Caches**      | ✔          | ❌             | ❌               | ❌         | ❌              | ❌       |
-| **Auto-Recovery**     | ✔          | ❌             | ❌               | ❌         | ❌              | ❌       |
-| **Events**            | ✔          | ❌             | ✔                | ❌         | ❌              | ❌       |
-| **OpenTelemetry**     | ✔          | ❌             | ❌               | ❌         | ❌              | ❌       |
-| **Logging**           | ✔          | ✔              | ✔                | ❌         | ✔               | ❌       |
-| **Portable**          | ✔          | ✔              | ✔                | ✔          | ✔               | ✔        |
-| **Tests**             | ✔          | ✔              | ✔                | ✔          | ✔               | ✔        |
-| **Xml Comments**      | ✔          | ❌             | ✔                | ✔          | ✔               | ❌       |
-| **Docs**              | ✔          | ✔              | ✔                | ✔          | ✔               | ✔        |
+| **Cache Stampede**    | ✔️         | ✔️(*)          | ❌               | ✔️         | ✔️              | ✔️       |
+| **Sync Api**          | ✔️         | ❌             | ✔️               | ❌         | ✔️              | ✔️       |
+| **Async Api**         | ✔️         | ✔️             | ❌               | ✔️         | ✔️              | ⚠️       |
+| **Fail-Safe**         | ✔️         | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Timeouts**          | ✔️         | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Adaptive Caching**  | ✔️         | ❌             | ❌               | ❌         | ❌              | ✔️       |
+| **Tagging**           | ✔️         | ✔️             | ❌(*)            | ❌         | ❌              | ❌       |
+| **Clear**             | ✔️         | ❌             | ✔️               | ❌         | ❌              | ❌       |
+| **MS HybridCache**    | ✔️         | ✔️             | ❌               | ❌         | ❌              | ❌       |
+| **Cancellation**      | ✔️         | ✔️             | ❌               | ❌         | ❌              | ❌       |
+| **Multi-provider**    | ✔️         | ✔️             | ✔️               | ✔️         | ✔️              | ❌       |
+| **Multi-level**       | ✔️         | ✔️             | ✔️               | ✔️         | ✔️(*)           | ❌       |
+| **Backplane**         | ✔️         | ❌             | ✔️               | ✔️         | ✔️              | ❌       |
+| **Named Caches**      | ✔️         | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Auto-Recovery**     | ✔️         | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Events**            | ✔️         | ❌             | ✔️               | ❌         | ❌              | ❌       |
+| **OpenTelemetry**     | ✔️         | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Logging**           | ✔️         | ✔️             | ✔️               | ❌         | ✔️              | ❌       |
+| **Portable**          | ✔️         | ✔️             | ✔️               | ✔️         | ✔️              | ✔️       |
+| **Tests**             | ✔️         | ✔️             | ✔️               | ✔️         | ✔️              | ✔️       |
+| **Xml Comments**      | ✔️         | ❌             | ✔️               | ✔️         | ✔️              | ❌       |
+| **Docs**              | ✔️         | ✔️             | ✔️               | ✔️         | ✔️              | ✔️       |
 | **License**           | `MIT`       | `Same as .NET` | `Apache 2.0`     | `MIT`       | `MIT`           | `MIT`     |
 
 ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
 - (2): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
+- (3): **HybridCache** protects from stampede, but the implementation is non-deterministic, and this can be a big problem.
