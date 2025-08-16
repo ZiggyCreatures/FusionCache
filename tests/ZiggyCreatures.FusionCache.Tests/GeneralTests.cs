@@ -1,9 +1,13 @@
 ﻿using FusionCacheTests.Stuff;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionCacheTests;
 
@@ -274,5 +278,39 @@ public partial class GeneralTests
 
 		Assert.Null(d4);
 		Assert.True(d3.IsDisposed);
+	}
+
+	[Fact]
+	public async Task CanDisposeEverythingCorrectly()
+	{
+		var options = new FusionCacheOptions
+		{
+			WaitForInitialBackplaneSubscribe = true,
+			EnableSyncEventHandlersExecution = true,
+			DefaultEntryOptions = {
+				AllowBackgroundBackplaneOperations = false,
+				AllowBackgroundDistributedCacheOperations = false,
+			}
+		};
+
+		var serializer = new FusionCacheSystemTextJsonSerializer();
+		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var backplane = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
+
+		using (var cache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>()))
+		{
+			cache.SetupSerializer(serializer);
+			cache.SetupDistributedCache(distributedCache);
+			cache.SetupBackplane(backplane);
+
+			// FORCE THE INTERNAL INSTANTIATION OF THE AUTO-RECOVERY SERVICE
+			_ = cache.AutoRecovery;
+
+			await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+		}
+
+		Assert.True(true);
 	}
 }

@@ -660,6 +660,7 @@ internal sealed class AutoRecoveryService
 			{
 				_queue.Clear();
 				_cts?.Cancel();
+				_cts?.Dispose();
 				_cts = null;
 			}
 
