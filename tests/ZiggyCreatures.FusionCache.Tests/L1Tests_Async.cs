@@ -1164,6 +1164,58 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public async Task CanRemoveByTagWithChangingTagsAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions() { IncludeTagsInLogs = true }, logger: logger);
+
+		var foo1 = await cache.GetOrSetAsync("foo", async _ => 1, tags: ["t1", "t2"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+
+		// THIS SHOULD REMOVE foo, SINCE IT HAD THE TAG t1
+		await cache.RemoveByTagAsync("t1", token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD ADD TAG t3
+		var foo2 = await cache.GetOrSetAsync("foo", async _ => 2, tags: ["t1", "t2", "t3"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(2, foo2);
+
+		// THIS SHOULD REMOVE foo, SINCE IT HAD THE TAG t3
+		await cache.RemoveByTagAsync("t3", token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD SET THE TAGS TO ONLY t1
+		var foo3 = await cache.GetOrSetAsync("foo", async _ => 3, tags: ["t1"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(3, foo3);
+
+		// THIS SHOULD -NOT- REMOVE foo, SINCE IT ONLY HAD THE TAG t1
+		await cache.RemoveByTagAsync("t2", token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD NOT SET ANYTHING
+		var foo4 = await cache.GetOrSetAsync("foo", async _ => 4, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(3, foo4);
+
+		// THIS SHOULD REMOVE foo, SINCE IT HAD (ONLY) THE TAG t1
+		await cache.RemoveByTagAsync(["t1", "t2", "t3", "t4"], token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD SET THE TAGS TO NOTHING
+		var foo5 = await cache.GetOrSetAsync("foo", async _ => 5, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(5, foo5);
+
+		// THIS SHOULD -NOT- REMOVE foo, SINCE IT NOW HAS NO TAGS
+		await cache.RemoveByTagAsync(["t1", "t2", "t3", "t4"], token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD GET THE EXISTING foo, SINCE WE DID NOT REMOVE IT
+		var maybeFooo = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+
+		Assert.True(maybeFooo.HasValue);
+		Assert.Equal(5, maybeFooo.Value);
+	}
+
+	[Fact]
 	public async Task CanClearAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
