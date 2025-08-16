@@ -84,7 +84,7 @@ public class FusionCacheOptions
 			SkipDistributedCacheWrite = false,
 			SkipBackplaneNotifications = false,
 			Priority = CacheItemPriority.NeverRemove,
-			Size = 1
+			Size = 0
 		};
 
 		WaitForInitialBackplaneSubscribe = false;
