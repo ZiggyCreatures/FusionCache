@@ -251,6 +251,10 @@ internal partial class BackplaneAccessor
 		{
 			Activity.Current = previous;
 		}
+		else
+		{
+			Activity.Current = null;
+		}
 
 		// EVENT
 		_events.OnMessageReceived(operationId, message);
