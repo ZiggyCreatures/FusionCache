@@ -50,6 +50,10 @@ public sealed class FusionHybridCache
 			res.DistributedCacheDuration = options.Expiration.Value;
 			res.Duration = options.LocalCacheExpiration ?? options.Expiration.Value;
 		}
+		else if (options.LocalCacheExpiration is not null)
+		{
+			res.Duration = options.LocalCacheExpiration.Value;
+		}
 
 		if (options.Flags is not null && options.Flags.Value != HybridCacheEntryFlags.None)
 		{

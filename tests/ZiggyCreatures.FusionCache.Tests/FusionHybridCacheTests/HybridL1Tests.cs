@@ -829,4 +829,56 @@ public class HybridL1Tests
 
 		Assert.Equal(0, v5);
 	}
+
+	[Fact]
+	public async Task CanHandleSpeficicLocalExpirationAsync()
+	{
+		var defaultDuration = TimeSpan.FromMinutes(4);
+		var localExpiration = TimeSpan.FromSeconds(1);
+
+		using var fc = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		fc.DefaultEntryOptions.Duration = defaultDuration;
+
+		var cache = new FusionHybridCache(fc);
+
+		// SET VALUE
+		await cache.SetAsync<int>(
+			"foo",
+			1,
+			new HybridCacheEntryOptions
+			{
+				LocalCacheExpiration = localExpiration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		// GETORCREATE (CACHE HIT -> NO FACTORY)
+		var foo1 = await cache.GetOrCreateAsync<int>(
+			"foo",
+			async _ => 2,
+			new HybridCacheEntryOptions
+			{
+				LocalCacheExpiration = localExpiration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo1);
+
+		// WAIT FOR THE EXPIRATION
+		await Task.Delay(localExpiration.PlusALittleBit(), TestContext.Current.CancellationToken);
+
+		// GETORCREATE (CACHE MISS -> FACTORY)
+		var foo2 = await cache.GetOrCreateAsync<int>(
+			"foo",
+			async _ => 3,
+			new HybridCacheEntryOptions
+			{
+				LocalCacheExpiration = localExpiration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(3, foo2);
+	}
 }
