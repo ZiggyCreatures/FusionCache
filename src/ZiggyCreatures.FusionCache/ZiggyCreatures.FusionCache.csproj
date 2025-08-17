@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.3.0</Version>
+		<Version>2.4.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
@@ -10,10 +10,12 @@
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<PackageReleaseNotes>
-			- Add: new options for internal strings
-			- Add: the cache key (processed + original) is available on the factory context
-			- Add: new DefaultEntryOptionsProvider to setup a per-key logic to provide default entry options
-			- Fix: fixed a bug that always checked L2 on read-only methods
+			- Add: new StaleTags property in the factory execution context, to differentiate between stale tags and currently specified tags
+			- Fix: wrongly ignored the currently specified tags when stale tags were present (see above)
+			- Fix: when working with the HybridCache adapter, in some cases the LocalExpiration was ignored
+			- Fix: WithRegisteredSerializer was asking to use the registered distributed cache instead
+			- Fix: InvalidOperationException with Activity (OTEL) when using AlwaysOffSampler
+			- Fix: small fix in xml doc
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--
