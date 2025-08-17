@@ -1,6 +1,7 @@
 <Project>
 
 	<PropertyGroup>
+		<Version>2.4.0</Version>
 		<Company>Jody Donetti</Company>
 		<Authors>Jody Donetti</Authors>
 		<Product>FusionCache</Product>
