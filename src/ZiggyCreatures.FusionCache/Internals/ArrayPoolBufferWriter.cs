@@ -100,28 +100,15 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 		throw new InvalidOperationException("Cannot advance past the end of the buffer.");
 	}
 
-	/// <summary>
-	/// Returns the buffer to the pool.
-	/// </summary>
-	/// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-	private void Dispose(bool disposing)
-	{
-		if (!disposedValue)
-		{
-			if (disposing)
-			{
-				_arrayPool.Return(_buffer);
-			}
-
-			disposedValue = true;
-		}
-	}
-
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		// Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		if (disposedValue)
+		{
+			return;
+		}
+
+		_arrayPool.Return(_buffer);
+		disposedValue = true;
 	}
 }
