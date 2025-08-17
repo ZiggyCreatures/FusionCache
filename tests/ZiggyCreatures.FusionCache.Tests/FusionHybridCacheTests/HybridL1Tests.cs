@@ -653,13 +653,13 @@ public class HybridL1Tests
 
 		await cache.SetAsync("foo", foo, cancellationToken: TestContext.Current.CancellationToken);
 
-		var foo1 = (await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken))!;
+		var foo1 = await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken);
 		foo1.PropInt = 1;
 
-		var foo2 = (await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken))!;
+		var foo2 = await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken);
 		foo2.PropInt = 2;
 
-		var foo3 = (await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken))!;
+		var foo3 = await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken);
 		foo3.PropInt = 3;
 
 		Assert.Equal(-1, foo.PropInt);
@@ -707,8 +707,8 @@ public class HybridL1Tests
 
 		await cache.SetAsync("imm", imm, cancellationToken: TestContext.Current.CancellationToken);
 
-		var imm1 = (await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken))!;
-		var imm2 = (await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken))!;
+		var imm1 = await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken);
+		var imm2 = await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken);
 
 		Assert.Same(imm, imm1);
 		Assert.Same(imm, imm2);
