@@ -107,10 +107,9 @@ internal sealed class ExperimentalMemoryLocker
 				_tcsCache.Remove(key);
 			}
 		}
-		catch (Exception exc)
+		catch (Exception exc) when (logger?.IsEnabled(LogLevel.Warning) ?? false)
 		{
-			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, operationId, key);
+			logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, operationId, key);
 		}
 	}
 
