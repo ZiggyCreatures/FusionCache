@@ -123,7 +123,7 @@ public partial class FusionCache
 						memoryEntry.Metadata.EagerExpirationTimestamp = null;
 
 					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, memoryLockObj);
+					ExecuteEagerRefreshWithAsyncFactory<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry, memoryLockObj);
 				}
 			}
 

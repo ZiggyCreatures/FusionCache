@@ -61,7 +61,7 @@ public partial class L1L2BackplaneTests
 		var options = CreateFusionCacheOptions();
 
 		if (string.IsNullOrWhiteSpace(cacheInstanceId) == false)
-			options.SetInstanceId(cacheInstanceId!);
+			options.SetInstanceId(cacheInstanceId);
 
 		if (string.IsNullOrWhiteSpace(cacheName) == false)
 		{
