@@ -201,18 +201,18 @@ public class DependencyInjectionTests
 		var bazCache = cacheProvider.GetCacheOrNull("baz");
 
 		Assert.NotNull(defaultCache);
-		Assert.Equal(FusionCacheOptions.DefaultCacheName, defaultCache!.CacheName);
+		Assert.Equal(FusionCacheOptions.DefaultCacheName, defaultCache.CacheName);
 
 		Assert.NotNull(fooCache);
-		Assert.Equal("foo", fooCache!.CacheName);
+		Assert.Equal("foo", fooCache.CacheName);
 		Assert.Equal(namedCache1, fooCache);
 
 		Assert.NotNull(barCache);
-		Assert.Equal("bar", barCache!.CacheName);
+		Assert.Equal("bar", barCache.CacheName);
 		Assert.Equal(namedCache2, barCache);
 
 		Assert.NotNull(bazCache);
-		Assert.Equal("baz", bazCache!.CacheName);
+		Assert.Equal("baz", bazCache.CacheName);
 	}
 
 	[Fact]
