@@ -13,9 +13,6 @@
 
 </div>
 
-| 🙋‍♂️ Updating to `v2` ? please [read here](docs/Update_v2_0_0.md). |
-|:-------|
-
 ### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It was born after years of dealing with all sorts of different types of caches: memory, distributed, hybrid, HTTP caching, CDNs, browser cache, offline cache, you name it.
