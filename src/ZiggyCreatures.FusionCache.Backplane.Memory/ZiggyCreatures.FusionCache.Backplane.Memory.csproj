@@ -8,7 +8,6 @@
 		<PackageTags>backplane;memory;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.Memory</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<PackageReleaseNotes>
 			- Update: package dependencies
 		</PackageReleaseNotes>

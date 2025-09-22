@@ -97,7 +97,7 @@ public partial class SerializationTests
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
 		Assert.Equal(obj.LogicalExpirationTimestamp, looped.LogicalExpirationTimestamp);
-		Assert.Null(looped!.Metadata);
+		Assert.Null(looped.Metadata);
 	}
 
 	[Theory]

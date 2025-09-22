@@ -8,7 +8,6 @@
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<PackageReleaseNotes>
 			- Add: new StaleTags property in the factory execution context, to differentiate between stale tags and currently specified tags
 			- Fix: wrongly ignored the currently specified tags when stale tags were present (see above)
