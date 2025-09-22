@@ -124,7 +124,7 @@ internal partial class DistributedCacheAccessor
 				_cache.Set(MaybeProcessCacheKey(key), data, distributedOptions);
 
 				// EVENT
-				_events.OnSet(operationId, key);
+				_events.OnSet(operationId, key, entry.Metadata);
 			},
 			"setting entry in distributed" + isBackground.ToString(" (background)"),
 			options,
@@ -220,7 +220,7 @@ internal partial class DistributedCacheAccessor
 			// EVENT
 			if (entry is not null)
 			{
-				_events.OnHit(operationId, key, isValid == false, activity);
+				_events.OnHit(operationId, key, isValid == false, activity, entry.Metadata);
 			}
 			else
 			{

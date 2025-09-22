@@ -61,12 +61,12 @@ public sealed class FusionCacheDistributedEventsHub
 		DeserializationError?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key ?? string.Empty), nameof(DeserializationError), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
+	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity, FusionCacheEntryMetadata? metadata)
 	{
 		// METRIC
 		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
-		base.OnHit(operationId, key, isStale, activity);
+		base.OnHit(operationId, key, isStale, activity, metadata);
 	}
 
 	internal override void OnMiss(string operationId, string key, Activity? activity)
@@ -77,12 +77,12 @@ public sealed class FusionCacheDistributedEventsHub
 		base.OnMiss(operationId, key, activity);
 	}
 
-	internal override void OnSet(string operationId, string key)
+	internal override void OnSet(string operationId, string key, FusionCacheEntryMetadata? metadata)
 	{
 		// METRIC
 		Metrics.CounterDistributedSet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		base.OnSet(operationId, key);
+		base.OnSet(operationId, key, metadata);
 	}
 
 	internal override void OnRemove(string operationId, string key)

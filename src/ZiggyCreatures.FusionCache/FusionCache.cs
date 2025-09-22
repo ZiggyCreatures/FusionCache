@@ -398,7 +398,7 @@ public sealed partial class FusionCache
 		if (entry is not null)
 		{
 			// EVENT
-			_events.OnFailSafeActivate(operationId, key);
+			_events.OnFailSafeActivate(operationId, key, entry.Metadata);
 
 			return entry;
 		}
@@ -536,8 +536,8 @@ public sealed partial class FusionCache
 					}
 
 					// EVENT
-					_events.OnBackgroundFactorySuccess(operationId, key);
-					_events.OnSet(operationId, key);
+					_events.OnBackgroundFactorySuccess(operationId, key, lateEntry.Metadata);
+					_events.OnSet(operationId, key, lateEntry.Metadata);
 				}
 			}
 			finally

@@ -82,7 +82,7 @@ internal sealed class MemoryCacheAccessor
 			}
 
 			// EVENT
-			_events.OnSet(operationId, key);
+			_events.OnSet(operationId, key, entry.Metadata);
 		}
 		catch (Exception exc)
 		{
@@ -107,7 +107,7 @@ internal sealed class MemoryCacheAccessor
 			// EVENT
 			if (entry is not null)
 			{
-				_events.OnHit(operationId, key, entry.IsLogicallyExpired(), activity);
+				_events.OnHit(operationId, key, entry.IsLogicallyExpired(), activity, entry.Metadata);
 			}
 			else
 			{
@@ -164,7 +164,7 @@ internal sealed class MemoryCacheAccessor
 			// EVENT
 			if (entry is not null)
 			{
-				_events.OnHit(operationId, key, isValid == false, activity);
+				_events.OnHit(operationId, key, isValid == false, activity, entry.Metadata);
 			}
 			else
 			{
@@ -244,7 +244,7 @@ internal sealed class MemoryCacheAccessor
 			}
 
 			// EVENT
-			_events.OnExpire(operationId, key);
+			_events.OnExpire(operationId, key, entry.Metadata);
 
 			return true;
 		}
