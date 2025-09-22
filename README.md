@@ -55,6 +55,24 @@ Curious about what you can achieve from start to finish? There's a [👩‍🏫 
 
 In search of all the docs? There's a [page](docs/README.md) for that, too.
 
+## 🧑‍🏫 Courses
+
+If you like the FusionCache docs and are interested in all things caching, you may find this interesting.
+
+I published [a course](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) on Dometrain:
+
+<div align="center">
+
+[![Caching Course on Dometrain](docs/images/dometrain-getting-started-cover.jpg)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
+
+</div>
+
+It's not just about FusionCache, it's about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios.
+<br/>
+We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
+
+I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
+
 ## 🧬 Diagrams
 
 Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
