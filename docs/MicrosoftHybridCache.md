@@ -11,7 +11,7 @@
 | FusionCache can ALSO be used as an implementation of the new `HybridCache` abstraction from Microsoft, with the added extra features of FusionCache. Oh, and it's the first production-ready implementation of HybridCache (see below). |
 
 > [!NOTE]
-> FusionCache is the FIRST 3rd party implementation of Microsoft HybridCache. But not just that: since Microsoft released their default implementation later, in a strange turn of events FusionCache became the first production-ready implementation of HybridCache AT ALL, including Microsoft's own. Quite bonkers 🤯
+> FusionCache is the FIRST 3rd party implementation of Microsoft HybridCache. But not just that: since Microsoft released their default implementation later, in a strange turn of events FusionCache became the world's first production-ready implementation of HybridCache AT ALL, including Microsoft's own. Quite bonkers 🤯
 
 With .NET 9 Microsoft [introduced](https://www.youtube.com/watch?v=rjMfDUP4-eQ) their own hybrid cache, called [HybridCache](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/hybrid?view=aspnetcore-9.0).
 
@@ -90,7 +90,7 @@ As FusionCache users this means we'll have 2 options available:
 
 Actually, as said, we can do them both at the same time, in the same app: if there are components that depend on the HybridCache abstraction we can use the adapter for them, and if we want more power and more control in our own code we can use FusionCache directly, all while sharing the same underlying data.
 
-Basically, we register FusionCache (eg: `.AddFusionCache()`), make it also available as HybridCache (eg: `.AsHybridCache()`), and use what we want based on the need.
+Basically, we register FusionCache (eg: `.AddFusionCache()`), make it also available as HybridCache (eg: `.AsHybridCache()`), and use what we want based on our needs.
 
 Also, when using the adapter based on FusionCache, we'll have more features anyway.
 
@@ -105,7 +105,7 @@ For the Microsoft implementation, the features are:
 - cache stampede protection (also [in FusionCache](CacheStampede.md))
 - usable as L1 only (memory) or L1+L2 (memory + distributed) (also [in FusionCache](CacheLevels.md))
 - tagging (also [in FusionCache](Tagging.md))
-- serialization compression (not there yet, but already working on it)
+- serialization compression (not there yet in FusionCache, but already working on it)
 
 FusionCache on the other hand has more, like:
 
@@ -127,7 +127,7 @@ FusionCache on the other hand has more, like:
 So FusionCache has more features, and that's ok, but one feature currently missing from the Microsoft implementation is pretty important:
 
 > [!WARNING]
-> Although initially planned, the current Microsoft implementation lacks multi-node invalidations (see [here](https://github.com/dotnet/extensions/issues/5517)). This means that when we update a value in the cache in a multi-node scenario, our nodes will be out-of-sync!
+> Although initially planned, the current Microsoft implementation lacks multi-node invalidations (see [here](https://github.com/dotnet/extensions/issues/5517)). This means that when we update a value in the cache in a multi-node scenario, our nodes will be out-of-sync and our cache, as a whole, becomes incoherent!
 
 Want to find out how to fix this? Keep reading.
 
@@ -187,7 +187,7 @@ Nice 😊
 
 Ok, here's something crazy to think about.
 
-The `HybridCache` implementation from Microsoft currently available (it's in preview, the GA is not out yet) has some limitations, in particular:
+The default `HybridCache` implementation from Microsoft has currently some limitations, in particular:
 
 - **NO L2 OPT-OUT**: there's no way to control the use of `IDistributedCache` or not. If it's registered in the DI container it will be used, otherwise it will not, meaning if another component needs it, you'll be then forced to use it in HybridCache too
 - **SINGLE INSTANCE:** it does not support multiple named caches, there can be only one
