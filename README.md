@@ -68,7 +68,7 @@ I published [a course](https://dometrain.com/course/getting-started-caching-in-d
 </div>
 
 Mind you, it's not just about FusionCache, it's about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios.
-<br/>
+
 We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
 
 I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
