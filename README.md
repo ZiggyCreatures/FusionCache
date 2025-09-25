@@ -63,7 +63,7 @@ I published [a course](https://dometrain.com/course/getting-started-caching-in-d
 
 <div align="center">
 
-[![Caching Course on Dometrain](docs/images/dometrain-getting-started-cover.jpg)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
+[![Caching Course on Dometrain](docs/images/dometrain-getting-started-cover.png)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
 
 </div>
 
