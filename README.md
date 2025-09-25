@@ -41,7 +41,7 @@ It's also compatible with the new HybridCache from Microsoft, thanks to a [power
 
 </div>
 
-In 2021 FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
+FusionCache received the [Google Open Source Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
 
 ## 📕 Getting Started
 
@@ -69,7 +69,7 @@ I published [a course](https://dometrain.com/course/getting-started-caching-in-d
 
 Mind you, it's not just about FusionCache, it's about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios.
 
-We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
+We'll cover performance, robustness, resiliency, different real-world problems and, most importantly, solutions for them.
 
 I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
 
