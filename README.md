@@ -57,7 +57,7 @@ In search of all the docs? There's a [page](docs/README.md) for that, too.
 
 ## 🧑‍🏫 Courses
 
-If you like the FusionCache docs and are interested in all things caching, you may find this interesting.
+If you like the FusionCache docs and want to know all things caching, you may find this interesting.
 
 I published [a course](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) on Dometrain:
 
@@ -67,7 +67,7 @@ I published [a course](https://dometrain.com/course/getting-started-caching-in-d
 
 </div>
 
-It's not just about FusionCache, it's about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios.
+Mind you, it's not just about FusionCache, it's about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios.
 <br/>
 We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
 
