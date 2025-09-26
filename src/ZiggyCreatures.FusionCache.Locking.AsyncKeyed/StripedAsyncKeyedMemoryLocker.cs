@@ -49,25 +49,8 @@ public sealed class StripedAsyncKeyedMemoryLocker
 		}
 	}
 
-	// IDISPOSABLE
-	private bool _disposedValue;
-	private void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				// EMPTY
-			}
-
-			_disposedValue = true;
-		}
-	}
-
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
 	}
 }
