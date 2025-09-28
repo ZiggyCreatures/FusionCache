@@ -15,19 +15,31 @@ If we are in a scenario with multiple nodes, each with their own local memory le
 
 Something like this:
 
+<div align=center">
+
 ![L1+L2 architecture](images/cache-coherence-architecture.png)
+
+</div>
 
 But even when using this L1+L2 setup, what happens when there's an update on a node?
 
 FusionCache will of course update both the L1 (memory cache) and the L2 (distributed cache), like this:
 
+<div align=center">
+
 ![L1+L2 update](images/cache-coherence-update.png)
+
+</div>
 
 But... since the code (both our app code and FusionCache code) runs on the node that updated the entry, only the L1 where the update has been executed will be update.
 
 And what happens if the other nodes already had that entry cached? This happens:
 
+<div align=center">
+
 ![Incoherent cache](images/cache-coherence-before.png)
+
+</div>
 
 Basically the cache as a whole becomes **incoherent**, because depending on the node a request will land, it will receive a different result.
 
@@ -47,7 +59,11 @@ By default, everything is handled transparently for us 🎉
 
 By using a backplane, we'll get to this:
 
+<div align=center">
+
 ![Fully coherent cache](images/cache-coherence-after.png)
+
+</div>
 
 ## ✉️ Notifications: what they are
 
