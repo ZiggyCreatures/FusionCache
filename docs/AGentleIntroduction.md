@@ -65,8 +65,8 @@ Read more [**here**](CacheStampede.md), or enjoy the complete [**step by step**]
 There are 2 caching levels, transparently handled by FusionCache for us.
 
 These are:
-- **1️⃣ Primary**: it's a memory cache, is always there and is used to have a very fast access to data in memory, with high data locality. We can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for us
-- **2️⃣ Secondary**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and, since it's not strictly necessary and it serves the purpose of **easing a cold start** or **coordinating with other nodes**, it is treated differently than the primary one. This means that any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
+- **1️⃣ L1**: it's a memory cache, is always there and is used to have a very fast in-memory access to frequently accessed data (hot data), with high data locality. We can give FusionCache any implementation of `IMemoryCache` or let it create one for us, automatically
+- **2️⃣ L2**: is an *optional* distributed cache (any implementation of `IDistributedCache` will work) and serves the purpose of **easing a cold start** or **sharing cached data** with other nodes/pods. It is treated differently than L1, meaning any potential error happening on this level (remember the [fallacies of distributed computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing) ?) can be automatically handled by FusionCache to not impact the overall application, all while (optionally) logging any detail of it for further investigation
 
 Everything is handled transparently for us.
 
