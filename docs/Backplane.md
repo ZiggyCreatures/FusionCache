@@ -332,7 +332,7 @@ cache.Remove(
 );
 ```
 
-## ⚠ External changes: be careful
+## ⚠️ External changes: be careful
 
 Just to reiterate, because it's very important: when using the backplane **without** a distributed cache, any change not manually published by us would result in different nodes not being synched.
 
@@ -361,4 +361,4 @@ As we saw there are basically 2 ways of using a backplane:
 - **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything, everything just works and it's hard to have inconsistencies between different nodes
 - **2️⃣ MEMORY + BACKPLANE (NO DISTRIBUTED)**: probably the less common, where we have to skip automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes. It's easier to have inconsistencies between different nodes
 
-⚠ So remember: without a distributed cache we should **SKIP** backplane notifications by default, otherwise our system may suffer.
+⚠️ So remember: without a distributed cache we should **SKIP** backplane notifications by default, otherwise our system may suffer.
