@@ -31,7 +31,7 @@ FusionCache will of course update both the L1 (memory cache) and the L2 (distrib
 
 </div>
 
-But... since the code (both our app code and FusionCache code) runs on the node that updated the entry, only the L1 where the update has been executed will be update.
+But... since the code (both our app code and FusionCache code) runs on the node that updated the entry, only the L1 where the update has been executed will be updated.
 
 And what happens if the other nodes already had that entry cached? This happens:
 
@@ -44,6 +44,10 @@ And what happens if the other nodes already had that entry cached? This happens:
 Basically the cache as a whole becomes **incoherent**, because depending on the node a request will land, it will receive a different result.
 
 And this will last until the `Duration` elapses, and expiration occurs, on all those other nodes.
+
+Is there a solution to this?
+
+## 📢 Use a backplane
 
 Luckily, there's an easy solution to this synchronization problem: we can use a **backplane**.
 
