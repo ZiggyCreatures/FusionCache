@@ -110,7 +110,7 @@ As we know from the [Fallacies Of Distributed Computing](https://en.wikipedia.or
 
 Without some extra care what can happen is that data would not be saved in the distributed cache or other nodes may not be notified of changes: this would result in out-of-sync issues.
 
-wouldn't it be nice if FusionCache would help us is some way when transient error happens?
+Wouldn't it be nice if FusionCache would help us is some way when transient error happens?
 
 Enter **Auto-Recovery**: everything is done automatically, and it just works.
 
@@ -121,9 +121,9 @@ Read more [**here**](AutoRecovery.md).
 
 Tagging is an incredibly powerful feature: cache entries can be tagged with one or more tags, and later they can be evicted all at once by just calling `RemoveByTag("my-tag")`.
 
-The overall [design](https://github.com/ZiggyCreatures/FusionCache/issues/319) used to achieve this is such that, even when working against a massive cache with millions of entries, will not incur in any upfront cost (yes, even a distributed L2 like a Redis gigantic instance).
+The overall [design](https://github.com/ZiggyCreatures/FusionCache/issues/319) used to achieve this is such that, even when working against a massive cache with millions of entries, will not incur in any upfront cost (yes, even with a gigantic distributed cache as L2, like a big Redis instance).
 
-Tagging works in any supported scenario: with or without an optional L2 (distributed level), an optional backplane, shared caches, cache key prefix, fail-safe, soft/hard timeouts, auto-recovery and everything else.
+Tagging works in any supported scenario: with only L1, with L1+L2, with or without an optional backplane, shared caches (both L1 and L2), cache key prefix, fail-safe, soft/hard timeouts, auto-recovery and everything else.
 
 Read more [**here**](Tagging.md).
 
@@ -132,7 +132,9 @@ Read more [**here**](Tagging.md).
 
 Thanks to the design used for the Tagging feature (see above), FusionCache also supports a proper `Clear()` mechanism for the entire cache.
 
-Yes, yes: the abiltiy to clear seems like an easy one but when we consider things like shared caches, cache key prefix and all the other features... it's definitely not an easy feat. But yeah, it just works.
+Yes, yes: the abiltiy to clear the cache seems like an easy one, but when we consider things like multiple levels, shared caches, cache key prefix and all the other features... it's definitely not an easy feat.
+
+But yeah, long story short: it just works.
 
 Read more [**here**](Clear.md).
 
