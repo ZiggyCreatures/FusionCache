@@ -59,8 +59,6 @@ Luckily, there's an easy solution to this synchronization problem: we can use a 
 
 A backplane is like a slim message bus where change notifications will be published to all other connected nodes each time something happens to a cache entry, all automatically without us having to do anything.
 
-By default, everything is handled transparently for us 🎉
-
 By using a backplane, we'll get to this:
 
 <div align="center">
@@ -68,6 +66,8 @@ By using a backplane, we'll get to this:
 ![Fully coherent cache](images/cache-coherence-after.png)
 
 </div>
+
+Everything is transparently handled for us: nice 🙂
 
 ## ✉️ Notifications: what they are
 
