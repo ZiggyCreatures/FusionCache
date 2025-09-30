@@ -54,7 +54,7 @@ Also, if we want, we can set two additional options to have more control:
 
 The end result (also adding some [timeouts](Timeouts.md)) would be something like this:
 
-![Consequences with fail-safe](images/stepbystep-04-factorytimeouts.png)
+![Consequences with fail-safe](images/stepbystep-05-factorytimeouts.png)
 
 Isn't it great?
 
@@ -130,4 +130,7 @@ Well, in that case there's nothing in the cache, right? So what can FusionCache 
 Easy: when calling `GetOrSet` we can also specify a `failSafeDefaultValue` which, if specified by us, would act as a final fallback to avoid propagating the factory error to our users. This may not always make sense, because sometimes there is not a reasonable default value to use, but if there is, we can use it.
 
 ## ❤️ A Beautiful Movie
-The name is also an homage to a somewhat forgotten [beautiful movie](https://en.wikipedia.org/wiki/Fail_Safe_(1964_film)), directed by the great Sidney Lumet and with a stellar cast. It's from a different era, so expect black and white and a different acting style, but give it a chance: it's remarkable.
+
+The name is also an homage to a somewhat forgotten [beautiful movie](https://en.wikipedia.org/wiki/Fail_Safe_(1964_film)), directed by the great Sidney Lumet and with a stellar cast.
+
+It's from a different era so expect black and white, a different acting style, a different direction & editing: but give it a chance, it's remarkable.
