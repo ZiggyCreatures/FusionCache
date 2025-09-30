@@ -26,7 +26,7 @@ public partial class EventsTests
 
 		EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
 		EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
-		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordActionIf(EntryActionKind.Set, e is FusionCacheEntrySetEventArgs);
 		EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 		EventHandler<FusionCacheEntryEventArgs> onFactoryError = (s, e) => stats.RecordAction(EntryActionKind.FactoryError);
@@ -94,14 +94,14 @@ public partial class EventsTests
 		cache.Events.FactoryError -= onFactoryError;
 		cache.Events.FactorySuccess -= onFactorySuccess;
 
-		Assert.Equal(4, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(2, stats.Data[EntryActionKind.HitNormal]);
-		Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(2, stats.Data[EntryActionKind.Remove]);
-		Assert.Equal(2, stats.Data[EntryActionKind.FailSafeActivate]);
-		Assert.Equal(2, stats.Data[EntryActionKind.FactoryError]);
-		Assert.Equal(1, stats.Data[EntryActionKind.FactorySuccess]);
+		Assert.Equal(4, stats[EntryActionKind.Miss]);
+		Assert.Equal(2, stats[EntryActionKind.HitNormal]);
+		Assert.Equal(2, stats[EntryActionKind.HitStale]);
+		Assert.Equal(2, stats[EntryActionKind.Set]);
+		Assert.Equal(2, stats[EntryActionKind.Remove]);
+		Assert.Equal(2, stats[EntryActionKind.FailSafeActivate]);
+		Assert.Equal(2, stats[EntryActionKind.FactoryError]);
+		Assert.Equal(1, stats[EntryActionKind.FactorySuccess]);
 	}
 
 	[Fact]
@@ -121,7 +121,7 @@ public partial class EventsTests
 
 		EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
 		EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
-		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordActionIf(EntryActionKind.Set, e is FusionCacheEntrySetEventArgs);
 		EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
@@ -147,9 +147,9 @@ public partial class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(2, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(4, stats.Data.Values.Sum());
+		Assert.Equal(2, stats[EntryActionKind.Miss]);
+		Assert.Equal(2, stats[EntryActionKind.Set]);
+		Assert.Equal(4, stats.Total);
 	}
 
 	[Fact]
@@ -169,7 +169,7 @@ public partial class EventsTests
 
 		EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
 		EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
-		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordActionIf(EntryActionKind.Set, e is FusionCacheEntrySetEventArgs);
 		EventHandler<FusionCacheEntryEventArgs> onRemove = (s, e) => stats.RecordAction(EntryActionKind.Remove);
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
@@ -197,10 +197,10 @@ public partial class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(0, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(2, stats.Data.Values.Sum());
+		Assert.Equal(0, stats[EntryActionKind.HitStale]);
+		Assert.Equal(1, stats[EntryActionKind.Miss]);
+		Assert.Equal(1, stats[EntryActionKind.Set]);
+		Assert.Equal(2, stats.Total);
 	}
 
 	[Fact]
@@ -241,8 +241,8 @@ public partial class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(1, stats[EntryActionKind.Miss]);
+		Assert.Equal(1, stats.Total);
 	}
 
 	[Fact]
@@ -289,8 +289,8 @@ public partial class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(1, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(1, stats[EntryActionKind.HitStale]);
+		Assert.Equal(1, stats.Total);
 	}
 
 	[Fact]
@@ -337,8 +337,8 @@ public partial class EventsTests
 		cache.Events.Remove -= onRemove;
 		cache.Events.FailSafeActivate -= onFailSafeActivate;
 
-		Assert.Equal(1, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data.Values.Sum());
+		Assert.Equal(1, stats[EntryActionKind.Miss]);
+		Assert.Equal(1, stats.Total);
 	}
 
 	[Fact]
@@ -358,7 +358,7 @@ public partial class EventsTests
 
 		EventHandler<FusionCacheEntryEventArgs> onMiss = (s, e) => stats.RecordAction(EntryActionKind.Miss);
 		EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
-		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordActionIf(EntryActionKind.Set, e is FusionCacheEntrySetEventArgs);
 
 		// SETUP HANDLERS
 		cache.Events.Memory.Miss += onMiss;
@@ -374,9 +374,9 @@ public partial class EventsTests
 		cache.Events.Memory.Hit -= onHit;
 		cache.Events.Memory.Set -= onSet;
 
-		Assert.Equal(2, stats.Data[EntryActionKind.Miss]);
-		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(3, stats.Data.Values.Sum());
+		Assert.Equal(2, stats[EntryActionKind.Miss]);
+		Assert.Equal(1, stats[EntryActionKind.Set]);
+		Assert.Equal(3, stats.Total);
 	}
 
 	[Fact]
@@ -431,10 +431,10 @@ public partial class EventsTests
 		cache3.Events.Backplane.MessagePublished -= onMessagePublished3;
 		cache3.Events.Backplane.MessageReceived -= onMessageReceived3;
 
-		Assert.Equal(1, stats2.Data[EntryActionKind.BackplaneMessagePublished]);
-		Assert.Equal(2, stats2.Data[EntryActionKind.BackplaneMessageReceived]);
-		Assert.Equal(0, stats3.Data[EntryActionKind.BackplaneMessagePublished]);
-		Assert.Equal(3, stats3.Data[EntryActionKind.BackplaneMessageReceived]);
+		Assert.Equal(1, stats2[EntryActionKind.BackplaneMessagePublished]);
+		Assert.Equal(2, stats2[EntryActionKind.BackplaneMessageReceived]);
+		Assert.Equal(0, stats3[EntryActionKind.BackplaneMessagePublished]);
+		Assert.Equal(3, stats3[EntryActionKind.BackplaneMessageReceived]);
 	}
 
 	[Fact]
@@ -446,7 +446,7 @@ public partial class EventsTests
 		using var cache = new FusionCache(new FusionCacheOptions() { EnableSyncEventHandlersExecution = true });
 
 		EventHandler<FusionCacheEntryHitEventArgs> onHit = (s, e) => stats.RecordAction(e.IsStale ? EntryActionKind.HitStale : EntryActionKind.HitNormal);
-		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordAction(EntryActionKind.Set);
+		EventHandler<FusionCacheEntryEventArgs> onSet = (s, e) => stats.RecordActionIf(EntryActionKind.Set, e is FusionCacheEntrySetEventArgs);
 		EventHandler<FusionCacheEntryEventArgs> onFailSafeActivate = (s, e) => stats.RecordAction(EntryActionKind.FailSafeActivate);
 
 		// SETUP HANDLERS
@@ -474,9 +474,9 @@ public partial class EventsTests
 		Assert.Equal(21, secondValue);
 		Assert.Equal(21, thirdValue);
 		Assert.Equal(21, fourthValue);
-		Assert.Equal(1, stats.Data[EntryActionKind.Set]);
-		Assert.Equal(1, stats.Data[EntryActionKind.HitNormal]);
-		Assert.Equal(2, stats.Data[EntryActionKind.HitStale]);
-		Assert.Equal(1, stats.Data[EntryActionKind.FailSafeActivate]);
+		Assert.Equal(1, stats[EntryActionKind.Set]);
+		Assert.Equal(1, stats[EntryActionKind.HitNormal]);
+		Assert.Equal(2, stats[EntryActionKind.HitStale]);
+		Assert.Equal(1, stats[EntryActionKind.FailSafeActivate]);
 	}
 }
