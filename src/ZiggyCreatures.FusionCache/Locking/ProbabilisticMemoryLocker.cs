@@ -75,32 +75,26 @@ internal sealed class ProbabilisticMemoryLocker
 
 	// IDISPOSABLE
 	private bool _disposedValue;
-	private void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				if (_pool is not null)
-				{
-					foreach (var semaphore in _pool)
-					{
-						semaphore.Dispose();
-					}
-				}
-			}
-
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-			_pool = null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			_disposedValue = true;
-		}
-	}
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		if (_disposedValue)
+		{
+			return;
+		}
+
+		if (_pool is not null)
+		{
+			foreach (var semaphore in _pool)
+			{
+				semaphore.Dispose();
+			}
+		}
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+		_pool = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+		_disposedValue = true;
 	}
 }
