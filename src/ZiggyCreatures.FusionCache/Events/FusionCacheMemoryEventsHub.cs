@@ -31,6 +31,7 @@ public sealed class FusionCacheMemoryEventsHub
 	/// <summary>
 	/// The event for a manual cache Expire() call.
 	/// </summary>
+	/// <remarks>The event args has not been strongly typed to avoid breaking changes but it can be cast as an instance of <see cref="FusionCacheEntryExpirationEventArgs"/> when subscribed to.</remarks>
 	public event EventHandler<FusionCacheEntryEventArgs>? Expire;
 
 	/// <summary>
@@ -42,28 +43,28 @@ public sealed class FusionCacheMemoryEventsHub
 		return Eviction is not null;
 	}
 
-	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value)
+	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value, FusionCacheEntryMetadata? metadata)
 	{
 		// METRIC
 		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.MemoryEvictReason, reason.ToString()));
 
-		Eviction?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
+		Eviction?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEvictionEventArgs(key, reason, value, metadata), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal void OnExpire(string operationId, string key)
+	internal void OnExpire(string operationId, string key, FusionCacheEntryMetadata? metadata)
 	{
 		// METRIC
 		Metrics.CounterMemoryExpire.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
+		Expire?.SafeExecute(operationId, key, _cache, new FusionCacheEntryExpirationEventArgs(key, metadata), nameof(Expire), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
+	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity, FusionCacheEntryMetadata? metadata)
 	{
 		// METRIC
 		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
 
-		base.OnHit(operationId, key, isStale, activity);
+		base.OnHit(operationId, key, isStale, activity, metadata);
 	}
 
 	internal override void OnMiss(string operationId, string key, Activity? activity)
@@ -74,12 +75,12 @@ public sealed class FusionCacheMemoryEventsHub
 		base.OnMiss(operationId, key, activity);
 	}
 
-	internal override void OnSet(string operationId, string key)
+	internal override void OnSet(string operationId, string key, FusionCacheEntryMetadata? metadata)
 	{
 		// METRIC
 		Metrics.CounterMemorySet.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		base.OnSet(operationId, key);
+		base.OnSet(operationId, key, metadata);
 	}
 
 	internal override void OnRemove(string operationId, string key)

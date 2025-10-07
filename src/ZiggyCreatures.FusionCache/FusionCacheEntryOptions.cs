@@ -970,7 +970,8 @@ public sealed class FusionCacheEntryOptions
 			res.RegisterPostEvictionCallback(
 				(key, entry, reason, state) =>
 				{
-					((FusionCacheMemoryEventsHub?)state)?.OnEviction(string.Empty, key.ToString() ?? "", reason, ((IFusionCacheMemoryEntry?)entry)?.Value);
+					var memoryEntry = (IFusionCacheMemoryEntry?)entry;
+					((FusionCacheMemoryEventsHub?)state)?.OnEviction(string.Empty, key.ToString() ?? "", reason, memoryEntry?.Value, memoryEntry?.Metadata);
 				},
 				events
 			);
