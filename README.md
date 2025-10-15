@@ -71,18 +71,6 @@ But mind you, it's not just about FusionCache but about caching as a whole: we'l
 
 I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
 
-## 🧬 Diagrams ([more](docs/Diagrams.md))
-
-Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
-
-So, diagrams!
-
-<div align="center">
-
-[![FusionCache flow diagrams](docs/images/diagrams.png)](docs/Diagrams.md)
-
-</div>
-
 ## 📺 Talks ([more](https://github.com/jodydonetti/talks))
 
 Are you more into videos?
@@ -331,6 +319,18 @@ If you are in for a ride you can read a complete [step by step example](docs/Ste
 <div style="text-align:center;">
 
 ![FusionCache diagram](docs/images/stepbystep-intro.png)
+
+</div>
+
+## 🧬 Diagrams ([more](docs/Diagrams.md))
+
+Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
+
+So, diagrams!
+
+<div align="center">
+
+[![FusionCache flow diagrams](docs/images/diagrams.png)](docs/Diagrams.md)
 
 </div>
 
