@@ -8,6 +8,7 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.NATS</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
