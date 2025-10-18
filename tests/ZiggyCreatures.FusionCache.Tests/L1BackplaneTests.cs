@@ -42,7 +42,7 @@ public abstract partial class L1BackplaneTests<T> : AbstractTests where T : IFus
 		var options = CreateFusionCacheOptions();
 
 		if (string.IsNullOrWhiteSpace(cacheInstanceId) == false)
-			options.SetInstanceId(cacheInstanceId!);
+			options.SetInstanceId(cacheInstanceId);
 
 		if (string.IsNullOrWhiteSpace(cacheName) == false)
 			options.CacheName = cacheName;

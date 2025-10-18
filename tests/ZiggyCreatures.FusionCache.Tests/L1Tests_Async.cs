@@ -695,13 +695,16 @@ public partial class L1Tests
 		Assert.Equal(v5, v6);
 	}
 
-	[Fact]
-	public async Task CanEagerRefreshWithInfiniteDurationAsync()
+	[Theory]
+	[ClassData(typeof(MemoryLockerTypesClassData))]
+	public async Task CanEagerRefreshWithInfiniteDurationAsync(MemoryLockerType memoryLockerType)
 	{
+		var memoryLocker = TestsUtils.GetMemoryLocker(memoryLockerType);
+
 		var duration = TimeSpan.MaxValue;
 		var eagerRefreshThreshold = 0.5f;
 
-		using var cache = new FusionCache(new FusionCacheOptions());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: memoryLocker);
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -712,15 +715,18 @@ public partial class L1Tests
 		Assert.True(v1 > 0);
 	}
 
-	[Fact]
-	public async Task CanEagerRefreshNoCancellationAsync()
+	[Theory]
+	[ClassData(typeof(MemoryLockerTypesClassData))]
+	public async Task CanEagerRefreshNoCancellationAsync(MemoryLockerType memoryLockerType)
 	{
+		var memoryLocker = TestsUtils.GetMemoryLocker(memoryLockerType);
+
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
 		var eagerRefreshThreshold = 0.1f;
 		var eagerRefreshDelay = TimeSpan.FromSeconds(5);
 
-		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: memoryLocker, logger: CreateXUnitLogger<FusionCache>());
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -773,7 +779,7 @@ public partial class L1Tests
 			{
 				options.LockTimeout = lockTimeout;
 			}
-, token: TestContext.Current.CancellationToken);
+			, token: TestContext.Current.CancellationToken);
 		sw.Stop();
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 
@@ -968,7 +974,7 @@ public partial class L1Tests
 		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
 
 		await fusionCache.SetAsync<int>("foo", 21, token: TestContext.Current.CancellationToken);
-		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, EXP AT {DateTime.UtcNow + maxDuration}");
 
 		var didThrow = false;
 		var sw = Stopwatch.StartNew();
@@ -1161,6 +1167,58 @@ public partial class L1Tests
 		Assert.Equal(0, foo5);
 		Assert.Equal(0, bar5);
 		Assert.Equal(0, baz5);
+	}
+
+	[Fact]
+	public async Task CanRemoveByTagWithChangingTagsAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions() { IncludeTagsInLogs = true }, logger: logger);
+
+		var foo1 = await cache.GetOrSetAsync("foo", async _ => 1, tags: ["t1", "t2"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+
+		// THIS SHOULD REMOVE foo, SINCE IT HAD THE TAG t1
+		await cache.RemoveByTagAsync("t1", token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD ADD TAG t3
+		var foo2 = await cache.GetOrSetAsync("foo", async _ => 2, tags: ["t1", "t2", "t3"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(2, foo2);
+
+		// THIS SHOULD REMOVE foo, SINCE IT HAD THE TAG t3
+		await cache.RemoveByTagAsync("t3", token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD SET THE TAGS TO ONLY t1
+		var foo3 = await cache.GetOrSetAsync("foo", async _ => 3, tags: ["t1"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(3, foo3);
+
+		// THIS SHOULD -NOT- REMOVE foo, SINCE IT ONLY HAD THE TAG t1
+		await cache.RemoveByTagAsync("t2", token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD NOT SET ANYTHING
+		var foo4 = await cache.GetOrSetAsync("foo", async _ => 4, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(3, foo4);
+
+		// THIS SHOULD REMOVE foo, SINCE IT HAD (ONLY) THE TAG t1
+		await cache.RemoveByTagAsync(["t1", "t2", "t3", "t4"], token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD SET THE TAGS TO NOTHING
+		var foo5 = await cache.GetOrSetAsync("foo", async _ => 5, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(5, foo5);
+
+		// THIS SHOULD -NOT- REMOVE foo, SINCE IT NOW HAS NO TAGS
+		await cache.RemoveByTagAsync(["t1", "t2", "t3", "t4"], token: TestContext.Current.CancellationToken);
+
+		// THIS SHOULD GET THE EXISTING foo, SINCE WE DID NOT REMOVE IT
+		var maybeFooo = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+
+		Assert.True(maybeFooo.HasValue);
+		Assert.Equal(5, maybeFooo.Value);
 	}
 
 	[Fact]

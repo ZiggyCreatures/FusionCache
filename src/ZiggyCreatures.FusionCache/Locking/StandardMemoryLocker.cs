@@ -120,27 +120,21 @@ internal sealed class StandardMemoryLocker
 
 	// IDISPOSABLE
 	private bool _disposedValue;
-	private void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				_lockCache.Compact(1.0);
-				_lockCache.Dispose();
-			}
-
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-			_lockCache = null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			_disposedValue = true;
-		}
-	}
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		if (_disposedValue)
+		{
+			return;
+		}
+
+		_lockCache.Compact(1.0);
+		_lockCache.Dispose();
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+		_lockCache = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+		_disposedValue = true;
 	}
 }

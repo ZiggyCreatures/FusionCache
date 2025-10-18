@@ -14,9 +14,6 @@ In .NET there's full support for [Dependency Injection (DI)](https://docs.micros
 
 This is a common way to handle creation, dependencies, scopes and disposal of resources that makes it easier and more flexible to work with any _service_ we may need.
 
-| 🙋‍♂️ Updating from before `v0.24.0` ? please [read here](Update_v0_24_0.md). |
-|:-------|
-
 ## FusionCache + DI
 
 It's very easy to work with FusionCache when using DI: all we need to do is just register it like any other service and, if needed, configure it the way we want.

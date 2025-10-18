@@ -9,24 +9,65 @@
 
 | ⚡ TL;DR (quick version) |
 | -------- |
-| In a multi-node scenario it's possible to use a backplane to allow FusionCache to communicate with the other nodes about changes in cached entries, all automatically. |
+| In a multi-node scenario it's possible to use a backplane to allow FusionCache to communicate to all nodes about changes in cached entries, all automatically: this keeps the cache, as a whole, fully coherent. |
 
-If we are in a scenario with multiple nodes, each with their own local memory cache, we typically also use a distributed cache as a secondary level (see [here](CacheLevels.md)).
+If we are in a scenario with multiple nodes, each with their own local memory level (L1), we typically also use a distributed cache as a [second level](CacheLevels.md) (L2).
 
-But even when using that, we may find that each memory cache on each node may not be in-sync with the others, because when a value is cached locally it will stay the same until the `Duration` passes and expiration occurs.
-
-Luckily, there's an easy solution to this synchronization problem: use a **backplane**.
+Something like this:
 
 <div align="center">
 
-![Extended diagram](images/diagram-extended.png)
+![L1+L2 architecture](images/cache-coherence-architecture.png)
 
 </div>
 
-A backplane is like a message bus where change notifications will be published to all other connected nodes each time something happens to a cache entry, all automatically without us having to do anything.
+But even when using this L1+L2 setup, what happens when there's an update on a node?
 
-By default, everything is handled transparently for us 🎉
+FusionCache will of course update both the L1 (memory cache) and the L2 (distributed cache), like this:
 
+<div align="center">
+
+![L1+L2 update](images/cache-coherence-update.png)
+
+</div>
+
+But... since the code (both our app code and FusionCache code) runs on the node that updated the entry, only the L1 where the update has been executed will be updated.
+
+And what happens if the other nodes already had that entry cached? This happens:
+
+<div align="center">
+
+![Incoherent cache](images/cache-coherence-before.png)
+
+</div>
+
+Basically the cache as a whole becomes **incoherent**, because depending on the node a request will land, it will receive a different result.
+
+And this will last until the `Duration` elapses, and expiration occurs, on all those other nodes.
+
+Is there a solution to this?
+
+## 📢 Use a backplane
+
+Luckily, there's an easy solution to this synchronization problem: we can use a **backplane**.
+
+<div align="center">
+
+![Diagram with highlighted backplane](images/diagram-backplane.png)
+
+</div>
+
+A backplane is like a slim message bus where change notifications will be published to all other connected nodes each time something happens to a cache entry, all automatically without us having to do anything.
+
+By using a backplane, we'll get to this:
+
+<div align="center">
+
+![Fully coherent cache](images/cache-coherence-after.png)
+
+</div>
+
+Everything is transparently handled for us: nice 🙂
 
 ## ✉️ Notifications: what they are
 
@@ -291,7 +332,7 @@ cache.Remove(
 );
 ```
 
-## ⚠ External changes: be careful
+## ⚠️ External changes: be careful
 
 Just to reiterate, because it's very important: when using the backplane **without** a distributed cache, any change not manually published by us would result in different nodes not being synched.
 
@@ -320,4 +361,4 @@ As we saw there are basically 2 ways of using a backplane:
 - **1️⃣ MEMORY + DISTRIBUTED + BACKPLANE**: probably the most common, where we don't have to do anything, everything just works and it's hard to have inconsistencies between different nodes
 - **2️⃣ MEMORY + BACKPLANE (NO DISTRIBUTED)**: probably the less common, where we have to skip automatic notifications in the default entry options, and then we have to manually enable them on a call-by-call basis only when we actually want to notify the other nodes. It's easier to have inconsistencies between different nodes
 
-⚠ So remember: without a distributed cache we should **SKIP** backplane notifications by default, otherwise our system may suffer.
+⚠️ So remember: without a distributed cache we should **SKIP** backplane notifications by default, otherwise our system may suffer.

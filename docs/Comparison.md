@@ -18,6 +18,9 @@ The caching libraries I've looked at are (in alphabetical order):
 - [**HybridCache**](https://github.com/dotnet/aspnetcore/issues/53255)
 - [**LazyCache**](https://github.com/alastairtree/LazyCache)
 
+> [!NOTE]
+> LazyCache should not be compared to the others since it's memory-only and not hybrid/multi-level, so it's not fair. Having said that, since it's one of the very first OSS caches in .NET and still one of the most used, I wanted to highlighting the differences for the general public to know.
+
 All of them are good overall, and all have a different set of features.
 
 In the end, any library out there is the materialization of a lot of **passion**, **time** and **efforts** of somebody who decided to take their experience, model it into a reusable piece of code, document it and release it for others to study and use, all for free.
@@ -41,6 +44,7 @@ The general features I've identified are:
 - [**Fail-Safe**](FailSafe.md) (or similar mechanism): in general the ability to temporarily re-use an expired entry in case it's currently not possible to get a new one. This can greatly reduce transient errors in your application
 - [**Timeouts**](Timeouts.md): the ability to avoid factories to run for too long, potentially creating a blocking situation or resulting in too slow responses
 - [**Adaptive Caching**](AdaptiveCaching.md): the ability to adapt the caching options for a specific cache entry based on the result of the factory execution. This may be important for example to have a cache duration that changes based on the object being cached
+- **Sliding Expiration**: support for sliding expiration
 - [**Tagging**](Tagging.md): the ability to associate tags with entries, to later expire them all at once
 - [**Clear**](Clear.md): the ability to clear an entire cache at once, even with a shared L2, a cache key prefix, etc
 - [**Microsoft HybridCache**](MicrosoftHybridCache.md): the ability to be used as an implementation of the new HybridCache abstraction from Microsoft
@@ -61,34 +65,35 @@ The general features I've identified are:
 
 This is how they compare:
 
-|                       | FusionCache | HybridCache (3) | CacheManager (4) | CacheTower  | EasyCaching (1) | LazyCache (2) |
-| ---:                  | :---:       | :---:           | :---:            | :---:       | :---:           |:---:          |
-| **Cache Stampede**    | ✔          | ✔               | ❌               | ✔          | ✔              | ✔            |
-| **Sync Api**          | ✔          | ❌              | ✔                | ❌         | ✔              | ✔            |
-| **Async Api**         | ✔          | ✔               | ❌               | ✔          | ✔              | ⚠            |
-| **Fail-Safe**         | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
-| **Timeouts**          | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
-| **Adaptive Caching**  | ✔          | ❌              | ❌               | ❌         | ❌             | ✔            |
-| **Tagging**           | ✔          | ✔               | ℹ️               | ❌         | ❌             | ✔            |
-| **Clear**             | ✔          | ❓              | ✔                | ❌         | ❌             | ✔            |
-| **MS HybridCache**    | ✔          | ✔               | ❌               | ❌         | ❌             | ✔            |
-| **Cancellation**      | ✔          | ✔               | ❌               | ❌         | ❌             | ❌           |
-| **Multi-provider**    | ✔          | ✔               | ✔                | ✔          | ✔              | ❌           |
-| **Multi-level**       | ✔          | ✔               | ✔                | ✔          | ⚠              | ❌           |
-| **Backplane**         | ✔          | ✔               | ✔                | ✔          | ✔              | ❌           |
-| **Named Caches**      | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
-| **Auto-Recovery**     | ✔          | ❌              | ❌               | ❌         | ❌             | ❌           |
-| **Events**            | ✔          | ❌              | ✔                | ❌         | ❌             | ❌           |
-| **OpenTelemetry**     | ✔          | ❓              | ❌               | ❌         | ❌             | ❌           |
-| **Logging**           | ✔          | ❌              | ✔                | ❌         | ✔              | ❌           |
-| **Portable**          | ✔          | ✔               | ✔                | ✔          | ✔              | ✔            |
-| **Tests**             | ✔          | ✔               | ✔                | ✔          | ✔              | ✔            |
-| **Xml Comments**      | ✔          | ❌              | ✔                | ✔          | ✔              | ❌           |
-| **Docs**              | ✔          | ✔               | ✔                | ✔          | ✔              | ✔            |
-| **License**           | `MIT`       | `Same as .NET`  | `Apache 2.0`     | `MIT`       | `MIT`           | `MIT`        |
+|                       | FusionCache(4) | HybridCache (3)| CacheManager (2) | CacheTower  | EasyCaching (1) | LazyCache |
+| ---:                  | :---:          | :---:          | :---:            | :---:       | :---:           |:---:      |
+| **Cache Stampede**    | ✔️            | ✔️(*)          | ❌               | ✔️         | ✔️              | ✔️       |
+| **Sync Api**          | ✔️            | ❌             | ✔️               | ❌         | ✔️              | ✔️       |
+| **Async Api**         | ✔️            | ✔️             | ❌               | ✔️         | ✔️              | ⚠️       |
+| **Fail-Safe**         | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Timeouts**          | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Sliding Expiration**| ❌(*)         | ❌             | ✔️               | ❌         | ❌              | ✔️       |
+| **Adaptive Caching**  | ✔️            | ❌             | ❌               | ❌         | ❌              | ✔️       |
+| **Tagging**           | ✔️            | ✔️             | ❌(*)            | ❌         | ❌              | ❌       |
+| **Clear**             | ✔️            | ❌             | ✔️               | ❌         | ❌              | ❌       |
+| **MS HybridCache**    | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
+| **Cancellation**      | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
+| **Multi-provider**    | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ❌       |
+| **Multi-level**       | ✔️            | ✔️             | ✔️               | ✔️         | ✔️(*)           | ❌       |
+| **Backplane**         | ✔️            | ❌             | ✔️               | ✔️         | ✔️              | ❌       |
+| **Named Caches**      | ✔️            | ❌             | ❌               | ✔️         | ❌              | ❌       |
+| **Auto-Recovery**     | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Events**            | ✔️            | ❌             | ✔️               | ❌         | ❌              | ❌       |
+| **OpenTelemetry**     | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
+| **Logging**           | ✔️            | ✔️             | ✔️               | ❌         | ✔️              | ❌       |
+| **Portable**          | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ✔️       |
+| **Tests**             | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ✔️       |
+| **Xml Comments**      | ✔️            | ❌             | ✔️               | ✔️         | ✔️              | ❌       |
+| **Docs**              | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ✔️       |
+| **License**           | `MIT`          | `Same as .NET` | `Apache 2.0`     | `MIT`       | `MIT`           | `MIT`     |
 
 ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
-- (2): **LazyCache** does have both sync and async support, but not for all the available methods (eg. `Remove`). This may be perfectly fine for you or not, but it's good to know.
-- (3): **HybridCache** is not currently out yet, I'll update the table when it will be released.
-- (4): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
+- (2): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
+- (3): **HybridCache** protects from stampede, but the implementation is non-deterministic, and this can be a big problem.
+- (4): **FusionCache** does not natively support sliding expiration for now, but a similar result can be achieved (see [here](https://github.com/ZiggyCreatures/FusionCache/discussions/63#discussioncomment-3047513))

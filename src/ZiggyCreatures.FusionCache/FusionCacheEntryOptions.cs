@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -1017,8 +1018,14 @@ public sealed class FusionCacheEntryOptions
 		return res;
 	}
 
-	internal TimeSpan GetAppropriateMemoryLockTimeout(bool hasFallbackValue)
+	internal TimeSpan GetAppropriateMemoryLockTimeout(FusionCacheOptions options, bool hasFallbackValue)
 	{
+		// EARLY RETURN: IGNORE TIMEOUTS WHEN DEBUGGING
+		if (options.IgnoreTimeoutsWhenDebugging && Debugger.IsAttached)
+		{
+			return Timeout.InfiniteTimeSpan;
+		}
+
 		var res = LockTimeout;
 		if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
 		{
@@ -1033,8 +1040,14 @@ public sealed class FusionCacheEntryOptions
 		return res;
 	}
 
-	internal TimeSpan GetAppropriateFactoryTimeout(bool hasFallbackValue)
+	internal TimeSpan GetAppropriateFactoryTimeout(FusionCacheOptions options, bool hasFallbackValue)
 	{
+		// EARLY RETURN: IGNORE TIMEOUTS WHEN DEBUGGING
+		if (options.IgnoreTimeoutsWhenDebugging && Debugger.IsAttached)
+		{
+			return Timeout.InfiniteTimeSpan;
+		}
+
 		// EARLY RETURN: WHEN NO TIMEOUTS AT ALL
 		if (FactorySoftTimeout == Timeout.InfiniteTimeSpan && FactoryHardTimeout == Timeout.InfiniteTimeSpan)
 			return Timeout.InfiniteTimeSpan;
@@ -1054,8 +1067,14 @@ public sealed class FusionCacheEntryOptions
 		return res;
 	}
 
-	internal TimeSpan GetAppropriateDistributedCacheTimeout(bool hasFallbackValue)
+	internal TimeSpan GetAppropriateDistributedCacheTimeout(FusionCacheOptions options, bool hasFallbackValue)
 	{
+		// EARLY RETURN: IGNORE TIMEOUTS WHEN DEBUGGING
+		if (options.IgnoreTimeoutsWhenDebugging && Debugger.IsAttached)
+		{
+			return Timeout.InfiniteTimeSpan;
+		}
+
 		// EARLY RETURN: WHEN NO TIMEOUTS AT ALL
 		if (DistributedCacheSoftTimeout == Timeout.InfiniteTimeSpan && DistributedCacheHardTimeout == Timeout.InfiniteTimeSpan)
 			return Timeout.InfiniteTimeSpan;

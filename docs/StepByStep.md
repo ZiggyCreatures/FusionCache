@@ -72,7 +72,7 @@ I know, I know, nobody would be such a mad lad not to use any form of caching at
 
 Without any form of caching, this would give us `1,000` products requested X `100` concurrent requests per each product X `3` nodes = `300,000` req every 10 sec so `1,800,000` req/min.
 
-**TOTAL REQUESTS IN 10 MIN**: `18,000,000` .
+**TOTAL DATABASE QUERIES IN 10 MIN**: `18,000,000` .
 
 As we can see, every time the database is slow or down our service will be slow or down, too: this is because there's nothing between the database and our service.
 
@@ -134,7 +134,7 @@ Just adding a simple memory cache and caching results from the database for **1 
 
 Plus, for the `3` minutes when the database is down, nothing will be cached since the factory would throw an exception so in those `3` minutes, all of the `1,000` X `100` X `3` = `300,000` requests will keep being executed every `10` seconds, for an additional `9,000,000` requests.
 
-**TOTAL REQUESTS IN 10 MIN**: `12,000,000` (before was `18,000,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: `12,000,000` (before was `18,000,000`)
 
 Also, since we are reducing a little bit the number of requests to the database, it will respond a little bit quicker than before, reducing the response time of our own service as well, making it slightly faster.
 
@@ -145,9 +145,9 @@ Also, since we are reducing a little bit the number of requests to the database,
 
 ## 2) FusionCache
 
-In the previous step we would still have one big problem: **multiple concurrent executions of the same factory** for the same product id.
+In the previous step we would still have one big problem: **multiple concurrent executions of the same factory** for the same product id, a.k.a [Cache Stampede](CacheStampede.md).
 
-You see, the moment something is not in the cache (or is expired) every request will go to the database: in our example we have **100 concurrent requests** per each product arriving at the same time, so every single one of them would go to the database whereas it would be sufficient for just one of them to go to the database - per product id - and as soon as having the result from the database every other request for the same product id should be satisfied with the same result.
+You see, the moment something in the cache is expired every request will go to the database, separately: in our example we have **100 concurrent requests** per each product arriving at the same time, so every single one of them would go to the database whereas it would be sufficient for just one of them to go to the database - per product id - and as soon as having the result from the database every other request for the same product id should be satisfied with the same result.
 
 This is a problem of factory execution coordination, and **FusionCache** will solve that for us, automatically.
 
@@ -224,13 +224,13 @@ var product = _cache.GetOrSet<Product>(
 
 ### 🏆 Results
 
-Just adding FusionCache without doing any extra activity will solve the factory coordination problem we described above so that **only 1 factory** will be executed concurrently per each product id.
+Just adding FusionCache without doing any extra activity will solve the Cache Stampede problem so that **only 1 factory** will be executed concurrently per each product id.
 
 This will give us `1,000` products requested X `1` factory executed per each product (instead of `100`) X `3` nodes = `3,000` req/min, for a total of `30,000`requests.
 
 Plus, we still have the problem related to those `3` minutes when the database is down, but this time only `1` factory will be called per product instead of `100`, for an additional `1,000` X `3` = `3,000` requests that will keep being executed every `10` seconds, for an additional `90,000` requests.
 
-**TOTAL REQUESTS IN 10 MIN**: `120,000` (before was `12,000,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: `120,000` (before was `12,000,000`)
 
 And again, reducing the number of requests to the database (this time by a lot) will have a cascading effect of making the database and our own service a lot faster.
 
@@ -243,9 +243,9 @@ And again, reducing the number of requests to the database (this time by a lot) 
 
 Looking at the colors in the graph above we can see we still have a big problem: when the database is down our service is also down (the **red** parts).
 
-To solve this issue we can enable one of the main features of FusionCache: **Fail-Safe**.
+To solve this issue we can enable one of the main features of FusionCache: [Fail-Safe](FailSafe.md).
 
-[**Fail-Safe**](FailSafe.md) is a mechanism that allows the re-use of expired entries in the cache when calling the factory (in our case calling the database) goes wrong. To do that we simply set 3 things:
+Fail-Safe is a mechanism that allows the re-use of expired entries in the cache when calling the factory (in our case calling the database) goes wrong. To do that we simply set 3 things:
 
 - `IsFailSafeEnabled`: we set this flag to `true`
 - `FailSafeMaxDuration`: we specify for how long a value should be usable, even after its logical expiration (say `2 hours`)
@@ -288,20 +288,22 @@ This will give us `1,000` products requested X `1` factory executed X `3` nodes 
 
 Plus `1` extra req for each product & node for each of the `3` min where the database is down, so another `9,000` requests.
 
-**TOTAL REQUESTS IN 10 MIN**: `39,000` (before was `120,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: `39,000` (before was `120,000`)
 
 ![Fail-Safe Results](images/stepbystep-03-failsafe.png)
 
 <br/>
 <br/>
 
-## 4) Factory Timeouts ([more](Timeouts.md))
+## 4) Eager Refresh ([more](EagerRefresh.md))
 
-The situation is now way better than how it was initially, but here and there we are still **a little slow** becuase of **some latency spikes** when we go to the database.
+The situation is now way better than how it was initially, but here and there we are still **a little slow** because of **some latency spikes** when we go to the database and it is temporarily slow.
 
-Wouldn't it be nice if FusionCache would simply give us back the expired value (if any) when a factory takes too long? Also the timed out factory should keep running in the background so that - if and when the factory successfully completes - it can immediately update the cache so that the new value would be available right away without waiting for the next expiration time to occur?
+But if the database is slow, and we don't have the cached value anymore, is there something we can do?
 
-Luckily, just setting the [**factory timeouts**](Timeouts.md) does exactly that, so let's do it in the registration:
+Maybe we can act **proactively**, by asking FusionCache to start executing the factory when the cached value is *about to expire*.
+
+And how? We just enable [Eager Refresh](EagerRefresh.md):
 
 ```csharp
 services.AddFusionCache()
@@ -312,6 +314,58 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
+        // EAGER REFRESH
+        EagerRefreshThreshold = 0.9f;
+    })
+;
+```
+
+Specifying a threshold of `0.9` means that the first request to the cache happening after `90%` of the `Duration` (and before the expiration) will do 2 things:
+
+- immediately return the cached value, because it's still valid
+- start a non-blocking background factory execution to eagerly refresh the value in the cache
+
+Nice.
+
+### 🏆 Results
+
+Now **most** latency spikes are gone, which is really great.
+
+The number of database requests in this case will increase, even if by only a tiny bit, but why? By starting refreshing the cached data earlier, we'll make a bit more refreshes in the same amount of time.
+
+As an extreme example, and just to make things clear, imagine caching something for `1 min`: in `10 min` we'll do `10` refreshes, right? But if specify an Eager Refresh of `0.5` (`50%`) we'll do a refresh after `50%` of `1 min`, meaning a refresh every `30 sec`, so in `10 min` we'll have a total of `20` refreshes.
+
+**TOTAL DATABASE QUERIES IN 10 MIN**: `39,500` (a tiny bit more than before, but **less spikes**)
+
+![Eager Refresh Results](images/stepbystep-04-eagerrefresh.png)
+
+<br/>
+<br/>
+
+## 5) Factory Timeouts ([more](Timeouts.md))
+
+We already have less latency spikes, thanks to Eager Refresh, but we still have some: why?
+
+Well 2 things can happen:
+
+- no requests to our service in the "Eager Refresh window", meaning after the threshold and before the expiration
+- the background factory may happen to be particularly slow sometimes, thereby taking so much time that - even if it started at the right moment (Eager Refresh threshold) - it ends after the expiration
+
+Wouldn't it be nice if FusionCache would simply give us back the expired value (if any) when in those situations? And all while allowing the factory to complete in the background so that - if and when the factory successfully completes - it can immediately update the cache so that the new value would be available right away?
+
+Luckily, just setting the [Factory Timeouts](Timeouts.md) does exactly that, so let's do it in the registration:
+
+```csharp
+services.AddFusionCache()
+    .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+        Duration = TimeSpan.FromMinutes(1),
+        
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromHours(2),
+        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+        EagerRefreshThreshold = 0.9f;
+
         // FACTORY TIMEOUTS
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
@@ -319,11 +373,12 @@ services.AddFusionCache()
 ;
 ```
 
-From now on if a factory gets called **and there's a fallback value** to use, it will never take more than `100` ms, ever.
+From now on if a factory gets called **and there's a fallback value** to use, it will never take more than `100 ms`, ever.
 
-One small note: the fact that a timed-out factory will keep running in the background and update the cache is driven by an additional option, `AllowTimedOutFactoryBackgroundCompletion`. We did not set this option because is `true` by default.
+We also set `FactoryHardTimeout` to `1.5 sec` so that - even without a fallback value - a factory cannot last more than `1.5 sec`, ever: this means that when a hard timeout kicks in an exception will be thrown (of type `SyntheticTimeoutException`), and we'll have to handle it ourself, so **we should keep this in mind**.
 
-:warning: As an additional example, we also set `FactoryHardTimeout` to `1.5` sec so that - even without a fallback value - a factory cannot last more than `1.5` sec, ever: of course this means that when a hard timeout kicks in an exception will be thrown (of type `SyntheticTimeoutException`), and we'll have to handle it ourself, so **we should keep this in mind**.
+> [!NOTE]
+> It's even possible to pull an extra maneuver: we can set the soft timeout to... zero (`TimeSpan.Zero`). With this we'll never ever wait for a factory execution at all, as long as there's a stale value to use as a fallback. Yup, quite bonkers 😊
 
 ### 🏆 Results
 
@@ -331,18 +386,18 @@ Now **all latency spikes are gone**, and every request will not take more than 1
 
 The number of database requests in this case remains the same.
 
-**TOTAL REQUESTS IN 10 MIN**: `39,000` (same as before, but **no more spikes**!)
+**TOTAL DATABASE QUERIES IN 10 MIN**: `39,500` (same as before, but **no more spikes**!)
 
-![Factory Timeouts Results](images/stepbystep-04-factorytimeouts.png)
+![Factory Timeouts Results](images/stepbystep-05-factorytimeouts.png)
 
 <br/>
 <br/>
 
-## 5) Distributed cache ([more](CacheLevels.md))
+## 6) Distributed cache ([more](CacheLevels.md))
 
 Now everything is great on every node, but each node goes to the database for the same data, **without sharing it** with the other nodes that probably already did the same, and that is a waste.
 
-We can do better: we can add a **distributed cache**.
+We can do better: we can add a **distributed cache** as an L2.
 
 On premise or in the cloud, you can choose whichever you want (Redis, Memcached, MongoDB, etc) as long as an implementation of the standard `IDistributedCache` interface exists, and there are [a lot of them](CacheLevels.md).
 
@@ -350,13 +405,13 @@ But distributed caches do not work with *object instances* like memory caches, t
 
 To do that we just pick one of the existing implementations (eg: based on `Newtonsoft Json.NET` or `System.Text.Json`, available in various packages on nuget) or we can roll our own: we just need to implement an interface with 4 methods (`Serialize` + `Deserialize` + `SerializeAsync` + `DeserializeAsync`).
 
-Let's say we want to use [Redis](https://redis.io/) as a distributed cache and a serializer based on [Newtonsoft Json.NET](https://www.newtonsoft.com/json), so what should we do?
+Let's say we want to use [Redis](https://redis.io/) as a distributed cache and a serializer based on `System.Text.Json`, so what should we do?
 
 We install the specific packages:
 
 ```PowerShell
 PM> Install-Package Microsoft.Extensions.Caching.StackExchangeRedis
-PM> Install-Package ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson
+PM> Install-Package ZiggyCreatures.FusionCache.Serialization.SystemTextJson
 ```
 
 and add the registration during startup:
@@ -370,12 +425,14 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
+        EagerRefreshThreshold = 0.9f;
+
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
     })
-    // ADD JSON.NET BASED SERIALIZATION FOR FUSION CACHE
+    // ADD FUSIONCACHE SERIALIZATION BASED ON System.Text.Json
     .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
+        new FusionCacheSystemTextJsonSerializer()
     )
     // ADD REDIS DISTRIBUTED CACHE SUPPORT
     .WithDistributedCache(
@@ -388,22 +445,22 @@ That's all we need to do.
 
 ### 🏆 Results
 
-Since it's typically unlikely that all `3` nodes are perfectly synchronized, even a 100 ms difference in the timing at which the requests come in at each node means that probably another node already got the data from the database and updated the distributed cache: in this case the other nodes will use the value from there and not go to the database.
+Since it's typically unlikely that all `3` nodes are perfectly synchronized, even a `100 ms` difference in the timing at which the requests come in at each node means that probably another node already got the data from the database and updated the distributed cache: in this case the other nodes will use the value from there and not go to the database.
 
-Let's say this happens 30% of the time, this means 30% less requests than before.
+Let's say this happens `30%` of the time, this means `30%` less requests than before.
 
-**TOTAL REQUESTS IN 10 MIN**: around `27,000` (before was `39,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `27,000` (before was `39,500`)
 
 We can also observe that, even though when the distributed cache is down it does not take down the service (since it is considered a secondary layer) we can see that our latency got impacted by it and some parts of our nice graph **became yellow again**.
 
 Keep reading to find out how to easily solve that.
 
-![Distributed Cache Results](images/stepbystep-05-distributedcache.png)
+![Distributed Cache Results](images/stepbystep-06-distributedcache.png)
 
 <br/>
 <br/>
 
-## 6) Distributed cache options
+## 7) Distributed cache options
 
 Since the distributed cache is a secondary system and we want it to impact our service as little as possible in case it has problems (if it's slow or completely down) we set:
 
@@ -428,6 +485,8 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
+        EagerRefreshThreshold = 0.9f;
+
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
@@ -437,7 +496,7 @@ services.AddFusionCache()
         AllowBackgroundDistributedCacheOperations = true
     })
     .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
+        new FusionCacheSystemTextJsonSerializer()
     )
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
@@ -449,14 +508,14 @@ services.AddFusionCache()
 
 No more latency spikes, again :tada:
 
-**TOTAL REQUESTS IN 10 MIN**: still `27,000` (but no more spikes)
+**TOTAL DATABASE QUERIES IN 10 MIN**: still `27,000` (but no more spikes)
 
-![Distributed Cache Options Results](images/stepbystep-06-distributedoptions.png)
+![Distributed Cache Options Results](images/stepbystep-07-distributedoptions.png)
 
 <br/>
 <br/>
 
-## 7) Jittering
+## 8) Jittering
 
 To reduce even more the probabilty of cache entries expiring at the same time on different nodes we can add a little **random variation** to each entry's expiration.
 
@@ -474,6 +533,8 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
+        EagerRefreshThreshold = 0.9f;
+
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
@@ -485,7 +546,7 @@ services.AddFusionCache()
         JitterMaxDuration = TimeSpan.FromSeconds(2)
     })
     .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
+        new FusionCacheSystemTextJsonSerializer()
     )
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
@@ -497,30 +558,30 @@ services.AddFusionCache()
 
 As said this should increase the probabilty that when something expires in the memory cache, the new value will be already available in the distributed cache.
 
-Let's say this gives us another `20%` of the original `39,000` so that (`30%` + `20%`) = `50%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
+Let's say this gives us another `20%` of the original `39,500` so that (`30%` + `20%`) = `50%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
-**TOTAL REQUESTS IN 10 MIN**: around `19,000` (before was `27,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `19,000` (before was `27,000`)
 
-![Fail-Safe Results](images/stepbystep-06-distributedoptions.png)
+![Fail-Safe Results](images/stepbystep-07-distributedoptions.png)
 
 <br/>
 <br/>
 
-## 8) Backplane ([more](Backplane.md))
+## 9) Backplane ([more](Backplane.md))
 
 Now that we are using a distributed cache we basically have a single version of each piece of data in a central place, right?
 
-Well yes, but we also have a copy of that data in each node's memory cache, and what happens when one of those pieces of data changes? The result is that after the change, each cache entry would **not be synchronized** with the most updated version, at least until each entry **expires** and gets the new version from the distributed cache or the database.
+Well yes, but we also have a copy of that data in each node's memory cache (L1), and what happens when one of those pieces of data changes? The result is that after the change, the non-updated L1 would **not be synchronized** with the most updated version, at least until each entry **expires** and gets the new version from the distributed cache or the database: in that time window the cache, as a whole, becomes incoherent.
 
 One way to try to avoid this would be to have a very low cache `Duration`, but that would also mean having more requests to the distributed cache and to the database.
 
-A similar approach can be to have different durations for the 1st layer (memory) and the 2nd layer (distributed cache), by setting a very low `Duration` (say, `1 min`) and a higher `DistributedCacheDuration` (say, `10 min`) so that, at most, each node would have their own memory cache not synched for a `1 min` at most, and then any change would be taken from the distributed cache.
+A similar approach can be to have different durations for L1 (memory level) and L2 (distributed level), by setting a very low `Duration` (say, `1 min`) and a higher `DistributedCacheDuration` (say, `10 min`) so that, at most, each node would have their own L1 not synched for a `1 min`, and then any change would be taken from the distributed cache.
 
-Both of these solutions can be a fine mitigation and work in some situations, but they are not a **real** solution to the problem that would work in **every** scenario.
+Both of these solutions can be a fine **mitigation** and can work in some situations, but they are not a real **solution** to the problem, one that would work in **every scenario**.
 
-So how to to solve this issue completely? Use a [**backplane**](Backplane.md).
+So how to to solve this issue completely? Use a [backplane](Backplane.md).
 
-Let's say we want to use [Redis](https://redis.io/) as a backplane infrastructure, since we are already using it as a distributed cache.
+Let's say we want to use [Redis](https://redis.io/) as a backplane infrastructure, since we are already using it as a distributed cache (L2).
 
 We simply install the specific package:
 
@@ -542,6 +603,8 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
+        EagerRefreshThreshold = 0.9f;
+
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
@@ -552,7 +615,7 @@ services.AddFusionCache()
         JitterMaxDuration = TimeSpan.FromSeconds(2)
     })
     .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
+        new FusionCacheSystemTextJsonSerializer()
     )
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
@@ -564,24 +627,24 @@ services.AddFusionCache()
 ;
 ```
 
-That's all we need to do: FusionCache will automatically start using it, sending eviction notifications to all other nodes as soon as something is set (via either the `Set` or `GetOrSet` methods) or removed (via the `Remove` method).
+That's all we need to do: FusionCache will automatically start using it, sending eviction notifications to all other nodes as soon as something is changed in the cache (via either the `Set`, `GetOrSet` or `Remove` methods).
 
 ### 🏆 Results
 
-The first result is that everything is beautifully synchronized.
+The first result is that everything is beautifully synchronized, and the cache as a whole is now always **coherent**.
 
-The second is that, since at every change all the other nodes will evict their local copy and get a new one only if and when needed from the distributed cache, it is possible this would consume slightly less memory on each node and also add more variation to the related cache entries expiration, making it less frequent that multiple requests to the database would be needed at the same time on different nodes.
+The second is that, since at every change all the other nodes (the has that entry in their own L1) will update their local copy immediately, it is possible this would make it less frequent that multiple requests to the database would be needed at the same time on different nodes.
 
-Let's say this gives us another `20%` of the original `39,000` so that (`50%` + `20%`) = `70%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
+Let's say this gives us another `20%` of the original `39,500` so that (`50%` + `20%`) = `70%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
-**TOTAL REQUESTS IN 10 MIN**: around `12,000` (before was `19,000` + everything is now synchronized)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `11,000` (before was `19,000` + everything is now synchronized)
 
-![Backplane Results](images/stepbystep-07-backplane.png)
+![Backplane Results](images/stepbystep-08-backplane.png)
 
 <br/>
 <br/>
 
-## 9) Logging ([more](Logging.md))
+## 10) Logging ([more](Logging.md))
 
 Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: [**logging**](Logging.md).
 
@@ -618,6 +681,8 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
+        EagerRefreshThreshold = 0.9f;
+
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
 
@@ -628,7 +693,7 @@ services.AddFusionCache()
         JitterMaxDuration = TimeSpan.FromSeconds(2)
     })
     .WithSerializer(
-        new FusionCacheNewtonsoftJsonSerializer()
+        new FusionCacheSystemTextJsonSerializer()
     )
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })

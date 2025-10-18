@@ -198,5 +198,5 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 | 🧙‍♂️ `SkipDistributedCacheWrite` | `bool` | `false` | Skip writing to the distributed cache, if any. |
 | `SkipDistributedCacheRead` | `bool` | `false` | Skip reading from the distributed cache, if any. |
 | `SkipDistributedCacheReadWhenStale` | `bool` | `false` | When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it. |
-| 🧙‍♂️ `SkipMemoryCacheWrite` | `bool` | `false` | Skip reading from the memory cache. |
-| `SkipMemoryCacheRead` | `bool` | `false` | Skip writing to the memory cache. |
+| 🧙‍♂️ `SkipMemoryCacheWrite` | `bool` | `false` | Skip writing to the memory cache. |
+| `SkipMemoryCacheRead` | `bool` | `false` | Skip reading from the memory cache. |

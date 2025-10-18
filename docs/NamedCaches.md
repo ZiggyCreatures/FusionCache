@@ -246,7 +246,7 @@ services.AddFusionCache("Products")
     {
         opt.Duration = TimeSpan.FromSeconds(20);
     })
-    .WithCacheKeyPrefix()
+    .WithCacheKeyPrefixByCacheName()
     .WithRegisteredSerializer()
     .WithRegisteredDistributedCache()
     .WithRegisteredBackplane()
@@ -258,7 +258,7 @@ services.AddFusionCache("Customers")
     {
         opt.Duration = TimeSpan.FromSeconds(30);
     })
-    .WithCacheKeyPrefix()
+    .WithCacheKeyPrefixByCacheName()
     .WithRegisteredSerializer()
     .WithRegisteredDistributedCache()
     .WithRegisteredBackplane()
@@ -280,11 +280,9 @@ Normally the answer would be yes, but in this case is a resounding _"nope!"_ bec
 
 ### 🔑 Cache Key Prefix
 
-In the code above we also added `WithCacheKeyPrefix()`: that tells FusionCache to add a prefix to each cache key we will pass to it, solving the issue automatically.
+In the code above we also added `WithCacheKeyPrefixByCacheName()`: that tells FusionCache to add the cache name plus a little `:` separator as a prefix to each cache key we will pass to it, solving the issue automatically.
 
-By default, when no specific prefix is specified, the `CacheName` plus a little `":"` separator will be used.
-
-Of course it can also be specified manually, by simply using the overload `WithCacheKeyPrefix(prefix)`.
+Of course it can also be specified manually, by simply using `WithCacheKeyPrefix(prefix)`.
 
 Basically when doing `_productsCache.Set("Foo123", myProduct)` from the example above the actual cache key used in both the underlying memory and distributed cache will be turned from `"Foo123"` to `"Products:Foo123"`, automatically and transparently avoiding any collision between different cache entries from different caches. The transformed cache key will be used consistently throughout the entire flow: memory cache, distributed cache, events, etc.
 

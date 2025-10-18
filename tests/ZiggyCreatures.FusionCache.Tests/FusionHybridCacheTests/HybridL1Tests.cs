@@ -612,7 +612,7 @@ public class HybridL1Tests
 		var cache = new FusionHybridCache(fc);
 
 		await cache.SetAsync<int>("foo", 21, cancellationToken: TestContext.Current.CancellationToken);
-		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, EXP AT {DateTime.UtcNow + maxDuration}");
 
 		var didThrow = false;
 		var sw = Stopwatch.StartNew();
@@ -653,13 +653,13 @@ public class HybridL1Tests
 
 		await cache.SetAsync("foo", foo, cancellationToken: TestContext.Current.CancellationToken);
 
-		var foo1 = (await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken))!;
+		var foo1 = await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken);
 		foo1.PropInt = 1;
 
-		var foo2 = (await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken))!;
+		var foo2 = await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken);
 		foo2.PropInt = 2;
 
-		var foo3 = (await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken))!;
+		var foo3 = await cache.GetOrDefaultAsync<ComplexType>("foo", ct: TestContext.Current.CancellationToken);
 		foo3.PropInt = 3;
 
 		Assert.Equal(-1, foo.PropInt);
@@ -707,8 +707,8 @@ public class HybridL1Tests
 
 		await cache.SetAsync("imm", imm, cancellationToken: TestContext.Current.CancellationToken);
 
-		var imm1 = (await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken))!;
-		var imm2 = (await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken))!;
+		var imm1 = await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken);
+		var imm2 = await cache.GetOrDefaultAsync<SimpleImmutableObject>("imm", ct: TestContext.Current.CancellationToken);
 
 		Assert.Same(imm, imm1);
 		Assert.Same(imm, imm2);
@@ -828,5 +828,57 @@ public class HybridL1Tests
 		var v5 = await cache.GetOrDefaultAsync<long>("foo", token: TestContext.Current.CancellationToken);
 
 		Assert.Equal(0, v5);
+	}
+
+	[Fact]
+	public async Task CanHandleSpeficicLocalExpirationAsync()
+	{
+		var defaultDuration = TimeSpan.FromMinutes(4);
+		var localExpiration = TimeSpan.FromSeconds(1);
+
+		using var fc = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		fc.DefaultEntryOptions.Duration = defaultDuration;
+
+		var cache = new FusionHybridCache(fc);
+
+		// SET VALUE
+		await cache.SetAsync<int>(
+			"foo",
+			1,
+			new HybridCacheEntryOptions
+			{
+				LocalCacheExpiration = localExpiration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		// GETORCREATE (CACHE HIT -> NO FACTORY)
+		var foo1 = await cache.GetOrCreateAsync<int>(
+			"foo",
+			async _ => 2,
+			new HybridCacheEntryOptions
+			{
+				LocalCacheExpiration = localExpiration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo1);
+
+		// WAIT FOR THE EXPIRATION
+		await Task.Delay(localExpiration.PlusALittleBit(), TestContext.Current.CancellationToken);
+
+		// GETORCREATE (CACHE MISS -> FACTORY)
+		var foo2 = await cache.GetOrCreateAsync<int>(
+			"foo",
+			async _ => 3,
+			new HybridCacheEntryOptions
+			{
+				LocalCacheExpiration = localExpiration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(3, foo2);
 	}
 }

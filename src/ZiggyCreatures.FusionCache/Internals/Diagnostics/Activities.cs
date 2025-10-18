@@ -80,4 +80,9 @@ internal static class Activities
 			name: activityName
 		);
 	}
+
+	public static bool CanSetAsCurrent(Activity? activity)
+	{
+		return activity is null || (activity.Id is not null && !activity.IsStopped);
+	}
 }

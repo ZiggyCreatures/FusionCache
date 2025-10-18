@@ -157,7 +157,7 @@ internal partial class DistributedCacheAccessor
 		byte[]? data;
 		try
 		{
-			timeout ??= options.GetAppropriateDistributedCacheTimeout(hasFallbackValue);
+			timeout ??= options.GetAppropriateDistributedCacheTimeout(_options, hasFallbackValue);
 			data = await RunUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
 				async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
 				timeout.Value,

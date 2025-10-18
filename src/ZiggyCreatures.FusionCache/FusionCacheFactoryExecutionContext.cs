@@ -18,7 +18,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	private string _originalKey;
 	private FusionCacheEntryOptions _options;
 
-	private FusionCacheFactoryExecutionContext(string key, string originalKey, FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified, string[]? tags)
+	private FusionCacheFactoryExecutionContext(string key, string originalKey, FusionCacheEntryOptions options, MaybeValue<TValue> staleValue, string? etag, DateTimeOffset? lastModified, string[]? staleTags, string[]? tags)
 	{
 		if (options is null)
 			throw new ArgumentNullException(nameof(options));
@@ -30,6 +30,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		LastModified = lastModified;
 		ETag = etag;
 		StaleValue = staleValue;
+		StaleTags = staleTags;
 		Tags = tags;
 	}
 
@@ -146,6 +147,13 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	}
 
 	/// <summary>
+	/// The optional set of tags related to the stale entry.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	public string[]? StaleTags { get; }
+
+	/// <summary>
 	/// The optional set of tags related to the entry: this may be used to remove/expire multiple entries at once, by tag.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
@@ -160,6 +168,7 @@ public class FusionCacheFactoryExecutionContext<TValue>
 	/// <returns>The stale value, for when it is not changed.</returns>
 	public TValue NotModified()
 	{
+		Tags = StaleTags;
 		return StaleValue.Value;
 	}
 
@@ -203,30 +212,32 @@ public class FusionCacheFactoryExecutionContext<TValue>
 		MaybeValue<TValue> staleValue;
 		string? etag;
 		DateTimeOffset? lastModified;
+		string[]? staleTags;
 
 		if (distributedEntry is not null)
 		{
 			staleValue = MaybeValue<TValue>.FromValue(distributedEntry.GetValue<TValue>());
 			etag = distributedEntry.Metadata?.ETag;
-			if (distributedEntry.Tags is not null)
-				tags = distributedEntry.Tags;
 			lastModified = distributedEntry.Metadata?.LastModifiedTimestamp is null ? null : new DateTimeOffset(distributedEntry.Metadata.LastModifiedTimestamp.Value, TimeSpan.Zero);
+			//if (distributedEntry.Tags is not null)
+			staleTags = distributedEntry.Tags;
 		}
 		else if (memoryEntry is not null)
 		{
 			staleValue = MaybeValue<TValue>.FromValue(memoryEntry.GetValue<TValue>());
 			etag = memoryEntry.Metadata?.ETag;
-			if (memoryEntry.Tags is not null)
-				tags = memoryEntry.Tags;
 			lastModified = memoryEntry.Metadata?.LastModifiedTimestamp is null ? null : new DateTimeOffset(memoryEntry.Metadata.LastModifiedTimestamp.Value, TimeSpan.Zero);
+			//if (memoryEntry.Tags is not null)
+			staleTags = memoryEntry.Tags;
 		}
 		else
 		{
 			staleValue = default;
 			etag = null;
 			lastModified = null;
+			staleTags = null;
 		}
 
-		return new FusionCacheFactoryExecutionContext<TValue>(key, originalKey, options, staleValue, etag, lastModified, tags);
+		return new FusionCacheFactoryExecutionContext<TValue>(key, originalKey, options, staleValue, etag, lastModified, staleTags, tags);
 	}
 }
