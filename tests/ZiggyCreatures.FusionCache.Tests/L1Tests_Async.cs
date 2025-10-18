@@ -968,7 +968,7 @@ public partial class L1Tests
 		using var fusionCache = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());
 
 		await fusionCache.SetAsync<int>("foo", 21, token: TestContext.Current.CancellationToken);
-		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, EXP AT {DateTime.UtcNow + maxDuration}");
 
 		var didThrow = false;
 		var sw = Stopwatch.StartNew();
