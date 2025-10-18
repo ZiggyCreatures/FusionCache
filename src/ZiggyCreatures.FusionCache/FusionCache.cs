@@ -1153,42 +1153,30 @@ public sealed partial class FusionCache
 	/// <summary>
 	/// Release all resources managed by FusionCache.
 	/// </summary>
-	/// <param name="disposing">Indicates if the disposing is happening.</param>
-	private void Dispose(bool disposing)
-	//protected virtual void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				RemoveAllPlugins();
-				RemoveBackplane();
-				RemoveDistributedCache();
-
-				_autoRecovery?.Dispose();
-				_autoRecovery = null;
-
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-				_memoryLocker.Dispose();
-				_memoryLocker = null;
-
-				_mca.Dispose();
-				_mca = null;
-
-				_events = null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			}
-
-			_disposedValue = true;
-		}
-	}
-
-	/// <summary>
-	/// Release all resources managed by FusionCache.
-	/// </summary>
 	public void Dispose()
 	{
-		Dispose(true);
-		GC.SuppressFinalize(this);
+		if (_disposedValue)
+		{
+			return;
+		}
+
+		RemoveAllPlugins();
+		RemoveBackplane();
+		RemoveDistributedCache();
+
+		_autoRecovery?.Dispose();
+		_autoRecovery = null;
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+		_memoryLocker.Dispose();
+		_memoryLocker = null;
+
+		_mca.Dispose();
+		_mca = null;
+
+		_events = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+
+		_disposedValue = true;
 	}
 }

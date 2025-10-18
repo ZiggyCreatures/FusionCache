@@ -651,25 +651,19 @@ internal sealed class AutoRecoveryService
 
 	// IDISPOSABLE
 	private bool _disposedValue;
-	private void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				_queue.Clear();
-				_cts?.Cancel();
-				_cts?.Dispose();
-				_cts = null;
-			}
-
-			_disposedValue = true;
-		}
-	}
 
 	public void Dispose()
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		if (_disposedValue)
+		{
+			return;
+		}
+
+		_queue.Clear();
+		_cts?.Cancel();
+		_cts?.Dispose();
+		_cts = null;
+
+		_disposedValue = true;
 	}
 }

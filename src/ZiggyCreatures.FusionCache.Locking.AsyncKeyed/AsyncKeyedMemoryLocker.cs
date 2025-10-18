@@ -51,23 +51,17 @@ public sealed class AsyncKeyedMemoryLocker
 
 	// IDISPOSABLE
 	private bool disposedValue;
-	private void Dispose(bool disposing)
-	{
-		if (!disposedValue)
-		{
-			if (disposing)
-			{
-				_locker?.Dispose();
-			}
-
-			disposedValue = true;
-		}
-	}
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		if (disposedValue)
+		{
+			return;
+		}
+
+		_locker?.Dispose();
+
+		disposedValue = true;
 	}
 }
