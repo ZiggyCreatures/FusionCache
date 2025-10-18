@@ -734,7 +734,7 @@ public partial class L1L2Tests
 		fusionCache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 		await fusionCache.SetAsync<int>(keyFoo, 21, token: TestContext.Current.CancellationToken);
-		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, EXP AT {DateTime.UtcNow + maxDuration}");
 
 		var didThrow = false;
 		var sw = Stopwatch.StartNew();
