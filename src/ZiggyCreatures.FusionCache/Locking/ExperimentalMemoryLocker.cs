@@ -116,26 +116,20 @@ internal sealed class ExperimentalMemoryLocker
 
 	// IDISPOSABLE
 	private bool _disposedValue;
-	private void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				_tcsCache.Clear();
-			}
-
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-			_tcsCache = null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			_disposedValue = true;
-		}
-	}
 
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
+		if (_disposedValue)
+		{
+			return;
+		}
+
+		_tcsCache.Clear();
+
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+		_tcsCache = null;
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+		_disposedValue = true;
 	}
 }
