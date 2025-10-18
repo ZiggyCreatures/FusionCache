@@ -144,7 +144,7 @@ public partial class FusionCache
 		try
 		{
 			// MEMORY LOCK
-			memoryLockObj = await AcquireMemoryLockAsync(operationId, key, options.GetAppropriateMemoryLockTimeout(memoryEntry is not null), token).ConfigureAwait(false);
+			memoryLockObj = await AcquireMemoryLockAsync(operationId, key, options.GetAppropriateMemoryLockTimeout(_options, memoryEntry is not null), token).ConfigureAwait(false);
 
 			if (memoryLockObj is null && options.IsFailSafeEnabled && memoryEntry is not null)
 			{
@@ -223,7 +223,7 @@ public partial class FusionCache
 				{
 					Task<TValue>? factoryTask = null;
 
-					var timeout = options.GetAppropriateFactoryTimeout(memoryEntry is not null || distributedEntry is not null);
+					var timeout = options.GetAppropriateFactoryTimeout(_options, memoryEntry is not null || distributedEntry is not null);
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
