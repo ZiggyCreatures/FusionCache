@@ -31,7 +31,7 @@ We can specify:
 
 Basically if we enable **soft** timeout we are saying _"during a refresh if the factory takes more than X time, I prefer to temporarily reuse a stale (expired) value instead of waiting too much"_.
 
-If instead we enable **hard** timeouts we are saying _"during a refresh if the factory takes more than X time, even if there's no stale value to use as a fallback, we prefer to receive an exception instead of waiting too much"_ because we prefer to be fast and handle the error yourself.
+If instead we enable **hard** timeouts we are saying _"during a refresh if the factory takes more than X time, even if there's no stale value to use as a fallback, we prefer to receive an exception instead of waiting too much"_ because we prefer to be fast and handle the error ourself.
 
 We can specify them both (the **soft** should be lower than the **hard**, of course) and the appropriate one will be used based on the presence of an expired entry to be eventually used as a fallback.
 
