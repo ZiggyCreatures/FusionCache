@@ -144,6 +144,8 @@ public partial class GeneralTests
 
 			SkipAutoCloneForImmutableObjects = !defaultState.SkipAutoCloneForImmutableObjects,
 
+			IgnoreTimeoutsWhenDebugging = !defaultState.IgnoreTimeoutsWhenDebugging,
+
 			// LOG LEVELS
 			IncoherentOptionsNormalizationLogLevel = LogLevel.Critical,
 
