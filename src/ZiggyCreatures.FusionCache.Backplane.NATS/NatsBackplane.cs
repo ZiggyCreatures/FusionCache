@@ -1,13 +1,7 @@
-﻿using System.Buffers;
-using System.Text.Json;
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 using NATS.Client.Core;
-
-using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.NATS;
 
@@ -82,8 +76,8 @@ public partial class NatsBackplane
 				{
 					using (msg.Data)
 					{
-						if(BackplaneMessage.TryParse(msg.Data.Span, out BackplaneMessage message))
-						{ 
+						if (BackplaneMessage.TryParse(msg.Data.Span, out BackplaneMessage message))
+						{
 							await OnMessageAsync(message).ConfigureAwait(false);
 						}
 					}
@@ -96,7 +90,8 @@ public partial class NatsBackplane
 	/// <inheritdoc/>
 	public void Subscribe(BackplaneSubscriptionOptions options)
 	{
-		SubscribeAsync(options).AsTask().Wait();
+		// TODO: IS THERE A BETTER WAY INSTEAD OF SYNC OVER ASYNC ?
+		SubscribeAsync(options).GetAwaiter().GetResult();
 	}
 
 	/// <inheritdoc/>
@@ -112,12 +107,14 @@ public partial class NatsBackplane
 	/// <inheritdoc/>
 	public void Unsubscribe()
 	{
-		UnsubscribeAsync().AsTask().Wait();
+		// TODO: IS THERE A BETTER WAY INSTEAD OF SYNC OVER ASYNC ?
+		UnsubscribeAsync().GetAwaiter().GetResult();
 	}
 
 	/// <inheritdoc/>
 	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
+		// TH TYPE NatsBufferWriter SEEMS TO BE DISPOSABLE: SHOULD IT BE DISPOSED?
 		var writer = new NatsBufferWriter<byte>();
 		message.WriteTo(writer);
 		await _connection.PublishAsync(_channelName, writer).ConfigureAwait(false);
@@ -126,7 +123,8 @@ public partial class NatsBackplane
 	/// <inheritdoc/>
 	public void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		PublishAsync(message, options, token).AsTask().Wait();
+		// TODO: IS THERE A BETTER WAY INSTEAD OF SYNC OVER ASYNC ?
+		PublishAsync(message, options, token).GetAwaiter().GetResult();
 	}
 
 	internal async ValueTask OnMessageAsync(BackplaneMessage message)
