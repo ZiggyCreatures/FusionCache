@@ -612,7 +612,7 @@ public class HybridL1Tests
 		var cache = new FusionHybridCache(fc);
 
 		await cache.SetAsync<int>("foo", 21, cancellationToken: TestContext.Current.CancellationToken);
-		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, THEO PHY EXP AT {DateTime.UtcNow + maxDuration}");
+		TestOutput.WriteLine($"-- SET AT {DateTime.UtcNow}, EXP AT {DateTime.UtcNow + maxDuration}");
 
 		var didThrow = false;
 		var sw = Stopwatch.StartNew();
