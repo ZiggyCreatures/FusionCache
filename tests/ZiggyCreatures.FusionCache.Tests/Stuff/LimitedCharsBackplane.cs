@@ -46,9 +46,9 @@ internal class LimitedCharsBackplane
 		await _innerBackplane.UnsubscribeAsync();
 	}
 
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	public void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		_innerBackplane.Publish(message, options, token);
+		_innerBackplane.Publish(in message, options, token);
 	}
 
 	public async ValueTask PublishAsync(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)

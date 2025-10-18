@@ -86,12 +86,9 @@ public partial class MemoryBackplane
 	}
 
 	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	public void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		EnsureConnection();
-
-		if (message is null)
-			throw new ArgumentNullException(nameof(message));
 
 		if (message.IsValid() == false)
 			throw new InvalidOperationException("The message is invalid");
@@ -101,8 +98,6 @@ public partial class MemoryBackplane
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] about to send a backplane notification to {BackplanesCount} backplanes (including self)", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, _subscribers.Count);
-
-		var payload = BackplaneMessage.ToByteArray(message);
 
 		foreach (var backplane in _subscribers)
 		{
@@ -116,7 +111,7 @@ public partial class MemoryBackplane
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] before sending a backplane notification to channel {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, backplane._channelName);
 
-				backplane.OnMessage(payload);
+				backplane.OnMessage(message);
 
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): [BP] after sending a backplane notification to channel {BackplaneChannel}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, message.CacheKey, backplane._channelName);
@@ -129,10 +124,8 @@ public partial class MemoryBackplane
 		}
 	}
 
-	internal void OnMessage(byte[] payload)
+	internal void OnMessage(in BackplaneMessage message)
 	{
-		var message = BackplaneMessage.FromByteArray(payload);
-
 		var handler = _incomingMessageHandler;
 
 		if (handler is null)
