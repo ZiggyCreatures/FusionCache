@@ -13,9 +13,6 @@
 
 </div>
 
-| 🙋‍♂️ Updating to `v2` ? please [read here](docs/Update_v2_0_0.md). |
-|:-------|
-
 ### FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.
 
 It was born after years of dealing with all sorts of different types of caches: memory, distributed, hybrid, HTTP caching, CDNs, browser cache, offline cache, you name it.
@@ -44,9 +41,9 @@ It's also compatible with the new HybridCache from Microsoft, thanks to a [power
 
 </div>
 
-In 2021 FusionCache received the [Google Open Source Peer Bonus Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
+FusionCache received the [Google Open Source Award](https://twitter.com/jodydonetti/status/1422550932433350666): here is the [official blogpost](https://opensource.googleblog.com/2021/09/announcing-latest-open-source-peer-bonus-winners.html).
 
-## 📕 Getting Started
+## 📕 Getting Started ([more](docs/AGentleIntroduction.md))
 
 With [🦄 A Gentle Introduction](docs/AGentleIntroduction.md) you'll get yourself comfortable with the overall concepts.
 
@@ -58,31 +55,37 @@ Curious about what you can achieve from start to finish? There's a [👩‍🏫 
 
 In search of all the docs? There's a [page](docs/README.md) for that, too.
 
-## 🧬 Diagrams
+## 🧑‍🏫 Courses ([more](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti))
 
-Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
-
-So, diagrams!
+If you are interested in all things caching, I published [a course](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) on Dometrain:
 
 <div align="center">
 
-[![FusionCache flow diagrams](docs/images/diagrams.png)](docs/Diagrams.md)
+[![Caching Course on Dometrain](docs/images/dometrain-getting-started-cover.png)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
 
 </div>
 
-## 📺 Media
+If you like the FusionCache docs, you may like it too.
+
+But mind you, it's not just about FusionCache but about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios. We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
+
+I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
+
+## 📺 Talks ([more](https://github.com/jodydonetti/talks))
 
 Are you more into videos?
 
-I've been lucky enough to be invited on some shows and podcasts here and there: you can find them in the [Media](docs/Media.md) section.
+Along the years I've been lucky enough to be invited to some conferences, shows or podcasts both online and around the world, of course to talk about all things caching and FusionCache.
 
 A good example is when the fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) invited me on the show to allow me to mumbling random caching stuff.
 
 <div align="center">
 
-[![On .NET Talk](docs/images/talks/on-dotnet-small.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+[![On .NET Talk](docs/images/talks/on-dotnet-small.jpg)](https://github.com/jodydonetti/talks)
 
 </div>
+
+You can find most of them, sometimes with the related slides, in the dedicated repo [here](https://github.com/jodydonetti/talks).
 
 ## ✔ Features
 
@@ -138,7 +141,7 @@ Also, FusionCache has some nice **additional features**:
 </details>
 
 
-## Ⓜ️ Microsoft HybridCache
+## Ⓜ️ Microsoft HybridCache ([more](docs/MicrosoftHybridCache.md))
 
 We've probably all heard about the new kid on the block introduced by Microsoft with .NET 9: `HybridCache`.
 
@@ -310,12 +313,24 @@ The `DefaultEntryOptions` we did set before will be duplicated and only the dura
 
 </details>
 
-## **👩‍🏫 Step By Step**
+## 👩‍🏫 Step By Step ([more](docs/StepByStep.md))
 If you are in for a ride you can read a complete [step by step example](docs/StepByStep.md) of why a cache is useful, why FusionCache could be even more so, how to apply most of the options available and what **results** you can expect to obtain.
 
 <div style="text-align:center;">
 
 ![FusionCache diagram](docs/images/stepbystep-intro.png)
+
+</div>
+
+## 🧬 Diagrams ([more](docs/Diagrams.md))
+
+Sometimes it's nice to be able to visualize the internal flow of a system, even more so for such a complex beast as an hybrid cache like FusionCache.
+
+So, diagrams!
+
+<div align="center">
+
+[![FusionCache flow diagrams](docs/images/diagrams.png)](docs/Diagrams.md)
 
 </div>
 
@@ -333,7 +348,7 @@ FusionCache targets `.NET Standard 2.0` so any compatible .NET implementation is
 
 **NOTE**: if you are running on **.NET Framework 4.6.1** and want to use **.NET Standard** packages Microsoft suggests to upgrade to .NET Framework 4.7.2 or higher (see the [.NET Standard Documentation](https://docs.microsoft.com/en-us/dotnet/standard/net-standard#net-implementation-support)) to avoid some known dependency issues.
 
-## 🆎 Comparison
+## 🆎 Comparison ([more](docs/Comparison.md))
 
 There are various alternatives out there with different features, different performance characteristics (cpu/memory) and in general a different set of pros/cons.
 
@@ -345,7 +360,7 @@ Yes!
 
 FusionCache is being used **in production** on **real world projects** for years, happily handling billions of requests.
 
-Considering that the FusionCache packages have been downloaded more than **15 million times** (thanks everybody!) it may very well be used even more.
+Considering that the FusionCache packages have been downloaded more than **30 million times** (thanks everybody!) it may very well be used even more.
 
 Oh, and it is being used in products by Microsoft itself, like [Data API Builder](https://devblogs.microsoft.com/azure-sql/data-api-builder-ga/)!
 

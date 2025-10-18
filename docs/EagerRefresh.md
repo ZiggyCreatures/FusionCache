@@ -38,7 +38,8 @@ The valid range is any value `> 0.0` and `< 1.0`.
 
 Values outside of this range (`<= 0.0` or `>= 1.0`) are automatically turned into `null`, meaning *"no eager refresh"*.
 
-**ℹ NOTE:** typically a good value is `0.8` or above, meaning *"if a request comes in after 80% of the Duration, start a background refresh"*. Very low values like `0.1` (`10%`) would result in a constant refresh cycle, probably overloading your database.
+> [!NOTE]
+> Typically a good value is `0.8` or above, meaning *"if a request comes in after 80% of the Duration, start a background refresh"*. Very low values like `0.1` (`10%`) would result in a constant refresh cycle, probably overloading your database.
 
 ## Why no TimeSpan?
 
