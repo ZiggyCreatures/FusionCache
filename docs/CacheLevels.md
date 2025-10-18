@@ -16,7 +16,7 @@ This problem is known as **cold start** and it can generate a lot of requests to
 
 <div align="center">
 
-![Cold Start](images/cold-start.png)
+![Cold Start](images/cold-starts.png)
 
 </div>
 
@@ -28,14 +28,14 @@ When our services need to handle more and more requests we can scale vertically,
 
 </div>
 
-But, when scaling horizontally and using only  the 1st level (memory), each memory cache in each node needs to be populated indipendently, by asking the same data to the database, again generating more requests to the database.
+But, when scaling horizontally and using only the memory level (L1), each memory cache in each node needs to be populated indipendently, by asking the same data to the database, again generating more requests to the database.
 
 As we can see both of these issues will generate more database pressure: this is something we need to handle accordingly.
 
 Luckily, FusionCache can help us.
 
 
-## 🔀 2nd Level
+## 🔀 Second Level
 
 FusionCache allows us to have 2 caching levels, transparently handled by FusionCache for us:
 
@@ -52,8 +52,8 @@ Because a distributed cache talks in binary data (meaning `byte[]`) we also need
 
 In the end this boils down to 2 possible ways:
 
-- **MEMORY ONLY (L1):** FusionCache will act as a normal memory cache
-- **MEMORY + DISTRIBUTED (L1+L2):** if we also setup an L2, FusionCache will automatically coordinate the 2 levels, while gracefully handling all edge cases to get a smooth experience
+- **L1:** FusionCache will act as a normal memory cache
+- **L1+L2:** if we also setup an L2, FusionCache will automatically coordinate the 2 levels, while gracefully handling all edge cases to get a smooth experience
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), advanced [timeouts](Timeouts.md) and so on.
 
