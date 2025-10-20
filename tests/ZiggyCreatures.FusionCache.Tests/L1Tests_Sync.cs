@@ -696,13 +696,16 @@ public partial class L1Tests
 		Assert.Equal(v5, v6);
 	}
 
-	[Fact]
-	public void CanEagerRefreshWithInfiniteDuration()
+	[Theory]
+	[ClassData(typeof(MemoryLockerTypesClassData))]
+	public void CanEagerRefreshWithInfiniteDuration(MemoryLockerType memoryLockerType)
 	{
+		var memoryLocker = TestsUtils.GetMemoryLocker(memoryLockerType);
+
 		var duration = TimeSpan.MaxValue;
 		var eagerRefreshThreshold = 0.5f;
 
-		using var cache = new FusionCache(new FusionCacheOptions());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: memoryLocker);
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -713,15 +716,18 @@ public partial class L1Tests
 		Assert.True(v1 > 0);
 	}
 
-	[Fact]
-	public void CanEagerRefreshNoCancellation()
+	[Theory]
+	[ClassData(typeof(MemoryLockerTypesClassData))]
+	public void CanEagerRefreshNoCancellation(MemoryLockerType memoryLockerType)
 	{
+		var memoryLocker = TestsUtils.GetMemoryLocker(memoryLockerType);
+
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
 		var eagerRefreshThreshold = 0.1f;
 		var eagerRefreshDelay = TimeSpan.FromSeconds(5);
 
-		using var cache = new FusionCache(new FusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: memoryLocker, logger: CreateXUnitLogger<FusionCache>());
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
@@ -774,7 +780,7 @@ public partial class L1Tests
 			{
 				options.LockTimeout = lockTimeout;
 			}
-, token: TestContext.Current.CancellationToken);
+			, token: TestContext.Current.CancellationToken);
 		sw.Stop();
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
 

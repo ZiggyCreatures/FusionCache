@@ -91,6 +91,8 @@ public class FusionCacheOptions
 
 		SkipAutoCloneForImmutableObjects = true;
 
+		IgnoreTimeoutsWhenDebugging = false;
+
 		// AUTO-RECOVERY
 		EnableAutoRecovery = true;
 		AutoRecoveryMaxItems = null;
@@ -459,6 +461,15 @@ public class FusionCacheOptions
 	public bool DisableTagging { get; set; }
 
 	/// <summary>
+	/// If set to <see langword="true"/>, ignores the timeouts when debugging, meaning when there's a debugger attached (check done via <see cref="Debugger.IsAttached"/>).
+	/// <br/>
+	/// All the available timeouts are supported: factory timeouts (soft + hard), distributed cache timeouts (soft + hard), lock timeout, etc.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
+	/// </summary>
+	public bool IgnoreTimeoutsWhenDebugging { get; set; }
+
+	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -605,6 +616,8 @@ public class FusionCacheOptions
 			IncludeTagsInMetrics = IncludeTagsInMetrics,
 
 			DisableTagging = DisableTagging,
+
+			IgnoreTimeoutsWhenDebugging = IgnoreTimeoutsWhenDebugging,
 
 			SkipAutoCloneForImmutableObjects = SkipAutoCloneForImmutableObjects,
 
