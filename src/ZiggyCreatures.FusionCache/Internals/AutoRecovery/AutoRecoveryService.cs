@@ -132,10 +132,9 @@ internal sealed class AutoRecoveryService
 					}
 				}
 			}
-			catch (Exception exc)
+			catch (Exception exc) when (_logger?.IsEnabled(LogLevel.Error) ?? false)
 			{
-				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while deciding which item in the auto-recovery queue to remove to make space for a new one", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while deciding which item in the auto-recovery queue to remove to make space for a new one", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 			}
 		}
 
