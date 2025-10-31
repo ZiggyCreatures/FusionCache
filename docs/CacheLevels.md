@@ -10,7 +10,7 @@
 | -------- |
 | To ease cold starts and/or help with horizontal scalability (multiple nodes with their own local memory cache) it's possible to setup a 2nd level, known as L2. At setup time, simply pass any implementation of `IDistributedCache` and a serializer: the existing code does not need to change, it all just works. |
 
-When our apps restarts and we are using only the 1st level (memory), the cache will need to be repopulated from scratch since the cached values are stored only in the memory space of the apps themselves.
+When our apps restarts and we are using only the L1, the 1st level (memory), the cache will need to be repopulated from scratch since the cached values are stored only in the memory space of the apps themselves.
 
 This problem is known as **cold start** and it can generate a lot of requests to our database.
 
@@ -37,7 +37,7 @@ Luckily, FusionCache can help us.
 
 ## 🔀 Second Level
 
-FusionCache allows us to have 2 caching levels, transparently handled by FusionCache for us:
+FusionCache allows us to have 2 caching levels, transparently handled by for us:
 
 - **1️⃣ L1 (memory)**: it's a memory cache and is used to have a very fast access to data in memory, with high data locality. You can give FusionCache any implementation of `IMemoryCache` or let FusionCache create one for you
 - **2️⃣ L2 (distributed)**: is an *optional* distributed cache and it serves the purpose of **easing a cold start** or **sharing data with other nodes**
