@@ -315,7 +315,7 @@ services.AddFusionCache()
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
         // EAGER REFRESH
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f
     })
 ;
 ```
@@ -364,7 +364,7 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f,
 
         // FACTORY TIMEOUTS
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
@@ -425,7 +425,7 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f,
 
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
@@ -485,7 +485,7 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f,
 
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
@@ -533,7 +533,7 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f,
 
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
@@ -603,7 +603,7 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f,
 
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
@@ -681,7 +681,7 @@ services.AddFusionCache()
         FailSafeMaxDuration = TimeSpan.FromHours(2),
         FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
 
-        EagerRefreshThreshold = 0.9f;
+        EagerRefreshThreshold = 0.9f,
 
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
