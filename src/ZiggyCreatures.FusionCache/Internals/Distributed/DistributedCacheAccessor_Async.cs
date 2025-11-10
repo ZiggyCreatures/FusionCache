@@ -131,7 +131,7 @@ internal partial class DistributedCacheAccessor
 				await _cache.SetAsync(MaybeProcessCacheKey(key), data, distributedOptions, ct).ConfigureAwait(false);
 
 				// EVENT
-				_events.OnSet(operationId, key);
+				_events.OnSet(operationId, key, distributedEntry.Metadata);
 			},
 			"setting entry in distributed" + isBackground.ToString(" (background)"),
 			options,
@@ -236,7 +236,7 @@ internal partial class DistributedCacheAccessor
 			// EVENT
 			if (entry is not null)
 			{
-				_events.OnHit(operationId, key, isValid == false, activity);
+				_events.OnHit(operationId, key, isValid == false, activity, entry.Metadata);
 			}
 			else
 			{
