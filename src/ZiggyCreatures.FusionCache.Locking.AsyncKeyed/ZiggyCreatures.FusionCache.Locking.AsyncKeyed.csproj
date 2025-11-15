@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.4.0</Version>
+		<Version>2.4.1</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Locking.AsyncKeyed</PackageId>
 		<Description>FusionCache memory locker based on the AsyncKeyedLock library</Description>
 		<PackageTags>memory-locker;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
@@ -19,7 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AsyncKeyedLock" Version="7.1.4" />
+		<PackageReference Include="AsyncKeyedLock" Version="7.1.7" />
 	</ItemGroup>
 
 	<ItemGroup>
