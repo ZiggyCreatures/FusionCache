@@ -36,6 +36,7 @@ public abstract class FusionCacheCommonEventsHub
 	/// <summary>
 	/// The event for a cache set.
 	/// </summary>
+	/// <remarks>The event args has not been strongly typed to avoid breaking changes but it can be cast as an instance of <see cref="FusionCacheEntrySetEventArgs"/> when subscribed to.</remarks>
 	public event EventHandler<FusionCacheEntryEventArgs>? Set;
 
 	/// <summary>
@@ -43,13 +44,13 @@ public abstract class FusionCacheCommonEventsHub
 	/// </summary>
 	public event EventHandler<FusionCacheEntryEventArgs>? Remove;
 
-	internal virtual void OnHit(string operationId, string key, bool isStale, Activity? activity)
+	internal virtual void OnHit(string operationId, string key, bool isStale, Activity? activity, FusionCacheEntryMetadata? metadata)
 	{
 		// ACTIVITY
 		activity?.AddTag(Tags.Names.Hit, true);
 		activity?.AddTag(Tags.Names.Stale, isStale);
 
-		Hit?.SafeExecute(operationId, key, _cache, new FusionCacheEntryHitEventArgs(key, isStale), nameof(Hit), _logger, _errorsLogLevel, _syncExecution);
+		Hit?.SafeExecute(operationId, key, _cache, new FusionCacheEntryHitEventArgs(key, isStale, metadata), nameof(Hit), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal virtual void OnMiss(string operationId, string key, Activity? activity)
@@ -60,9 +61,9 @@ public abstract class FusionCacheCommonEventsHub
 		Miss?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Miss), _logger, _errorsLogLevel, _syncExecution);
 	}
 
-	internal virtual void OnSet(string operationId, string key)
+	internal virtual void OnSet(string operationId, string key, FusionCacheEntryMetadata? metadata)
 	{
-		Set?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEventArgs(key), nameof(Set), _logger, _errorsLogLevel, _syncExecution);
+		Set?.SafeExecute(operationId, key, _cache, new FusionCacheEntrySetEventArgs(key, metadata), nameof(Set), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	internal virtual void OnRemove(string operationId, string key)
