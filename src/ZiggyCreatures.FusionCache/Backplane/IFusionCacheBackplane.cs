@@ -41,5 +41,5 @@ public interface IFusionCacheBackplane
 	/// <param name="message">The message to send.</param>
 	/// <param name="options">The options to use.</param>
 	/// <param name="token">An optional <see cref="CancellationToken"/> to cancel the operation.</param>
-	void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default);
+	void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default);
 }

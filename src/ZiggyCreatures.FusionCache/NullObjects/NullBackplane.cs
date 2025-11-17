@@ -33,7 +33,7 @@ public class NullBackplane
 	}
 
 	/// <inheritdoc/>
-	public void Publish(BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
+	public void Publish(in BackplaneMessage message, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
 		// EMPTY
 	}
