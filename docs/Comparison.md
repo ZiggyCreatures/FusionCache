@@ -81,7 +81,7 @@ This is how they compare:
 | **Multi-provider**    | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ❌       |
 | **Multi-level**       | ✔️            | ✔️             | ✔️               | ✔️         | ✔️(*)           | ❌       |
 | **Backplane**         | ✔️            | ❌             | ✔️               | ✔️         | ✔️              | ❌       |
-| **Named Caches**      | ✔️            | ❌             | ❌               | ✔️         | ❌              | ❌       |
+| **Named Caches**      | ✔️            | ❌             | ❌               | ✔️         | ✔️              | ❌       |
 | **Auto-Recovery**     | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
 | **Events**            | ✔️            | ❌             | ✔️               | ❌         | ❌              | ❌       |
 | **OpenTelemetry**     | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
