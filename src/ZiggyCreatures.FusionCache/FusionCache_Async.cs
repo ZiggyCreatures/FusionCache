@@ -1244,6 +1244,11 @@ public partial class FusionCache
 			now,
 			(dca, isBackground, ct) =>
 			{
+				if (options.IsFailSafeEnabled)
+				{
+					return new ValueTask<bool>(true);
+				}
+				
 				return dca.RemoveEntryAsync(operationId, key, options, isBackground, ct);
 			},
 			(bpa, isBackground, ct) =>
