@@ -6,6 +6,7 @@
 		<IsPackable>false</IsPackable>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Playground</RootNamespace>
 		<UserSecretsId>1f4e47b6-6dd9-49b0-af63-058750249662</UserSecretsId>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -24,6 +25,8 @@
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.OpenTelemetry\ZiggyCreatures.FusionCache.OpenTelemetry.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson\ZiggyCreatures.FusionCache.Serialization.NewtonsoftJson.csproj" />
 	</ItemGroup>
