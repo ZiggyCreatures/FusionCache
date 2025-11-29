@@ -51,6 +51,11 @@ public static class FusionCacheGlobalDefaults
 	public static bool EntryOptionsAllowTimedOutFactoryBackgroundCompletion { get; set; } = true;
 
 	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.MemoryCacheDuration"/>.
+	/// </summary>
+	public static TimeSpan? EntryOptionsMemoryCacheDuration { get; set; } = null;
+
+	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.DistributedCacheDuration"/>.
 	/// </summary>
 	public static TimeSpan? EntryOptionsDistributedCacheDuration { get; set; } = null;

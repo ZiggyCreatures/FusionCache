@@ -52,7 +52,7 @@ internal sealed class MemoryCacheAccessor
 			return;
 
 		// IF FAIL-SAFE IS DISABLED AND DURATION IS <= ZERO -> REMOVE ENTRY (WILL SAVE RESOURCES)
-		if (options.IsFailSafeEnabled == false && options.Duration <= TimeSpan.Zero)
+		if (options.IsFailSafeEnabled == false && options.MemoryCacheDuration.GetValueOrDefault(options.Duration) <= TimeSpan.Zero)
 		{
 			RemoveEntry(operationId, key);
 			return;

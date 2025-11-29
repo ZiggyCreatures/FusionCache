@@ -24,7 +24,7 @@ internal interface IFusionCacheEntry
 	/// <summary>
 	/// Set the value inside the entry.
 	/// </summary>
-	/// <typeparam name="TValue">The typeof the value.</typeparam>
+	/// <typeparam name="TValue">The type of the value.</typeparam>
 	/// <param name="value">The value.</param>
 	void SetValue<TValue>(TValue value);
 
@@ -34,7 +34,7 @@ internal interface IFusionCacheEntry
 	long Timestamp { get; }
 
 	/// <summary>
-	/// The intended expiration of the entry as requested from the caller, also used to have "aligned" expirations between different nodes.
+	/// The intended expiration (in ticks) of the entry as requested from the caller, also used to have "aligned" expirations between different nodes.
 	/// <br/>
 	/// When fail-safe is enabled the entry is cached with a higher duration (<see cref="FusionCacheEntryOptions.FailSafeMaxDuration"/>) so it may be used as a fallback value in case of problems: when that happens, the LogicalExpiration is used to check if the value is stale, instead of losing it by simply let it expire in the cache.
 	/// </summary>

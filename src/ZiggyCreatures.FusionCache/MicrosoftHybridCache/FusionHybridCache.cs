@@ -45,15 +45,8 @@ public sealed class FusionHybridCache
 
 		var res = _fusionCache.GetOrCreateDefaultEntryOptions(key, true);
 
-		if (options.Expiration is not null)
-		{
-			res.DistributedCacheDuration = options.Expiration.Value;
-			res.Duration = options.LocalCacheExpiration ?? options.Expiration.Value;
-		}
-		else if (options.LocalCacheExpiration is not null)
-		{
-			res.Duration = options.LocalCacheExpiration.Value;
-		}
+		res.MemoryCacheDuration = options.LocalCacheExpiration;
+		res.Duration = options.Expiration ?? options.LocalCacheExpiration ?? res.Duration;
 
 		if (options.Flags is not null && options.Flags.Value != HybridCacheEntryFlags.None)
 		{

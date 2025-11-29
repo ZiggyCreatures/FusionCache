@@ -88,6 +88,7 @@ internal sealed class AutoRecoveryService
 
 		if (_cache.HasDistributedCache == false || options.SkipDistributedCacheRead || options.SkipDistributedCacheWrite)
 		{
+			//duration = options.MemoryCacheDuration.GetValueOrDefault(options.Duration);
 			duration = options.Duration;
 		}
 		else

@@ -39,6 +39,8 @@ public sealed class FusionCacheEntryOptions
 		FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
 		FailSafeThrottleDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeThrottleDuration;
 
+		MemoryCacheDuration = FusionCacheGlobalDefaults.EntryOptionsMemoryCacheDuration;
+
 		DistributedCacheDuration = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheDuration;
 		DistributedCacheFailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheFailSafeMaxDuration;
 		DistributedCacheSoftTimeout = FusionCacheGlobalDefaults.EntryOptionsDistributedCacheSoftTimeout;
@@ -210,6 +212,13 @@ public sealed class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
 	public bool AllowTimedOutFactoryBackgroundCompletion { get; set; }
+
+	/// <summary>
+	/// The duration specific for the memory cache. If not set, <see cref="Duration"/> will be used.
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public TimeSpan? MemoryCacheDuration { get; set; }
 
 	/// <summary>
 	/// The duration specific for the distributed cache, if any. If not set, <see cref="Duration"/> will be used.
@@ -456,7 +465,7 @@ public sealed class FusionCacheEntryOptions
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[DUR={Duration.ToLogString()} LKTO={LockTimeout.ToLogString_Timeout()} SKMR={SkipMemoryCacheRead.ToLogStringYN()} SKMW={SkipMemoryCacheWrite.ToLogStringYN()} SKDR={SkipDistributedCacheRead.ToLogStringYN()} SKDW={SkipDistributedCacheWrite.ToLogStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToLogStringYN()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} SZ={Size.ToLogString()} FS={IsFailSafeEnabled.ToLogStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToLogStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToLogStringYN()} SBN={SkipBackplaneNotifications.ToLogStringYN()} ABBO={AllowBackgroundBackplaneOperations.ToLogStringYN()} AC={EnableAutoClone.ToLogStringYN()}]";
+		return $"[DUR={Duration.ToLogString()} LKTO={LockTimeout.ToLogString_Timeout()} SKMR={SkipMemoryCacheRead.ToLogStringYN()} SKMW={SkipMemoryCacheWrite.ToLogStringYN()} SKDR={SkipDistributedCacheRead.ToLogStringYN()} SKDW={SkipDistributedCacheWrite.ToLogStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToLogStringYN()} MDUR={MemoryCacheDuration.ToLogString()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} SZ={Size.ToLogString()} FS={IsFailSafeEnabled.ToLogStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToLogStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToLogStringYN()} SBN={SkipBackplaneNotifications.ToLogStringYN()} ABBO={AllowBackgroundBackplaneOperations.ToLogStringYN()} AC={EnableAutoClone.ToLogStringYN()}]";
 	}
 
 	/// <summary>
@@ -528,6 +537,19 @@ public sealed class FusionCacheEntryOptions
 	public FusionCacheEntryOptions SetDurationInfinite()
 	{
 		Duration = TimeSpan.MaxValue;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="MemoryCacheDuration"/> to the specified <see cref="TimeSpan"/> value.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <param name="duration">The duration to set.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetMemoryCacheDuration(TimeSpan? duration)
+	{
+		MemoryCacheDuration = duration;
 		return this;
 	}
 
@@ -914,19 +936,22 @@ public sealed class FusionCacheEntryOptions
 	internal DateTimeOffset GetMemoryAbsoluteExpiration(out bool incoherentFailSafeMaxDuration)
 	{
 		// PHYSICAL DURATION
+		TimeSpan durationToUse;
 		TimeSpan physicalDuration;
+
+		durationToUse = MemoryCacheDuration ?? Duration;
 
 		if (IsFailSafeEnabled == false)
 		{
-			physicalDuration = Duration;
+			physicalDuration = durationToUse;
 			incoherentFailSafeMaxDuration = false;
 		}
 		else
 		{
-			if (FailSafeMaxDuration < Duration)
+			if (FailSafeMaxDuration < durationToUse)
 			{
 				incoherentFailSafeMaxDuration = true;
-				physicalDuration = Duration;
+				physicalDuration = durationToUse;
 			}
 			else
 			{
@@ -950,7 +975,7 @@ public sealed class FusionCacheEntryOptions
 		if (incoherentFailSafeMaxDuration)
 		{
 			if (logger?.IsEnabled(options.IncoherentOptionsNormalizationLogLevel) ?? false)
-				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {FailSafeMaxDuration} was lower than the Duration {Duration} on {Options}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), Duration.ToLogString(), this.ToLogString());
+				logger.Log(options.IncoherentOptionsNormalizationLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): FailSafeMaxDuration {FailSafeMaxDuration} was lower than the MemoryCacheDuration/Duration {Duration} on {Options}. Duration has been used instead.", options.CacheName, options.InstanceId, operationId, key, FailSafeMaxDuration.ToLogString(), MemoryCacheDuration.GetValueOrDefault(Duration).ToLogString(), this.ToLogString());
 		}
 
 		if (size is null && priority.GetValueOrDefault(FusionCacheInternalUtils.CacheItemPriority_DefaultValue) == FusionCacheInternalUtils.CacheItemPriority_DefaultValue && events.HasEvictionSubscribers() == false)
@@ -985,8 +1010,8 @@ public sealed class FusionCacheEntryOptions
 		var res = new DistributedCacheEntryOptions();
 
 		// PHYSICAL DURATION
-		TimeSpan physicalDuration;
 		TimeSpan durationToUse;
+		TimeSpan physicalDuration;
 
 		durationToUse = DistributedCacheDuration ?? Duration;
 
@@ -1122,6 +1147,8 @@ public sealed class FusionCacheEntryOptions
 			FactorySoftTimeout = FactorySoftTimeout,
 			FactoryHardTimeout = FactoryHardTimeout,
 			AllowTimedOutFactoryBackgroundCompletion = AllowTimedOutFactoryBackgroundCompletion,
+
+			MemoryCacheDuration = MemoryCacheDuration,
 
 			DistributedCacheDuration = DistributedCacheDuration,
 			DistributedCacheFailSafeMaxDuration = DistributedCacheFailSafeMaxDuration,
