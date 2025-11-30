@@ -742,6 +742,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache SetupSerializer(IFusionCacheSerializer serializer)
 	{
+		CheckDisposed();
+
 		if (serializer is null)
 			throw new ArgumentNullException(nameof(serializer));
 
@@ -758,6 +760,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache SetupDistributedCache(IDistributedCache distributedCache)
 	{
+		CheckDisposed();
+
 		if (distributedCache is null)
 			throw new ArgumentNullException(nameof(distributedCache));
 
@@ -784,6 +788,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveDistributedCache()
 	{
+		CheckDisposed();
+
 		if (_dca is not null)
 		{
 			_dca = null;
@@ -812,6 +818,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache SetupBackplane(IFusionCacheBackplane backplane)
 	{
+		CheckDisposed();
+
 		if (backplane is null)
 			throw new ArgumentNullException(nameof(backplane));
 
@@ -862,6 +870,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public IFusionCache RemoveBackplane()
 	{
+		CheckDisposed();
+
 		if (_bpa is not null)
 		{
 			lock (_backplaneLock)
@@ -902,6 +912,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public void AddPlugin(IFusionCachePlugin plugin)
 	{
+		CheckDisposed();
+
 		if (plugin is null)
 			throw new ArgumentNullException(nameof(plugin));
 
@@ -946,6 +958,8 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public bool RemovePlugin(IFusionCachePlugin plugin)
 	{
+		CheckDisposed();
+
 		if (plugin is null)
 			throw new ArgumentNullException(nameof(plugin));
 
