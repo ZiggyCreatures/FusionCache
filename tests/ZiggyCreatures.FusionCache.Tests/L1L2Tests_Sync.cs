@@ -1056,4 +1056,91 @@ public partial class L1L2Tests
 		Assert.Equal(1, memoryCache1.Count);
 		Assert.Equal(2, memoryCache2.Count);
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void MemoryCacheDurationIsRespected(SerializerType serializerType)
+	{
+		var duration = TimeSpan.FromSeconds(10);
+		var memoryCacheDuration = TimeSpan.FromSeconds(1);
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var options = CreateFusionCacheOptions(Guid.NewGuid().ToString("N"));
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = duration,
+			MemoryCacheDuration = memoryCacheDuration
+		};
+
+		using var cacheA = new FusionCache(options);
+		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+		using var cacheB = new FusionCache(options);
+		cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+		var fooA1 = cacheA.GetOrSet<int>(
+			"foo",
+			_ => 1,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, fooA1);
+
+		var fooB1 = cacheB.GetOrSet<int>(
+			"foo",
+			_ => 2,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, fooB1);
+
+		// CHANGE VALUE ON CACHE B
+		cacheB.Set<int>(
+			"foo",
+			3,
+			token: TestContext.Current.CancellationToken
+		);
+
+		// IMMEDIATELY AFTER (NO WAIT)
+
+		// CACHE A IS STILL = 1
+		var fooA2 = cacheA.GetOrSet<int>(
+			"foo",
+			_ => 10,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, fooA2);
+
+		// CACHE B IS STILL = 3
+		var fooB2 = cacheB.GetOrSet<int>(
+			"foo",
+			_ => 20,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(3, fooB2);
+
+		// WAIT FOR MEMORY CACHE TO EXPIRE (1 SEC)
+		Thread.Sleep(memoryCacheDuration.PlusALittleBit());
+
+		// CACHE A IS NOW 3 (FROM L2)
+		var fooA3 = cacheA.GetOrSet<int>(
+			"foo",
+			_ => 20,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(3, fooA3);
+
+		// CACHE B IS STILL 3 (TAKEN AGAIN FROM L2)
+		var fooB3 = cacheB.GetOrSet<int>(
+			"foo",
+			_ => 30,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(3, fooB3);
+	}
 }
