@@ -237,6 +237,7 @@ public partial class FusionCache
 					{
 						token.ThrowIfCancellationRequested();
 
+						long timestamp = FusionCacheInternalUtils.GetCurrentTimestamp();
 						TValue? value;
 						if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
 						{
@@ -280,7 +281,7 @@ public partial class FusionCache
 
 							UpdateAdaptiveOptions(ctx, ref options);
 
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), timestamp, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
 
 							// EVENTS
 							_events.OnFactorySuccess(operationId, key);
