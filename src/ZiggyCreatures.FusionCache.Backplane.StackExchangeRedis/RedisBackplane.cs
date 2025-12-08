@@ -3,6 +3,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
+using ZiggyCreatures.Caching.Fusion.Internals;
+
 namespace ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 
 /// <summary>
@@ -93,11 +95,15 @@ public partial class RedisBackplane
 		_connection = null;
 	}
 
-	private static BackplaneMessage? GetMessageFromRedisValue(RedisValue value, ILogger? logger, BackplaneSubscriptionOptions? subscriptionOptions)
+	private static bool TryGetMessageFromRedisValue(RedisValue value, ILogger? logger, BackplaneSubscriptionOptions? subscriptionOptions, out BackplaneMessage backplaneMessage)
 	{
 		try
 		{
-			return BackplaneMessage.FromByteArray(value);
+			byte[]? byteValue = value;
+			if (byteValue is not null && BackplaneMessage.TryParse(byteValue, out backplaneMessage))
+			{
+				return true;
+			}
 		}
 		catch (Exception exc)
 		{
@@ -105,14 +111,17 @@ public partial class RedisBackplane
 				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] an error occurred while converting a RedisValue into a BackplaneMessage", subscriptionOptions?.CacheName, subscriptionOptions?.CacheInstanceId);
 		}
 
-		return null;
+		backplaneMessage = default;
+		return false;
 	}
 
 	private static RedisValue GetRedisValueFromMessage(BackplaneMessage message, ILogger? logger, BackplaneSubscriptionOptions? subscriptionOptions)
 	{
 		try
 		{
-			return BackplaneMessage.ToByteArray(message);
+			using var arrayPoolBufferWriter = new ArrayPoolBufferWriter();
+			message.WriteTo(arrayPoolBufferWriter);
+			return arrayPoolBufferWriter.ToArray();
 		}
 		catch (Exception exc)
 		{

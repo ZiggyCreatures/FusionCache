@@ -9,6 +9,7 @@
   <Folder Name="/src/">
     <Project Path="src/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.Memory/ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Backplane.NATS/ZiggyCreatures.FusionCache.Backplane.NATS.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Chaos/ZiggyCreatures.FusionCache.Chaos.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Locking.AsyncKeyed/ZiggyCreatures.FusionCache.Locking.AsyncKeyed.csproj" />
