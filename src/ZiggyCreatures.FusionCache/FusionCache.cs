@@ -412,7 +412,7 @@ public sealed partial class FusionCache
 
 	// BACKGROUND FACTORY COMPLETION
 
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, Activity? activity)
+	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, ref object? memoryLockObj, Activity? activity)
 	{
 		if (factoryTask is null)
 		{
@@ -443,7 +443,9 @@ public sealed partial class FusionCache
 		}
 
 		activity?.AddEvent(new ActivityEvent(Activities.EventNames.FactoryBackgroundMove));
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, null, activity);
+		var tmp = memoryLockObj;
+		memoryLockObj = null;
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, tmp, activity);
 	}
 
 	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, Activity? activity)

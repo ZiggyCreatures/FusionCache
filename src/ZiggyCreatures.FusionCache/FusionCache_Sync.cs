@@ -302,7 +302,7 @@ public partial class FusionCache
 
 						ProcessFactoryError(operationId, key, exc);
 
-						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, activityForFactory);
+						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, ref memoryLockObj, activityForFactory);
 
 						entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
 

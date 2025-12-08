@@ -1530,4 +1530,115 @@ public partial class L1Tests
 		Assert.Equal("foo", key2);
 		Assert.Equal("foo", originalKey2);
 	}
+
+	[Fact]
+	public void SoftTimeoutDoesNotBreakStampedeProtection()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = TimeSpan.FromSeconds(1),
+				IsFailSafeEnabled = true,
+				FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
+				FailSafeMaxDuration = TimeSpan.FromMinutes(1),
+				FactorySoftTimeout = TimeSpan.FromSeconds(1)
+			}
+		});
+
+		var factoryCallsCount = 0;
+
+		cache.Set<int>(
+			"foo",
+			42,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Thread.Sleep(TimeSpan.FromSeconds(1));
+
+		Parallel.For(0, 1_000, _ =>
+		{
+			cache.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					Thread.Sleep(TimeSpan.FromSeconds(5));
+					return 42;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		});
+
+		Thread.Sleep(TimeSpan.FromSeconds(1));
+
+		Parallel.For(0, 1_000, _ =>
+		{
+			cache.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					Thread.Sleep(TimeSpan.FromSeconds(5));
+					return 42;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		});
+
+		Assert.Equal(1, factoryCallsCount);
+	}
+
+	[Fact]
+	public void EagerRefreshDoesNotBreakStampedeProtection()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = TimeSpan.FromSeconds(10),
+				EagerRefreshThreshold = 0.1f
+			}
+		});
+
+		var factoryCallsCount = 0;
+
+		cache.Set<int>(
+			"foo",
+			42,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Thread.Sleep(TimeSpan.FromSeconds(1));
+
+		Parallel.For(0, 1_000, _ =>
+		{
+			cache.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					Thread.Sleep(TimeSpan.FromSeconds(5));
+					return 42;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		});
+
+		Thread.Sleep(TimeSpan.FromSeconds(1));
+
+		Parallel.For(0, 1_000, _ =>
+		{
+			cache.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					Thread.Sleep(TimeSpan.FromSeconds(5));
+					return 42;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		});
+
+		Assert.Equal(1, factoryCallsCount);
+	}
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -1529,5 +1530,96 @@ public partial class L1Tests
 
 		Assert.Equal("foo", key2);
 		Assert.Equal("foo", originalKey2);
+	}
+
+	[Fact]
+	public async Task SoftTimeoutDoesNotBreakStampedeProtectionAsync()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = TimeSpan.FromSeconds(1),
+				IsFailSafeEnabled = true,
+				FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
+				FailSafeMaxDuration = TimeSpan.FromMinutes(1),
+				FactorySoftTimeout = TimeSpan.FromSeconds(1)
+			}
+		});
+
+		var factoryCallsCount = 0;
+
+		await cache.SetAsync<int>(
+			"foo",
+			42,
+			token: TestContext.Current.CancellationToken
+		);
+
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+		var tasks = new ConcurrentBag<Task>();
+		var cts = new CancellationTokenSource(4_000);
+
+		while (cts.IsCancellationRequested == false)
+		{
+			var task = cache.GetOrSetAsync<int>(
+				"foo",
+				async ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					await Task.Delay(TimeSpan.FromSeconds(5), ct);
+					return 42;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+			tasks.Add(task.AsTask());
+		}
+
+		await Task.WhenAll(tasks);
+
+		Assert.Equal(1, factoryCallsCount);
+	}
+
+	[Fact]
+	public async Task EagerRefreshDoesNotBreakStampedeProtectionAsync()
+	{
+		using var cache = new FusionCache(new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = TimeSpan.FromSeconds(10),
+				EagerRefreshThreshold = 0.1f
+			}
+		});
+
+		var factoryCallsCount = 0;
+
+		await cache.SetAsync<int>(
+			"foo",
+			42,
+			token: TestContext.Current.CancellationToken
+		);
+
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+		var tasks = new ConcurrentBag<Task>();
+		var cts = new CancellationTokenSource(6_000);
+
+		while (cts.IsCancellationRequested == false)
+		{
+			var task = cache.GetOrSetAsync<int>(
+				"foo",
+				async ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					await Task.Delay(TimeSpan.FromSeconds(5), ct);
+					return 42;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+			tasks.Add(task.AsTask());
+		}
+
+		await Task.WhenAll(tasks);
+
+		Assert.Equal(1, factoryCallsCount);
 	}
 }
