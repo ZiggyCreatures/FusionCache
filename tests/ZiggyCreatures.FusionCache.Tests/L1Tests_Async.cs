@@ -252,8 +252,8 @@ public partial class L1Tests
 		TestOutput.WriteLine($"Elapsed (with extra pad): {elapsedMs} ms");
 
 		Assert.Equal(-1, res);
-		Assert.True(elapsedMs >= outerCancelDelayMs, "Elapsed is less than outer cancel");
-		Assert.True(elapsedMs < factoryDelayMs, "Elapsed is not less than factory delay");
+		Assert.True(elapsedMs >= outerCancelDelayMs, $"Elapsed ({elapsedMs}ms) is less than outer cancel ({outerCancelDelayMs}ms)");
+		Assert.True(elapsedMs < factoryDelayMs, $"Elapsed ({elapsedMs}ms) is not less than factory delay ({factoryDelayMs}ms)");
 	}
 
 	[Fact]
@@ -1554,27 +1554,41 @@ public partial class L1Tests
 			token: TestContext.Current.CancellationToken
 		);
 
+		// WAIT FOR EXPIRATION
 		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
-		var tasks = new ConcurrentBag<Task>();
-		var cts = new CancellationTokenSource(4_000);
-
-		while (cts.IsCancellationRequested == false)
+		// CONCURRENT REQUESTS (ONE OF THEM WILL EXECUTE THE FACTORY)
+		await Parallel.ForAsync(0, 10, async (_, token) =>
 		{
-			var task = cache.GetOrSetAsync<int>(
+			await cache.GetOrSetAsync<int>(
 				"foo",
 				async ct =>
 				{
 					Interlocked.Increment(ref factoryCallsCount);
-					await Task.Delay(TimeSpan.FromSeconds(5), ct);
+					await Task.Delay(TimeSpan.FromSeconds(10), ct);
 					return 42;
 				},
-				token: TestContext.Current.CancellationToken
+				token: token
 			);
-			tasks.Add(task.AsTask());
-		}
+		});
 
-		await Task.WhenAll(tasks);
+		// WAIT FOR SOFT TIMEOUT (1 SEC) + 1 EXTRA SEC
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+		// MORE CONCURRENT REQUESTS
+		await Parallel.ForAsync(0, 10, async (_, token) =>
+		{
+			await cache.GetOrSetAsync<int>(
+				"foo",
+				async ct =>
+				{
+					Interlocked.Increment(ref factoryCallsCount);
+					await Task.Delay(TimeSpan.FromSeconds(10), ct);
+					return 42;
+				},
+				token: token
+			);
+		});
 
 		Assert.Equal(1, factoryCallsCount);
 	}
@@ -1601,7 +1615,7 @@ public partial class L1Tests
 		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
 		var tasks = new ConcurrentBag<Task>();
-		var cts = new CancellationTokenSource(6_000);
+		var cts = new CancellationTokenSource(4_000);
 
 		while (cts.IsCancellationRequested == false)
 		{

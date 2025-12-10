@@ -117,6 +117,15 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan LockTimeout { get; set; }
 
 	/// <summary>
+	/// The timeout to apply when trying to acquire a distributed lock during a factory execution.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public TimeSpan? DistributedLockTimeout { get; set; }
+
+	/// <summary>
 	/// The maximum amount of extra duration to add to the normal <see cref="Duration"/> in a randomized way, to allow for more variable expirations.
 	/// <br/>
 	/// This may be useful in a horizontal scalable scenario(eg: multi-node scenario).
@@ -1065,6 +1074,30 @@ public sealed class FusionCacheEntryOptions
 		return res;
 	}
 
+	internal TimeSpan GetAppropriateDistributedLockTimeout(FusionCacheOptions options, bool hasFallbackValue)
+	{
+		// EARLY RETURN: IGNORE TIMEOUTS WHEN DEBUGGING
+		if (options.IgnoreTimeoutsWhenDebugging && Debugger.IsAttached)
+		{
+			return Timeout.InfiniteTimeSpan;
+		}
+
+		var res = DistributedLockTimeout.GetValueOrDefault(LockTimeout);
+
+		// TODO: CHECK AGAIN THIS, NOT SO SURE...
+		//if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
+		//{
+		//	// IF THERE IS NO SPECIFIC DISTRIBUTED OR MEMORY LOCK TIMEOUT
+		//	// + THERE IS A FALLBACK ENTRY
+		//	// + FAIL-SAFE IS ENABLED
+		//	// + THERE IS A FACTORY SOFT TIMEOUT
+		//	// --> USE IT AS A MEMORY LOCK TIMEOUT
+		//	res = FactorySoftTimeout;
+		//}
+
+		return res;
+	}
+
 	internal TimeSpan GetAppropriateFactoryTimeout(FusionCacheOptions options, bool hasFallbackValue)
 	{
 		// EARLY RETURN: IGNORE TIMEOUTS WHEN DEBUGGING
@@ -1131,10 +1164,12 @@ public sealed class FusionCacheEntryOptions
 			IsSafeForAdaptiveCaching = IsSafeForAdaptiveCaching,
 
 			Duration = duration ?? Duration,
-			LockTimeout = LockTimeout,
 			Size = Size,
 			Priority = Priority,
 			JitterMaxDuration = JitterMaxDuration,
+
+			LockTimeout = LockTimeout,
+			DistributedLockTimeout = DistributedLockTimeout,
 
 			EagerRefreshThreshold = EagerRefreshThreshold,
 

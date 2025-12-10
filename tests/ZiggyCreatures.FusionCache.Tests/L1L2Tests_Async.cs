@@ -8,6 +8,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
 
 namespace FusionCacheTests;
 
@@ -1213,6 +1214,65 @@ public partial class L1L2Tests
 		);
 
 		Assert.Equal(3, fooB3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task DistributedLockerWorksAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = TimeSpan.FromSeconds(10)
+		};
+
+		var distributedLocker = new MemoryDistributedLocker();
+
+		using var cacheA = new FusionCache(options, logger: logger);
+		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		using var cacheB = new FusionCache(options, logger: logger);
+		cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		var factoryExecutionCount = 0;
+
+		var fooA1Task = cacheA.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+				return 1;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooB1Task = cacheB.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+				return 2;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		await Task.WhenAll(fooA1Task.AsTask(), fooB1Task.AsTask());
+
+		var fooA1 = await fooA1Task;
+		var fooB1 = await fooB1Task;
+
+		Assert.Equal(1, factoryExecutionCount);
+		Assert.Equal(fooA1, fooB1);
 	}
 
 	//[Theory]

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Caching.Distributed;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -370,6 +371,31 @@ public interface IFusionCache
 	///	Returns the current backplane, if any.
 	/// </summary>
 	IFusionCacheBackplane? Backplane { get; }
+
+	// DISTRIBUTED LOCKER
+
+	/// <summary>
+	/// Setup a distributed locker to get cache stampede protection accross multiple nodes, by providing an <see cref="IFusionCacheDistributedLocker"/>.
+	/// </summary>
+	/// <param name="distributedLocker">The <see cref="IFusionCacheDistributedLocker"/> instance to use.</param>
+	/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+	IFusionCache SetupDistributedLocker(IFusionCacheDistributedLocker distributedLocker);
+
+	/// <summary>
+	/// Removes the distributed locker.
+	/// </summary>
+	/// <returns>The same <see cref="IFusionCache"/> instance, usable in a fluent api way.</returns>
+	IFusionCache RemoveDistributedLocker();
+
+	/// <summary>
+	/// Gets whether there is a distributed locker configured.
+	/// </summary>
+	bool HasDistributedLocker { get; }
+
+	///// <summary>
+	///// Returns the current distributed cache, if any.
+	///// </summary>
+	//IFusionCacheDistributedLocker? DistributedLocker { get; }
 
 	// EVENTS
 

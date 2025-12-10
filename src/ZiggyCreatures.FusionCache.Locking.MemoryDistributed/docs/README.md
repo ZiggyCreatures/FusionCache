@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package is an in-memory backplane implementation, mainly useful for testing.
+This package is an in-memory distributed locker implementation, mainly useful for testing.

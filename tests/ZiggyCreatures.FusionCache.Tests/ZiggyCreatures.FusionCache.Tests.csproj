@@ -30,6 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Locking.MemoryDistributed\ZiggyCreatures.FusionCache.Locking.MemoryDistributed.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.Memory\ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />

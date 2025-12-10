@@ -251,8 +251,8 @@ public partial class L1Tests
 		TestOutput.WriteLine($"Elapsed (with extra pad): {elapsedMs} ms");
 
 		Assert.Equal(-1, res);
-		Assert.True(elapsedMs >= outerCancelDelayMs, "Elapsed is less than outer cancel");
-		Assert.True(elapsedMs < factoryDelayMs, "Elapsed is not less than factory delay");
+		Assert.True(elapsedMs >= outerCancelDelayMs, $"Elapsed ({elapsedMs}ms) is less than outer cancel ({outerCancelDelayMs}ms)");
+		Assert.True(elapsedMs < factoryDelayMs, $"Elapsed ({elapsedMs}ms) is not less than factory delay ({factoryDelayMs}ms)");
 	}
 
 	[Fact]
@@ -1553,35 +1553,37 @@ public partial class L1Tests
 			token: TestContext.Current.CancellationToken
 		);
 
+		// WAIT FOR EXPIRATION
 		Thread.Sleep(TimeSpan.FromSeconds(1));
 
-		Parallel.For(0, 1_000, _ =>
+		// CONCURRENT REQUESTS (ONE OF THEM WILL EXECUTE THE FACTORY)
+		Parallel.For(0, 10, _ =>
 		{
 			cache.GetOrSet<int>(
 				"foo",
 				ct =>
 				{
 					Interlocked.Increment(ref factoryCallsCount);
-					Thread.Sleep(TimeSpan.FromSeconds(5));
+					Thread.Sleep(TimeSpan.FromSeconds(10));
 					return 42;
-				},
-				token: TestContext.Current.CancellationToken
+				}
 			);
 		});
 
+		// WAIT FOR SOFT TIMEOUT (1 SEC) + 1 EXTRA SEC
 		Thread.Sleep(TimeSpan.FromSeconds(1));
 
-		Parallel.For(0, 1_000, _ =>
+		// MORE CONCURRENT REQUESTS
+		Parallel.For(0, 10, _ =>
 		{
 			cache.GetOrSet<int>(
 				"foo",
 				ct =>
 				{
 					Interlocked.Increment(ref factoryCallsCount);
-					Thread.Sleep(TimeSpan.FromSeconds(5));
+					Thread.Sleep(TimeSpan.FromSeconds(10));
 					return 42;
-				},
-				token: TestContext.Current.CancellationToken
+				}
 			);
 		});
 

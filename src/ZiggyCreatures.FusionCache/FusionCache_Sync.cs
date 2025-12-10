@@ -12,73 +12,42 @@ public partial class FusionCache
 {
 	// GET OR SET
 
-	private void ExecuteEagerRefreshWithSyncFactory<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj)
+	private void MaybeExecuteEagerRefreshWithSyncFactory<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
 	{
+		// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
+		object? distributedLockObj = null;
+		if (_distributedLocker is not null)
+		{
+			distributedLockObj = AcquireDistributedLock(operationId, key, TimeSpan.Zero, token);
+			if (distributedLockObj is null)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring on another instance/node", CacheName, InstanceId, operationId, key);
+
+				// TODO: !!! IMPORTANT! RE-CHECK THIS AND CREATE A TEST THAT VERIFY THIS CODE PATH !!!
+				ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+				return;
+			}
+		}
+
+		// OK, WE CAN PROCEED WITH EAGER REFRESH
+
+		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
+
 		// EVENT
 		_events.OnEagerRefresh(operationId, key);
 
-		_ = Task.Run(() =>
-		{
-			// TRY WITH DISTRIBUTED CACHE (IF ANY)
-			try
-			{
-				var dca = DistributedCacheAccessor;
-				if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
-				{
-					FusionCacheDistributedEntry<TValue>? distributedEntry;
-					bool distributedEntryIsValid;
+		// ACTIVITY
+		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+		activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
-					(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, Timeout.InfiniteTimeSpan, default);
-					if (distributedEntryIsValid)
-					{
-						if ((distributedEntry?.Timestamp ?? 0) > (memoryEntry?.Timestamp ?? 0))
-						{
-							try
-							{
-								// THE DISTRIBUTED ENTRY IS MORE RECENT THAN THE MEMORY ENTRY -> USE IT
-								if (_mca.ShouldWrite(options))
-								{
-									if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-										_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is more recent than the current memory entry ({MemoryTimestamp}): using it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
+		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
 
-									_mca.SetEntry<TValue>(operationId, key, FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options), options);
-								}
-							}
-							finally
-							{
-								// MEMORY LOCK
-								if (memoryLockObj is not null)
-									ReleaseMemoryLock(operationId, key, memoryLockObj);
-							}
+		var factoryTask = Task.Run(() => factory(ctx, CancellationToken.None));
 
-							return;
-						}
-						else
-						{
-							if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-								_logger.LogTrace("FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): distributed entry found ({DistributedTimestamp}) is less recent than the current memory entry ({MemoryTimestamp}): ignoring it", CacheName, InstanceId, operationId, key, distributedEntry?.Timestamp, memoryEntry?.Timestamp);
-						}
-					}
-				}
-			}
-			catch
-			{
-				// EMPTY
-			}
-
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
-
-			// ACTIVITY
-			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
-			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
-
-			var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
-
-			var factoryTask = Task.Run(() => factory(ctx, default));
-
-			CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, activity);
-		});
+		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, distributedLockObj, activity);
 	}
 
 	private IFusionCacheMemoryEntry? GetOrSetEntryInternal<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, TValue> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
@@ -86,6 +55,7 @@ public partial class FusionCache
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
 		object? memoryLockObj = null;
+		object? distributedLockObj = null;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		if (_mca.ShouldRead(options))
@@ -106,24 +76,26 @@ public partial class FusionCache
 			// CHECK FOR EAGER REFRESH
 			if (isRealFactory && memoryEntry.ShouldEagerlyRefresh())
 			{
+				// RESET EAGER REFRESH
+				if (memoryEntry!.Metadata is not null)
+					memoryEntry.Metadata.EagerExpirationTimestamp = null;
+
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): should eagerly refresh", CacheName, InstanceId, operationId, key);
 
 				// TRY TO GET THE MEMORY LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST ONE WILL ACTUALLY REFRESH THE ENTRY
-				memoryLockObj = AcquireMemoryLock(operationId, key, TimeSpan.Zero, token);
-				if (memoryLockObj is null)
+				var tmpMemoryLockObj = AcquireMemoryLock(operationId, key, TimeSpan.Zero, token);
+				if (tmpMemoryLockObj is null)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring", CacheName, InstanceId, operationId, key);
 				}
 				else
 				{
-					// RESET EAGER REFRESH
-					if (memoryEntry!.Metadata is not null)
-						memoryEntry.Metadata.EagerExpirationTimestamp = null;
-
-					// EXECUTE EAGER REFRESH
-					ExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry, memoryLockObj);
+					_ = Task.Run(async () =>
+					{
+						MaybeExecuteEagerRefreshWithSyncFactory<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, tmpMemoryLockObj, token);
+					});
 				}
 			}
 
@@ -137,7 +109,7 @@ public partial class FusionCache
 			return memoryEntry;
 		}
 
-		IFusionCacheMemoryEntry? entry;
+		IFusionCacheMemoryEntry? entry = null;
 		bool isStale = false;
 		var hasNewValue = false;
 
@@ -188,20 +160,22 @@ public partial class FusionCache
 			bool distributedEntryIsValid = false;
 
 			var dca = DistributedCacheAccessor;
-			if (dca.ShouldRead(options) && dca.CanBeUsed(operationId, key))
+			var useDistributedCache =
+				dca.ShouldRead(options)
+				&& dca.CanBeUsed(operationId, key)
+				&& (memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false;
+
+			if (useDistributedCache)
 			{
-				if ((memoryEntry is not null && dca.ShouldReadWhenStale(options) == false) == false)
+				token.ThrowIfCancellationRequested();
+
+				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
+
+				// TAGGING (DISTRIBUTED)
+				if (distributedEntry is not null)
 				{
-					token.ThrowIfCancellationRequested();
-
-					(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
+					(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 				}
-			}
-
-			// TAGGING (DISTRIBUTED)
-			if (distributedEntry is not null)
-			{
-				(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 			}
 
 			if (distributedEntryIsValid)
@@ -211,107 +185,138 @@ public partial class FusionCache
 			}
 			else
 			{
-				// FACTORY
-				if (isRealFactory == false)
+				// DISTRIBUTED LOCK
+				if (_distributedLocker is not null)
 				{
-					var value = factory(null!, token);
-					hasNewValue = true;
-
-					entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, tags, options, isStale, null, null);
+					distributedLockObj = AcquireDistributedLock(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), token);
 				}
-				else
+
+				if (distributedLockObj is not null)
 				{
-					Task<TValue>? factoryTask = null;
-
-					var timeout = options.GetAppropriateFactoryTimeout(_options, memoryEntry is not null || distributedEntry is not null);
-
-					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
-
-					var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, distributedEntry, memoryEntry, tags);
-
-					// ACTIVITY
-					var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
-
-					try
+					if (useDistributedCache)
 					{
 						token.ThrowIfCancellationRequested();
 
-						long timestamp = FusionCacheInternalUtils.GetCurrentTimestamp();
-						TValue? value;
-						if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
+						(distributedEntry, distributedEntryIsValid) = _dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
+
+						// TAGGING (DISTRIBUTED)
+						if (distributedEntry is not null && distributedEntryIsValid)
 						{
-							value = factory(ctx, CancellationToken.None);
-						}
-						else
-						{
-							value = RunUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
+							(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 						}
 
-						if (ctx.HasFailed)
+						if (distributedEntryIsValid)
 						{
-							// FAIL
+							isStale = false;
+							entry = FusionCacheMemoryEntry<TValue>.CreateFromOtherEntry(distributedEntry!, options);
+						}
+					}
+				}
 
+				if (entry is null)
+				{
+					// FACTORY
+					if (isRealFactory == false)
+					{
+						var value = factory(null!, CancellationToken.None);
+						hasNewValue = true;
+
+						entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), null, tags, options, isStale, null, null);
+					}
+					else
+					{
+						Task<TValue>? factoryTask = null;
+
+						var timeout = options.GetAppropriateFactoryTimeout(_options, memoryEntry is not null || distributedEntry is not null);
+
+						if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+							_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): calling the factory (timeout={Timeout})", CacheName, InstanceId, operationId, key, timeout.ToLogString_Timeout());
+
+						var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, distributedEntry, memoryEntry, tags);
+
+						// ACTIVITY
+						var activityForFactory = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+
+						try
+						{
+							token.ThrowIfCancellationRequested();
+
+							long timestamp = FusionCacheInternalUtils.GetCurrentTimestamp();
+							TValue? value;
+							if (timeout == Timeout.InfiniteTimeSpan && token == CancellationToken.None)
+							{
+								value = factory(ctx, CancellationToken.None);
+							}
+							else
+							{
+								value = RunUtils.RunSyncFuncWithTimeout(ct => factory(ctx, ct), timeout, options.AllowTimedOutFactoryBackgroundCompletion == false, x => factoryTask = x, token);
+							}
+
+							if (ctx.HasFailed)
+							{
+								// FAIL
+
+								UpdateAdaptiveOptions(ctx, ref options);
+
+								var errorMessage = ctx.ErrorMessage!;
+
+								ProcessFactoryError(operationId, key, errorMessage);
+
+								// ACTIVITY
+								activityForFactory?.SetStatus(ActivityStatusCode.Error, errorMessage);
+								activityForFactory?.Dispose();
+
+								entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
+
+								if (entry is null)
+								{
+									throw new FusionCacheFactoryException(errorMessage);
+								}
+
+								isStale = true;
+							}
+							else
+							{
+								// SUCCESS
+
+								activityForFactory?.Dispose();
+
+								hasNewValue = true;
+
+								UpdateAdaptiveOptions(ctx, ref options);
+
+								entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), timestamp, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
+
+								// EVENTS
+								_events.OnFactorySuccess(operationId, key);
+							}
+						}
+						catch (OperationCanceledException exc)
+						{
+							// ACTIVITY
+							activityForFactory?.SetStatus(ActivityStatusCode.Error, exc.Message);
+							activityForFactory?.AddException(exc);
+							activityForFactory?.Dispose();
+
+							throw;
+						}
+						catch (Exception exc)
+						{
 							UpdateAdaptiveOptions(ctx, ref options);
 
-							var errorMessage = ctx.ErrorMessage!;
+							ProcessFactoryError(operationId, key, exc);
 
-							ProcessFactoryError(operationId, key, errorMessage);
-
-							// ACTIVITY
-							activityForFactory?.SetStatus(ActivityStatusCode.Error, errorMessage);
-							activityForFactory?.Dispose();
+							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, ref memoryLockObj, ref distributedLockObj, activityForFactory);
 
 							entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
 
 							if (entry is null)
 							{
-								throw new FusionCacheFactoryException(errorMessage);
+								throw;
 							}
 
 							isStale = true;
 						}
-						else
-						{
-							// SUCCESS
-
-							activityForFactory?.Dispose();
-
-							hasNewValue = true;
-
-							UpdateAdaptiveOptions(ctx, ref options);
-
-							entry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(value, GetSerializedValueFromValue(operationId, key, value, options), timestamp, ctx.Tags, options, isStale, ctx.LastModified?.UtcTicks, ctx.ETag);
-
-							// EVENTS
-							_events.OnFactorySuccess(operationId, key);
-						}
-					}
-					catch (OperationCanceledException exc)
-					{
-						// ACTIVITY
-						activityForFactory?.SetStatus(ActivityStatusCode.Error, exc.Message);
-						activityForFactory?.AddException(exc);
-						activityForFactory?.Dispose();
-
-						throw;
-					}
-					catch (Exception exc)
-					{
-						UpdateAdaptiveOptions(ctx, ref options);
-
-						ProcessFactoryError(operationId, key, exc);
-
-						MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, ref memoryLockObj, activityForFactory);
-
-						entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
-
-						if (entry is null)
-						{
-							throw;
-						}
-
-						isStale = true;
 					}
 				}
 			}
@@ -339,7 +344,7 @@ public partial class FusionCache
 			{
 				if (RequiresDistributedOperations(options))
 				{
-					DistributedSetEntry<TValue>(operationId, key, entry, options, token);
+					DistributedSetEntry<TValue>(operationId, key, entry, options, distributedLockObj, token);
 				}
 			}
 
@@ -737,7 +742,7 @@ public partial class FusionCache
 
 			if (RequiresDistributedOperations(options))
 			{
-				DistributedSetEntry<TValue>(operationId, key, entry, options, token);
+				DistributedSetEntry<TValue>(operationId, key, entry, options, null, token);
 			}
 
 			// EVENT
@@ -1110,7 +1115,7 @@ public partial class FusionCache
 
 	// DISTRIBUTED ACTIONS
 
-	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, CancellationToken token)
+	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, object? distributedLockObj, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
 		{
@@ -1146,6 +1151,12 @@ public partial class FusionCache
 						AutoRecovery.TryAddItem(operationId, key, action, timestamp, options);
 						return;
 					}
+				}
+
+				// DISTRIBUTED LOCKER
+				if (distributedLockObj is not null)
+				{
+					ReleaseDistributedLock(operationId, key, distributedLockObj, token);
 				}
 
 				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
@@ -1194,7 +1205,7 @@ public partial class FusionCache
 		);
 	}
 
-	private void DistributedSetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, CancellationToken token)
+	private void DistributedSetEntry<TValue>(string operationId, string key, IFusionCacheEntry entry, FusionCacheEntryOptions options, object? distributedLockObj, CancellationToken token)
 	{
 		ExecuteDistributedAction(
 			operationId,
@@ -1210,6 +1221,7 @@ public partial class FusionCache
 				return bpa.PublishSet(operationId, key, entry.Timestamp, options, false, isBackground, ct);
 			},
 			options,
+			distributedLockObj,
 			token
 		);
 	}
@@ -1231,6 +1243,7 @@ public partial class FusionCache
 				return bpa.PublishRemove(operationId, key, now, options, false, isBackground, ct);
 			},
 			options,
+			null,
 			token
 		);
 	}
@@ -1252,6 +1265,7 @@ public partial class FusionCache
 				return bpa.PublishExpire(operationId, key, now, options, false, isBackground, ct);
 			},
 			options,
+			null,
 			token
 		);
 	}
@@ -1293,7 +1307,7 @@ public partial class FusionCache
 
 			try
 			{
-				var (distributedEntry, isValid) = dca.TryGetEntry<TValue>(operationId, key, _tryUpdateEntryOptions, false, Timeout.InfiniteTimeSpan, default);
+				var (distributedEntry, isValid) = dca.TryGetEntry<TValue>(operationId, key, _tryUpdateEntryOptions, false, Timeout.InfiniteTimeSpan, CancellationToken.None);
 
 				if (distributedEntry is null || isValid == false)
 				{

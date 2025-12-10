@@ -7,6 +7,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
 
 namespace FusionCacheTests;
 
@@ -1142,5 +1143,60 @@ public partial class L1L2Tests
 		);
 
 		Assert.Equal(3, fooB3);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void DistributedLockerWorks(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = TimeSpan.FromSeconds(10)
+		};
+
+		var distributedLocker = new MemoryDistributedLocker();
+
+		using var cacheA = new FusionCache(options, logger: logger);
+		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		using var cacheB = new FusionCache(options, logger: logger);
+		cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		var factoryExecutionCount = 0;
+		int[] results = [0, 0];
+
+		Parallel.For(0, 2, idx =>
+		{
+			var idxLocal = idx;
+			var cache = idxLocal == 0
+				? cacheA
+				: cacheB;
+
+			logger.LogInformation("STARTING TASK {Idx}", idxLocal);
+
+			results[idxLocal] = cache.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					logger.LogInformation("STARTING FACTORY {Idx}", idxLocal);
+					Interlocked.Increment(ref factoryExecutionCount);
+					Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
+					return idxLocal + 1;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		});
+
+		Assert.Equal(1, factoryExecutionCount);
+		Assert.Equal(results[0], results[1]);
 	}
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
@@ -262,6 +263,26 @@ public class NullFusionCache
 
 	/// <inheritdoc/>
 	public bool HasBackplane
+	{
+		get { return false; }
+	}
+
+	// DISTRIBUTED LOCKER
+
+	/// <inheritdoc/>
+	public IFusionCache SetupDistributedLocker(IFusionCacheDistributedLocker distributedLocker)
+	{
+		return this;
+	}
+
+	/// <inheritdoc/>
+	public IFusionCache RemoveDistributedLocker()
+	{
+		return this;
+	}
+
+	/// <inheritdoc/>
+	public bool HasDistributedLocker
 	{
 		get { return false; }
 	}
