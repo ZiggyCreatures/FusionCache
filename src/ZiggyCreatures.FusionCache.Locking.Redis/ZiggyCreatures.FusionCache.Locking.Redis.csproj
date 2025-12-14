@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Version>2.5.0</Version>
+		<PackageId>ZiggyCreatures.FusionCache.Locking.Redis</PackageId>
+		<Description>FusionCache distributed locker for Redis</Description>
+		<PackageTags>distributed-locker;redis;locker;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Locking.Redis</RootNamespace>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageReleaseNotes>
+			Initial release
+		</PackageReleaseNotes>
+		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="DistributedLock.Redis" Version="1.1.1" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.11" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+</Project>
