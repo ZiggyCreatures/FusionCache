@@ -71,7 +71,7 @@ internal sealed class StandardMemoryLocker
 					catch (Exception exc)
 					{
 						if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-							logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
+							logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the standard memory locker", cacheName, cacheInstanceId, key);
 					}
 				},
 				(cacheName, cacheInstanceId, logger)
@@ -114,7 +114,7 @@ internal sealed class StandardMemoryLocker
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, operationId, key);
+				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the standard memory locker", cacheName, cacheInstanceId, operationId, key);
 		}
 	}
 
