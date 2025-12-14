@@ -63,7 +63,6 @@ public static class LoggingScenario
 	public static async Task RunAsync()
 	{
 		Console.Title = "FusionCache - Logging";
-
 		Console.OutputEncoding = Encoding.UTF8;
 
 		// DI

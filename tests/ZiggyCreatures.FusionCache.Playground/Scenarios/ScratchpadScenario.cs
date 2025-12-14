@@ -15,7 +15,6 @@ public static class ScratchpadScenario
 	public static async Task RunAsync()
 	{
 		Console.Title = "FusionCache - Scratchpad";
-
 		Console.OutputEncoding = Encoding.UTF8;
 
 		var services = new ServiceCollection();
@@ -50,7 +49,7 @@ public static class ScratchpadScenario
 			},
 		};
 
-		var logger = serviceProvider.GetRequiredService<Microsoft.Extensions.Logging.ILogger<FusionCache>>();
+		var logger = serviceProvider.GetRequiredService<ILogger<FusionCache>>();
 
 		var cache = new FusionCache(options, logger: logger);
 

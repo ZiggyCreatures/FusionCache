@@ -80,7 +80,6 @@ public static class OpenTelemetryScenario
 	public static async Task RunAsync()
 	{
 		Console.Title = "FusionCache - OpenTelemetry";
-
 		Console.OutputEncoding = Encoding.UTF8;
 
 		// SETUP TRACES
