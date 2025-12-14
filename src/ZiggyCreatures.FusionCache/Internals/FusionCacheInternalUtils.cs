@@ -533,25 +533,6 @@ internal static class FusionCacheInternalUtils
 		return true;
 	}
 
-	public static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
-	{
-		var res = 0L;
-
-		if (ctx.HasStaleValue)
-		{
-			res = ctx.StaleValue.Value;
-		}
-
-		if (res == 0L)
-		{
-			// IF THE VALUE IS 0 (ZERO) -> WE DON'T NEED TO WRITE TO DISTRIBUTED AND NOTIFY THE OTHER NODES
-			ctx.Options.SkipDistributedCacheWrite = true;
-			ctx.Options.SkipBackplaneNotifications = true;
-		}
-
-		return Task.FromResult(res);
-	}
-
 	public static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
 	{
 		var res = 0L;
@@ -569,6 +550,12 @@ internal static class FusionCacheInternalUtils
 		}
 
 		return res;
+	}
+
+	public static Task<long> SharedTagExpirationDataFactoryAsync(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
+	{
+		var res = SharedTagExpirationDataFactory(ctx, token);
+		return Task.FromResult(res);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
