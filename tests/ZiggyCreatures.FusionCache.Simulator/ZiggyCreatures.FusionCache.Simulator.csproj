@@ -6,7 +6,11 @@
 		<IsPackable>false</IsPackable>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Simulator</RootNamespace>
 	</PropertyGroup>
-			
+
+	<PropertyGroup>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="FASTERCache" Version="0.1.21" />
 		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.2" />
