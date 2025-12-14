@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 namespace ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
 
 /// <summary>
-/// A standard implementation of <see cref="IFusionCacheDistributedLocker"/>, mainly used for local testing.
+/// An in-memory implementation of <see cref="IFusionCacheDistributedLocker"/>, mainly used for local testing.
 /// </summary>
 public sealed class MemoryDistributedLocker
 	: IFusionCacheDistributedLocker
@@ -17,15 +17,18 @@ public sealed class MemoryDistributedLocker
 	private TimeSpan _slidingExpiration = TimeSpan.FromMinutes(5);
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="StandardMemoryLocker"/> class.
+	/// Initializes a new instance of the <see cref="MemoryDistributedLocker"/> class.
 	/// </summary>
-	/// <param name="size">The size of the pool used internally for the 1st level locking strategy.</param>
-	public MemoryDistributedLocker(int size = 210)
+	/// <param name="options">The options for the in-memory distributed locker.</param>
+	public MemoryDistributedLocker(MemoryDistributedLockerOptions options)
 	{
+		if (options is null)
+			throw new ArgumentNullException(nameof(options));
+
 		_lockCache = new MemoryCache(new MemoryCacheOptions());
 
 		// LOCKING
-		_lockPoolSize = size;
+		_lockPoolSize = options.Size;
 		_lockPool = new object[_lockPoolSize];
 		for (var i = 0; i < _lockPool.Length; i++)
 		{
