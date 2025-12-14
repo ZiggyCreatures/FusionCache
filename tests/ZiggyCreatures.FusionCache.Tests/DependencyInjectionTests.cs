@@ -53,6 +53,7 @@ public class DependencyInjectionTests
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheSystemTextJsonSerializer();
 		services.AddFusionCacheMemoryBackplane();
+		services.AddFusionCacheMemoryDistributedLocker();
 
 		services.AddFusionCache("Foo");
 		services.AddFusionCache();
@@ -68,11 +69,13 @@ public class DependencyInjectionTests
 		Assert.Equal("Foo", fooCache.CacheName);
 		Assert.False(fooCache.HasDistributedCache);
 		Assert.False(fooCache.HasBackplane);
+		Assert.False(fooCache.HasDistributedLocker);
 
 		Assert.NotNull(defaultCache);
 		Assert.Equal(FusionCacheOptions.DefaultCacheName, defaultCache.CacheName);
 		Assert.False(defaultCache.HasDistributedCache);
 		Assert.False(defaultCache.HasBackplane);
+		Assert.False(defaultCache.HasDistributedLocker);
 	}
 
 	[Fact]
@@ -270,6 +273,31 @@ public class DependencyInjectionTests
 
 		Assert.NotNull(cache);
 		Assert.IsType<SimpleMemoryLocker>(memoryLocker);
+	}
+
+	[Fact]
+	public void CanUseRegisteredDistributedLocker()
+	{
+		var services = new ServiceCollection();
+		services.AddTransient<IFusionCacheDistributedLocker>(sp => new SimpleDistributedLocker());
+
+		services.AddFusionCache()
+			.WithRegisteredDistributedLocker()
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IFusionCacheDistributedLocker GetDistributedLocker(IFusionCache cache)
+		{
+			return (IFusionCacheDistributedLocker)(typeof(FusionCache).GetField("_distributedLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+		}
+
+		var distributedLocker = GetDistributedLocker(cache);
+
+		Assert.NotNull(cache);
+		Assert.IsType<SimpleDistributedLocker>(distributedLocker);
 	}
 
 	[Fact]

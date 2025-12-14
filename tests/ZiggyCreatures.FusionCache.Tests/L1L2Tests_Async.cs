@@ -1232,7 +1232,7 @@ public partial class L1L2Tests
 			Duration = TimeSpan.FromSeconds(10)
 		};
 
-		var distributedLocker = new MemoryDistributedLocker();
+		var distributedLocker = new MemoryDistributedLocker(new MemoryDistributedLockerOptions());
 
 		using var cacheA = new FusionCache(options, logger: logger);
 		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));

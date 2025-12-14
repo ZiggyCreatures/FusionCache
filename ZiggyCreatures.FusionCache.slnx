@@ -13,6 +13,7 @@
     <Project Path="src/ZiggyCreatures.FusionCache.Chaos/ZiggyCreatures.FusionCache.Chaos.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Locking.AsyncKeyed/ZiggyCreatures.FusionCache.Locking.AsyncKeyed.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Locking.MemoryDistributed/ZiggyCreatures.FusionCache.Locking.MemoryDistributed.csproj" Id="cf987271-654e-4754-93e3-3d1759097ec0" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Locking.Redis/ZiggyCreatures.FusionCache.Locking.Redis.csproj" Id="d6464f86-e27b-4c78-95bf-d38f8a6fc39a" />
     <Project Path="src/ZiggyCreatures.FusionCache.OpenTelemetry/ZiggyCreatures.FusionCache.OpenTelemetry.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj" />

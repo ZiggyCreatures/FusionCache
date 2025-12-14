@@ -142,6 +142,64 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public async Task HandlesBackgroundFactoryExceptionAsync()
+	{
+		var throttleDuration = TimeSpan.FromSeconds(2);
+
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+
+		var value1 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async _ => 1,
+			options => options
+				.SetDuration(TimeSpan.FromSeconds(1))
+				.SetFailSafe(true, throttleDuration: throttleDuration),
+			token: TestContext.Current.CancellationToken
+		);
+
+		await Task.Delay(1_100, TestContext.Current.CancellationToken);
+
+		var value2 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async _ =>
+			{
+				await Task.Delay(1_000);
+				throw new Exception("Whatever");
+			},
+			options => options
+				.SetDuration(TimeSpan.FromSeconds(1))
+				.SetFailSafe(true, throttleDuration: throttleDuration)
+				.SetFactoryTimeouts(TimeSpan.FromMilliseconds(100)),
+			token: TestContext.Current.CancellationToken
+		);
+
+		// WAIT FOR THE BACKGROUND FACTORY TO FAIL
+		await Task.Delay(throttleDuration.PlusALittleBit(), TestContext.Current.CancellationToken);
+
+		var value3 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) =>
+			{
+				await Task.Delay(1_000);
+				return ctx.Fail("Whatever");
+			},
+			options => options
+				.SetDuration(TimeSpan.FromSeconds(1))
+				.SetFailSafe(true, throttleDuration: throttleDuration)
+				.SetFactoryTimeouts(TimeSpan.FromMilliseconds(100)),
+			token: TestContext.Current.CancellationToken
+		);
+
+		// WAIT FOR THE BACKGROUND FACTORY TO FAIL
+		await Task.Delay(1_000, TestContext.Current.CancellationToken);
+
+		Assert.Equal(value1, value2);
+		Assert.Equal(value2, value3);
+	}
+
+	[Fact]
 	public async Task SetOverwritesAnExistingValueAsync()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
