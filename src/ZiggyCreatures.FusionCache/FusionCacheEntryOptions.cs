@@ -469,6 +469,15 @@ public sealed class FusionCacheEntryOptions
 	/// </summary>
 	public bool EnableAutoClone { get; set; }
 
+	/// <summary>
+	/// Gets or sets a value indicating whether to bypass the distributed lock mechanism during the operation.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public bool SkipDistributedLocker { get; set; }
+
 	internal bool IsSafeForAdaptiveCaching { get; set; }
 
 	/// <inheritdoc/>
@@ -927,6 +936,22 @@ public sealed class FusionCacheEntryOptions
 		return this;
 	}
 
+
+	/// <summary>
+	/// Set the <see cref="SkipDistributedLocker"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <param name="skip">The value for the <see cref="SkipDistributedLocker"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetSkipDistributedLocker(bool skip = true)
+	{
+		SkipDistributedLocker = skip;
+		return this;
+	}
+
 	/// <summary>
 	/// Set the <see cref="EnableAutoClone"/> option.
 	/// <br/><br/>
@@ -1202,6 +1227,7 @@ public sealed class FusionCacheEntryOptions
 			SkipDistributedCacheRead = SkipDistributedCacheRead,
 			SkipDistributedCacheWrite = SkipDistributedCacheWrite,
 			SkipDistributedCacheReadWhenStale = SkipDistributedCacheReadWhenStale,
+			SkipDistributedLocker = SkipDistributedLocker,
 
 			SkipMemoryCacheRead = SkipMemoryCacheRead,
 			SkipMemoryCacheWrite = SkipMemoryCacheWrite,
