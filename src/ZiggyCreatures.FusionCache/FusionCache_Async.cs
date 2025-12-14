@@ -16,7 +16,7 @@ public partial class FusionCache
 	{
 		// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
 		object? distributedLockObj = null;
-		if (_distributedLocker is not null)
+		if (_distributedLocker is not null && options.SkipDistributedLocker == false)
 		{
 			distributedLockObj = await AcquireDistributedLockAsync(operationId, key, TimeSpan.Zero, token).ConfigureAwait(false);
 			if (distributedLockObj is null)
@@ -47,15 +47,13 @@ public partial class FusionCache
 
 		var factoryTask = factory(ctx, CancellationToken.None);
 
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, distributedLockObj, activity);
+		BackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, distributedLockObj, activity);
 	}
 
 	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
 	{
 		IFusionCacheMemoryEntry? memoryEntry = null;
 		bool memoryEntryIsValid = false;
-		object? memoryLockObj = null;
-		object? distributedLockObj = null;
 
 		// DIRECTLY CHECK MEMORY CACHE (TO AVOID LOCKING)
 		if (_mca.ShouldRead(options))
@@ -112,6 +110,8 @@ public partial class FusionCache
 		IFusionCacheMemoryEntry? entry = null;
 		bool isStale = false;
 		var hasNewValue = false;
+		object? memoryLockObj = null;
+		object? distributedLockObj = null;
 
 		try
 		{
@@ -186,7 +186,7 @@ public partial class FusionCache
 			else
 			{
 				// DISTRIBUTED LOCK
-				if (_distributedLocker is not null)
+				if (_distributedLocker is not null && options.SkipDistributedLocker == false)
 				{
 					distributedLockObj = await AcquireDistributedLockAsync(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), token).ConfigureAwait(false);
 				}
@@ -306,7 +306,7 @@ public partial class FusionCache
 
 							ProcessFactoryError(operationId, key, exc);
 
-							MaybeBackgroundCompleteTimedOutFactory<TValue>(operationId, key, ctx, factoryTask, options, ref memoryLockObj, ref distributedLockObj, activityForFactory);
+							MaybeBackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, ref memoryLockObj, ref distributedLockObj, activityForFactory);
 
 							entry = TryActivateFailSafe<TValue>(operationId, key, distributedEntry, memoryEntry, failSafeDefaultValue, options);
 
@@ -335,6 +335,13 @@ public partial class FusionCache
 			// MEMORY LOCK
 			if (memoryLockObj is not null)
 				ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+			// DISTRIBUTED LOCK
+			if (hasNewValue == false)
+			{
+				if (distributedLockObj is not null)
+					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, token).ConfigureAwait(false);
+			}
 		}
 
 		if (hasNewValue)

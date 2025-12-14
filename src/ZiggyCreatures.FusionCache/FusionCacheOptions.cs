@@ -83,6 +83,7 @@ public class FusionCacheOptions
 			SkipDistributedCacheRead = false,
 			SkipDistributedCacheWrite = false,
 			SkipBackplaneNotifications = false,
+			SkipDistributedLocker = true,
 			Priority = CacheItemPriority.NeverRemove,
 			Size = 0
 		};

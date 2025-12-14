@@ -151,7 +151,6 @@ public sealed partial class FusionCache
 		// GLOBALLY UNIQUE INSTANCE ID
 		if (string.IsNullOrWhiteSpace(_options.InstanceId))
 		{
-			//_options.SetInstanceId(Guid.NewGuid().ToString("N"));
 			_options.SetInstanceIdInternal(FusionCacheInternalUtils.GenerateOperationId());
 		}
 		InstanceId = _options.InstanceId!;
@@ -415,7 +414,7 @@ public sealed partial class FusionCache
 
 	// BACKGROUND FACTORY COMPLETION
 
-	private void MaybeBackgroundCompleteTimedOutFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, ref object? memoryLockObj, ref object? distributedLockObj, Activity? activity)
+	private void MaybeBackgroundCompleteFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue>? factoryTask, FusionCacheEntryOptions options, ref object? memoryLockObj, ref object? distributedLockObj, Activity? activity)
 	{
 		if (factoryTask is null)
 		{
@@ -450,66 +449,41 @@ public sealed partial class FusionCache
 		memoryLockObj = null;
 		var tmpDistributedLockObj = distributedLockObj;
 		distributedLockObj = null;
-		CompleteBackgroundFactory<TValue>(operationId, key, ctx, factoryTask, options, tmpMemoryLockObj, tmpDistributedLockObj, activity);
+		BackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, tmpMemoryLockObj, tmpDistributedLockObj, activity);
 	}
 
-	private void CompleteBackgroundFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, object? distributedLockObj, Activity? activity)
+	private void BackgroundCompleteFactory<TValue>(string operationId, string key, FusionCacheFactoryExecutionContext<TValue> ctx, Task<TValue> factoryTask, FusionCacheEntryOptions options, object? memoryLockObj, object? distributedLockObj, Activity? activity)
 	{
-		if (factoryTask.IsFaulted || factoryTask.IsCanceled || ctx.HasFailed)
+		_ = Task.Run(async () =>
 		{
 			try
 			{
-				if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-					_logger.Log(_options.FactoryErrorsLogLevel, factoryTask.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory has thrown an exception", CacheName, InstanceId, operationId, key);
+				// CONTINUE IN THE BACKGROUND TO TRY TO KEEP THE RESULT AS SOON AS IT WILL COMPLETE SUCCESSFULLY
+				if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+					_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to complete a background factory", CacheName, InstanceId, operationId, key);
 
-				// EVENT
-				_events.OnBackgroundFactoryError(operationId, key);
-			}
-			finally
-			{
-				// MEMORY LOCK
-				if (memoryLockObj is not null)
-					ReleaseMemoryLock(operationId, key, memoryLockObj);
+				var result = await factoryTask.ConfigureAwait(false);
 
-				// DISTRIBUTED LOCK
-				if (distributedLockObj is not null)
-					// TODO: SWITCH TO ASYNC AND PASS THE CANCELLATION TOKEN
-					ReleaseDistributedLock(operationId, key, distributedLockObj, CancellationToken.None);
-
-				// ACTIVITY
-				activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
-				if (factoryTask.Exception is not null)
-					activity?.AddException(factoryTask.Exception);
-				activity?.Dispose();
-			}
-
-			return;
-		}
-
-		// CONTINUE IN THE BACKGROUND TO TRY TO KEEP THE RESULT AS SOON AS IT WILL COMPLETE SUCCESSFULLY
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): trying to complete a background factory", CacheName, InstanceId, operationId, key);
-
-		_ = factoryTask.ContinueWith(async antecedent =>
-		{
-			try
-			{
-				if (antecedent.Status == TaskStatus.Faulted || antecedent.Status == TaskStatus.Canceled || ctx.HasFailed)
+				if (ctx.HasFailed)
 				{
+					// FAIL
+
+					var errorMessage = ctx.ErrorMessage ?? "An error occurred while executing the background factory";
+
 					if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
-						_logger.Log(_options.FactoryErrorsLogLevel, antecedent.Exception?.GetSingleInnerExceptionOrSelf(), "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+						_logger.Log(_options.FactoryErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while executing the background factory: {ErrorMessage}", CacheName, InstanceId, operationId, key, errorMessage);
 
 					// ACTIVITY
-					activity?.SetStatus(ActivityStatusCode.Error, factoryTask.Exception?.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
-					if (factoryTask.Exception is not null)
-						activity?.AddException(factoryTask.Exception);
+					activity?.SetStatus(ActivityStatusCode.Error, errorMessage);
 					activity?.Dispose();
 
 					// EVENT
 					_events.OnBackgroundFactoryError(operationId, key);
 				}
-				else if (antecedent.Status == TaskStatus.RanToCompletion)
+				else
 				{
+					// SUCCESS
+
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 						_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory successfully completed, keeping the result", CacheName, InstanceId, operationId, key);
 
@@ -534,18 +508,24 @@ public sealed partial class FusionCache
 					options.ReThrowBackplaneExceptions = false;
 
 					// ADAPTIVE CACHING UPDATE
-					var tmp = antecedent.GetAwaiter().GetResult();
-					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(tmp, GetSerializedValueFromValue(operationId, key, tmp, options), null, ctx.Tags, options, false, ctx.LastModified?.UtcTicks, ctx.ETag);
+					var lateEntry = FusionCacheMemoryEntry<TValue>.CreateFromOptions(result, GetSerializedValueFromValue(operationId, key, result, options), null, ctx.Tags, options, false, ctx.LastModified?.UtcTicks, ctx.ETag);
 
 					if (_mca.ShouldWrite(options))
 					{
 						_mca.SetEntry<TValue>(operationId, key, lateEntry, options);
 					}
 
+					// MEMORY LOCK
+					if (memoryLockObj is not null)
+					{
+						ReleaseMemoryLock(operationId, key, memoryLockObj);
+						memoryLockObj = null;
+					}
+
 					if (RequiresDistributedOperations(options))
 					{
-						// TODO: !!! PASS THE distributedLockObj !!!
-						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, null, default).ConfigureAwait(false);
+						await DistributedSetEntryAsync<TValue>(operationId, key, lateEntry, options, distributedLockObj, CancellationToken.None).ConfigureAwait(false);
+						distributedLockObj = null;
 					}
 
 					// EVENT
@@ -553,11 +533,26 @@ public sealed partial class FusionCache
 					_events.OnSet(operationId, key);
 				}
 			}
+			catch (Exception exc)
+			{
+				if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
+					_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+
+				// ACTIVITY
+				activity?.SetStatus(ActivityStatusCode.Error, exc.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
+				activity?.AddException(exc);
+				activity?.Dispose();
+
+				// EVENT
+				_events.OnBackgroundFactoryError(operationId, key);
+			}
 			finally
 			{
-				// MEMORY LOCK
 				if (memoryLockObj is not null)
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+				if (distributedLockObj is not null)
+					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, CancellationToken.None).ConfigureAwait(false);
 			}
 		});
 	}
@@ -567,7 +562,7 @@ public sealed partial class FusionCache
 	private async ValueTask<object?> AcquireMemoryLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] waiting to acquire the MEMORY LOCK", CacheName, InstanceId, operationId, key);
 
 		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
 
@@ -575,13 +570,13 @@ public sealed partial class FusionCache
 		{
 			// LOCK ACQUIRED
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] MEMORY LOCK acquired", CacheName, InstanceId, operationId, key);
 		}
 		else
 		{
 			// LOCK TIMEOUT
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] MEMORY LOCK timeout", CacheName, InstanceId, operationId, key);
 		}
 
 		return lockObj;
@@ -590,7 +585,7 @@ public sealed partial class FusionCache
 	private object? AcquireMemoryLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] waiting to acquire the MEMORY LOCK", CacheName, InstanceId, operationId, key);
 
 		var lockObj = _memoryLocker.AcquireLock(CacheName, InstanceId, operationId, key, timeout, _logger, token);
 
@@ -598,13 +593,13 @@ public sealed partial class FusionCache
 		{
 			// LOCK ACQUIRED
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK acquired", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] MEMORY LOCK acquired", CacheName, InstanceId, operationId, key);
 		}
 		else
 		{
 			// LOCK TIMEOUT
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): LOCK timeout", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] MEMORY LOCK timeout", CacheName, InstanceId, operationId, key);
 		}
 
 		return lockObj;
@@ -616,19 +611,19 @@ public sealed partial class FusionCache
 			return;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing MEMORY LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] releasing MEMORY LOCK", CacheName, InstanceId, operationId, key);
 
 		try
 		{
 			_memoryLocker.ReleaseLock(CacheName, InstanceId, operationId, key, lockObj, _logger);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): MEMORY LOCK released", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] MEMORY LOCK released", CacheName, InstanceId, operationId, key);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing the MEMORY LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] releasing the MEMORY LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
 		}
 	}
 
@@ -640,24 +635,37 @@ public sealed partial class FusionCache
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] waiting to acquire the DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
 
-		var lockObj = await _distributedLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
-
-		if (lockObj is not null)
+		try
 		{
-			// LOCK ACQUIRED
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DISTRIBUTED LOCK acquired", CacheName, InstanceId, operationId, key);
-		}
-		else
-		{
-			// LOCK TIMEOUT
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DISTRIBUTED LOCK timeout", CacheName, InstanceId, operationId, key);
-		}
+			var lockObj = await _distributedLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
 
-		return lockObj;
+			if (lockObj is not null)
+			{
+				// LOCK ACQUIRED
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK acquired", CacheName, InstanceId, operationId, key);
+			}
+			else
+			{
+				// LOCK TIMEOUT
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK timeout", CacheName, InstanceId, operationId, key);
+			}
+
+			return lockObj;
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+
+			return null;
+
+			// TODO: WHAT DO!?
+			//throw;
+		}
 	}
 
 	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
@@ -666,24 +674,37 @@ public sealed partial class FusionCache
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): waiting to acquire the DISTRIBUTEDLOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] waiting to acquire the DISTRIBUTEDLOCK", CacheName, InstanceId, operationId, key);
 
-		var lockObj = _distributedLocker.AcquireLock(CacheName, InstanceId, operationId, key, timeout, _logger, token);
-
-		if (lockObj is not null)
+		try
 		{
-			// LOCK ACQUIRED
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DISTRIBUTEDLOCK acquired", CacheName, InstanceId, operationId, key);
-		}
-		else
-		{
-			// LOCK TIMEOUT
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DISTRIBUTEDLOCK timeout", CacheName, InstanceId, operationId, key);
-		}
+			var lockObj = _distributedLocker.AcquireLock(CacheName, InstanceId, operationId, key, timeout, _logger, token);
 
-		return lockObj;
+			if (lockObj is not null)
+			{
+				// LOCK ACQUIRED
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTEDLOCK acquired", CacheName, InstanceId, operationId, key);
+			}
+			else
+			{
+				// LOCK TIMEOUT
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTEDLOCK timeout", CacheName, InstanceId, operationId, key);
+			}
+
+			return lockObj;
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+
+			return null;
+
+			// TODO: WHAT DO!?
+			//throw;
+		}
 	}
 
 	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, CancellationToken token)
@@ -695,19 +716,19 @@ public sealed partial class FusionCache
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
 
 		try
 		{
 			await _distributedLocker.ReleaseLockAsync(CacheName, InstanceId, operationId, key, lockObj, _logger, token);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
 		}
 	}
 
@@ -720,19 +741,19 @@ public sealed partial class FusionCache
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
+			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
 
 		try
 		{
 			_distributedLocker.ReleaseLock(CacheName, InstanceId, operationId, key, lockObj, _logger, token);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): releasing the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
 		}
 	}
 
@@ -1030,7 +1051,7 @@ public sealed partial class FusionCache
 			throw new ArgumentNullException(nameof(distributedLocker));
 
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup distributed locker (LOCKER={DistributedLockerType})", CacheName, InstanceId, distributedLocker.GetType().FullName);
+			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: [DL] setup distributed locker (LOCKER={DistributedLockerType})", CacheName, InstanceId, distributedLocker.GetType().FullName);
 
 		_distributedLocker = distributedLocker;
 
@@ -1047,7 +1068,7 @@ public sealed partial class FusionCache
 			_distributedLocker = null;
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: distributed locker removed", CacheName, InstanceId);
+				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: [DL] distributed locker removed", CacheName, InstanceId);
 		}
 
 		return this;
@@ -1335,6 +1356,7 @@ public sealed partial class FusionCache
 		RemoveAllPlugins();
 		RemoveBackplane();
 		RemoveDistributedCache();
+		RemoveDistributedLocker();
 
 		_autoRecovery?.Dispose();
 		_autoRecovery = null;
