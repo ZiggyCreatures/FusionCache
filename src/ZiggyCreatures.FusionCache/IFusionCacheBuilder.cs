@@ -166,6 +166,35 @@ public interface IFusionCacheBuilder
 
 	#endregion
 
+	#region DISTRIBUTED LOCKER
+
+	/// <summary>
+	/// Indicates if the builder should try find and use an <see cref="IFusionCacheDistributedLocker"/> service registered in the DI container.
+	/// </summary>
+	bool UseRegisteredDistributedLocker { get; set; }
+
+	/// <summary>
+	/// The keyed service key to use for the distributed locker.
+	/// </summary>
+	public object? DistributedLockerServiceKey { get; set; }
+
+	/// <summary>
+	/// A specific <see cref="IFusionCacheDistributedLocker"/> instance to be used.
+	/// </summary>
+	IFusionCacheDistributedLocker? DistributedLocker { get; set; }
+
+	/// <summary>
+	/// A factory that creates the <see cref="IFusionCacheDistributedLocker"/> instance to be used.
+	/// </summary>
+	Func<IServiceProvider, IFusionCacheDistributedLocker>? DistributedLockerFactory { get; set; }
+
+	/// <summary>
+	/// Throws an <see cref="InvalidOperationException"/> if a distributed locker (an instance of <see cref="IFusionCacheDistributedLocker"/>) is not specified or is not found in the DI container.
+	/// </summary>
+	bool ThrowIfMissingDistributedLocker { get; set; }
+
+	#endregion
+
 	#region SERIALIZER
 
 	/// <summary>

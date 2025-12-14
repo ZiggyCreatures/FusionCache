@@ -751,6 +751,177 @@ public static partial class FusionCacheBuilderExtMethods
 
 	#endregion
 
+	#region DISTRIBUTED LOCKER
+
+	/// <summary>
+	/// The builder will look for an <see cref="IFusionCacheDistributedLocker"/> service registered in the DI container and use it, and throws if it cannot find one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredDistributedLocker(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.UseRegisteredDistributedLocker = true;
+		builder.DistributedLocker = null;
+		builder.DistributedLockerFactory = null;
+		builder.ThrowIfMissingDistributedLocker = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// The builder will look for an <see cref="IFusionCacheDistributedLocker"/> keyed service registered in the DI container and use it, and throws if it cannot find one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredKeyedDistributedLocker(this IFusionCacheBuilder builder, object? serviceKey)
+	{
+		builder.WithRegisteredDistributedLocker();
+		builder.DistributedLockerServiceKey = serviceKey;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// The builder will look for an <see cref="IFusionCacheDistributedLocker"/> keyed service registered in the DI container (with the CacheName as the serviceKey) and use it, and throws if it cannot find one.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithRegisteredKeyedDistributedLockerByCacheName(this IFusionCacheBuilder builder)
+	{
+		return builder.WithRegisteredKeyedDistributedLocker(builder.CacheName);
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheDistributedLocker"/> service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredDistributedLocker(this IFusionCacheBuilder builder)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.WithRegisteredDistributedLocker();
+		builder.ThrowIfMissingDistributedLocker = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheDistributedLocker"/> keyed service registered in the DI container.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="serviceKey">The keyed service key to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredKeyedDistributedLocker(this IFusionCacheBuilder builder, object? serviceKey)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		builder.WithRegisteredKeyedDistributedLocker(serviceKey);
+		builder.ThrowIfMissingDistributedLocker = false;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Indicates if the builder should try to find and use an <see cref="IFusionCacheDistributedLocker"/> keyed service registered in the DI container (with the CacheName as the serviceKey).
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-8.0#keyed-services"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder TryWithRegisteredKeyedDistributedLocker(this IFusionCacheBuilder builder)
+	{
+		return builder.TryWithRegisteredKeyedDistributedLocker(builder.CacheName);
+	}
+
+	/// <summary>
+	/// Specify a custom <see cref="IFusionCacheDistributedLocker"/> instance to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="distributedLocker">The <see cref="IFusionCacheDistributedLocker"/> instance to use.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithDistributedLocker(this IFusionCacheBuilder builder, IFusionCacheDistributedLocker distributedLocker)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (distributedLocker is null)
+			throw new ArgumentNullException(nameof(distributedLocker));
+
+		builder.UseRegisteredDistributedLocker = false;
+		builder.DistributedLocker = distributedLocker;
+		builder.DistributedLockerFactory = null;
+		builder.ThrowIfMissingDistributedLocker = true;
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom <see cref="IFusionCacheDistributedLocker"/> factory to be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="factory">The factory used to create the distributed locker, with access to the <see cref="IServiceProvider"/>.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithDistributedLocker(this IFusionCacheBuilder builder, Func<IServiceProvider, IFusionCacheDistributedLocker> factory)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (factory is null)
+			throw new ArgumentNullException(nameof(factory));
+
+		builder.UseRegisteredDistributedLocker = false;
+		builder.DistributedLocker = null;
+		builder.DistributedLockerFactory = factory;
+		builder.ThrowIfMissingDistributedLocker = true;
+
+		return builder;
+	}
+
+	#endregion
+
 	#region SERIALIZER
 
 	/// <summary>
@@ -1616,6 +1787,7 @@ public static partial class FusionCacheBuilderExtMethods
 		builder = builder
 			.TryWithRegisteredLogger()
 			.TryWithRegisteredMemoryLocker()
+			.TryWithRegisteredDistributedLocker()
 			.TryWithRegisteredMemoryCache()
 			.TryWithRegisteredDistributedCache(ignoreMemoryDistributedCache, false)
 			.TryWithRegisteredBackplane()

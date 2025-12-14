@@ -69,6 +69,12 @@ internal sealed class FusionCacheBuilder
 	public Func<IServiceProvider, IFusionCacheMemoryLocker>? MemoryLockerFactory { get; set; }
 	public bool ThrowIfMissingMemoryLocker { get; set; }
 
+	public bool UseRegisteredDistributedLocker { get; set; }
+	public object? DistributedLockerServiceKey { get; set; }
+	public IFusionCacheDistributedLocker? DistributedLocker { get; set; }
+	public Func<IServiceProvider, IFusionCacheDistributedLocker>? DistributedLockerFactory { get; set; }
+	public bool ThrowIfMissingDistributedLocker { get; set; }
+
 	public bool UseRegisteredSerializer { get; set; }
 	public object? SerializerServiceKey { get; set; }
 	public IFusionCacheSerializer? Serializer { get; set; }
@@ -299,6 +305,39 @@ internal sealed class FusionCacheBuilder
 		if (serializer is not null)
 		{
 			cache.SetupSerializer(serializer);
+		}
+
+		// DISTRIBUTED LOCKER
+		IFusionCacheDistributedLocker? distributedLocker;
+
+		if (UseRegisteredDistributedLocker)
+		{
+			if (DistributedLockerServiceKey is null)
+			{
+				distributedLocker = serviceProvider.GetService<IFusionCacheDistributedLocker>();
+			}
+			else
+			{
+				distributedLocker = serviceProvider.GetKeyedService<IFusionCacheDistributedLocker>(DistributedLockerServiceKey);
+			}
+		}
+		else if (DistributedLockerFactory is not null)
+		{
+			distributedLocker = DistributedLockerFactory.Invoke(serviceProvider);
+		}
+		else
+		{
+			distributedLocker = DistributedLocker;
+		}
+
+		if (distributedLocker is null && ThrowIfMissingDistributedLocker)
+		{
+			throw new InvalidOperationException("A distributed locker has not been specified, or found in the DI container.");
+		}
+
+		if (distributedLocker is not null)
+		{
+			cache.SetupDistributedLocker(distributedLocker);
 		}
 
 		// DISTRIBUTED CACHE
