@@ -401,7 +401,7 @@ internal partial class BackplaneAccessor
 				if (hasUpdated)
 				{
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] memory entry updated from the distributed entry, ignoring incoming backplane message", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] memory entry updated from the distributed entry", _cache.CacheName, _cache.InstanceId, operationId, cacheKey);
 					return;
 				}
 			}
