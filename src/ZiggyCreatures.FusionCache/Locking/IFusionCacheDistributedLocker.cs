@@ -6,7 +6,6 @@ namespace ZiggyCreatures.Caching.Fusion.Locking;
 /// A FusionCache component to handle acquiring and releasing distributed locks in a highly optimized way.
 /// </summary>
 public interface IFusionCacheDistributedLocker
-	: IDisposable
 {
 	/// <summary>
 	/// Acquire a generic lock, used to synchronize multiple factory operating on the same cache key, and return it.

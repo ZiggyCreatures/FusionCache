@@ -11,6 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion.Locking.Redis;
 /// </summary>
 public partial class RedisDistributedLocker
 	: IFusionCacheDistributedLocker
+	, IDisposable
 {
 	private RedisDistributedLockerOptions _options;
 	private readonly ILogger? _logger;
