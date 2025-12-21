@@ -342,6 +342,7 @@ internal sealed class FusionCacheBuilder
 
 		// DISTRIBUTED CACHE
 		IDistributedCache? distributedCache;
+		var registeredDistributedCacheIgnored = false;
 
 		if (UseRegisteredDistributedCache)
 		{
@@ -356,6 +357,7 @@ internal sealed class FusionCacheBuilder
 
 			if (IgnoreRegisteredMemoryDistributedCache && distributedCache is MemoryDistributedCache)
 			{
+				registeredDistributedCacheIgnored = true;
 				distributedCache = null;
 			}
 		}
@@ -370,7 +372,14 @@ internal sealed class FusionCacheBuilder
 
 		if (distributedCache is null && ThrowIfMissingDistributedCache)
 		{
-			throw new InvalidOperationException("A distributed cache has not been specified, or found in the DI container.");
+			if (registeredDistributedCacheIgnored)
+			{
+				throw new InvalidOperationException("A suitable distributed cache has not been specified, or found in the DI container. NOTE: a MemoryDistributedCache has been found, but ignoreMemoryDistributedCache was set to true, so it has been ignored.");
+			}
+			else
+			{
+				throw new InvalidOperationException("A distributed cache has not been specified, or found in the DI container.");
+			}
 		}
 
 		if (distributedCache is not null)
