@@ -6,8 +6,6 @@ class Program
 {
 	static async Task Main(string[] args)
 	{
-		await RedisLockerScenario.RunAsync().ConfigureAwait(false);
-		//await LoggingScenario.RunAsync().ConfigureAwait(false);
-		//await OpenTelemetryScenario.RunAsync().ConfigureAwait(false);
+		await MultiNodesNoBackplaneScenario.RunAsync().ConfigureAwait(false);
 	}
 }
