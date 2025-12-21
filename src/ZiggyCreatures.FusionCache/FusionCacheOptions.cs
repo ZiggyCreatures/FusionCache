@@ -101,7 +101,7 @@ public class FusionCacheOptions
 		AutoRecoveryDelay = TimeSpan.FromMilliseconds(5_000);
 
 		// BEST PRACTICES
-		CheckBestPracticesOnStartup = true;
+		EnableBestPracticesAnalysis = true;
 
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
@@ -476,7 +476,7 @@ public class FusionCacheOptions
 	/// <summary>
 	/// If set to <see langword="true"/>, checks for common best practices and, in case they are not respected, logs some warnings.
 	/// </summary>
-	public bool CheckBestPracticesOnStartup { get; set; }
+	public bool EnableBestPracticesAnalysis { get; set; }
 
 	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.

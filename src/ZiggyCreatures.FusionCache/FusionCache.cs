@@ -207,12 +207,12 @@ public sealed partial class FusionCache
 		_ = Activities.Source;
 		_ = Metrics.Meter;
 
-		if (_options.CheckBestPracticesOnStartup)
+		if (_options.EnableBestPracticesAnalysis)
 		{
 			_ = Task.Run(async () =>
 			{
 				await Task.Delay(1000);
-				CheckBestPractices();
+				AnalyzeBestPractices();
 			});
 		}
 	}
@@ -1242,7 +1242,7 @@ public sealed partial class FusionCache
 	}
 
 	// BEST PRACTICES
-	private void CheckBestPractices()
+	private void AnalyzeBestPractices()
 	{
 		// CHECK:
 		// - IS NOT DEFAULT CACHE
