@@ -37,35 +37,35 @@ public sealed class MemoryDistributedLocker
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private uint GetLockIndex(string key)
+	private uint GetLockIndex(string lockName)
 	{
-		return unchecked((uint)key.GetHashCode()) % (uint)_lockPoolSize;
+		return unchecked((uint)lockName.GetHashCode()) % (uint)_lockPoolSize;
 	}
 
-	private SemaphoreSlim GetSemaphore(string cacheName, string cacheInstanceId, string key, ILogger? logger)
+	private SemaphoreSlim GetSemaphore(string cacheName, string cacheInstanceId, string key, string lockName, ILogger? logger)
 	{
 		object? _semaphore;
 
-		if (_lockCache.TryGetValue(key, out _semaphore))
+		if (_lockCache.TryGetValue(lockName, out _semaphore))
 			return (SemaphoreSlim)_semaphore!;
 
-		lock (_lockPool[GetLockIndex(key)])
+		lock (_lockPool[GetLockIndex(lockName)])
 		{
-			if (_lockCache.TryGetValue(key, out _semaphore))
+			if (_lockCache.TryGetValue(lockName, out _semaphore))
 				return (SemaphoreSlim)_semaphore!;
 
 			_semaphore = new SemaphoreSlim(1, 1);
 
-			using var entry = _lockCache.CreateEntry(key);
+			using var entry = _lockCache.CreateEntry(lockName);
 			entry.Value = _semaphore;
 			entry.SlidingExpiration = _slidingExpiration;
 			entry.RegisterPostEvictionCallback(
-				static (key, value, _, state) =>
+				static (lockName, value, _, state) =>
 				{
 					if (state is null)
 						return;
 
-					var (cacheName, cacheInstanceId, logger) = ((string, string, ILogger))state;
+					var (cacheName, cacheInstanceId, key, logger) = ((string, string, string, ILogger))state;
 
 					try
 					{
@@ -74,10 +74,10 @@ public sealed class MemoryDistributedLocker
 					catch (Exception exc)
 					{
 						if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-							logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, key);
+							logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (K={CacheKey}): an error occurred while trying to dispose a SemaphoreSlim in the distributed locker for lock {LockName}", cacheName, cacheInstanceId, key, lockName);
 					}
 				},
-				(cacheName, cacheInstanceId, logger)
+				(cacheName, cacheInstanceId, key, logger)
 			);
 
 			return (SemaphoreSlim)_semaphore;
@@ -85,9 +85,9 @@ public sealed class MemoryDistributedLocker
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
-		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
+		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, lockName, logger);
 
 		var acquired = await semaphore.WaitAsync(timeout, token).ConfigureAwait(false);
 
@@ -95,9 +95,9 @@ public sealed class MemoryDistributedLocker
 	}
 
 	/// <inheritdoc/>
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
-		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, logger);
+		var semaphore = GetSemaphore(cacheName, cacheInstanceId, key, lockName, logger);
 
 		var acquired = semaphore.Wait(timeout, token);
 
@@ -105,13 +105,13 @@ public sealed class MemoryDistributedLocker
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger, CancellationToken token)
+	public async ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
-		ReleaseLock(cacheName, cacheInstanceId, operationId, key, lockObj, logger, token);
+		ReleaseLock(cacheName, cacheInstanceId, operationId, key, lockName, lockObj, logger, token);
 	}
 
 	/// <inheritdoc/>
-	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger, CancellationToken token)
+	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
 		if (lockObj is null)
 			return;
@@ -123,7 +123,7 @@ public sealed class MemoryDistributedLocker
 		catch (Exception exc)
 		{
 			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the memory locker", cacheName, cacheInstanceId, operationId, key);
+				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release a SemaphoreSlim in the distributed locker for lock {LockName}", cacheName, cacheInstanceId, operationId, key, lockName);
 		}
 	}
 

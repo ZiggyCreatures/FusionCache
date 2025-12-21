@@ -10,25 +10,25 @@ public class NullDistributedLocker
 	: IFusionCacheDistributedLocker
 {
 	/// <inheritdoc/>
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		return null;
 	}
 
 	/// <inheritdoc/>
-	public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		return new ValueTask<object?>((object?)null);
 	}
 
 	/// <inheritdoc/>
-	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger, CancellationToken token)
+	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
 		// EMPTY
 	}
 
 	/// <inheritdoc/>
-	public ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger, CancellationToken token)
+	public ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
 		return new ValueTask();
 	}

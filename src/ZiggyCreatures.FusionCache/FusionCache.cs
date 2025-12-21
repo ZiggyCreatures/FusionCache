@@ -202,16 +202,18 @@ public sealed partial class FusionCache
 		ClearExpireTagCacheKey = GetTagCacheKey(_options.InternalStrings.ClearExpireTag);
 		ClearExpireTagInternalCacheKey = GetTagInternalCacheKey(_options.InternalStrings.ClearExpireTag);
 
-		// CHECK FOR CACHE KEY PREFIX
-		if (memoryCache is not null && CacheName != FusionCacheOptions.DefaultCacheName && string.IsNullOrWhiteSpace(_options.CacheKeyPrefix))
-		{
-			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
-				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
-		}
-
 		// MICRO OPTIMIZATION: WARM UP OBSERVABILITY STUFF
 		_ = Activities.Source;
 		_ = Metrics.Meter;
+
+		if (_options.CheckBestPracticesOnStartup)
+		{
+			_ = Task.Run(async () =>
+			{
+				await Task.Delay(1000);
+				CheckBestPractices();
+			});
+		}
 	}
 
 	/// <inheritdoc/>
@@ -639,7 +641,7 @@ public sealed partial class FusionCache
 
 		try
 		{
-			var lockObj = await _distributedLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
+			var lockObj = await _distributedLocker.AcquireLockAsync(CacheName, InstanceId, operationId, "XXXABC", key, timeout, _logger, token);
 
 			if (lockObj is not null)
 			{
@@ -678,7 +680,7 @@ public sealed partial class FusionCache
 
 		try
 		{
-			var lockObj = _distributedLocker.AcquireLock(CacheName, InstanceId, operationId, key, timeout, _logger, token);
+			var lockObj = _distributedLocker.AcquireLock(CacheName, InstanceId, operationId, key, "XXXABC" + key, timeout, _logger, token);
 
 			if (lockObj is not null)
 			{
@@ -720,7 +722,7 @@ public sealed partial class FusionCache
 
 		try
 		{
-			await _distributedLocker.ReleaseLockAsync(CacheName, InstanceId, operationId, key, lockObj, _logger, token);
+			await _distributedLocker.ReleaseLockAsync(CacheName, InstanceId, operationId, key, "XXXABC" + key, lockObj, _logger, token);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
@@ -745,7 +747,7 @@ public sealed partial class FusionCache
 
 		try
 		{
-			_distributedLocker.ReleaseLock(CacheName, InstanceId, operationId, key, lockObj, _logger, token);
+			_distributedLocker.ReleaseLock(CacheName, InstanceId, operationId, key, "XXXABC" + key, lockObj, _logger, token);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
@@ -989,17 +991,6 @@ public sealed partial class FusionCache
 					await _bpa.SubscribeAsync().ConfigureAwait(false);
 				});
 			}
-		}
-
-		// CHECK: WARN THE USER IN CASE OF
-		// - HAS A MEMORY CACHE (ALWAYS)
-		// - HAS A BACKPLANE
-		// - DOES *NOT* HAVE A DISTRIBUTED CACHE
-		// - THE OPTION DefaultEntryOptions.SkipBackplaneNotifications IS FALSE
-		if (HasBackplane && HasDistributedCache == false && DefaultEntryOptions.SkipBackplaneNotifications == false)
-		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}]: it has been detected a situation where there *IS* a backplane (BACKPLANE={BackplaneType}), there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache (Set, Remove, Expire and also GetOrSet when the factory is called) but there is not a distributed cache that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", CacheName, InstanceId, backplane.GetType().FullName);
 		}
 
 		return this;
@@ -1336,6 +1327,64 @@ public sealed partial class FusionCache
 			{
 				throw new FusionCacheSerializationException("An error occurred while serializing a value", exc);
 			}
+		}
+	}
+
+	// BEST PRACTICES
+	private void CheckBestPractices()
+	{
+		// CHECK:
+		// - IS NOT DEFAULT CACHE
+		// - NO CACHE KEY PREFIX
+		// - AND (
+		//   MEMORY CACHE NOT OWNED
+		//   OR HAS L2
+		// )
+		if (
+			CacheName != FusionCacheOptions.DefaultCacheName
+			&& string.IsNullOrWhiteSpace(_options.CacheKeyPrefix)
+			&& (
+				_mca.IsOwned == false
+				|| HasDistributedCache
+			)
+		)
+		{
+			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
+				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
+		}
+
+		// CHECK:
+		// - HAS BACKPLANE
+		// - AND NO L2
+		// - AND DefaultEntryOptions.SkipBackplaneNotifications IS FALSE
+		if (
+			HasBackplane
+			&& HasDistributedCache == false
+			&& DefaultEntryOptions.SkipBackplaneNotifications == false
+		)
+		{
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: it has been detected a situation where there *IS* a backplane (BACKPLANE={BackplaneType}), there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache (Set, Remove, Expire and also GetOrSet when the factory is called) but there is not a distributed cache that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", CacheName, InstanceId, Backplane!.GetType().FullName);
+		}
+
+		// CHECK:
+		// - HAS L2
+		// - AND NO BACKPLANE
+		// - AND (
+		//   NO DefaultEntryOptions.MemoryCacheDuration
+		//   OR NO TagsDefaultEntryOptions.MemoryCacheDuration
+		// )
+		if (
+			HasDistributedCache
+			&& HasBackplane == false
+			&& (
+				_defaultEntryOptions.MemoryCacheDuration is null
+				|| _tagsDefaultEntryOptions.MemoryCacheDuration is null
+			)
+		)
+		{
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using an L2 (distributed cache) without a backplane, which will potentially leave other nodes' L1s (memory caches) out-of-sync after an update (see: cache coherence). To solve this, you can use a backplane. If that is not possible, you can mitigate the situation by setting both DefaultEntryOptions.MemoryCacheDuration and TagsDefaultEntryOptions.MemoryCacheDuration to a low value: this will refresh data in the L1 from the L2 more frequently, reducing the incoherence window.", CacheName, InstanceId);
 		}
 	}
 

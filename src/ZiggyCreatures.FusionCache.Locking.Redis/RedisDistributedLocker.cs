@@ -24,8 +24,8 @@ public partial class RedisDistributedLocker
 	/// <summary>
 	/// Initializes a new instance of the RedisDistributedLocker class.
 	/// </summary>
-	/// <param name="optionsAccessor">The set of options to use with this instance of the backplane.</param>
-	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
+	/// <param name="optionsAccessor">The set of options to use with this instance of the distributed locker.</param>
+	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If <see langword="null"/>, logging will be completely disabled.</param>
 	public RedisDistributedLocker(IOptions<RedisDistributedLockerOptions> optionsAccessor, ILogger<RedisDistributedLocker>? logger = null)
 	{
 		if (optionsAccessor is null)
@@ -61,10 +61,11 @@ public partial class RedisDistributedLocker
 		throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
 	}
 
-	private string GetLockKey(string key)
-	{
-		return $"{key}__lock";
-	}
+	// TODO: MOVE THIS IN THE ACCESSOR
+	//private string GetLockKey(string key)
+	//{
+	//	return $"{key}__lock";
+	//}
 
 	private async ValueTask EnsureConnectionAsync(CancellationToken token)
 	{

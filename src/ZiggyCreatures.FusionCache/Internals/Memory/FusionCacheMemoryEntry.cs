@@ -9,13 +9,14 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal sealed class FusionCacheMemoryEntry<TValue>
 	: IFusionCacheMemoryEntry
 {
-	private FusionCacheMemoryEntry(object? value, byte[]? serializedValue, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata)
+	private FusionCacheMemoryEntry(object? value, byte[]? serializedValue, long timestamp, long logicalExpirationTimestamp, string[]? tags, FusionCacheEntryMetadata? metadata, TimeSpan? memoryCacheDuration)
 	{
 		SetValue(value, serializedValue);
 		Timestamp = timestamp;
 		LogicalExpirationTimestamp = logicalExpirationTimestamp;
 		Tags = tags;
 		Metadata = metadata;
+		MemoryCacheDuration = memoryCacheDuration;
 	}
 
 	private byte[]? _serializedValue;
@@ -52,6 +53,8 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 			return _serializedValue;
 		}
 	}
+
+	public TimeSpan? MemoryCacheDuration { get; private set; }
 
 	public TValue1 GetValue<TValue1>()
 	{
@@ -93,7 +96,8 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 			timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp(),
 			exp,
 			tags,
-			metadata
+			metadata,
+			options.MemoryCacheDuration
 		);
 	}
 
@@ -115,22 +119,46 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 			);
 		}
 
+		var logicalExpirationTimestamp = entry.LogicalExpirationTimestamp;
+		if (options.MemoryCacheDuration is not null)
+		{
+			var correctTimestamp = FusionCacheInternalUtils.GetCurrentTimestamp() + options.MemoryCacheDuration.Value.Ticks;
+
+			if (entry.LogicalExpirationTimestamp > correctTimestamp)
+			{
+				//Console.WriteLine($"!!! FUCK !!! (DIFFERENCE: {entry.LogicalExpirationTimestamp - correctTimestamp} ticks - {TimeSpan.FromTicks(entry.LogicalExpirationTimestamp - correctTimestamp)} sec)");
+				logicalExpirationTimestamp = correctTimestamp;
+			}
+		}
+
 		return new FusionCacheMemoryEntry<TValue>(
 			entry.GetValue<TValue>(),
 			null,
 			entry.Timestamp,
-			entry.LogicalExpirationTimestamp,
+			logicalExpirationTimestamp,
 			entry.Tags,
-			metadata
+			metadata,
+			options.MemoryCacheDuration
 		);
 	}
 
 	public void UpdateFromDistributedEntry(FusionCacheDistributedEntry<TValue> distributedEntry)
 	{
+		var logicalExpirationTimestamp = distributedEntry.LogicalExpirationTimestamp;
+		if (MemoryCacheDuration is not null)
+		{
+			var correctTimestamp = FusionCacheInternalUtils.GetCurrentTimestamp() + MemoryCacheDuration.Value.Ticks;
+
+			if (distributedEntry.LogicalExpirationTimestamp > correctTimestamp)
+			{
+				logicalExpirationTimestamp = correctTimestamp;
+			}
+		}
+
 		SetValue(distributedEntry.Value);
 		Tags = distributedEntry.Tags;
 		Timestamp = distributedEntry.Timestamp;
-		LogicalExpirationTimestamp = distributedEntry.LogicalExpirationTimestamp;
+		LogicalExpirationTimestamp = logicalExpirationTimestamp;
 		Metadata = distributedEntry.Metadata;
 	}
 

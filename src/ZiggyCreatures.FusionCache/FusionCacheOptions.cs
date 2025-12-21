@@ -100,6 +100,9 @@ public class FusionCacheOptions
 		AutoRecoveryMaxRetryCount = null;
 		AutoRecoveryDelay = TimeSpan.FromMilliseconds(5_000);
 
+		// BEST PRACTICES
+		CheckBestPracticesOnStartup = true;
+
 		// LOG LEVELS
 		IncoherentOptionsNormalizationLogLevel = LogLevel.Warning;
 		SerializationErrorsLogLevel = LogLevel.Error;
@@ -469,6 +472,11 @@ public class FusionCacheOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md"/>
 	/// </summary>
 	public bool IgnoreTimeoutsWhenDebugging { get; set; }
+
+	/// <summary>
+	/// If set to <see langword="true"/>, checks for common best practices and, in case they are not respected, logs some warnings.
+	/// </summary>
+	public bool CheckBestPracticesOnStartup { get; set; }
 
 	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when some options have incoherent values that have been fixed with a normalization, like for example when a FailSafeMaxDuration is lower than a Duration, so the Duration is used instead.

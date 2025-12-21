@@ -261,6 +261,11 @@ internal sealed class MemoryCacheAccessor
 		get { return _cacheCanClear; }
 	}
 
+	public bool IsOwned
+	{
+		get { return _cacheIsOwned; }
+	}
+
 	public bool TryClear()
 	{
 		if (_cacheCanClear == false)

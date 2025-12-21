@@ -25,30 +25,30 @@ public class ChaosDistributedLocker
 	}
 
 	/// <inheritdoc/>
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		MaybeChaos(token);
-		return _innerDistributedLocker.AcquireLock(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
+		return _innerDistributedLocker.AcquireLock(cacheName, cacheInstanceId, operationId, key, lockName, timeout, logger, token);
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		await MaybeChaosAsync(token);
-		return await _innerDistributedLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
+		return await _innerDistributedLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, lockName, timeout, logger, token);
 	}
 
 	/// <inheritdoc/>
-	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger, CancellationToken token)
+	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
 		MaybeChaos(token);
-		_innerDistributedLocker.ReleaseLock(cacheName, cacheInstanceId, operationId, key, lockObj, logger, token);
+		_innerDistributedLocker.ReleaseLock(cacheName, cacheInstanceId, operationId, key, lockName, lockObj, logger, token);
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger, CancellationToken token)
+	public async ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
 		await MaybeChaosAsync(token);
-		await _innerDistributedLocker.ReleaseLockAsync(cacheName, cacheInstanceId, operationId, key, lockObj, logger, token);
+		await _innerDistributedLocker.ReleaseLockAsync(cacheName, cacheInstanceId, operationId, key, lockName, lockObj, logger, token);
 	}
 }

@@ -13,6 +13,8 @@ internal interface IFusionCacheMemoryEntry
 
 	byte[] GetSerializedValue(IFusionCacheSerializer serializer);
 
+	TimeSpan? MemoryCacheDuration { get; }
+
 	(bool error, bool isSame, bool hasUpdated) TryUpdateMemoryEntryFromDistributedEntry(string operationId, string cacheKey, FusionCache cache);
 	ValueTask<(bool error, bool isSame, bool hasUpdated)> TryUpdateMemoryEntryFromDistributedEntryAsync(string operationId, string cacheKey, FusionCache cache);
 
