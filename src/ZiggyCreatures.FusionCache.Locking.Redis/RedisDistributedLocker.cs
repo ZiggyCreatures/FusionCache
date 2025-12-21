@@ -61,12 +61,6 @@ public partial class RedisDistributedLocker
 		throw new InvalidOperationException("Unable to connect to Redis: no Configuration nor ConfigurationOptions have been specified");
 	}
 
-	// TODO: MOVE THIS IN THE ACCESSOR
-	//private string GetLockKey(string key)
-	//{
-	//	return $"{key}__lock";
-	//}
-
 	private async ValueTask EnsureConnectionAsync(CancellationToken token)
 	{
 		if (_connection is not null)
