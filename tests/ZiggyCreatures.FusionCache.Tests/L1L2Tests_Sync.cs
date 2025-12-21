@@ -1172,31 +1172,41 @@ public partial class L1L2Tests
 		cacheB.SetupDistributedLocker(distributedLocker);
 
 		var factoryExecutionCount = 0;
-		int[] results = [0, 0];
+		int fooA1 = -1, fooB1 = -1;
 
-		Parallel.For(0, 2, idx =>
+		_ = Task.Run(() =>
 		{
-			var idxLocal = idx;
-			var cache = idxLocal == 0
-				? cacheA
-				: cacheB;
-
-			logger.LogInformation("STARTING TASK {Idx}", idxLocal);
-
-			results[idxLocal] = cache.GetOrSet<int>(
+			fooA1 = cacheA.GetOrSet<int>(
 				"foo",
 				ct =>
 				{
-					logger.LogInformation("STARTING FACTORY {Idx}", idxLocal);
 					Interlocked.Increment(ref factoryExecutionCount);
 					Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
-					return idxLocal + 1;
+					return 1;
 				},
 				token: TestContext.Current.CancellationToken
 			);
-		});
+		}, TestContext.Current.CancellationToken);
+
+		_ = Task.Run(() =>
+		{
+			fooB1 = cacheB.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					Interlocked.Increment(ref factoryExecutionCount);
+					Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
+					return 2;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		}, TestContext.Current.CancellationToken);
+
+		Thread.Sleep(simulatedFactoryDuration.PlusASecond());
 
 		Assert.Equal(1, factoryExecutionCount);
-		Assert.Equal(results[0], results[1]);
+		Assert.NotEqual(-1, fooA1);
+		Assert.NotEqual(-1, fooB1);
+		Assert.Equal(fooA1, fooB1);
 	}
 }

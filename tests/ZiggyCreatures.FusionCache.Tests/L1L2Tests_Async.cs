@@ -1243,35 +1243,41 @@ public partial class L1L2Tests
 		cacheB.SetupDistributedLocker(distributedLocker);
 
 		var factoryExecutionCount = 0;
+		int fooA1 = -1, fooB1 = -1;
 
-		var fooA1Task = cacheA.GetOrSetAsync<int>(
-			"foo",
-			async ct =>
-			{
-				Interlocked.Increment(ref factoryExecutionCount);
-				await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
-				return 1;
-			},
-			token: TestContext.Current.CancellationToken
-		);
+		_ = Task.Run(async () =>
+		{
+			fooA1 = await cacheA.GetOrSetAsync<int>(
+				"foo",
+				async ct =>
+				{
+					Interlocked.Increment(ref factoryExecutionCount);
+					await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+					return 1;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		}, TestContext.Current.CancellationToken);
 
-		var fooB1Task = cacheB.GetOrSetAsync<int>(
-			"foo",
-			async ct =>
-			{
-				Interlocked.Increment(ref factoryExecutionCount);
-				await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
-				return 2;
-			},
-			token: TestContext.Current.CancellationToken
-		);
+		_ = Task.Run(async () =>
+		{
+			fooB1 = await cacheB.GetOrSetAsync<int>(
+				"foo",
+				async ct =>
+				{
+					Interlocked.Increment(ref factoryExecutionCount);
+					await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+					return 2;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+		}, TestContext.Current.CancellationToken);
 
-		await Task.WhenAll(fooA1Task.AsTask(), fooB1Task.AsTask());
-
-		var fooA1 = await fooA1Task;
-		var fooB1 = await fooB1Task;
+		await Task.Delay(simulatedFactoryDuration.PlusASecond(), TestContext.Current.CancellationToken);
 
 		Assert.Equal(1, factoryExecutionCount);
+		Assert.NotEqual(-1, fooA1);
+		Assert.NotEqual(-1, fooB1);
 		Assert.Equal(fooA1, fooB1);
 	}
 

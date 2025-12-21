@@ -13,6 +13,9 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
+using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
@@ -276,31 +279,6 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
-	public void CanUseRegisteredDistributedLocker()
-	{
-		var services = new ServiceCollection();
-		services.AddTransient<IFusionCacheDistributedLocker>(sp => new SimpleDistributedLocker());
-
-		services.AddFusionCache()
-			.WithRegisteredDistributedLocker()
-		;
-
-		using var serviceProvider = services.BuildServiceProvider();
-
-		var cache = serviceProvider.GetRequiredService<IFusionCache>();
-
-		static IFusionCacheDistributedLocker GetDistributedLocker(IFusionCache cache)
-		{
-			return (IFusionCacheDistributedLocker)(typeof(FusionCache).GetField("_distributedLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
-		}
-
-		var distributedLocker = GetDistributedLocker(cache);
-
-		Assert.NotNull(cache);
-		Assert.IsType<SimpleDistributedLocker>(distributedLocker);
-	}
-
-	[Fact]
 	public void CanThrowWithoutRegisteredMemoryLocker()
 	{
 		var services = new ServiceCollection();
@@ -361,6 +339,89 @@ public class DependencyInjectionTests
 
 		Assert.NotNull(cache);
 		Assert.IsType<StandardMemoryLocker>(memoryLocker);
+	}
+
+	[Fact]
+	public void CanUseRegisteredDistributedCache()
+	{
+		var services = new ServiceCollection();
+		services.AddDistributedMemoryCache();
+		services.AddFusionCacheServiceStackJsonSerializer();
+
+		services.AddFusionCache()
+			.WithRegisteredSerializer()
+			.WithRegisteredDistributedCache(false)
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IDistributedCache GetDistributedCache(IFusionCache cache)
+		{
+			var dla = (DistributedCacheAccessor)(typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+			return dla.DistributedCache;
+		}
+
+		var distributedCache = GetDistributedCache(cache);
+
+		Assert.NotNull(cache);
+		Assert.True(cache.HasDistributedCache);
+		Assert.IsType<MemoryDistributedCache>(distributedCache);
+	}
+
+	[Fact]
+	public void CanUseRegisteredBackplane()
+	{
+		var services = new ServiceCollection();
+		services.AddFusionCacheMemoryBackplane();
+
+		services.AddFusionCache()
+			.WithRegisteredBackplane()
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IFusionCacheBackplane GetBackplane(IFusionCache cache)
+		{
+			var dla = (BackplaneAccessor)(typeof(FusionCache).GetField("_bpa", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+			return dla.Backplane;
+		}
+
+		var backplane = GetBackplane(cache);
+
+		Assert.NotNull(cache);
+		Assert.True(cache.HasBackplane);
+		Assert.IsType<MemoryBackplane>(backplane);
+	}
+
+	[Fact]
+	public void CanUseRegisteredDistributedLocker()
+	{
+		var services = new ServiceCollection();
+		services.AddTransient<IFusionCacheDistributedLocker>(sp => new SimpleDistributedLocker());
+
+		services.AddFusionCache()
+			.WithRegisteredDistributedLocker()
+		;
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredService<IFusionCache>();
+
+		static IFusionCacheDistributedLocker GetDistributedLocker(IFusionCache cache)
+		{
+			var dla = (DistributedLockerAccessor)(typeof(FusionCache).GetField("_dla", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
+			return dla.DistributedLocker;
+		}
+
+		var distributedLocker = GetDistributedLocker(cache);
+
+		Assert.NotNull(cache);
+		Assert.True(cache.HasDistributedLocker);
+		Assert.IsType<SimpleDistributedLocker>(distributedLocker);
 	}
 
 	[Fact]
