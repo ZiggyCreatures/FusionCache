@@ -1281,6 +1281,112 @@ public partial class L1L2Tests
 		Assert.Equal(fooA1, fooB1);
 	}
 
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task DistributedLockerWorksWithEagerRefreshAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
+		var duration = TimeSpan.FromSeconds(10);
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = duration,
+			EagerRefreshThreshold = 0.5f
+		};
+
+		var distributedLocker = new MemoryDistributedLocker(new MemoryDistributedLockerOptions());
+
+		using var cacheA = new FusionCache(options, logger: logger);
+		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		using var cacheB = new FusionCache(options, logger: logger);
+		cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		var factoryExecutionCount = 0;
+
+		await cacheA.SetAsync<int>(
+			"foo",
+			1,
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooA1 = await cacheA.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 3;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooB1 = await cacheB.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 2;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, fooA1);
+		Assert.Equal(1, fooB1);
+		Assert.Equal(0, factoryExecutionCount);
+
+		await Task.Delay((duration / 2).PlusALittleBit(), TestContext.Current.CancellationToken);
+
+		// TRIGGER EAGER REFRESH ON BOTH NODES
+
+		var sw = Stopwatch.StartNew();
+		var fooA2 = await cacheA.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+				return 10;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooB2 = await cacheB.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+				return 20;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+		sw.Stop();
+
+		Assert.True(sw.GetElapsedWithSafePad() < simulatedFactoryDuration);
+		Assert.Equal(1, fooA2);
+		Assert.Equal(1, fooB2);
+		Assert.Equal(fooA1, fooB1);
+
+		// WAIT FOR THE EAGER REFRESH TO COMPLETE
+		await Task.Delay(simulatedFactoryDuration.PlusASecond(), TestContext.Current.CancellationToken);
+
+		var maybeFooA3 = await cacheA.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+		var maybeFooB3 = await cacheB.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+		Assert.Equal(1, factoryExecutionCount);
+		Assert.True(maybeFooA3.HasValue);
+		Assert.NotEqual(1, maybeFooA3.Value);
+		Assert.True(maybeFooB3.HasValue);
+		Assert.NotEqual(1, maybeFooB3.Value);
+		Assert.Equal(maybeFooA3.Value, maybeFooB3.Value);
+	}
+
 	//[Theory]
 	//[ClassData(typeof(SerializerTypesClassData))]
 	//public async Task MemoryExpirationPreservedWhenL1L2DurationsAreDifferentAsync(SerializerType serializerType)

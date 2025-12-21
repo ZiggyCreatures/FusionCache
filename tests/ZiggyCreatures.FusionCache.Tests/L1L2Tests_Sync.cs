@@ -1209,4 +1209,110 @@ public partial class L1L2Tests
 		Assert.NotEqual(-1, fooB1);
 		Assert.Equal(fooA1, fooB1);
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void DistributedLockerWorksWithEagerRefresh(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
+		var duration = TimeSpan.FromSeconds(10);
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = duration,
+			EagerRefreshThreshold = 0.5f
+		};
+
+		var distributedLocker = new MemoryDistributedLocker(new MemoryDistributedLockerOptions());
+
+		using var cacheA = new FusionCache(options, logger: logger);
+		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		using var cacheB = new FusionCache(options, logger: logger);
+		cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		var factoryExecutionCount = 0;
+
+		cacheA.Set<int>(
+			"foo",
+			1,
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooA1 = cacheA.GetOrSet<int>(
+			"foo",
+			ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 3;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooB1 = cacheB.GetOrSet<int>(
+			"foo",
+			ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 2;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, fooA1);
+		Assert.Equal(1, fooB1);
+		Assert.Equal(0, factoryExecutionCount);
+
+		Thread.Sleep((duration / 2).PlusALittleBit());
+
+		// TRIGGER EAGER REFRESH ON BOTH NODES
+
+		var sw = Stopwatch.StartNew();
+		var fooA2 = cacheA.GetOrSet<int>(
+			"foo",
+			ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
+				return 10;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		var fooB2 = cacheB.GetOrSet<int>(
+			"foo",
+			ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
+				return 20;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+		sw.Stop();
+
+		Assert.True(sw.GetElapsedWithSafePad() < simulatedFactoryDuration);
+		Assert.Equal(1, fooA2);
+		Assert.Equal(1, fooB2);
+		Assert.Equal(fooA1, fooB1);
+
+		// WAIT FOR THE EAGER REFRESH TO COMPLETE
+		Thread.Sleep(simulatedFactoryDuration.PlusASecond());
+
+		var maybeFooA3 = cacheA.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+		var maybeFooB3 = cacheB.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+		Assert.Equal(1, factoryExecutionCount);
+		Assert.True(maybeFooA3.HasValue);
+		Assert.NotEqual(1, maybeFooA3.Value);
+		Assert.True(maybeFooB3.HasValue);
+		Assert.NotEqual(1, maybeFooB3.Value);
+		Assert.Equal(maybeFooA3.Value, maybeFooB3.Value);
+	}
 }

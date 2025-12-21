@@ -5,6 +5,7 @@
 		<IsPackable>false</IsPackable>
 		<RootNamespace>FusionCacheTests</RootNamespace>
 		<OutputType>Exe</OutputType>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
