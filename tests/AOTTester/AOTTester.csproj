@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<InvariantGlobalization>true</InvariantGlobalization>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 
 		<PublishAot>true</PublishAot>
 		<PublishSingleFile>true</PublishSingleFile>
