@@ -16,7 +16,7 @@ public partial class FusionCache
 	{
 		// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
 		object? distributedLockObj = null;
-		if (_distributedLocker is not null && options.SkipDistributedLocker == false)
+		if (HasDistributedLocker && options.SkipDistributedLocker == false)
 		{
 			distributedLockObj = AcquireDistributedLock(operationId, key, TimeSpan.Zero, token);
 			if (distributedLockObj is null)
@@ -186,7 +186,7 @@ public partial class FusionCache
 			else
 			{
 				// DISTRIBUTED LOCK
-				if (_distributedLocker is not null && options.SkipDistributedLocker == false)
+				if (HasDistributedLocker && options.SkipDistributedLocker == false)
 				{
 					distributedLockObj = AcquireDistributedLock(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), token);
 				}

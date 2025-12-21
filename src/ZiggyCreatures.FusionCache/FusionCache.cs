@@ -12,6 +12,7 @@ using ZiggyCreatures.Caching.Fusion.Internals.AutoRecovery;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -37,9 +38,6 @@ public sealed partial class FusionCache
 	// MEMORY LOCKER
 	private IFusionCacheMemoryLocker _memoryLocker;
 
-	// DISTRIBUTED LOCKER
-	private IFusionCacheDistributedLocker? _distributedLocker;
-
 	// MEMORY CACHE
 	private MemoryCacheAccessor _mca;
 	private readonly bool _mcaCanClear;
@@ -51,6 +49,9 @@ public sealed partial class FusionCache
 	// BACKPLANE
 	private BackplaneAccessor? _bpa;
 	private readonly object _backplaneLock = new();
+
+	// DISTRIBUTED LOCKER
+	private DistributedLockerAccessor? _dla;
 
 	// AUTO-RECOVERY
 	private AutoRecoveryService? _autoRecovery;
@@ -633,80 +634,18 @@ public sealed partial class FusionCache
 
 	private async ValueTask<object?> AcquireDistributedLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
 	{
-		if (_distributedLocker is null)
+		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] waiting to acquire the DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
-
-		try
-		{
-			var lockObj = await _distributedLocker.AcquireLockAsync(CacheName, InstanceId, operationId, "XXXABC", key, timeout, _logger, token);
-
-			if (lockObj is not null)
-			{
-				// LOCK ACQUIRED
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK acquired", CacheName, InstanceId, operationId, key);
-			}
-			else
-			{
-				// LOCK TIMEOUT
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK timeout", CacheName, InstanceId, operationId, key);
-			}
-
-			return lockObj;
-		}
-		catch (Exception exc)
-		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
-
-			return null;
-
-			// TODO: WHAT DO!?
-			//throw;
-		}
+		return await _dla!.AcquireLockAsync(operationId, key, timeout, token);
 	}
 
 	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
 	{
-		if (_distributedLocker is null)
+		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] waiting to acquire the DISTRIBUTEDLOCK", CacheName, InstanceId, operationId, key);
-
-		try
-		{
-			var lockObj = _distributedLocker.AcquireLock(CacheName, InstanceId, operationId, key, "XXXABC" + key, timeout, _logger, token);
-
-			if (lockObj is not null)
-			{
-				// LOCK ACQUIRED
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTEDLOCK acquired", CacheName, InstanceId, operationId, key);
-			}
-			else
-			{
-				// LOCK TIMEOUT
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTEDLOCK timeout", CacheName, InstanceId, operationId, key);
-			}
-
-			return lockObj;
-		}
-		catch (Exception exc)
-		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
-
-			return null;
-
-			// TODO: WHAT DO!?
-			//throw;
-		}
+		return _dla!.AcquireLock(operationId, key, timeout, token);
 	}
 
 	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, CancellationToken token)
@@ -714,24 +653,10 @@ public sealed partial class FusionCache
 		if (lockObj is null)
 			return;
 
-		if (_distributedLocker is null)
+		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
-
-		try
-		{
-			await _distributedLocker.ReleaseLockAsync(CacheName, InstanceId, operationId, key, "XXXABC" + key, lockObj, _logger, token);
-
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
-		}
-		catch (Exception exc)
-		{
-			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
-		}
+		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, token);
 	}
 
 	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, CancellationToken token)
@@ -739,24 +664,10 @@ public sealed partial class FusionCache
 		if (lockObj is null)
 			return;
 
-		if (_distributedLocker is null)
+		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing DISTRIBUTED LOCK", CacheName, InstanceId, operationId, key);
-
-		try
-		{
-			_distributedLocker.ReleaseLock(CacheName, InstanceId, operationId, key, "XXXABC" + key, lockObj, _logger, token);
-
-			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", CacheName, InstanceId, operationId, key);
-		}
-		catch (Exception exc)
-		{
-			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
-		}
+		_dla!.ReleaseDistributedLock(operationId, key, lockObj, token);
 	}
 
 	// FACTORY STUFF
@@ -1044,7 +955,7 @@ public sealed partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: [DL] setup distributed locker (LOCKER={DistributedLockerType})", CacheName, InstanceId, distributedLocker.GetType().FullName);
 
-		_distributedLocker = distributedLocker;
+		_dla = new DistributedLockerAccessor(distributedLocker, _options, _logger/*, _events.Distributed*/);
 
 		return this;
 	}
@@ -1054,9 +965,9 @@ public sealed partial class FusionCache
 	{
 		CheckDisposed();
 
-		if (_distributedLocker is not null)
+		if (HasDistributedLocker)
 		{
-			_distributedLocker = null;
+			_dla = null;
 
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: [DL] distributed locker removed", CacheName, InstanceId);
@@ -1068,7 +979,7 @@ public sealed partial class FusionCache
 	/// <inheritdoc/>
 	public bool HasDistributedLocker
 	{
-		get { return _distributedLocker is not null; }
+		get { return _dla is not null; }
 	}
 
 	// EVENTS

@@ -1,108 +1,112 @@
-﻿//using System.Runtime.CompilerServices;
-//using Microsoft.Extensions.Logging;
-//using ZiggyCreatures.Caching.Fusion.Events;
-//using ZiggyCreatures.Caching.Fusion.Locking;
+﻿using Microsoft.Extensions.Logging;
+using ZiggyCreatures.Caching.Fusion.Locking;
 
-//namespace ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
+namespace ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 
-//internal sealed partial class DistributedLockerAccessor
-//{
-//	private readonly IFusionCacheDistributedLocker _locker;
-//	private readonly FusionCacheOptions _options;
-//	private readonly ILogger? _logger;
-//	private readonly FusionCacheDistributedEventsHub _events;
-//	private readonly SimpleCircuitBreaker _breaker;
-//	private readonly string _wireFormatToken;
+internal sealed partial class DistributedLockerAccessor
+{
+	private readonly IFusionCacheDistributedLocker _locker;
+	private readonly FusionCacheOptions _options;
+	private readonly ILogger? _logger;
+	//private readonly FusionCacheDistributedEventsHub _events;
+	//private readonly SimpleCircuitBreaker _breaker;
+	//private readonly string _wireFormatToken;
 
-//	public DistributedLockerAccessor(IFusionCacheDistributedLocker distributedLocker, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
-//	{
-//		if (distributedLocker is null)
-//			throw new ArgumentNullException(nameof(distributedLocker));
+	public DistributedLockerAccessor(IFusionCacheDistributedLocker distributedLocker, FusionCacheOptions options, ILogger? logger/*, FusionCacheDistributedEventsHub events*/)
+	{
+		if (distributedLocker is null)
+			throw new ArgumentNullException(nameof(distributedLocker));
 
-//		_locker = distributedLocker;
+		_locker = distributedLocker;
 
-//		_options = options;
+		_options = options;
 
-//		_logger = logger;
-//		_events = events;
+		_logger = logger;
+		//_events = events;
 
-//		// CIRCUIT-BREAKER
-//		_breaker = new SimpleCircuitBreaker(options.DistributedCacheCircuitBreakerDuration);
+		//// CIRCUIT-BREAKER
+		//_breaker = new SimpleCircuitBreaker(options.DistributedCacheCircuitBreakerDuration);
 
-//		// WIRE FORMAT SETUP
-//		_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
-//		{
-//			CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + _options.InternalStrings.DistributedCacheWireFormatSeparator,
-//			CacheKeyModifierMode.Suffix => _options.InternalStrings.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
-//			CacheKeyModifierMode.None => string.Empty,
-//			_ => throw new NotImplementedException(),
-//		};
-//	}
+		//// WIRE FORMAT SETUP
+		//_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
+		//{
+		//	CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + _options.InternalStrings.DistributedCacheWireFormatSeparator,
+		//	CacheKeyModifierMode.Suffix => _options.InternalStrings.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
+		//	CacheKeyModifierMode.None => string.Empty,
+		//	_ => throw new NotImplementedException(),
+		//};
+	}
 
-//	public IFusionCacheDistributedLocker DistributedLocker
-//	{
-//		get { return _locker; }
-//	}
+	public IFusionCacheDistributedLocker DistributedLocker
+	{
+		get { return _locker; }
+	}
 
-//	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-//	private string MaybeProcessCacheKey(string key)
-//	{
-//		return _options.DistributedCacheKeyModifierMode switch
-//		{
-//			CacheKeyModifierMode.Prefix => _wireFormatToken + key,
-//			CacheKeyModifierMode.Suffix => key + _wireFormatToken,
-//			_ => key,
-//		};
-//	}
+	private string GetLockName(string key)
+	{
+		// TODO: USE INTERNAL STRINGS
+		return $"{key}__lock";
+	}
 
-//	private void UpdateLastError(string operationId, string key)
-//	{
-//		// NO DISTRIBUTEC CACHE
-//		if (_locker is null)
-//			return;
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	//private string MaybeProcessCacheKey(string key)
+	//{
+	//	return _options.DistributedCacheKeyModifierMode switch
+	//	{
+	//		CacheKeyModifierMode.Prefix => _wireFormatToken + key,
+	//		CacheKeyModifierMode.Suffix => key + _wireFormatToken,
+	//		_ => key,
+	//	};
+	//}
 
-//		var res = _breaker.TryOpen(out var hasChanged);
+	//private void UpdateLastError(string operationId, string key)
+	//{
+	//	// NO DISTRIBUTEC CACHE
+	//	if (_locker is null)
+	//		return;
 
-//		if (res && hasChanged)
-//		{
-//			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-//				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, _options.InstanceId, operationId, key, _breaker.BreakDuration);
+	//	var res = _breaker.TryOpen(out var hasChanged);
 
-//			// EVENT
-//			_events.OnCircuitBreakerChange(operationId, key, false);
-//		}
-//	}
+	//	if (res && hasChanged)
+	//	{
+	//		if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+	//			_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed cache temporarily de-activated for {BreakDuration}", _options.CacheName, _options.InstanceId, operationId, key, _breaker.BreakDuration);
 
-//	public bool IsCurrentlyUsable(string? operationId, string? key)
-//	{
-//		var res = _breaker.IsClosed(out var hasChanged);
+	//		// EVENT
+	//		_events.OnCircuitBreakerChange(operationId, key, false);
+	//	}
+	//}
 
-//		if (res && hasChanged)
-//		{
-//			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-//				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed cache activated again", _options.CacheName, _options.InstanceId, operationId, key);
+	//public bool IsCurrentlyUsable(string? operationId, string? key)
+	//{
+	//	var res = _breaker.IsClosed(out var hasChanged);
 
-//			// EVENT
-//			_events.OnCircuitBreakerChange(operationId, key, true);
-//		}
+	//	if (res && hasChanged)
+	//	{
+	//		if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+	//			_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed cache activated again", _options.CacheName, _options.InstanceId, operationId, key);
 
-//		return res;
-//	}
+	//		// EVENT
+	//		_events.OnCircuitBreakerChange(operationId, key, true);
+	//	}
 
-//	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-//	private void ProcessError(string operationId, string key, Exception exc, string actionDescription)
-//	{
-//		if (exc is SyntheticTimeoutException)
-//		{
-//			if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
-//				_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] a synthetic timeout occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
+	//	return res;
+	//}
 
-//			return;
-//		}
+	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	//private void ProcessError(string operationId, string key, Exception exc, string actionDescription)
+	//{
+	//	if (exc is SyntheticTimeoutException)
+	//	{
+	//		if (_logger?.IsEnabled(_options.DistributedCacheSyntheticTimeoutsLogLevel) ?? false)
+	//			_logger.Log(_options.DistributedCacheSyntheticTimeoutsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] a synthetic timeout occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 
-//		UpdateLastError(operationId, key);
+	//		return;
+	//	}
 
-//		if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
-//			_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
-//	}
-//}
+	//	UpdateLastError(operationId, key);
+
+	//	if (_logger?.IsEnabled(_options.DistributedCacheErrorsLogLevel) ?? false)
+	//		_logger.Log(_options.DistributedCacheErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
+	//}
+}
