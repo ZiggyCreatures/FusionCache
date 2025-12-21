@@ -1297,6 +1297,19 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using an L2 (distributed cache) without a backplane, which will potentially leave other nodes' L1s (memory caches) out-of-sync after an update (see: cache coherence). To solve this, you can use a backplane. If that is not possible, you can mitigate the situation by setting both DefaultEntryOptions.MemoryCacheDuration and TagsDefaultEntryOptions.MemoryCacheDuration to a low value: this will refresh data in the L1 from the L2 more frequently, reducing the incoherence window.", CacheName, InstanceId);
 		}
+
+		// CHECK:
+		// - HAS DISTRIBUTED LOCKER
+		// - AND NO L2
+		if (
+			HasDistributedLocker
+			&& HasDistributedCache == false
+		)
+		{
+			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using a distributed locker without a distributed cache: this is usually not needed, since distributed locking is mainly useful to coordinate access to a shared resource like a distributed cache.", CacheName, InstanceId);
+		}
+
 	}
 
 	// IDISPOSABLE
