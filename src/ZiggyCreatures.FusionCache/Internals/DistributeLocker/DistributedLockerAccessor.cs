@@ -10,7 +10,6 @@ internal sealed partial class DistributedLockerAccessor
 	private readonly ILogger? _logger;
 	//private readonly FusionCacheDistributedEventsHub _events;
 	//private readonly SimpleCircuitBreaker _breaker;
-	//private readonly string _wireFormatToken;
 
 	public DistributedLockerAccessor(IFusionCacheDistributedLocker distributedLocker, FusionCacheOptions options, ILogger? logger/*, FusionCacheDistributedEventsHub events*/)
 	{
@@ -26,15 +25,6 @@ internal sealed partial class DistributedLockerAccessor
 
 		//// CIRCUIT-BREAKER
 		//_breaker = new SimpleCircuitBreaker(options.DistributedCacheCircuitBreakerDuration);
-
-		//// WIRE FORMAT SETUP
-		//_wireFormatToken = _options.DistributedCacheKeyModifierMode switch
-		//{
-		//	CacheKeyModifierMode.Prefix => FusionCacheOptions.DistributedCacheWireFormatVersion + _options.InternalStrings.DistributedCacheWireFormatSeparator,
-		//	CacheKeyModifierMode.Suffix => _options.InternalStrings.DistributedCacheWireFormatSeparator + FusionCacheOptions.DistributedCacheWireFormatVersion,
-		//	CacheKeyModifierMode.None => string.Empty,
-		//	_ => throw new NotImplementedException(),
-		//};
 	}
 
 	public IFusionCacheDistributedLocker DistributedLocker
@@ -44,20 +34,8 @@ internal sealed partial class DistributedLockerAccessor
 
 	private string GetLockName(string key)
 	{
-		// TODO: USE INTERNAL STRINGS
-		return $"{key}__lock";
+		return $"{key}{_options.InternalStrings.DistributedLockerLockNameSuffix}";
 	}
-
-	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	//private string MaybeProcessCacheKey(string key)
-	//{
-	//	return _options.DistributedCacheKeyModifierMode switch
-	//	{
-	//		CacheKeyModifierMode.Prefix => _wireFormatToken + key,
-	//		CacheKeyModifierMode.Suffix => key + _wireFormatToken,
-	//		_ => key,
-	//	};
-	//}
 
 	//private void UpdateLastError(string operationId, string key)
 	//{

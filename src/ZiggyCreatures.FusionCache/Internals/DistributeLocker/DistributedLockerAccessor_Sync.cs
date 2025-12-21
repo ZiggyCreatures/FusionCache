@@ -34,9 +34,6 @@ internal partial class DistributedLockerAccessor
 				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
 
 			return null;
-
-			// TODO: WHAT DO!?
-			//throw;
 		}
 	}
 

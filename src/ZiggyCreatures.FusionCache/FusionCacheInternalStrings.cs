@@ -67,6 +67,13 @@ public class FusionCacheInternalStrings
 	public const string DefaultBackplaneChannelNameSeparator = ".";
 
 	/// <summary>
+	/// The default value for <see cref="DistributedLockerLockNameSuffix"/>.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	public const string DefaultDistributedLockerLockNameSuffix = ":lock";
+
+	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheInternalStrings"/> object.
 	/// </summary>
 	public FusionCacheInternalStrings()
@@ -80,6 +87,7 @@ public class FusionCacheInternalStrings
 		DistributedCacheWireFormatSeparator = DefaultDistributedCacheWireFormatSeparator;
 		BackplaneWireFormatSeparator = DefaultBackplaneWireFormatSeparator;
 		BackplaneChannelNameSeparator = DefaultBackplaneChannelNameSeparator;
+		DistributedLockerLockNameSuffix = DefaultDistributedLockerLockNameSuffix;
 	}
 
 	/// <summary>
@@ -90,7 +98,7 @@ public class FusionCacheInternalStrings
 	public string CacheKeyPrefixSeparator { get; set; }
 
 	/// <summary>
-	/// 
+	/// The cache key prefix used for entries related to Tagging.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
@@ -132,6 +140,13 @@ public class FusionCacheInternalStrings
 	public string BackplaneChannelNameSeparator { get; set; }
 
 	/// <summary>
+	/// The suffix for the lock name used with the distributed locker.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// </summary>
+	public string DistributedLockerLockNameSuffix { get; set; }
+
+	/// <summary>
 	/// Set the internal strings used by FusionCache to use only a limited subset of commonly "safe" characters:
 	/// <br/>
 	/// - Latin alphanumeric chars (a-zA-Z0-9)
@@ -160,6 +175,7 @@ public class FusionCacheInternalStrings
 		DistributedCacheWireFormatSeparator = s;
 		BackplaneWireFormatSeparator = s;
 		BackplaneChannelNameSeparator = s;
+		DistributedLockerLockNameSuffix = $"{s}lock";
 	}
 
 	/// <summary>
@@ -174,6 +190,7 @@ public class FusionCacheInternalStrings
 		DistributedCacheWireFormatSeparator = DefaultDistributedCacheWireFormatSeparator;
 		BackplaneWireFormatSeparator = DefaultBackplaneWireFormatSeparator;
 		BackplaneChannelNameSeparator = DefaultBackplaneChannelNameSeparator;
+		DistributedLockerLockNameSuffix = DefaultDistributedLockerLockNameSuffix;
 	}
 
 	/// <summary>
@@ -191,7 +208,8 @@ public class FusionCacheInternalStrings
 			ClearExpireTag,
 			DistributedCacheWireFormatSeparator,
 			BackplaneWireFormatSeparator,
-			BackplaneChannelNameSeparator
+			BackplaneChannelNameSeparator,
+			DistributedLockerLockNameSuffix
 		];
 	}
 
@@ -212,6 +230,7 @@ public class FusionCacheInternalStrings
 			DistributedCacheWireFormatSeparator = DistributedCacheWireFormatSeparator,
 			BackplaneWireFormatSeparator = BackplaneWireFormatSeparator,
 			BackplaneChannelNameSeparator = BackplaneChannelNameSeparator,
+			DistributedLockerLockNameSuffix = DistributedLockerLockNameSuffix,
 		};
 	}
 }
