@@ -249,7 +249,7 @@ Going from `100,000` concurrent database queries to `10` it's bonkers, it's a da
 
 Going from `10` to `1` concurrent database queries... less so.
 
-Don't get me wrong, it's still nice: but everything has a cost, and using a distributed lock to coordinate multiple machines runnign remotely is no exception. And all to go, as in our example, from `10` to `1` database query?
+Don't get me wrong, it's still nice: but everything has a cost, and using a distributed lock to coordinate multiple machines running remotely is no exception. And all to go, as in our example, from `10` to `1` database query?
 
 As always: we need to balance things out.
 
