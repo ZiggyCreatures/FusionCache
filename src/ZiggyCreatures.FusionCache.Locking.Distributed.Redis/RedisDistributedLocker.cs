@@ -3,8 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using StackExchange.Redis;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
 
-namespace ZiggyCreatures.Caching.Fusion.Locking.Redis;
+namespace ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis;
 
 /// <summary>
 /// A Redis based implementation of a FusionCache distributed locker.

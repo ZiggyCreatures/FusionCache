@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
-namespace ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
+namespace ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
 /// <summary>
 /// An in-memory implementation of <see cref="IFusionCacheDistributedLocker"/>, mainly used for local testing.

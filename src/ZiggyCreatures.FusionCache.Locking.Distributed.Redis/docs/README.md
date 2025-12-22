@@ -10,4 +10,4 @@ Find out [more](https://github.com/ZiggyCreatures/FusionCache).
 
 ## 📦 This package
 
-This package is a distributed locker implementation on [Redis](https://redis.io/) based on the awesome [DistributedLock](https://github.com/madelson/DistributedLock) library.
+This package is a distributed locker implementation for [Redis](https://redis.io/), currently based on the awesome [DistributedLock](https://github.com/madelson/DistributedLock) library.

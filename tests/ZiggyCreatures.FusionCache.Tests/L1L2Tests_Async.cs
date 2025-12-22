@@ -8,7 +8,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
 using ZiggyCreatures.Caching.Fusion.Internals;
-using ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
 namespace FusionCacheTests;
 

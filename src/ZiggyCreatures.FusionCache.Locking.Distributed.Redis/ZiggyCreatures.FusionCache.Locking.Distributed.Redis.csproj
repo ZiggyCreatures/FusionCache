@@ -2,10 +2,10 @@
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Version>2.5.0</Version>
-		<PackageId>ZiggyCreatures.FusionCache.Locking.Redis</PackageId>
+		<PackageId>ZiggyCreatures.FusionCache.Locking.Distributed.Redis</PackageId>
 		<Description>FusionCache distributed locker for Redis</Description>
 		<PackageTags>distributed-locker;redis;locker;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
-		<RootNamespace>ZiggyCreatures.Caching.Fusion.Locking.Redis</RootNamespace>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
 			Initial release
@@ -20,7 +20,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="DistributedLock.Redis" Version="1.1.1" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="9.0.11" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>

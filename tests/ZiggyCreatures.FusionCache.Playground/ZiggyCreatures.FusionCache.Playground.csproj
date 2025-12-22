@@ -24,7 +24,7 @@
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.Memory\ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj" />
-		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Locking.Redis\ZiggyCreatures.FusionCache.Locking.Redis.csproj" />
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Locking.Distributed.Redis\ZiggyCreatures.FusionCache.Locking.Distributed.Redis.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.OpenTelemetry\ZiggyCreatures.FusionCache.OpenTelemetry.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet\ZiggyCreatures.FusionCache.Serialization.ProtoBufNet.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />

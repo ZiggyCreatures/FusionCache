@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 
-namespace ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
+namespace ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
 /// <summary>
 /// Represents the options available for the in-memory distributed locker.

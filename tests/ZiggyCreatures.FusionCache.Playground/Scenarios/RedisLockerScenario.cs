@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using StackExchange.Redis;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
-using ZiggyCreatures.Caching.Fusion.Locking.Redis;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis;
 using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios;

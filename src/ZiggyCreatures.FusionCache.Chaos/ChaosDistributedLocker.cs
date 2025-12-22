@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Chaos.Internals;
-using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
 
 namespace ZiggyCreatures.Caching.Fusion.Chaos;
 

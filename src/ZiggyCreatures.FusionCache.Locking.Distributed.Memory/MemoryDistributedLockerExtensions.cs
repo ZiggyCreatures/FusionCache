@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
-using ZiggyCreatures.Caching.Fusion.Locking;
-using ZiggyCreatures.Caching.Fusion.Locking.MemoryDistributed;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
 namespace Microsoft.Extensions.DependencyInjection;
 

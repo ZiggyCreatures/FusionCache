@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
 
 namespace FusionCacheTests.Stuff;
 

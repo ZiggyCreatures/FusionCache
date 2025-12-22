@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
-namespace ZiggyCreatures.Caching.Fusion.Locking.Redis;
+namespace ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis;
 
 /// <summary>
 /// Represents the options available for the Redis distributed locker.

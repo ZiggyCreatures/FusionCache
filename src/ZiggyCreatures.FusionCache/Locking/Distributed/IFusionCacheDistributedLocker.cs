@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace ZiggyCreatures.Caching.Fusion.Locking;
+namespace ZiggyCreatures.Caching.Fusion.Locking.Distributed;
 
 /// <summary>
 /// A FusionCache component to handle acquiring and releasing distributed locks in a highly optimized way.

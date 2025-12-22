@@ -1,7 +1,7 @@
 ﻿using Medallion.Threading;
 using Microsoft.Extensions.Logging;
 
-namespace ZiggyCreatures.Caching.Fusion.Locking.Redis;
+namespace ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis;
 
 public partial class RedisDistributedLocker
 {

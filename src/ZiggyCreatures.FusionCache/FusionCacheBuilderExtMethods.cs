@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Locking;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Plugins;
