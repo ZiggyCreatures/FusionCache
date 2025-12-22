@@ -59,6 +59,8 @@ public sealed class FusionCacheEntryOptions
 
 		SkipMemoryCacheRead = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheRead;
 		SkipMemoryCacheWrite = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheWrite;
+
+		SkipDistributedLocker = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedLocker;
 	}
 
 	/// <summary>
