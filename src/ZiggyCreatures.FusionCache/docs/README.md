@@ -32,16 +32,29 @@ Curious about what you can achieve from start to finish? There's a [👩‍🏫 
 
 In search of all the docs? There's a [page](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/README.md) for that, too.
 
-## 📺 Media
+## 🧑‍🏫 Courses ([more](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti))
 
-More into videos?
+If you are interested in all things caching, I published [a course](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) on Dometrain:
 
-I've been lucky enough to be invited on some shows and podcasts here and there: you can find them in the [Media](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Media.md) section.
+[![Caching Course on Dometrain](docs/images/dometrain-getting-started-cover.png)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
+
+If you like the FusionCache docs, you may like it too.
+
+But mind you, it's not just about FusionCache but about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios. We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
+
+I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
+
+## 📺 Talks ([more](https://github.com/jodydonetti/talks))
+
+Are you more into videos?
+
+Along the years I've been lucky enough to be invited to some conferences, shows or podcasts both online and around the world, of course to talk about all things caching and FusionCache.
 
 A good example is when the fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) invited me on the show to allow me to mumbling random caching stuff.
 
-[![On .NET Talk](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/talks/on-dotnet.jpg)](https://www.youtube.com/watch?v=hCswI2goi7s)
+[![On .NET Talk](docs/images/talks/on-dotnet-small.jpg)](https://github.com/jodydonetti/talks)
 
+You can find most of them, sometimes with the related slides, in the dedicated repo [here](https://github.com/jodydonetti/talks).
 
 ## ✔ Features
 
