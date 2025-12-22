@@ -36,7 +36,7 @@ In search of all the docs? There's a [page](https://github.com/ZiggyCreatures/Fu
 
 If you are interested in all things caching, I published [a course](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) on Dometrain:
 
-[![Caching Course on Dometrain](docs/images/dometrain-getting-started-cover.png)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
+[![Caching Course on Dometrain](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/dometrain-getting-started-cover.png)](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti)
 
 If you like the FusionCache docs, you may like it too.
 
@@ -52,7 +52,7 @@ Along the years I've been lucky enough to be invited to some conferences, shows 
 
 A good example is when the fine folks at [On .NET](https://learn.microsoft.com/en-us/shows/on-net/) invited me on the show to allow me to mumbling random caching stuff.
 
-[![On .NET Talk](docs/images/talks/on-dotnet-small.jpg)](https://github.com/jodydonetti/talks)
+[![On .NET Talk](https://raw.githubusercontent.com/ZiggyCreatures/FusionCache/main/docs/images/talks/on-dotnet-small.jpg)](https://github.com/jodydonetti/talks)
 
 You can find most of them, sometimes with the related slides, in the dedicated repo [here](https://github.com/jodydonetti/talks).
 
