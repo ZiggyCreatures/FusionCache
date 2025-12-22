@@ -211,11 +211,17 @@ Everything is ready to go, which is pretty nice.
 
 ## 📦 Packages
 
+These are the main `IFusionCacheMemoryLocker` implementations available (the default one requires no separate package):
+
+| Package Name                   | License | Version |
+|--------------------------------|:---------------:|:---------------:|
+| [ZiggyCreatures.FusionCache.Locking.AsyncKeyed](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.AsyncKeyed/) <br/> Uses the AsyncKeyedLock library | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Locking.AsyncKeyed.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.AsyncKeyed/) | ![Nuget](https://img.shields.io/nuget/dt/ZiggyCreatures.FusionCache.Locking.AsyncKeyed) |
+
 These are the main `IFusionCacheDistributedLocker` implementations available:
 
 | Package Name                   | License | Version |
 |--------------------------------|:---------------:|:---------------:|
-| [ZiggyCreatures.FusionCache.Locking.Distributed.Redis](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.Distributed.Redis/) <br/> An implementationfor Redis | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Locking.Distributed.Redis.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.Distributed.Redis/) |
+| [ZiggyCreatures.FusionCache.Locking.Distributed.Redis](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.Distributed.Redis/) <br/> An implementation for Redis | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Locking.Distributed.Redis.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.Distributed.Redis/) |
 | [ZiggyCreatures.FusionCache.Locking.Distributed.Memory](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.Distributed.Memory/) <br/> An in-memory implementation (manily for testing) | `MIT` | [![NuGet](https://img.shields.io/nuget/v/ZiggyCreatures.FusionCache.Locking.Distributed.Memory.svg)](https://www.nuget.org/packages/ZiggyCreatures.FusionCache.Locking.Distributed.Memory/) |
 
 
