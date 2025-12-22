@@ -2,19 +2,19 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.4.0</Version>
+		<Version>2.5.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Add: new StaleTags property in the factory execution context, to differentiate between stale tags and currently specified tags
-			- Fix: wrongly ignored the currently specified tags when stale tags were present (see above)
-			- Fix: when working with the HybridCache adapter, in some cases the LocalExpiration was ignored
-			- Fix: WithRegisteredSerializer was asking to use the registered distributed cache instead
-			- Fix: InvalidOperationException with Activity (OTEL) when using AlwaysOffSampler
-			- Fix: small fix in xml doc
+			- Add: support for distributed Cache Stampede protection, thanks to a new IFusionCacheDistributedLocker component
+			- Add: new MemoryCacheDuration option to override the normal Duration for the L1 (memory level), useful when using an L2 without a backplane (to reduce the incoherency window)
+			- Add: Best Practices Advisor for automatic analysis and suggestions
+			- Add: new IgnoreTimeoutsWhenDebugging option, to ignore timeouts when a debugger is attached
+			- Change: the timestamp for a new entry produced by a factory is now set when the factory ends and not when it starts, to better reflect the mos precise moment in time when the value has been produced
+			- Perf: various internal performance improvements, mostly for edge cases
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--
@@ -30,13 +30,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.0" />
-		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.0" />
-		<PackageReference Include="System.Collections.Immutable" Version="9.0.0" />
+		<PackageReference Include="System.Diagnostics.DiagnosticSource" Version="10.0.1" />
+		<PackageReference Include="System.Threading.Tasks.Extensions" Version="4.6.3" />
+		<PackageReference Include="System.Collections.Immutable" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
