@@ -15,8 +15,8 @@ public partial class RedisBackplane
 	private BackplaneSubscriptionOptions? _subscriptionOptions;
 	private readonly ILogger? _logger;
 
-	private readonly SemaphoreSlim _connectionLock;
-	private IConnectionMultiplexer? _connection;
+	private readonly SemaphoreSlim _muxerLock;
+	private IConnectionMultiplexer? _muxer;
 
 	private string? _channelName = null;
 	private RedisChannel _channel;
@@ -51,7 +51,7 @@ public partial class RedisBackplane
 			_logger = logger;
 		}
 
-		_connectionLock = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+		_muxerLock = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 	}
 
 	private ConfigurationOptions GetConfigurationOptions()
@@ -67,8 +67,8 @@ public partial class RedisBackplane
 
 	private void EnsureSubscriber()
 	{
-		if (_subscriber is null && _connection is not null)
-			_subscriber = _connection.GetSubscriber();
+		if (_subscriber is null && _muxer is not null)
+			_subscriber = _muxer.GetSubscriber();
 	}
 
 	private void Disconnect()
@@ -76,13 +76,13 @@ public partial class RedisBackplane
 		_connectHandler = null;
 		_connectHandlerAsync = null;
 
-		if (_connection is null)
+		if (_muxer is null)
 			return;
 
 		try
 		{
-			_connection.ConnectionRestored -= OnReconnect;
-			_connection.Dispose();
+			_muxer.ConnectionRestored -= OnReconnect;
+			_muxer.Dispose();
 		}
 		catch (Exception exc)
 		{
@@ -90,7 +90,7 @@ public partial class RedisBackplane
 				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] An error occurred while disconnecting from Redis {Config}", _subscriptionOptions?.CacheName, _subscriptionOptions?.CacheInstanceId, _options.ConfigurationOptions?.ToString() ?? _options.Configuration);
 		}
 
-		_connection = null;
+		_muxer = null;
 	}
 
 	private static BackplaneMessage? GetMessageFromRedisValue(RedisValue value, ILogger? logger, BackplaneSubscriptionOptions? subscriptionOptions)

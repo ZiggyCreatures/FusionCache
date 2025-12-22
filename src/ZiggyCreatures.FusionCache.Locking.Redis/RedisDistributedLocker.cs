@@ -16,8 +16,8 @@ public partial class RedisDistributedLocker
 	private RedisDistributedLockerOptions _options;
 	private readonly ILogger? _logger;
 
-	private readonly SemaphoreSlim _connectionLock;
-	private IConnectionMultiplexer? _connection;
+	private readonly SemaphoreSlim _muxerLock;
+	private IConnectionMultiplexer? _muxer;
 
 	private RedisDistributedSynchronizationProvider? _provider = null;
 
@@ -45,7 +45,7 @@ public partial class RedisDistributedLocker
 			_logger = logger;
 		}
 
-		_connectionLock = new SemaphoreSlim(initialCount: 1, maxCount: 1);
+		_muxerLock = new SemaphoreSlim(initialCount: 1, maxCount: 1);
 
 		EnsureConnection(CancellationToken.None);
 	}
@@ -63,27 +63,27 @@ public partial class RedisDistributedLocker
 
 	private async ValueTask EnsureConnectionAsync(CancellationToken token)
 	{
-		if (_connection is not null)
+		if (_muxer is not null)
 			return;
 
-		await _connectionLock.WaitAsync(token).ConfigureAwait(false);
+		await _muxerLock.WaitAsync(token).ConfigureAwait(false);
 		try
 		{
-			if (_connection is not null)
+			if (_muxer is not null)
 				return;
 
 			if (_options.ConnectionMultiplexerFactory is not null)
 			{
-				_connection = await _options.ConnectionMultiplexerFactory().ConfigureAwait(false);
+				_muxer = await _options.ConnectionMultiplexerFactory().ConfigureAwait(false);
 			}
 			else
 			{
-				_connection = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions());
+				_muxer = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions());
 			}
 
-			if (_connection is not null)
+			if (_muxer is not null)
 			{
-				_provider = new RedisDistributedSynchronizationProvider(_connection.GetDatabase(), options =>
+				_provider = new RedisDistributedSynchronizationProvider(_muxer.GetDatabase(), options =>
 				{
 					options.Expiry(_options.AbandonTimeout);
 				});
@@ -96,10 +96,10 @@ public partial class RedisDistributedLocker
 		}
 		finally
 		{
-			_connectionLock.Release();
+			_muxerLock.Release();
 		}
 
-		if (_connection is null)
+		if (_muxer is null)
 		{
 			_ = Task.Run(async () =>
 			{
@@ -110,7 +110,7 @@ public partial class RedisDistributedLocker
 
 	private void EnsureConnection(CancellationToken token)
 	{
-		if (_connection is not null)
+		if (_muxer is not null)
 			return;
 
 		_ = Task.Run(async () =>
@@ -122,10 +122,10 @@ public partial class RedisDistributedLocker
 	/// <inheritdoc/>
 	public void Dispose()
 	{
-		if (_connection is not null)
+		if (_muxer is not null)
 		{
-			_connection.Dispose();
-			_connection = null;
+			_muxer.Dispose();
+			_muxer = null;
 		}
 	}
 }

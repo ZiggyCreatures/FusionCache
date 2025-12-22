@@ -81,12 +81,12 @@ public static class RedisLockerScenario
 		//, logger: logger
 		);
 
-		var redis = await ConnectionMultiplexer.ConnectAsync("localhost:6379,abortConnect=false");
+		var muxer = await ConnectionMultiplexer.ConnectAsync("localhost:6379,abortConnect=false");
 
 		// DISTRIBUTED CACHE
 		var distributedCache = new RedisCache(new RedisCacheOptions
 		{
-			ConnectionMultiplexerFactory = async () => redis,
+			ConnectionMultiplexerFactory = async () => muxer,
 		});
 		var serializer = new FusionCacheSystemTextJsonSerializer();
 		cache.SetupDistributedCache(distributedCache, serializer);
@@ -94,14 +94,14 @@ public static class RedisLockerScenario
 		// BACKPLANE
 		var backplane = new RedisBackplane(new RedisBackplaneOptions
 		{
-			ConnectionMultiplexerFactory = async () => redis,
+			ConnectionMultiplexerFactory = async () => muxer,
 		});
 		cache.SetupBackplane(backplane);
 
 		// DISTRIBUTED LOCKER
 		var distributedLocker = new RedisDistributedLocker(new RedisDistributedLockerOptions
 		{
-			ConnectionMultiplexerFactory = async () => redis,
+			ConnectionMultiplexerFactory = async () => muxer,
 		});
 		cache.SetupDistributedLocker(distributedLocker);
 
@@ -123,7 +123,7 @@ public static class RedisLockerScenario
 
 					color = Console.ForegroundColor;
 					Console.ForegroundColor = ConsoleColor.Cyan;
-					Console.WriteLine($"--> FACTORY: DONE (VALUE = {value})!");
+					Console.WriteLine($"--> FACTORY: DONE! (VALUE = {value})");
 					Console.ForegroundColor = color;
 
 					return value;
