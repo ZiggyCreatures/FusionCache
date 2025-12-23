@@ -41,12 +41,14 @@ Well, FusionCache supports [Adaptive Caching](AdaptiveCaching.md), so the questi
 Of course they are, by simply doing this:
 
 ```csharp
-cache.GetOrSet<int>(
-    "baz",
+var product = cache.GetOrSet<Product>(
+    "product:42",
     (ctx, _) =>
     {
-        ctx.Tags = ["tag-1", "tag-3"]; // SET TAGS HERE DYNAMICALLY
-        return 3;
+        var p = GetProductFromDb(42);
+        // SET TAGS DYNAMICALLY
+        ctx.Tags = p.Tags;
+        return p;
     });
 ```
 
@@ -111,7 +113,7 @@ There are basically 2 different approaches:
 - **Server-Assisted**: the L2 (eg: Redis or Memcached) makes a real "remove by tag" in some way
 - **Client-Assisted**: the client library (eg: FusionCache) does "something" so that the end result _looks like_ the same
 
-The **Server-Assisted** approach is not reasonably doable, since not a lot of distributed caches support the operations needed: on top of this, it would mean abandoning the use of the `IDistributedCache` and creating a new abstraction with more features, leaving behind all the existing implementations.
+The **Server-Assisted** approach is not reasonably doable, since not a lot of distributed caches support the operations needed: on top of this, it would mean abandoning the use of the `IDistributedCache` abstraction and create a new one with more features, leaving behind all the existing implementations.
 
 Not good.
 
@@ -123,15 +125,13 @@ So, is it doable?
 
 Yes, with the **Client-Assisted** approach and a delicate balance of the workload needed.
 
-Here's what happens: a `RemoveByTag("tag123")` would simply set internally an entry with a key `"__fc:t:tag123"`, containing the current timestamp. The concrete cache key will also consider any potential `CacheKeyPrefix`, so mutliple named caches on shared cache backends would automatically be supported, too.
+Here's what happens: a `RemoveByTag("tag123")` would simply set internally an entry with a key `"__fc:t:tag123"`, containing the current timestamp. The concrete cache key will also consider any potential `CacheKeyPrefix`, so mutliple [named caches](NamedCaches.md) on shared cache backends would automatically be supported, too.
 
-Then when getting a cache entry, **after** getting it from L1/L2 but **before** returning it to the outside world, FusionCache would see if it has tags attached to it and, in that case and only in thase case (so no extra costs when not used), it would get the expiration timestamp for each tag to see if it's expired and when.
+Then when getting a cache entry, **after** internally getting it from L1/L2 but **before** returning it to the outside world, FusionCache would see if it has tags attached to it and, in that case and only in thase case (so no extra costs when tagging is not used), it would get the expiration timestamp for each tag to see if it's expired and when.
 
 For each related tag, if an expiration timestamp is present and that is greater than the timestamp at which the cache entry has been created, it should then be considered expired.
 
 This would logically work as a sort of "barrier" or ["high-pass filter"](https://en.wikipedia.org/wiki/High-pass_filter) to "hide" data that is logically expired because of one or more of the associated tags: think of this as a "soft delete" VS a "real delete", but instead of marking the cache entries all at once one by one, FusionCache saves one extra entry for that tag with the timestamp and then it's done.
-
-Regarding the options for tags data, like `Duration` or timeouts, they are configurable via a dedicated `TagsDefaultEntryOptions` option, but they already have sensible defaults with things like a `Duration` of 10 days and so on.
 
 This can be considered a "passive" approach (waiting for each read to see if it's expired) instead of an "active" one (actually go and massively expire data immediately everywhere).
 
@@ -144,6 +144,35 @@ For both types of operations when an entry must be expired or overwritten becaus
 So the system would automatically updates internally based on actual usage, only if and when needed, without massive updates to be made when expiring by a tag.
 
 Nice 😊
+
+## ⚙️ TagsDefaultEntryOptions
+
+We said that when we call `RemoveByTag(tag)` what FusionCache does is saving a special entry for that tag with the timestamp, to check later.
+
+But what entry options are used for these special entries? Meaning what `Duration` or timeouts or fail-safe options?
+
+For these special cache entries, instead of relying on the common `DefaultEntryOptions`, FusionCache uses a separate `TagsDefaultEntryOptions`: they already have sensible defaults so that Tagging works best.
+
+But there's a small catch: if we are not using a [Backplane](Backplane.md), the cache as a whole can become incoherent after a change (and that includes a `RemoveByTag(tag)` call) until the data in the cache expires.
+
+So to lower the cache incoherency window, we should probably set a low `MemoryCacheDuration` so that the data in L1 will be refreshed more frequently from L2.
+
+For example, to refresh data in L1 from L2 every `5s`, we can do this:
+
+```c#
+services.AddFusionCache()
+	.WithOptions(options =>
+	{
+		options.DefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(5);
+		options.TagsDefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(5);
+	});
+```
+
+Pretty simple, and the Best Practices Advisor will automatically tell us about it if it detects such a scenario.
+
+> [!IMPORTANT]
+> It's important to say that, if you can, you should always use the backplane, as that is **THE** way to solve cache coherence for good without out-of-sync windows or other issues.
+
 
 ## 🎲 Of Statistics And Probability
 
@@ -171,23 +200,23 @@ No big deal, since everything is based on the common plumbing of FusionCache, al
 
 What about needing tag expiration for "tag1" by 2 different cache entries at the same time?
 <br/>
-Only one load will happen, thanks to the [Cache Stampede](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md) protection.
+Only one load will happen, thanks to the [Cache Stampede](CacheStampede.md) protection.
 
 What about tag expiration data being propagated to other ones?
 <br/>
-We are covered, thanks to the [Backplane](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md).
+We are covered, thanks to the [Backplane](Backplane.md).
 
 And what if tags are based on the data returned from the factory, so that it is not known upfront?
 <br/>
-No worries, [Adaptive Caching](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AdaptiveCaching.md) has been extended with a new `Tags` property, where we can dynamically specify the tags.
+No worries, [Adaptive Caching](AdaptiveCaching.md) has been extended with a new `Tags` property, where we can dynamically specify the tags.
 
 What about potential transient errors?
 <br/>
-We are covered, thanks to [Fail-Safe](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md) and [Auto-Recovery](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md).
+We are covered, thanks to [Fail-Safe](FailSafe.md) and [Auto-Recovery](AutoRecovery.md).
 
 What about slow distributed operations?
 <br/>
-Again we are covered, thanks to advanced [Timeouts](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Timeouts.md) and [Background Distributed Operations](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/BackgroundDistributedOperations.md).
+Again we are covered, thanks to advanced [Timeouts](Timeouts.md) and [Background Distributed Operations](BackgroundDistributedOperations.md).
 
 All of this because of the solid foundations that have been built in FusionCache for years.
 
