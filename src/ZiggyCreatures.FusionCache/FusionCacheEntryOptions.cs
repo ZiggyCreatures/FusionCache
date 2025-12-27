@@ -119,7 +119,20 @@ public sealed class FusionCacheEntryOptions
 	public TimeSpan LockTimeout { get; set; }
 
 	/// <summary>
+	/// The timeout to apply when trying to acquire a memory lock during a factory execution.
+	/// <br/>
+	/// If not specified, <see cref="LockTimeout"/> will be used.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public TimeSpan? MemoryLockTimeout { get; set; }
+
+	/// <summary>
 	/// The timeout to apply when trying to acquire a distributed lock during a factory execution.
+	/// <br/>
+	/// If not specified, <see cref="LockTimeout"/> will be used.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
 	/// <br/>
@@ -225,14 +238,18 @@ public sealed class FusionCacheEntryOptions
 	public bool AllowTimedOutFactoryBackgroundCompletion { get; set; }
 
 	/// <summary>
-	/// The duration specific for the memory cache. If not set, <see cref="Duration"/> will be used.
+	/// The duration specific for the memory cache.
+	/// <br/>
+	/// If not set, <see cref="Duration"/> will be used.
 	/// <br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
 	public TimeSpan? MemoryCacheDuration { get; set; }
 
 	/// <summary>
-	/// The duration specific for the distributed cache, if any. If not set, <see cref="Duration"/> will be used.
+	/// The duration specific for the distributed cache.
+	/// <br/>
+	/// If not set, <see cref="Duration"/> will be used.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// <br/>
@@ -1087,7 +1104,7 @@ public sealed class FusionCacheEntryOptions
 			return Timeout.InfiniteTimeSpan;
 		}
 
-		var res = LockTimeout;
+		var res = MemoryLockTimeout.GetValueOrDefault(LockTimeout);
 		if (res == Timeout.InfiniteTimeSpan && hasFallbackValue && IsFailSafeEnabled && FactorySoftTimeout != Timeout.InfiniteTimeSpan)
 		{
 			// IF THERE IS NO SPECIFIC MEMORY LOCK TIMEOUT
@@ -1196,6 +1213,7 @@ public sealed class FusionCacheEntryOptions
 			JitterMaxDuration = JitterMaxDuration,
 
 			LockTimeout = LockTimeout,
+			MemoryLockTimeout = MemoryLockTimeout,
 			DistributedLockTimeout = DistributedLockTimeout,
 
 			EagerRefreshThreshold = EagerRefreshThreshold,
