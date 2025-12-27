@@ -387,8 +387,8 @@ public sealed partial class FusionCache
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger?.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): SHIFTING A MEMORY ENTRY FROM {OldExp} TO {NewExp} ({Diff} DIFF)", CacheName, InstanceId, operationId, key, new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero), new DateTimeOffset(exp, TimeSpan.Zero) - new DateTimeOffset(memoryEntry.LogicalExpirationTimestamp, TimeSpan.Zero));
 
-			memoryEntry.Metadata.IsStale = true;
 			memoryEntry.LogicalExpirationTimestamp = exp;
+			memoryEntry.Metadata.IsStale = true;
 			memoryEntry.Metadata.EagerExpirationTimestamp = null;
 			entry = memoryEntry;
 		}
