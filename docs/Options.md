@@ -164,6 +164,8 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 | `BackplaneErrorsLogLevel`                   | `LogLevel`                | `Warning` | Used when logging any other kind of errors while using the backplane. |
 | `PluginsInfoLogLevel`                       | `LogLevel`                | `Information` | Used when logging informations about a plugin. |
 | `PluginsErrorsLogLevel`                     | `LogLevel`                | `Error` | Used when logging an error while working with a plugin. |
+| `IgnoreTimeoutsWhenDebugging`               | `bool`                    | `false` | Ignores all specified timeouts when there's a debugger attached (via `Debugger.IsAttached`). |
+| `EnableBestPracticesAdvisor`                | `bool`                    | `true` | Checks for common best practices and, in case they are not respected, logs some warnings. |
 
 ### FusionCacheEntryOptions
 
@@ -173,7 +175,9 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 
 | Name | Type | Default | Description |
 | ---: | :---: | :---: | :--- |
-| `LockTimeout` | `TimeSpan` | `none` | To guarantee only one factory is called per each cache key, a lock mechanism is used: this value specifies a timeout after which the factory may be called nonetheless, ignoring the *single call* optimization. Usually it is not necessary, but to avoid any potential deadlock that may *theoretically* happen we can set a value. |
+| `LockTimeout` | `TimeSpan` | `Timeout.InfiniteTimeSpan` | To guarantee only one factory is called per each cache key, a lock mechanism is used: this value specifies a timeout after which the factory may be called nonetheless, ignoring the *single call* optimization. Usually it is not necessary, but to avoid any potential deadlock that may *theoretically* happen we can set a value. |
+| `MemoryLockTimeout` | `TimeSpan?` | `null` | The lock timeout specific for the memory locker (local cache stampede): if not specified, the `LockTimeout` will be used. |
+| `DistributedLockTimeout` | `TimeSpan?` | `null` | The lock timeout specific for the distributed locker (distributed cache stampede): if not specified, the `LockTimeout` will be used. |
 | 🧙‍♂️ `Duration` | `TimeSpan` | `30 sec` | The logical duration of the cache entry. This value will be used as the *actual* duration in the cache, but only if *fail-safe* is disabled. If *fail-safe* is instead enabled, the duration in the cache will be `FailSafeMaxDuration`, but this value will still be used to see if the entry is expired, to try to execute the factory to get a new value. |
 | 🧙‍♂️ `JitterMaxDuration` | `TimeSpan` | `none` | If set to a value greater than zero it will be used as the maximum value for an additional, randomized duration of a cache entry's normal `Duration`. This is useful to prevent variations of the <a href="https://en.wikipedia.org/wiki/Cache_stampede">Cache Stampede problem</a> in a multi-node scenario. |
 | 🧙‍♂️ `Size` | `long?` | `null` | This is only used to set the `MemoryCacheEntryOptions.Size` property when saving an entry in the underlying memory cache. |
@@ -181,10 +185,12 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 | `IsFailSafeEnabled` | `bool` | `false` | If fail-safe is enabled a cached entry will be available even after the logical expiration as a fallback, in case of problems while calling the factory to get a new value. |
 | 🧙‍♂️ `FailSafeMaxDuration` | `TimeSpan` | `1 day` | When fail-safe is enabled, this is the amount of time a cached entry will be available, even as a fallback. |
 | 🧙‍♂️ `FailSafeThrottleDuration` | `TimeSpan` | `30 sec` | When the fail-safe mechanism is actually activated in case of problems while calling the factory, this is the (usually small) new duration for a cache entry used as a fallback. This is done to avoid repeatedly calling the factory in case of an expired entry, and basically prevents <a href="https://en.wikipedia.org/wiki/Denial-of-service_attack">DOS</a>-ing ourrselves. |
+| `AllowStaleOnReadOnly` | `bool` | `false` | Allows reading stale data for read-only methods like `TryGet` or `GetOrDefault`. |
 | `FactorySoftTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for the factory, applied only if fail-safe is enabled and there is a fallback value to return. |
 | `FactoryHardTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for the factory in any case, even if there is not a stale value to fallback to. |
 | `AllowTimedOutFactoryBackgroundCompletion` | `bool` | `true` | It enables a factory that has hit a synthetic timeout (both soft/hard) to complete in the background and update the cache with the new value. |
-| 🧙‍♂️ `DistributedCacheDuration` | `TimeSpan?` | `null` | The custom duration to use for the distributed cache: this allows to have different duration between the 1st and 2nd levels. If `null`, the normal `Duration` will be used. |
+| 🧙‍♂️ `MemoryCacheDuration` | `TimeSpan?` | `null` | The custom duration to use for the memory cache (L1): this allows to have different duration between the 1st and 2nd levels. If `null`, the normal `Duration` will be used. |
+| 🧙‍♂️ `DistributedCacheDuration` | `TimeSpan?` | `null` | The custom duration to use for the distributed cache (L2): this allows to have different duration between the 1st and 2nd levels. If `null`, the normal `Duration` will be used. |
 | 🧙‍♂️ `DistributedCacheFailSafeMaxDuration` | `TimeSpan?` | `null` | The custom fail-safe max duration to use for the distributed cache: this allows to have different duration between the 1st and 2nd levels. If `null`, the normal `FailSafeMaxDuration` will be used. |
 | 🧙‍♂️ `DistributedCacheSoftTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for each operation on the distributed cache when is not problematic to simply timeout. |
 | 🧙‍♂️ `DistributedCacheHardTimeout` | `TimeSpan` | `none` | The maximum execution time allowed for each operation on the distributed cache in any case, even if there is not a stale value to fallback to. |
@@ -200,3 +206,5 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 | `SkipDistributedCacheReadWhenStale` | `bool` | `false` | When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it. |
 | 🧙‍♂️ `SkipMemoryCacheWrite` | `bool` | `false` | Skip writing to the memory cache. |
 | `SkipMemoryCacheRead` | `bool` | `false` | Skip reading from the memory cache. |
+| `SkipDistributedLocker` | `bool` | `false` | Skip the distributed locker, if any: by doing this, the cache stampede protection will not be extended to multiple nodes. |
+
