@@ -238,6 +238,53 @@ services.AddFusionCache()
 ;
 ```
 
+
+## ⚙️ Using a low `MemoryCacheDuration` as an alternative
+
+If somehow we are not using a [Backplane](Backplane.md), the cache as a whole can become incoherent after a change operation like `Set`, `Remove`, etc.
+
+So to lower the cache incoherency window, we can set a low `MemoryCacheDuration` so that the data in L1 will be refreshed more frequently from L2,something like this:
+
+```c#
+services.AddFusionCache()
+  .WithOptions(options =>
+  {
+    // KEEP DATA IN L1 FOR 5 SEC, THEN GET IT AGAIN FROM L2
+    options.DefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(5);
+  });
+```
+
+This is not a real _solution_, but more like a _mitigation_.
+
+But when doing this we should consider ALL change operations, and that includes [Tagging](Tagging.md) operations, meaning `RemoveByTag(tag)` calls.
+
+But as mentioned in the Tagging docs, what FusionCache does underneath to make it all work is saving a special entry for each tag used in a `RemoveByTag(tag)` call, containing the timestamp of the last execution, to check later.
+
+But what entry options are used for these special entries? Meaning what `Duration` or timeouts or fail-safe options?
+
+For these special cache entries, instead of relying on the common `DefaultEntryOptions`, FusionCache uses a separate `TagsDefaultEntryOptions`: they already have sensible defaults so that Tagging works best.
+
+But if we want to "use a lower `Duration` for L1" we should do the same as above also for the `TagsDefaultEntryOptions`, like this:
+
+```c#
+services.AddFusionCache()
+  .WithOptions(options =>
+  {
+    // KEEP DATA IN L1 FOR 5 SEC, THEN GET IT AGAIN FROM L2
+
+    // THIS IS FOR NORMAL ENTRIES
+    options.DefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(5);
+    // THIS IS FOR TAGGING-RELATED ENTRIES
+    options.TagsDefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(5);
+  });
+```
+
+Pretty simple, and the Best Practices Advisor will automatically tell us about it if it detects such a scenario.
+
+> [!IMPORTANT]
+> It's important to reiterate: if you can you should always use the backplane, as that is **THE** way to solve cache coherence for good without out-of-sync windows or other issues.
+
+
 ## 🗃 Wire Format Versioning
 
 When working with the memory cache, everything is easier: at every run of our apps or services everything starts clean, from scratch, so even if there's a change in the structure of the cache entries used by FusionCache there's no problem.

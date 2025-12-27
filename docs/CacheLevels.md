@@ -57,9 +57,24 @@ In the end this boils down to 2 possible ways:
 
 Of course in both cases you will also have at your disposal the added ability to enable extra features, like [fail-safe](FailSafe.md), advanced [timeouts](Timeouts.md) and so on.
 
-Also, if needed, we can use a different `Duration` specific for the distributed cache via the `DistributedCacheDuration` option: in this way updates to the distributed cache can be picked up more frequently, in case we don't want to use a [backplane](Backplane.md) for some reason.
-
 Finally we can even execute the distributed operations in the background, to make things even faster: we can read more on the related [docs page](BackgroundDistributedOperations.md).
+
+
+## ⚙️ Level-specific options
+
+If needed, we can use different options for each level (L1 & L2), like:
+- `MemoryCacheDuration`
+- `DistributedCacheDuration`
+
+For example, by specifying a lower `MemoryCacheDuration` we can refresh a value in L1 from L2 more frequently (but if we use a [backplane](Backplane.md) that would not be necessary).
+
+Another example is when we want to skip read/write operations on each level via:
+- `SkipMemoryCacheWrite`
+- `SkipMemoryCacheRead`
+- `SkipDistributedCacheWrite`
+- `SkipDistributedCacheRead`
+
+In general, if there's a `WhateverOption` and it makes sense to be able to speficy a different value for each level, we can expect to find a `MemoryCacheWhateverOption` and a `DistributedCacheWhateverOption` and that, if a level-specific value is not provided, the normal one will be used.
 
 
 ## 📢 Backplane ([more](Backplane.md))
