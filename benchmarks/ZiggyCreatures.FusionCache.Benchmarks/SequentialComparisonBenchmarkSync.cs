@@ -9,6 +9,7 @@ using LazyCache;
 using LazyCache.Providers;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace ZiggyCreatures.Caching.Fusion.Benchmarks;
 
@@ -55,9 +56,14 @@ public class SequentialComparisonBenchmarkSync
 		}
 
 		// SETUP DI
-		var services = new ServiceCollection();
-		services.AddEasyCaching(options => { options.UseInMemory("default"); });
-		ServiceProvider = services.BuildServiceProvider();
+		var builder = Host.CreateDefaultBuilder();
+		builder.ConfigureServices(services =>
+		{
+			services.AddEasyCaching(options => { options.UseInMemory("default"); });
+		});
+		var host = builder.Build();
+
+		ServiceProvider = host.Services;
 
 		// SETUP CACHES
 		_FusionCache = new FusionCache(new FusionCacheOptions { DefaultEntryOptions = new FusionCacheEntryOptions(CacheDuration) });

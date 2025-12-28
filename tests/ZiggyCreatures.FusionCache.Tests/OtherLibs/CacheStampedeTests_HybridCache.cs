@@ -18,9 +18,7 @@ public abstract class CacheStampedeTests_HybridCache
 	{
 		var services = new ServiceCollection();
 
-#pragma warning disable EXTEXP0018 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 		services.AddHybridCache();
-#pragma warning restore EXTEXP0018 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 		var serviceProvider = services.BuildServiceProvider();
 

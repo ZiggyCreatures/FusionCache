@@ -8,12 +8,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+		<PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
 		<PackageReference Include="CacheTower" Version="0.14.0" />
 		<PackageReference Include="EasyCaching.InMemory" Version="1.9.2" />
 		<PackageReference Include="FastCache.Cached" Version="1.8.2" />
 		<PackageReference Include="LazyCache" Version="2.4.0" />
-		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="9.3.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
