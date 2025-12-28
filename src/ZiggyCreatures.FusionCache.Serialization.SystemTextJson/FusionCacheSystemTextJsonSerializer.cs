@@ -24,8 +24,9 @@ public class FusionCacheSystemTextJsonSerializer
 	/// </summary>
 	/// <param name="options">The optional <see cref="JsonSerializerOptions"/> object to use.</param>
 	public FusionCacheSystemTextJsonSerializer(JsonSerializerOptions? options = null)
+		: this(new Options { SerializerOptions = options })
 	{
-		_serializerOptions = options;
+		// EMPTY
 	}
 
 	/// <summary>
@@ -33,22 +34,22 @@ public class FusionCacheSystemTextJsonSerializer
 	/// </summary>
 	/// <param name="options">The optional <see cref="Options"/> object to use.</param>
 	public FusionCacheSystemTextJsonSerializer(Options? options)
-		: this(options?.SerializerOptions)
 	{
+		_options = options;
 	}
 
-	private readonly JsonSerializerOptions? _serializerOptions;
+	private readonly Options? _options;
 
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, _serializerOptions);
+		return JsonSerializer.SerializeToUtf8Bytes<T?>(obj, _options?.SerializerOptions);
 	}
 
 	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
-		return JsonSerializer.Deserialize<T>(data, _serializerOptions);
+		return JsonSerializer.Deserialize<T>(data, _options?.SerializerOptions);
 	}
 
 	/// <inheritdoc />
