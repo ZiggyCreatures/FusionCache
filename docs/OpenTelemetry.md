@@ -35,7 +35,7 @@ This is an example of the visibility we can achieve, in this case in [Honeycomb.
 >
 > Other than that I've used a couple of their free [Observability Office Hours](https://www.honeycomb.io/devrel/observability-office-hours) to chat with the awesome [Martin Thwaites](https://twitter.com/MartinDotNet) to better understand the right way to name activity sources, which tags to use in the metrics and so on: thanks Martin!
 
-## OpenTelemetry in .NET
+## 🔭 OpenTelemetry in .NET
 
 Normally in other languages there's an OpenTelemetry SDK being made available by the kind folks working on it, so that library authors can use that SDK to integrate into the OpenTelemetry world and communicate with processors, exporters and so no.
 
@@ -43,7 +43,7 @@ This is also true for .NET, but with a nice catch: in .NET there's always been s
 
 Nice, very nice, and this is what FusionCache did.
 
-## How to use it
+## 👩‍🏫 How to use it
 
 It is possible to opt-in to generate traces and metrics for both:
 - **high-level operations**: things like `GetOrSet`/`Set`/`Remove` operations, `Hit`/`Miss` events, etc
