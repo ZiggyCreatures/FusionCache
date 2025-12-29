@@ -30,7 +30,8 @@ This is an example of the visibility we can achieve, in this case in [Honeycomb.
 
 ![An example of the visibility obtainable by using OpenTelemetry, in this case thanks to the Honeycomb SAAS](images/opentelemetry-example.png)
 
-ℹ️ Please note that I don't have any affiliation, partnership or else with Honeycomb: I just created a free trial to test the OpenTelemetry integration.
+> [!NOTE]
+> Please note that I don't have any affiliation, partnership or else with Honeycomb: I just created a free trial to test the OpenTelemetry integration.
 
 Other than that I've used a couple of their free [Observability Office Hours](https://www.honeycomb.io/devrel/observability-office-hours) to chat with the awesome [Martin Thwaites](https://twitter.com/MartinDotNet) to better understand the right way to name activity sources, which tags to use in the metrics and so on: thanks Martin!
 
