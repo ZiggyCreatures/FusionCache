@@ -12,7 +12,7 @@ public sealed class AsyncKeyedMemoryLocker
 	private readonly AsyncKeyedLocker<string> _locker;
 
 	/// <summary>
-	/// Initializes a new instance of the <see cref="AsyncKeyedLocker"/> class.
+	/// Initializes a new instance of the <see cref="AsyncKeyedLocker{TKey}"/> class.
 	/// </summary>
 	public AsyncKeyedMemoryLocker(AsyncKeyedLockOptions? options = null)
 	{
