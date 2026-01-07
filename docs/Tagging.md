@@ -84,7 +84,7 @@ This is one of the hardest tasks in the world of caching, because it involves mu
 
 Imagine having a cache composed of millions of entries (been there, done that) and, of those, tens of thousands are tagged with a certain tag: when we _remove by tag_ for that tag what needs to happen is similar to something like this (pseudo-code):
 
-`DELETE * FROM table WHERE "my-tag" IN tags`
+`DELETE FROM table WHERE "my-tag" IN tags`
 
 In general, this kind of operation is not something that distributed caches are typically good at.
 
