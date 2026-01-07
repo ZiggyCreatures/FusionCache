@@ -75,7 +75,7 @@ This is how they compare:
 | **Sliding Expiration**| ❌(*)         | ❌             | ✔️               | ❌         | ❌              | ✔️       |
 | **Adaptive Caching**  | ✔️            | ❌             | ❌               | ❌         | ❌              | ✔️       |
 | **Tagging**           | ✔️            | ✔️             | ❌(*)            | ❌         | ❌              | ❌       |
-| **Clear**             | ✔️            | ❌             | ✔️               | ❌         | ❌              | ❌       |
+| **Clear**             | ✔️            | ✔️             | ✔️               | ✔️         | ❌              | ❌       |
 | **MS HybridCache**    | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
 | **Cancellation**      | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
 | **Multi-provider**    | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ❌       |
