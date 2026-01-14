@@ -212,7 +212,7 @@ public sealed partial class FusionCache
 		{
 			_ = Task.Run(async () =>
 			{
-				await Task.Delay(1000);
+				await Task.Delay(1000).ConfigureAwait(false);
 				RunBestPracticesAdvisor();
 			});
 		}
@@ -568,7 +568,7 @@ public sealed partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] waiting to acquire the MEMORY LOCK", CacheName, InstanceId, operationId, key);
 
-		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
+		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token).ConfigureAwait(false);
 
 		if (lockObj is not null)
 		{
@@ -638,7 +638,7 @@ public sealed partial class FusionCache
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		return await _dla!.AcquireLockAsync(operationId, key, timeout, token);
+		return await _dla!.AcquireLockAsync(operationId, key, timeout, token).ConfigureAwait(false);
 	}
 
 	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
@@ -657,7 +657,7 @@ public sealed partial class FusionCache
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, token);
+		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, token).ConfigureAwait(false);
 	}
 
 	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, CancellationToken token)

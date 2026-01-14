@@ -91,7 +91,7 @@ public partial class FusionCache
 				{
 					_ = Task.Run(async () =>
 					{
-						await MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, tmpMemoryLockObj, token);
+						await MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, tmpMemoryLockObj, token).ConfigureAwait(false);
 					});
 				}
 			}
@@ -997,7 +997,7 @@ public partial class FusionCache
 			options,
 			FusionCacheInternalUtils.NoTags,
 			token
-		);
+		).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

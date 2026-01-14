@@ -292,7 +292,7 @@ internal partial class DistributedCacheAccessor
 			key,
 			async ct =>
 			{
-				await _cache.RemoveAsync(MaybeProcessCacheKey(key), ct);
+				await _cache.RemoveAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false);
 
 				// EVENT
 				_events.OnRemove(operationId, key);

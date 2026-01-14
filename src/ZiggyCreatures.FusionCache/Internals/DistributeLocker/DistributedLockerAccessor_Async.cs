@@ -11,7 +11,7 @@ internal partial class DistributedLockerAccessor
 
 		try
 		{
-			var lockObj = await _locker.AcquireLockAsync(_options.CacheName, _options.InstanceId!, operationId, key, GetLockName(key), timeout, _logger, token);
+			var lockObj = await _locker.AcquireLockAsync(_options.CacheName, _options.InstanceId!, operationId, key, GetLockName(key), timeout, _logger, token).ConfigureAwait(false);
 
 			if (lockObj is not null)
 			{
@@ -47,7 +47,7 @@ internal partial class DistributedLockerAccessor
 
 		try
 		{
-			await _locker.ReleaseLockAsync(_options.CacheName, _options.InstanceId!, operationId, key, GetLockName(key), lockObj, _logger, token);
+			await _locker.ReleaseLockAsync(_options.CacheName, _options.InstanceId!, operationId, key, GetLockName(key), lockObj, _logger, token).ConfigureAwait(false);
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", _options.CacheName, _options.InstanceId, operationId, key);
