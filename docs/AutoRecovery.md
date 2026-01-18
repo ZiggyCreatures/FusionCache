@@ -26,7 +26,7 @@ This is done thanks to an internal auto-recovery queue, where items are put when
 
 More errors on a subsequent retry? Again, all taken care of until everything works out well.
 
-This feature is not implemented **inside** of a specific backplane implementation - of which there are multiple - but inside FusionCache itself: this means that it works with any backplane implementation automatically, which is nice.
+This feature is not implemented **inside** of a specific distributed cache/backplane implementation - of which there are multiple - but inside FusionCache itself: this means that it works with any implementation automatically, which is nice.
 
 We should also keep in mind that auto-recovery works for both the distributed cache and the backplane, either when using them together or when using only one of them.
 
