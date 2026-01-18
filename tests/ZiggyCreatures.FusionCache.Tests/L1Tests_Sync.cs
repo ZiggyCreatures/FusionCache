@@ -1222,6 +1222,77 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public void CanRemoveByTagWithBehaviorExpire()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Expire
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		cache.Set<int>("bar", 2, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = cache.GetOrSet<int>("foo", _ => 11, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		var bar1 = cache.GetOrSet<int>("bar", _ => 22, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+
+		cache.RemoveByTag("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+		var foo3 = cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+		var bar2 = cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
+		var bar3 = cache.TryGet<int>("bar", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+
+		Assert.False(foo2.HasValue);
+		Assert.True(foo3.HasValue);
+		Assert.Equal(1, foo3.Value);
+		Assert.True(bar2.HasValue);
+		Assert.Equal(2, bar2.Value);
+		Assert.True(bar3.HasValue);
+		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
+	public void CanRemoveByTagWithBehaviorRemove()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		cache.Set<int>("bar", 2, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = cache.GetOrSet<int>("foo", _ => 11, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		var bar1 = cache.GetOrSet<int>("bar", _ => 22, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+
+		cache.RemoveByTag("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+		var foo3 = cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+		var bar2 = cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
+		var bar3 = cache.TryGet<int>("bar", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+
+		Assert.False(foo2.HasValue);
+		Assert.False(foo3.HasValue);
+		Assert.True(bar2.HasValue);
+		Assert.Equal(2, bar2.Value);
+		Assert.True(bar3.HasValue);
+		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
 	public void CanClear()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();

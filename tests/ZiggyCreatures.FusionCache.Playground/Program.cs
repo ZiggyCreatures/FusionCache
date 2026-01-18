@@ -6,6 +6,6 @@ class Program
 {
 	static async Task Main(string[] args)
 	{
-		await MultiNodesNoBackplaneScenario.RunAsync().ConfigureAwait(false);
+		await ScratchpadScenario.RunAsync().ConfigureAwait(false);
 	}
 }

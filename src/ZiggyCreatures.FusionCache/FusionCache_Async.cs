@@ -936,7 +936,15 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cascade expire entry", CacheName, InstanceId, operationId, key);
 
-					await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
+					switch (_options.RemoveByTagBehavior)
+					{
+						case RemoveByTagBehavior.Remove:
+							await RemoveInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
+							break;
+						case RemoveByTagBehavior.Expire:
+							await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
+							break;
+					}
 
 					return (entry, false);
 				}
