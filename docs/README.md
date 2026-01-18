@@ -36,7 +36,7 @@ FusionCache has a lot of features, let's see them grouped together:
 
 ### Resiliency
 
-- [**🛡️ Cache Stampede**](CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🛡️ Cache Stampede**](CacheStampede.md): automatic protection, both local (single node) and distributed (multiple nodes)
 - [**💣 Fail-Safe**](FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
 - [**↩️ Auto-Recovery**](AutoRecovery.md): self-healing for the entire cache, all automatically
 

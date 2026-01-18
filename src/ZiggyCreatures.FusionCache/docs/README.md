@@ -61,7 +61,7 @@ You can find most of them, sometimes with the related slides, in the dedicated r
 FusionCache has a lot of features, let's see them grouped together:
 
 #### Resiliency
-- [**🛡️ Cache Stampede**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md): automatic protection from the Cache Stampede problem
+- [**🛡️ Cache Stampede**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md): automatic protection, both local (single node) and distributed (multiple nodes)
 - [**💣 Fail-Safe**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/FailSafe.md): a mechanism to avoids transient failures, by reusing an expired entry as a temporary fallback
 - [**↩️ Auto-Recovery**](https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoRecovery.md): self-healing for the entire cache, all automatically
 

@@ -1,6 +1,6 @@
 ### MIT License
 
-Copyright (c) 2020-2025 Jody Donetti
+Copyright (c) 2020-2026 Jody Donetti
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

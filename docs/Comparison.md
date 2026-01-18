@@ -75,7 +75,7 @@ This is how they compare:
 | **Sliding Expiration**| ❌(*)         | ❌             | ✔️               | ❌         | ❌              | ✔️       |
 | **Adaptive Caching**  | ✔️            | ❌             | ❌               | ❌         | ❌              | ✔️       |
 | **Tagging**           | ✔️            | ✔️             | ❌(*)            | ❌         | ❌              | ❌       |
-| **Clear**             | ✔️            | ❌             | ✔️               | ❌         | ❌              | ❌       |
+| **Clear**             | ✔️            | ✔️             | ✔️               | ✔️         | ❌              | ❌       |
 | **MS HybridCache**    | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
 | **Cancellation**      | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
 | **Multi-provider**    | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ❌       |
@@ -95,5 +95,5 @@ This is how they compare:
 ℹ **NOTES**
 - (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
 - (2): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
-- (3): **HybridCache** protects from stampede, but the implementation is non-deterministic, and this can be a big problem.
+- (3): **HybridCache** protects from stampede, but the implementation is non-deterministic on cache misses, and this may create problems.
 - (4): **FusionCache** does not natively support sliding expiration for now, but a similar result can be achieved (see [here](https://github.com/ZiggyCreatures/FusionCache/discussions/63#discussioncomment-3047513))

@@ -84,7 +84,7 @@ This is one of the hardest tasks in the world of caching, because it involves mu
 
 Imagine having a cache composed of millions of entries (been there, done that) and, of those, tens of thousands are tagged with a certain tag: when we _remove by tag_ for that tag what needs to happen is similar to something like this (pseudo-code):
 
-`DELETE * FROM table WHERE "my-tag" IN tags`
+`DELETE FROM table WHERE "my-tag" IN tags`
 
 In general, this kind of operation is not something that distributed caches are typically good at.
 
@@ -125,9 +125,9 @@ So, is it doable?
 
 Yes, with the **Client-Assisted** approach and a delicate balance of the workload needed.
 
-Here's what happens: a `RemoveByTag("tag123")` would simply set internally an entry with a key `"__fc:t:tag123"`, containing the current timestamp. The concrete cache key will also consider any potential `CacheKeyPrefix`, so mutliple [named caches](NamedCaches.md) on shared cache backends would automatically be supported, too.
+Here's what happens: a `RemoveByTag("tag123")` would simply set internally an entry with a key `"__fc:t:tag123"`, containing the current timestamp. The concrete cache key will also consider any potential `CacheKeyPrefix`, so multiple [named caches](NamedCaches.md) on shared cache backends would automatically be supported, too.
 
-Then when getting a cache entry, **after** internally getting it from L1/L2 but **before** returning it to the outside world, FusionCache would see if it has tags attached to it and, in that case and only in thase case (so no extra costs when tagging is not used), it would get the expiration timestamp for each tag to see if it's expired and when.
+Then when getting a cache entry, **after** internally getting it from L1/L2 but **before** returning it to the outside world, FusionCache would see if it has tags attached to it and, in that case and only in that case (so no extra costs when tagging is not used), it would get the expiration timestamp for each tag to see if it's expired and when.
 
 For each related tag, if an expiration timestamp is present and that is greater than the timestamp at which the cache entry has been created, it should then be considered expired.
 
