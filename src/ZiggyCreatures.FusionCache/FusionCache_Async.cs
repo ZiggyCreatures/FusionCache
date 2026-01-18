@@ -18,7 +18,7 @@ public partial class FusionCache
 		object? distributedLockObj = null;
 		if (HasDistributedLocker && options.SkipDistributedLocker == false)
 		{
-			distributedLockObj = await AcquireDistributedLockAsync(operationId, key, TimeSpan.Zero, token).ConfigureAwait(false);
+			distributedLockObj = await AcquireDistributedLockAsync(operationId, key, TimeSpan.Zero, options, token).ConfigureAwait(false);
 			if (distributedLockObj is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -187,7 +187,7 @@ public partial class FusionCache
 				// DISTRIBUTED LOCK
 				if (HasDistributedLocker && options.SkipDistributedLocker == false)
 				{
-					distributedLockObj = await AcquireDistributedLockAsync(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), token).ConfigureAwait(false);
+					distributedLockObj = await AcquireDistributedLockAsync(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), options,token).ConfigureAwait(false);
 				}
 
 				if (distributedLockObj is not null)
@@ -339,7 +339,7 @@ public partial class FusionCache
 			if (hasNewValue == false)
 			{
 				if (distributedLockObj is not null)
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, token).ConfigureAwait(false);
+					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
 			}
 		}
 
@@ -1162,7 +1162,7 @@ public partial class FusionCache
 				// DISTRIBUTED LOCKER
 				if (distributedLockObj is not null)
 				{
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, token).ConfigureAwait(false);
+					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
 				}
 
 				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);

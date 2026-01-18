@@ -556,7 +556,7 @@ public sealed partial class FusionCache
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				if (distributedLockObj is not null)
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, CancellationToken.None).ConfigureAwait(false);
+					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
 			}
 		});
 	}
@@ -633,23 +633,23 @@ public sealed partial class FusionCache
 
 	// DISTRIBUTED LOCKER
 
-	private async ValueTask<object?> AcquireDistributedLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
+	private async ValueTask<object?> AcquireDistributedLockAsync(string operationId, string key, TimeSpan timeout, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		return await _dla!.AcquireLockAsync(operationId, key, timeout, token).ConfigureAwait(false);
+		return await _dla!.AcquireLockAsync(operationId, key, timeout, options, token).ConfigureAwait(false);
 	}
 
-	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
+	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		return _dla!.AcquireLock(operationId, key, timeout, token);
+		return _dla!.AcquireLock(operationId, key, timeout, options, token);
 	}
 
-	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, CancellationToken token)
+	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
 			return;
@@ -657,10 +657,10 @@ public sealed partial class FusionCache
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, token).ConfigureAwait(false);
+		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, options, token).ConfigureAwait(false);
 	}
 
-	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, CancellationToken token)
+	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
 			return;
@@ -668,7 +668,7 @@ public sealed partial class FusionCache
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		_dla!.ReleaseDistributedLock(operationId, key, lockObj, token);
+		_dla!.ReleaseDistributedLock(operationId, key, lockObj, options, token);
 	}
 
 	// FACTORY STUFF

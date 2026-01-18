@@ -4,7 +4,7 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 
 internal partial class DistributedLockerAccessor
 {
-	public object? AcquireLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
+	public object? AcquireLock(string operationId, string key, TimeSpan timeout, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] waiting to acquire the DISTRIBUTED LOCK", _options.CacheName, _options.InstanceId, operationId, key);
@@ -33,11 +33,23 @@ internal partial class DistributedLockerAccessor
 			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
 				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
 
+			if (options.ReThrowDistributedLockerExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheDistributedLockerException("An error occurred while working with the distributed locker (acquiring)", exc);
+				}
+			}
+
 			return null;
 		}
 	}
 
-	public void ReleaseDistributedLock(string operationId, string key, object? lockObj, CancellationToken token)
+	public void ReleaseDistributedLock(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
 			return;
@@ -56,6 +68,18 @@ internal partial class DistributedLockerAccessor
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
+
+			if (options.ReThrowDistributedLockerExceptions)
+			{
+				if (_options.ReThrowOriginalExceptions)
+				{
+					throw;
+				}
+				else
+				{
+					throw new FusionCacheDistributedLockerException("An error occurred while working with the distributed locker (releasing)", exc);
+				}
+			}
 		}
 	}
 }
