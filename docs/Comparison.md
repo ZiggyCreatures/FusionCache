@@ -79,7 +79,7 @@ This is how they compare:
 | **MS HybridCache**    | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
 | **Cancellation**      | ✔️            | ✔️             | ❌               | ❌         | ❌              | ❌       |
 | **Multi-provider**    | ✔️            | ✔️             | ✔️               | ✔️         | ✔️              | ❌       |
-| **Multi-level**       | ✔️            | ✔️             | ✔️               | ✔️         | ✔️(*)           | ❌       |
+| **Multi-level**       | ✔️            | ✔️             | ✔️               | ✔️         | ℹ️(*)           | ❌       |
 | **Backplane**         | ✔️            | ❌             | ✔️               | ✔️         | ✔️              | ❌       |
 | **Named Caches**      | ✔️            | ❌             | ❌               | ✔️         | ✔️              | ❌       |
 | **Auto-Recovery**     | ✔️            | ❌             | ❌               | ❌         | ❌              | ❌       |
@@ -93,7 +93,7 @@ This is how they compare:
 | **License**           | `MIT`          | `Same as .NET` | `Apache 2.0`     | `MIT`       | `MIT`           | `MIT`     |
 
 ℹ **NOTES**
-- (1): **EasyCaching** supports an `HybridCachingProvider` to handle 2 levels transparently, but it's implemented in a way that checks the distributed cache before the in-memory one, kind of invalidating the benefits of the latter, which is important to know.
+- (1): **EasyCaching** can be used with either 1 or 2 levels, and each level can have a different implementation. Having said that,  it's not possible to transparently switch between 1 and 2 levels. Also, some methods internally do L1->L2, while others do L2->L1, which may lead to surprises.
 - (2): **CacheManager** does not support tagging, which is the most complete feature, but does support regions, which is a middle ground between nothing at all and tagging.
 - (3): **HybridCache** protects from stampede, but the implementation is non-deterministic on cache misses, and this may create problems.
 - (4): **FusionCache** does not natively support sliding expiration for now, but a similar result can be achieved (see [here](https://github.com/ZiggyCreatures/FusionCache/discussions/63#discussioncomment-3047513))
