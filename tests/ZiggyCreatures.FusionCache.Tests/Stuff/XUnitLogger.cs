@@ -39,16 +39,23 @@ public class XUnitLogger<T>
 	{
 		if (IsEnabled(logLevel))
 		{
-			_helper.WriteLine(
-				(logLevel >= LogLevel.Warning ? Environment.NewLine : "")
-				+ $"{logLevel.ToString()[..4].ToUpper()} {DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)}: "
-				+ formatter(state, exception)
-				+ (exception is null
-					? ""
-					: (Environment.NewLine + exception.ToString() + Environment.NewLine)
-				)
-				+ (logLevel >= LogLevel.Warning ? Environment.NewLine : "")
-			);
+			try
+			{
+				_helper.WriteLine(
+					(logLevel >= LogLevel.Warning ? Environment.NewLine : "")
+					+ $"{logLevel.ToString()[..4].ToUpper()} {DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture)}: "
+					+ formatter(state, exception)
+					+ (exception is null
+						? ""
+						: (Environment.NewLine + exception.ToString() + Environment.NewLine)
+					)
+					+ (logLevel >= LogLevel.Warning ? Environment.NewLine : "")
+				);
+			}
+			catch
+			{
+				// EMPTY
+			}
 		}
 	}
 }
