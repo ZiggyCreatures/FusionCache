@@ -1298,7 +1298,7 @@ public partial class L1Tests
 		var logger = CreateXUnitLogger<FusionCache>();
 
 		// CACHE A: PASSING A MEMORY CACHE -> CANNOT EXECUTE RAW CLEAR
-		MemoryCache? mcA = new MemoryCache(new MemoryCacheOptions());
+		using MemoryCache? mcA = new MemoryCache(new MemoryCacheOptions());
 		using var cacheA = new FusionCache(new FusionCacheOptions() { CacheName = "CACHE_A" }, mcA, logger: logger);
 
 		// CACHE B: NOT PASSING A MEMORY CACHE -> CAN EXECUTE RAW CLEAR
