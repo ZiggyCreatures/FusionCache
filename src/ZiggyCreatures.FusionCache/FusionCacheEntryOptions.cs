@@ -983,6 +983,21 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the distributed lock timeout.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <param name="timeout">The value for the <see cref="DistributedLockTimeout"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDistributedLockTimeout(TimeSpan timeout)
+	{
+		DistributedLockTimeout = timeout;
+		return this;
+	}
+
+	/// <summary>
 	/// Set the <see cref="EnableAutoClone"/> option.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoClone.md"/>
