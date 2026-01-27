@@ -86,6 +86,32 @@ You may change other options too, like the `Priority` for example.
 
 Of course ther are some changes that wouldn't make much sense: if for example we change the `FactorySoftTimeout` after the factory has been already executed we shouldn't expect much to happen, right 😅 ?
 
+## Use adaptive caching to skip cache write
+
+Adaptive caching can also be used to skip cache write altogether. This pattern is useful if you want to skip cache write for some specific values returned by the factory.
+
+Here is an example:
+
+```csharp
+var id = 42;
+
+// USE ADAPTIVE CACHING TO SKIP CACHE WRITE FOR SOME VALUES RETURNED BY THE FACTORY
+var product = cache.GetOrSet<Product>(
+    $"product:{id}",
+    (ctx, ct) => {
+        var product = GetProductFromDb(id, ct);
+
+        if (product.IsFlashSale) {
+            // THE PRICE AND STOCK OF FLASH SALE PRODUCTS CHANGE CONSTANTLY, SO WE DON'T WANT TO CACHE THEM TO AVOID SERVING STALE DATA
+            ctx.Options.SkipMemoryCacheWrite = true;
+			ctx.Options.SkipDistributedCacheWrite = true;
+        } 
+
+        return product;
+    },
+    options => options.SetDuration(TimeSpan.FromMinutes(1)) // DEFAULT: 1 MIN
+);
+```
 
 ## ⏱ Timeouts & Background Factory Completion
 
