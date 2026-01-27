@@ -102,10 +102,23 @@ var product = cache.GetOrSet<Product>(
         var product = GetProductFromDb(id, ct);
 
         if (product.IsFlashSale) {
-            // THE PRICE AND STOCK OF FLASH SALE PRODUCTS CHANGE CONSTANTLY, SO WE DON'T WANT TO CACHE THEM TO AVOID SERVING STALE DATA
+            // FLASH‑SALE PRODUCTS CHANGE PRICE AND STOCK CONSTANTLY
+			// SO WE AVOID CACHING THEM TO PREVENT SERVING STALE DATA
             ctx.Options.SkipMemoryCacheWrite = true;
 			ctx.Options.SkipDistributedCacheWrite = true;
-        } 
+        } else if (product is null) {
+            // CACHE null FOR 5 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(5);
+        } else if (product.LastUpdatedAt > DateTime.UtcNow.AddDays(-1)) {
+            // CACHE PRODUCTS UPDATED IN THE LAST DAY FOR 1 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(1);
+        } else if (product.LastUpdatedAt > DateTime.UtcNow.AddDays(-10)) {
+            // CACHE PRODUCTS UPDATED IN THE LAST 10 DAYS FOR 10 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(10);
+        } else {
+            // CACHE ANY OLDER PRODUCT FOR 30 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(30);
+        }
 
         return product;
     },
