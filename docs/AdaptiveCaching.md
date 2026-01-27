@@ -86,9 +86,9 @@ You may change other options too, like the `Priority` for example.
 
 Of course ther are some changes that wouldn't make much sense: if for example we change the `FactorySoftTimeout` after the factory has been already executed we shouldn't expect much to happen, right 😅 ?
 
-## Use adaptive caching to skip cache write
+## Use adaptive caching to skip cache writes
 
-Adaptive caching can also be used to skip cache write altogether. This pattern is useful if you want to skip cache write for some specific values returned by the factory.
+Adaptive caching can also be used to skip writing to the cache altogether. This pattern is useful when you want to avoid caching certain values returned by the factory.
 
 Here is an example:
 
