@@ -143,9 +143,9 @@ public class BackplaneMessage
 		if (message is null)
 			throw new ArgumentNullException(nameof(message));
 		if (message.SourceId is null)
-			throw new ArgumentNullException(nameof(message.SourceId));
+			throw new InvalidOperationException($"{nameof(message.SourceId)} cannot be null.");
 		if (message.CacheKey is null)
-			throw new ArgumentNullException(nameof(message.CacheKey));
+			throw new InvalidOperationException($"{nameof(message.CacheKey)} cannot be null.");
 
 		var sourceIdByteCount = _encoding.GetByteCount(message.SourceId);
 		var cacheKeyByteCount = _encoding.GetByteCount(message.CacheKey);
