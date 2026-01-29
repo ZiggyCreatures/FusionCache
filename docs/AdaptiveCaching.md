@@ -86,9 +86,22 @@ You may change other options too, like the `Priority` for example.
 
 Of course ther are some changes that wouldn't make much sense: if for example we change the `FactorySoftTimeout` after the factory has been already executed we shouldn't expect much to happen, right 😅 ?
 
-## Use adaptive caching to skip cache writes
+## ⏱ Timeouts & Background Factory Completion
 
-Adaptive caching can also be used to skip writing to the cache altogether. This pattern is useful when you want to avoid caching certain values returned by the factory.
+Short version: everything works as expected!
+
+Longer version: there are times when, if a factory is taking a lot of time to complete (because maybe the database is overloaded or there's a temporary network congestion), you would prefer stale data very fast instead of fresh data but slowly.
+
+A nice feature of FusionCache is the ability to set soft/hard [timeouts](Timeouts.md) to get the best of both worlds: an always fast response with fresh data as soon as possible. As we know when a timeout kicks in, the running factory is not stopped but kept running in the background.
+
+A question we may ask ourselves is if adaptive caching would still work in that scenario.
+
+The answer is **absolutely yes**: you don't need to change anything, do extra steps or give up on some features 🎉
+
+
+## 🧙‍♂️ Use Adaptive Caching to skip cache writes
+
+Adaptive caching can also be used to skip writing to the cache altogether: this pattern is useful when you want to avoid caching certain values returned by the factory.
 
 Here is an example:
 
@@ -125,15 +138,3 @@ var product = cache.GetOrSet<Product>(
     options => options.SetDuration(TimeSpan.FromMinutes(1)) // DEFAULT: 1 MIN
 );
 ```
-
-## ⏱ Timeouts & Background Factory Completion
-
-Short version: everything works as expected!
-
-Longer version: there are times when, if a factory is taking a lot of time to complete (because maybe the database is overloaded or there's a temporary network congestion), you would prefer stale data very fast instead of fresh data but slowly.
-
-A nice feature of FusionCache is the ability to set soft/hard [timeouts](Timeouts.md) to get the best of both worlds: an always fast response with fresh data as soon as possible. As we know when a timeout kicks in, the running factory is not stopped but kept running in the background.
-
-A question we may ask ourselves is if adaptive caching would still work in that scenario.
-
-The answer is **absolutely yes**: you don't need to change anything, do extra steps or give up on some features 🎉
