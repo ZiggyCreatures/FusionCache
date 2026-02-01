@@ -11,9 +11,9 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Set up .NET Core
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9.0.x'
+        global-json-file: global.json
 
     - run: dotnet --info
     - name: Build solution and run all tests
