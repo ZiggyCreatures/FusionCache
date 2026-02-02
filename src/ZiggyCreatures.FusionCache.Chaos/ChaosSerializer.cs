@@ -24,6 +24,18 @@ public class ChaosSerializer
 		_innerSerializer = innerSerializer ?? throw new ArgumentNullException(nameof(innerSerializer));
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the ChaosSerializer class that implements the <see cref="IBufferFusionCacheSerializer"/> interface if the given <paramref name="innerSerializer"/> does.
+	/// </summary>
+	/// <param name="innerSerializer">The actual <see cref="IFusionCacheSerializer"/> used if and when chaos does not happen.</param>
+	/// <param name="logger">The logger to use, or <see langword="null"/>.</param>
+	public static ChaosSerializer Create(IFusionCacheSerializer innerSerializer, ILogger<ChaosSerializer>? logger = null)
+	{
+		return innerSerializer is IBufferFusionCacheSerializer bufferSerializer
+			? new ChaosBufferSerializer(bufferSerializer, logger)
+			: new ChaosSerializer(innerSerializer, logger);
+	}
+
 	/// <inheritdoc/>
 	public byte[] Serialize<T>(T? obj)
 	{
