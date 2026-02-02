@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Buffers;
+using System.Runtime.Serialization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
@@ -8,6 +9,7 @@ using BenchmarkDotNet.Order;
 using BenchmarkDotNet.Toolchains.InProcess.Emit;
 using MemoryPack;
 using MessagePack;
+using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 using ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
@@ -71,7 +73,7 @@ public class SerializersBenchmark
 	}
 
 	[ParamsSource(nameof(GetSerializers))]
-	public IFusionCacheSerializer Serializer = null!;
+	public IBufferFusionCacheSerializer Serializer = null!;
 	protected List<SampleModel> _Models = [];
 	protected byte[] _Blob = null!;
 
@@ -93,9 +95,23 @@ public class SerializersBenchmark
 	}
 
 	[Benchmark]
+	public void Serialize_Buffer()
+	{
+		using var writer = new ArrayPoolBufferWriter();
+		Serializer.Serialize(_Models, writer);
+	}
+
+	[Benchmark]
 	public void Deserialize()
 	{
 		Serializer.Deserialize<List<SampleModel>>(_Blob);
+	}
+
+	[Benchmark]
+	public void Deserialize_Buffer()
+	{
+		var blob = new ReadOnlySequence<byte>(_Blob);
+		Serializer.Deserialize<List<SampleModel>>(in blob);
 	}
 
 	[Benchmark]
@@ -105,12 +121,26 @@ public class SerializersBenchmark
 	}
 
 	[Benchmark]
+	public async Task SerializeAsync_Buffer()
+	{
+		using var writer = new ArrayPoolBufferWriter();
+		await Serializer.SerializeAsync(_Models, writer).ConfigureAwait(false);
+	}
+
+	[Benchmark]
 	public async Task DeserializeAsync()
 	{
 		await Serializer.DeserializeAsync<List<SampleModel>>(_Blob).ConfigureAwait(false);
 	}
 
-	public static IEnumerable<IFusionCacheSerializer> GetSerializers()
+	[Benchmark]
+	public async Task DeserializeAsync_Buffer()
+	{
+		var blob = new ReadOnlySequence<byte>(_Blob);
+		await Serializer.DeserializeAsync<List<SampleModel>>(blob).ConfigureAwait(false);
+	}
+
+	public static IEnumerable<IBufferFusionCacheSerializer> GetSerializers()
 	{
 		yield return new FusionCacheCysharpMemoryPackSerializer();
 		yield return new FusionCacheNeueccMessagePackSerializer();

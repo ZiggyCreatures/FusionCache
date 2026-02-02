@@ -8,7 +8,6 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
-using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -116,21 +115,15 @@ public static class TestsUtils
 
 	public static IFusionCacheSerializer? GetSerializer(IFusionCache cache)
 	{
-		var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
-		if (dca is null)
-			return null;
-
-		return typeof(DistributedCacheAccessor).GetField("_serializer", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as IFusionCacheSerializer;
+		var dca = ((FusionCache)cache).DistributedCacheAccessor;
+		return dca?.Serializer;
 	}
 
 	public static IDistributedCache? GetDistributedCache<TDistributedCache>(IFusionCache cache)
 		where TDistributedCache : class, IDistributedCache
 	{
-		var dca = typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedCacheAccessor;
-		if (dca is null)
-			return null;
-
-		return typeof(DistributedCacheAccessor).GetField("_cache", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dca) as TDistributedCache;
+		var dca = ((FusionCache)cache).DistributedCacheAccessor;
+		return dca?.DistributedCache as TDistributedCache;
 	}
 
 	public static TBackplane? GetBackplane<TBackplane>(IFusionCache cache)

@@ -1,11 +1,22 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
-internal partial class DistributedCacheAccessor
+internal abstract partial class DistributedCacheAccessor<TSerialized>
 {
+	protected abstract TSerialized? Serialize<T>(FusionCacheDistributedEntry<T> obj);
+
+	protected abstract T? Deserialize<T>(TSerialized data);
+
+	protected abstract TSerialized? GetCacheEntry(string key);
+	
+	protected abstract void SetCacheEntry(string key, TSerialized data, DistributedCacheEntryOptions distributedOptions);
+
+	protected abstract void RemoveCacheEntry(string key);
+	
 	private bool ExecuteOperation(string operationId, string key, Action<CancellationToken> action, string actionDescription, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		//if (IsCurrentlyUsable(operationId, key) == false)
@@ -70,13 +81,13 @@ internal partial class DistributedCacheAccessor
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 		// SERIALIZATION
-		byte[]? data;
+		TSerialized? data;
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
-			data = _serializer.Serialize(distributedEntry);
+			data = Serialize(distributedEntry);
 		}
 		catch (Exception exc)
 		{
@@ -121,7 +132,7 @@ internal partial class DistributedCacheAccessor
 			{
 				var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 
-				_cache.Set(MaybeProcessCacheKey(key), data, distributedOptions);
+				SetCacheEntry(MaybeProcessCacheKey(key), data, distributedOptions);
 
 				// EVENT
 				_events.OnSet(operationId, key);
@@ -147,12 +158,12 @@ internal partial class DistributedCacheAccessor
 		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
 		// GET FROM DISTRIBUTED CACHE
-		byte[]? data;
+		TSerialized? data;
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(_options, hasFallbackValue);
-			data = RunUtils.RunSyncFuncWithTimeout<byte[]?>(
-				_ => _cache.Get(MaybeProcessCacheKey(key)),
+			data = RunUtils.RunSyncFuncWithTimeout<TSerialized?>(
+				_ => GetCacheEntry(MaybeProcessCacheKey(key)),
 				timeout.Value,
 				true,
 				token: token
@@ -178,7 +189,7 @@ internal partial class DistributedCacheAccessor
 				}
 			}
 
-			data = null;
+			data = default;
 		}
 
 		if (data is null)
@@ -194,7 +205,7 @@ internal partial class DistributedCacheAccessor
 		// DESERIALIZATION
 		try
 		{
-			var entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data);
+			var entry = Deserialize<FusionCacheDistributedEntry<TValue>>(data);
 			var isValid = false;
 			if (entry is null)
 			{
@@ -276,7 +287,7 @@ internal partial class DistributedCacheAccessor
 			key,
 			_ =>
 			{
-				_cache.Remove(MaybeProcessCacheKey(key));
+				RemoveCacheEntry(MaybeProcessCacheKey(key));
 
 				// EVENT
 				_events.OnRemove(operationId, key);
