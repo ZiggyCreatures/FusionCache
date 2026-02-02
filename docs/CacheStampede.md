@@ -288,7 +288,7 @@ One final thing, which is very important.
 
 The way the distributed coordination in FusionCache is achieved is through distributed locking.
 
-And distributed locking is e particular thing, with some peculiar settings and tradeoffs picked for different reasons.
+And distributed locking is a peculiar thing, with some peculiar settings and tradeoffs picked for different reasons.
 
 But here's the thing: we should not confuse *what* we are trying to achieve with *how*.
 
