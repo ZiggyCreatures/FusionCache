@@ -68,7 +68,7 @@ internal sealed class BufferDistributedCacheAccessor(IBufferDistributedCache dis
 	{
 		var writer = new ArrayPoolBufferWriter();
 
-		if (await _cache.TryGetAsync(key, writer, ct))
+		if (await _cache.TryGetAsync(key, writer, ct).ConfigureAwait(false))
 		{
 			return writer;
 		}
