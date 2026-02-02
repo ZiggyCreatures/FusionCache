@@ -74,6 +74,16 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	}
 
 	/// <summary>
+	/// Returns the data written so far.
+	/// Any other method call on the writer makes the returned sequence invalid.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ReadOnlySequence<byte> GetWrittenBuffer()
+	{
+		return new ReadOnlySequence<byte>(_buffer, 0, _bytesWritten);
+	}
+
+	/// <summary>
 	/// Returns the buffer as an array of <see cref="T:byte[]" />
 	/// </summary>
 	/// <returns>The buffer as a byte array.</returns>

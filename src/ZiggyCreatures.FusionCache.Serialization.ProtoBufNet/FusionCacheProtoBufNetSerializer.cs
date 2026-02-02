@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using ProtoBuf.Meta;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -11,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
 /// </summary>
 public class FusionCacheProtoBufNetSerializer
-	: IFusionCacheSerializer
+	: IFusionCacheSerializer, IBufferFusionCacheSerializer
 {
 	/// <summary>
 	/// The options class for the <see cref="FusionCacheProtoBufNetSerializer"/> class.
@@ -102,9 +103,17 @@ public class FusionCacheProtoBufNetSerializer
 	public byte[] Serialize<T>(T? obj)
 	{
 		MaybeRegisterDistributedEntryModel<T>();
-		using var stream = new ArrayPoolWritableStream();
-		_model.Serialize(stream, obj);
-		return stream.GetBytes();
+		using var writer = new ArrayPoolBufferWriter();
+		_model.Serialize(writer, obj);
+		return writer.ToArray();
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		MaybeRegisterDistributedEntryModel<T>();
+		_model.Serialize(destination, obj);
 	}
 
 	/// <inheritdoc />
@@ -119,15 +128,41 @@ public class FusionCacheProtoBufNetSerializer
 	}
 
 	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		if (data.Length == 0)
+			return default;
+
+		MaybeRegisterDistributedEntryModel<T>();
+
+		return _model.Deserialize<T?>(data);
+	}
+
+	/// <inheritdoc />
 	public ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		return new ValueTask<byte[]>(Serialize(obj));
 	}
 
 	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask SerializeAsync<T>(T? obj, IBufferWriter<byte> destination, CancellationToken token = default)
+	{
+		Serialize(obj, destination);
+		return new ValueTask();
+	}
+
+	/// <inheritdoc />
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask<T?> DeserializeAsync<T>(ReadOnlySequence<byte> data, CancellationToken token = default)
+	{
+		return new ValueTask<T?>(Deserialize<T>(in data));
 	}
 
 	/// <inheritdoc />

@@ -14,7 +14,6 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
-using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
@@ -360,8 +359,8 @@ public class DependencyInjectionTests
 
 		static IDistributedCache GetDistributedCache(IFusionCache cache)
 		{
-			var dla = (DistributedCacheAccessor)(typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
-			return dla.DistributedCache;
+			var dca = ((FusionCache)cache).DistributedCacheAccessor!;
+			return dca.DistributedCache;
 		}
 
 		var distributedCache = GetDistributedCache(cache);
