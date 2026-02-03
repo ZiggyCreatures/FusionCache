@@ -51,7 +51,7 @@ internal sealed class ExperimentalMemoryLocker
 
 		// TODO: WHAT DO?
 		//await tcs.Task.WaitAsync(timeout, token);
-		await tcs.Task;
+		await tcs.Task.ConfigureAwait(false);
 
 		return tcs.Task;
 

@@ -18,7 +18,7 @@ public partial class FusionCache
 		object? distributedLockObj = null;
 		if (HasDistributedLocker && options.SkipDistributedLocker == false)
 		{
-			distributedLockObj = AcquireDistributedLock(operationId, key, TimeSpan.Zero, token);
+			distributedLockObj = AcquireDistributedLock(operationId, key, TimeSpan.Zero, options, token);
 			if (distributedLockObj is null)
 			{
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -187,7 +187,7 @@ public partial class FusionCache
 				// DISTRIBUTED LOCK
 				if (HasDistributedLocker && options.SkipDistributedLocker == false)
 				{
-					distributedLockObj = AcquireDistributedLock(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), token);
+					distributedLockObj = AcquireDistributedLock(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), options, token);
 				}
 
 				if (distributedLockObj is not null)
@@ -339,7 +339,7 @@ public partial class FusionCache
 			if (hasNewValue == false)
 			{
 				if (distributedLockObj is not null)
-					ReleaseDistributedLock(operationId, key, distributedLockObj, token);
+					ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
 			}
 		}
 
@@ -936,7 +936,16 @@ public partial class FusionCache
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): cascade expire entry", CacheName, InstanceId, operationId, key);
 
-					ExpireInternal(key, _cascadeRemoveByTagEntryOptions, token);
+					switch (_options.RemoveByTagBehavior)
+					{
+						case RemoveByTagBehavior.Remove:
+							RemoveInternal(key, _cascadeRemoveByTagEntryOptions, token);
+							break;
+						case RemoveByTagBehavior.Expire:
+							ExpireInternal(key, _cascadeRemoveByTagEntryOptions, token);
+							break;
+					}
+
 
 					return (entry, false);
 				}
@@ -1162,7 +1171,7 @@ public partial class FusionCache
 				// DISTRIBUTED LOCKER
 				if (distributedLockObj is not null)
 				{
-					ReleaseDistributedLock(operationId, key, distributedLockObj, token);
+					ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
 				}
 
 				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
