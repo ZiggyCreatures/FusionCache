@@ -97,13 +97,7 @@ public class FusionCacheNewtonsoftJsonSerializer
 	/// <inheritdoc />
 	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
 	{
-		// TODO: implement sequence-to-stream adapter
-		if (!data.IsSingleSegment || !MemoryMarshal.TryGetArray(data.First, out var segment))
-		{
-			segment = new ArraySegment<byte>(data.ToArray());
-		}
-
-		using var stream = new MemoryStream(segment.Array!, segment.Offset, segment.Count, writable: false);
+		using var stream = new ReadOnlySequenceStream(in data);
 		using var reader = new StreamReader(stream, _encoding);
 		using var jsonReader = new JsonTextReader(reader);
 		jsonReader.ArrayPool = JsonArrayPool.Shared;

@@ -23,7 +23,7 @@ namespace FusionCacheTests.Stuff;
 
 public static class TestsUtils
 {
-	public static IFusionCacheSerializer GetSerializer(SerializerType serializerType)
+	public static IBufferFusionCacheSerializer GetSerializer(SerializerType serializerType)
 	{
 		switch (serializerType)
 		{
