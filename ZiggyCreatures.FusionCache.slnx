@@ -5,6 +5,7 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
+    <File Path="global.json" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching.csproj" />
@@ -12,8 +13,8 @@
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Chaos/ZiggyCreatures.FusionCache.Chaos.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Locking.AsyncKeyed/ZiggyCreatures.FusionCache.Locking.AsyncKeyed.csproj" />
-    <Project Path="src/ZiggyCreatures.FusionCache.Locking.Distributed.Memory/ZiggyCreatures.FusionCache.Locking.Distributed.Memory.csproj"/>
-    <Project Path="src/ZiggyCreatures.FusionCache.Locking.Distributed.Redis/ZiggyCreatures.FusionCache.Locking.Distributed.Redis.csproj"/>
+    <Project Path="src/ZiggyCreatures.FusionCache.Locking.Distributed.Memory/ZiggyCreatures.FusionCache.Locking.Distributed.Memory.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Locking.Distributed.Redis/ZiggyCreatures.FusionCache.Locking.Distributed.Redis.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.OpenTelemetry/ZiggyCreatures.FusionCache.OpenTelemetry.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack/ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack/ZiggyCreatures.FusionCache.Serialization.NeueccMessagePack.csproj" />
