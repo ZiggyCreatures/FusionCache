@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
+		<TargetFramework>netstandard2.0;net6.0</TargetFramework>
 		<Version>2.5.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Chaos</PackageId>
 		<Description>Chaos-related utilities and implementations of various componenets (like a distributed cache or a backplane), useful for things like testing dependent components' behavior in a controlled failing environment.</Description>

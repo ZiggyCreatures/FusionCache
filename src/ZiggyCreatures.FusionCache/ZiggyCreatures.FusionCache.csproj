@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
+		<TargetFrameworks>netstandard2.0;net6.0;net8.0;net9.0</TargetFrameworks>
 		<Version>2.5.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
@@ -31,6 +31,10 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
+		<PackageReference Include="ThreadSafeRandomizer" Version="3.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>analyzers</IncludeAssets>
+		</PackageReference>		
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
@@ -41,6 +45,7 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Benchmarks" />
+		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Chaos" />
 		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Tests" />
 	</ItemGroup>
 

@@ -1,4 +1,4 @@
-﻿using ZiggyCreatures.Caching.Fusion.Internals;
+﻿using ThreadSafeRandomizer;
 
 namespace ZiggyCreatures.Caching.Fusion.Chaos;
 
@@ -20,7 +20,7 @@ public static class FusionCacheChaosUtils
 		if (throwProbability >= 1f)
 			return true;
 
-		return ConcurrentRandom.NextDouble() < throwProbability;
+		return ThreadSafeRandom.Instance.NextDouble() < throwProbability;
 	}
 
 	/// <summary>
@@ -47,7 +47,7 @@ public static class FusionCacheChaosUtils
 		if (minDelay >= maxDelay)
 			return minDelay;
 
-		return minDelay + TimeSpan.FromMilliseconds(ConcurrentRandom.NextDouble() * (maxDelay - minDelay).TotalMilliseconds);
+		return minDelay + TimeSpan.FromMilliseconds(ThreadSafeRandom.Instance.NextDouble() * (maxDelay - minDelay).TotalMilliseconds);
 	}
 
 	/// <summary>

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using ThreadSafeRandomizer;
 using ZiggyCreatures.Caching.Fusion.Events;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
@@ -527,7 +528,7 @@ public sealed class FusionCacheEntryOptions
 		if (JitterMaxDuration <= TimeSpan.Zero)
 			return 0d;
 
-		return ConcurrentRandom.NextDouble() * JitterMaxDuration.TotalMilliseconds;
+		return ThreadSafeRandom.Instance.NextDouble() * JitterMaxDuration.TotalMilliseconds;
 	}
 
 	/// <summary>
