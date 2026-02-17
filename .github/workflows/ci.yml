@@ -10,23 +10,73 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Set up .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
-
-    - run: dotnet --info
-    - name: Build solution and run all tests
-      run: dotnet test --verbosity normal -l trx --results-directory '${{ env.TEST_RESULTS }}'
-
+    - name: Build solution
+      run: dotnet build
+    - name: Run core tests
+      run: dotnet test --no-build --verbosity normal -l trx --results-directory '${{ env.TEST_RESULTS }}' --filter "FullyQualifiedName~FusionCache&FullyQualifiedName!~NatsL1&FullyQualifiedName!~RedisL1"
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/linux@v2
       if: ${{ success() || failure() }}
       with:
         files: '${{ env.TEST_RESULTS }}/*.trx'
-        check_name: "Test results"
+        check_name: "Core Test results"
         report_individual_runs: true
         action_fail: true
         time_unit: milliseconds
         #ignore_runs: true
+        compare_to_earlier_commit: false
+
+  test-nats:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      nats:
+        image: nats:latest
+        ports:
+          - 4222:4222
+          - 8222:8222
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+    steps:
+    - uses: actions/checkout@master
+    - name: Build solution
+      run: dotnet build
+    - name: Run NatsL1 tests
+      run: dotnet test --no-build --verbosity normal -l trx --results-directory '${{ env.TEST_RESULTS }}' --filter "FullyQualifiedName~NatsL1"
+    - name: Publish Nats test results
+      uses: EnricoMi/publish-unit-test-result-action/linux@v2
+      if: ${{ success() || failure() }}
+      with:
+        files: '${{ env.TEST_RESULTS }}/*.trx'
+        check_name: "Nats Test results"
+        report_individual_runs: true
+        action_fail: true
+        time_unit: milliseconds
+        compare_to_earlier_commit: false
+
+  test-redis:
+    runs-on: ubuntu-latest
+    needs: build
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+    steps:
+    - uses: actions/checkout@master
+    - name: Build solution
+      run: dotnet build
+    - name: Run RedisL1 tests
+      run: dotnet test --no-build --verbosity normal -l trx --results-directory '${{ env.TEST_RESULTS }}' --filter "FullyQualifiedName~RedisL1"
+    - name: Publish Redis test results
+      uses: EnricoMi/publish-unit-test-result-action/linux@v2
+      if: ${{ success() || failure() }}
+      with:
+        files: '${{ env.TEST_RESULTS }}/*.trx'
+        check_name: "Redis Test results"
+        report_individual_runs: true
+        action_fail: true
+        time_unit: milliseconds
         compare_to_earlier_commit: false
