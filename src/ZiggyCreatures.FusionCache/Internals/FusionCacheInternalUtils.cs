@@ -467,7 +467,7 @@ internal static class FusionCacheInternalUtils
 		return true;
 	}
 
-	public static bool ShouldRead(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	public static bool ShouldRead(this IDistributedCacheAccessor? dca, FusionCacheEntryOptions options)
 	{
 		if (dca is null)
 			return false;
@@ -478,7 +478,7 @@ internal static class FusionCacheInternalUtils
 		return true;
 	}
 
-	public static bool ShouldReadWhenStale(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	public static bool ShouldReadWhenStale(this IDistributedCacheAccessor? dca, FusionCacheEntryOptions options)
 	{
 		if (dca is null)
 			return false;
@@ -489,7 +489,7 @@ internal static class FusionCacheInternalUtils
 		return true;
 	}
 
-	public static bool ShouldWrite(this DistributedCacheAccessor? dca, FusionCacheEntryOptions options)
+	public static bool ShouldWrite(this IDistributedCacheAccessor? dca, FusionCacheEntryOptions options)
 	{
 		if (dca is null)
 			return false;
@@ -500,7 +500,7 @@ internal static class FusionCacheInternalUtils
 		return true;
 	}
 
-	public static bool CanBeUsed(this DistributedCacheAccessor? dca, string? operationId, string? key)
+	public static bool CanBeUsed(this IDistributedCacheAccessor? dca, string? operationId, string? key)
 	{
 		if (dca is null)
 			return false;

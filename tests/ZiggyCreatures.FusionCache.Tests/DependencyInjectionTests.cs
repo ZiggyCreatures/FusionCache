@@ -14,7 +14,6 @@ using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
-using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
@@ -360,8 +359,8 @@ public class DependencyInjectionTests
 
 		static IDistributedCache GetDistributedCache(IFusionCache cache)
 		{
-			var dla = (DistributedCacheAccessor)(typeof(FusionCache).GetField("_dca", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache)!);
-			return dla.DistributedCache;
+			var dca = ((FusionCache)cache).DistributedCacheAccessor!;
+			return dca.DistributedCache;
 		}
 
 		var distributedCache = GetDistributedCache(cache);
@@ -1289,10 +1288,10 @@ public class DependencyInjectionTests
 		var services = new ServiceCollection();
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
-		var registeredSerializer = new ChaosSerializer(new FusionCacheSystemTextJsonSerializer());
+		var registeredSerializer = ChaosSerializer.Create(new FusionCacheSystemTextJsonSerializer());
 		services.AddKeyedSingleton<IFusionCacheSerializer>("FooSerializer", registeredSerializer);
 
-		var registeredDistributedCache = new ChaosDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
+		var registeredDistributedCache = ChaosDistributedCache.Create(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
 		services.AddKeyedSingleton<IDistributedCache>("FooDistributedCache", registeredDistributedCache);
 
 		services.AddFusionCache()
@@ -1422,10 +1421,10 @@ public class DependencyInjectionTests
 		services.AddKeyedSingleton<IMemoryCache>("FooMemoryCache", registeredMemoryCache);
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
-		var registeredSerializer = new ChaosSerializer(new FusionCacheSystemTextJsonSerializer());
+		var registeredSerializer = ChaosSerializer.Create(new FusionCacheSystemTextJsonSerializer());
 		services.AddKeyedSingleton<IFusionCacheSerializer>("FooSerializer", registeredSerializer);
 
-		var registeredDistributedCache = new ChaosDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
+		var registeredDistributedCache = ChaosDistributedCache.Create(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
 		services.AddKeyedSingleton<IDistributedCache>("FooDistributedCache", registeredDistributedCache);
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES

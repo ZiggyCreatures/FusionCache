@@ -320,7 +320,7 @@ internal class Program
 				{
 					AnsiConsole.Markup(" - [default]DISTRIBUTED CACHE:[/] ...");
 					var chaosDistributedCacheLogger = SimulatorOptions.EnableFusionCacheLogging ? serviceProvider.GetService<ILogger<ChaosDistributedCache>>() : null;
-					var tmp = new ChaosDistributedCache(distributedCache, chaosDistributedCacheLogger);
+					var tmp = ChaosDistributedCache.Create(distributedCache, chaosDistributedCacheLogger);
 					if (SimulatorOptions.ChaosDistributedCacheSyntheticMinDelay is not null && SimulatorOptions.ChaosDistributedCacheSyntheticMaxDelay is not null)
 					{
 						tmp.SetAlwaysDelay(SimulatorOptions.ChaosDistributedCacheSyntheticMinDelay.Value, SimulatorOptions.ChaosDistributedCacheSyntheticMaxDelay.Value);

@@ -1130,7 +1130,7 @@ public partial class FusionCache
 
 	// DISTRIBUTED ACTIONS
 
-	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, object? distributedLockObj, CancellationToken token)
+	private void ExecuteDistributedAction(string operationId, string key, FusionCacheAction action, long timestamp, Func<IDistributedCacheAccessor, bool, CancellationToken, bool> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, bool> backplaneAction, FusionCacheEntryOptions options, object? distributedLockObj, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
 		{

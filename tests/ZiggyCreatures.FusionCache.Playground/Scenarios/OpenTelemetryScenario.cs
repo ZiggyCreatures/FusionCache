@@ -172,7 +172,7 @@ public static class OpenTelemetryScenario
 			//distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
 			// CHAOS + MEMORY
-			var chaosDistributedCache = new ChaosDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
+			var chaosDistributedCache = ChaosDistributedCache.Create(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())));
 			chaosDistributedCache.SetAlwaysDelay(TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(100));
 
 			distributedCache = chaosDistributedCache;
