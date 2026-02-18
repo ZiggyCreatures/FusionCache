@@ -19,7 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AsyncKeyedLock" Version="8.0.0" />
+		<PackageReference Include="AsyncKeyedLock" Version="8.0.2" />
 	</ItemGroup>
 
 	<ItemGroup>
