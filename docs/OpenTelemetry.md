@@ -96,3 +96,9 @@ services.AddOpenTelemetry()
 ```
 
 Easy peasy.
+
+## 📃 Official Registry
+
+FusionCache is also part of the official [OpenTelemetry Registry](https://opentelemetry.io/ecosystem/registry/?s=fusioncache):
+
+![](images/otel-registry.jpg)
