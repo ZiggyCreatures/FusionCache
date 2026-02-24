@@ -1129,7 +1129,7 @@ public partial class FusionCache
 
 	// DISTRIBUTED ACTIONS
 
-	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<DistributedCacheAccessor, bool, CancellationToken, ValueTask<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, ValueTask<bool>> backplaneAction, FusionCacheEntryOptions options, object? distributedLockObj, CancellationToken token)
+	private async ValueTask ExecuteDistributedActionAsync(string operationId, string key, FusionCacheAction action, long timestamp, Func<IDistributedCacheAccessor, bool, CancellationToken, ValueTask<bool>> distributedCacheAction, Func<BackplaneAccessor, bool, CancellationToken, ValueTask<bool>> backplaneAction, FusionCacheEntryOptions options, object? distributedLockObj, CancellationToken token)
 	{
 		if (RequiresDistributedOperations(options) == false)
 		{

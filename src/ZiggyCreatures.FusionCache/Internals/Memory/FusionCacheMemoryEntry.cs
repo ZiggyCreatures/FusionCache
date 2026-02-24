@@ -172,7 +172,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		return cache.TryUpdateMemoryEntryFromDistributedEntryAsync<TValue>(operationId, cacheKey, this);
 	}
 
-	public ValueTask<bool> SetDistributedEntryAsync(string operationId, string key, DistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
+	public ValueTask<bool> SetDistributedEntryAsync(string operationId, string key, IDistributedCacheAccessor dca, FusionCacheEntryOptions options, bool isBackground, CancellationToken token)
 	{
 		return dca.SetEntryAsync<TValue>(operationId, key, this, options, isBackground, token);
 	}

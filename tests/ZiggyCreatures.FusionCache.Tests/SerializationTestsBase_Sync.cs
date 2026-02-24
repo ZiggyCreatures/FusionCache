@@ -7,13 +7,17 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests;
 
-public partial class SerializationTests
+public abstract partial class SerializationTestsBase
 	: AbstractTests
 {
-	private static T? LoopDeLoop<T>(IFusionCacheSerializer serializer, T? obj)
+	protected abstract byte[] Serialize<T>(IBufferFusionCacheSerializer serializer, T sourceEntry);
+
+	protected abstract T? Deserialize<T>(IBufferFusionCacheSerializer serializer, byte[] serializedData);
+	
+	private T? LoopDeLoop<T>(IBufferFusionCacheSerializer serializer, T? obj)
 	{
-		var data = serializer.Serialize(obj);
-		return serializer.Deserialize<T>(data);
+		var data = Serialize(serializer, obj);
+		return Deserialize<T>(serializer, data);
 	}
 
 	[Theory]
@@ -61,12 +65,12 @@ public partial class SerializationTests
 		var now = DateTimeOffset.UtcNow;
 		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).UtcTicks, "abc123", now.UtcTicks, 123, 1));
 
-		var data = serializer.Serialize(obj);
+		var data = Serialize(serializer, obj);
 
 		Assert.NotNull(data);
 		Assert.NotEmpty(data);
 
-		var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
+		var looped = Deserialize<FusionCacheDistributedEntry<string>>(serializer, data);
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
@@ -87,12 +91,12 @@ public partial class SerializationTests
 		var now = DateTimeOffset.UtcNow;
 		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], null);
 
-		var data = serializer.Serialize(obj);
+		var data = Serialize(serializer, obj);
 
 		Assert.NotNull(data);
 		Assert.NotEmpty(data);
 
-		var looped = serializer.Deserialize<FusionCacheDistributedEntry<string>>(data);
+		var looped = Deserialize<FusionCacheDistributedEntry<string>>(serializer, data);
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
@@ -108,12 +112,12 @@ public partial class SerializationTests
 		var now = DateTimeOffset.UtcNow;
 		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), now.UtcTicks, now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1).UtcTicks, "abc123", now.AddMicroseconds(now.Microsecond * -1).UtcTicks, 123, 1));
 
-		var data = serializer.Serialize(obj);
+		var data = Serialize(serializer, obj);
 
 		Assert.NotNull(data);
 		Assert.NotEmpty(data);
 
-		var looped = serializer.Deserialize<FusionCacheDistributedEntry<ComplexType>>(data);
+		var looped = Deserialize<FusionCacheDistributedEntry<ComplexType>>(serializer, data);
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
@@ -148,10 +152,10 @@ public partial class SerializationTests
 			null
 		);
 
-		var serializedData = serializer.Serialize(sourceEntry);
+		var serializedData = Serialize(serializer, sourceEntry);
 		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
 
-		var targetEntry = serializer.Deserialize<FusionCacheDistributedEntry<byte[]>>(serializedData);
+		var targetEntry = Deserialize<FusionCacheDistributedEntry<byte[]>>(serializer, serializedData);
 		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
 
 		Assert.Equal(sourceData, targetEntry.Value);
