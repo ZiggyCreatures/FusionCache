@@ -39,13 +39,16 @@ public class ParallelComparisonBenchmark
 	[Params(100)]
 	public int FactoryDurationMs;
 
-	[Params(10, 1000)]
+	//[Params(10, 1_000)]
+	[Params(10, 100)]
 	public int Accessors;
 
-	[Params(100, 1_000)]
+	//[Params(100, 1_000)]
+	[Params(100)]
 	public int KeysCount;
 
-	[Params(1, 10)]
+	//[Params(1, 10)]
+	[Params(10)]
 	public int Rounds;
 
 	private List<string> Keys = null!;
@@ -141,7 +144,7 @@ public class ParallelComparisonBenchmark
 		}
 	}
 
-	[Benchmark]
+	//[Benchmark]
 	public async Task FusionCache_NoTagging()
 	{
 		for (int i = 0; i < Rounds; i++)
@@ -284,7 +287,7 @@ public class ParallelComparisonBenchmark
 		}
 	}
 
-	[Benchmark]
+	//[Benchmark]
 	public async Task FusionHybridCache()
 	{
 		for (int i = 0; i < Rounds; i++)
