@@ -8,7 +8,9 @@
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			Initial release
+			- Fix: works better with timeouts in general, and Eager Refresh in particular
+			- Add: ext methods to register the component via DI
+			- Update: package dependencies
 		</PackageReleaseNotes>
 		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
