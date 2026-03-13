@@ -14,6 +14,7 @@ public sealed class FusionHybridCache
 	: HybridCache
 {
 	private const FusionCacheEntryOptions? NoEntryOptions = null;
+	private const string ClearAllTag = "*";
 
 	private readonly IFusionCache _fusionCache;
 
@@ -99,6 +100,11 @@ public sealed class FusionHybridCache
 	/// <inheritdoc/>
 	public override ValueTask RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
 	{
+		if (tag == ClearAllTag)
+		{
+			return _fusionCache.ClearAsync(true, NoEntryOptions, cancellationToken);
+		}
+		
 		return _fusionCache.RemoveByTagAsync(tag, NoEntryOptions, cancellationToken);
 	}
 
