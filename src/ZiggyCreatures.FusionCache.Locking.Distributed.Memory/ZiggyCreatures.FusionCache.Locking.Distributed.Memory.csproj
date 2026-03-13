@@ -12,6 +12,9 @@
 			Initial release
 		</PackageReleaseNotes>
 		<!--<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>-->
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
