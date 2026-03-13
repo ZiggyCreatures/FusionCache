@@ -11,6 +11,9 @@
 		<PackageReleaseNotes>
 			- Update: package dependencies
 		</PackageReleaseNotes>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>latest</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 	</PropertyGroup>
 
 	<ItemGroup>

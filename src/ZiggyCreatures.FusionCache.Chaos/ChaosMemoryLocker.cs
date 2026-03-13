@@ -35,7 +35,7 @@ public class ChaosMemoryLocker
 	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		MaybeChaos(token);
-		return await _innerMemoryLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, timeout, logger, token);
+		return await _innerMemoryLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, timeout, logger, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

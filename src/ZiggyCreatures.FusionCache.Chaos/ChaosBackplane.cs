@@ -60,7 +60,7 @@ public class ChaosBackplane
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION ChaosBackplane: Subscribe");
 
-		await MaybeChaosAsync();
+		await MaybeChaosAsync().ConfigureAwait(false);
 
 		_innerConnectHandler = options.ConnectHandler;
 		_innerIncomingMessageHandler = options.IncomingMessageHandler;
@@ -77,7 +77,7 @@ public class ChaosBackplane
 			OnIncomingMessageAsync
 		);
 
-		await _innerBackplane.SubscribeAsync(innerOptions);
+		await _innerBackplane.SubscribeAsync(innerOptions).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -109,7 +109,7 @@ public class ChaosBackplane
 		_innerConnectHandlerAsync = null;
 		_innerIncomingMessageHandlerAsync = null;
 
-		await _innerBackplane.UnsubscribeAsync();
+		await _innerBackplane.UnsubscribeAsync().ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

@@ -1262,7 +1262,7 @@ public sealed partial class FusionCache
 		)
 		{
 			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
-				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
+				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions, even more so when using Tagging or the Clear() feature. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
 		}
 
 		// CHECK:
@@ -1279,25 +1279,26 @@ public sealed partial class FusionCache
 				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: it has been detected a situation where there *IS* a backplane (BACKPLANE={BackplaneType}), there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache (Set, Remove, Expire and also GetOrSet when the factory is called) but there is not a distributed cache that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", CacheName, InstanceId, Backplane!.GetType().FullName);
 		}
 
-		// CHECK:
-		// - HAS L2
-		// - AND NO BACKPLANE
-		// - AND (
-		//   NO DefaultEntryOptions.MemoryCacheDuration
-		//   OR NO TagsDefaultEntryOptions.MemoryCacheDuration
-		// )
-		if (
-			HasDistributedCache
-			&& HasBackplane == false
-			&& (
-				_defaultEntryOptions.MemoryCacheDuration is null
-				|| _tagsDefaultEntryOptions.MemoryCacheDuration is null
-			)
-		)
-		{
-			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using an L2 (distributed cache) without a backplane, which will potentially leave other nodes' L1s (memory caches) out-of-sync after an update (see: cache coherence). To solve this, you can use a backplane. If that is not possible, you can mitigate the situation by setting both DefaultEntryOptions.MemoryCacheDuration and TagsDefaultEntryOptions.MemoryCacheDuration to a low value: this will refresh data in the L1 from the L2 more frequently, reducing the incoherence window.", CacheName, InstanceId);
-		}
+		// TODO: RE-ENABLE THIS, BUT MAKE IT BETTER/MORE CONFIGURABLE
+		//// CHECK:
+		//// - HAS L2
+		//// - AND NO BACKPLANE
+		//// - AND (
+		////   NO DefaultEntryOptions.MemoryCacheDuration
+		////   OR NO TagsDefaultEntryOptions.MemoryCacheDuration
+		//// )
+		//if (
+		//	HasDistributedCache
+		//	&& HasBackplane == false
+		//	&& (
+		//		_defaultEntryOptions.MemoryCacheDuration is null
+		//		|| _tagsDefaultEntryOptions.MemoryCacheDuration is null
+		//	)
+		//)
+		//{
+		//	if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+		//		_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using an L2 (distributed cache) without a backplane, which will potentially leave other nodes' L1s (memory caches) out-of-sync after an update (see: cache coherence). To solve this, you can use a backplane. If that is not possible, you can mitigate the situation by setting both DefaultEntryOptions.MemoryCacheDuration and TagsDefaultEntryOptions.MemoryCacheDuration to a low value: this will refresh data in the L1 from the L2 more frequently, reducing the incoherence window.", CacheName, InstanceId);
+		//}
 
 		// CHECK:
 		// - HAS DISTRIBUTED LOCKER

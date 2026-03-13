@@ -16,18 +16,18 @@ internal sealed class FusionOutputCacheStore : IOutputCacheStore
 	/// <inheritdoc />
 	public async ValueTask EvictByTagAsync(string tag, CancellationToken cancellationToken)
 	{
-		await _cache.RemoveByTagAsync(tag, token: cancellationToken);
+		await _cache.RemoveByTagAsync(tag, token: cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
 	public async ValueTask<byte[]?> GetAsync(string key, CancellationToken cancellationToken)
 	{
-		return await _cache.GetOrDefaultAsync<byte[]?>(key, null, token: cancellationToken);
+		return await _cache.GetOrDefaultAsync<byte[]?>(key, null, token: cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc />
 	public async ValueTask SetAsync(string key, byte[] value, string[]? tags, TimeSpan validFor, CancellationToken cancellationToken)
 	{
-		await _cache.SetAsync(key, value, options => options.SetDuration(validFor).SetSize(value.Length), tags, token: cancellationToken);
+		await _cache.SetAsync(key, value, options => options.SetDuration(validFor).SetSize(value.Length), tags, token: cancellationToken).ConfigureAwait(false);
 	}
 }

@@ -42,13 +42,13 @@ public class ChaosSerializer
 	public async ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		await MaybeChaosAsync().ConfigureAwait(false);
-		return await _innerSerializer.SerializeAsync<T>(obj, token);
+		return await _innerSerializer.SerializeAsync<T>(obj, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
 	public async ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		await MaybeChaosAsync().ConfigureAwait(false);
-		return await _innerSerializer.DeserializeAsync<T>(data, token);
+		return await _innerSerializer.DeserializeAsync<T>(data, token).ConfigureAwait(false);
 	}
 }
