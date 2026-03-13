@@ -14,7 +14,7 @@ public class RedisDistributedLockerOptions
 	/// </summary>
 	public RedisDistributedLockerOptions()
 	{
-		AbandonTimeout = TimeSpan.FromSeconds(10);
+		AbandonTimeout = TimeSpan.FromSeconds(30);
 	}
 
 	/// <summary>
