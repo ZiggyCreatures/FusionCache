@@ -88,7 +88,7 @@ public sealed class FusionHybridCache
 		}
 
 		// GET + SET
-		return await _fusionCache.GetOrSetAsync<T>(key, async (_, ct) => await factory(state, ct), default, feo, tags, cancellationToken).ConfigureAwait(false);
+		return await _fusionCache.GetOrSetAsync<T>(key, async (_, ct) => await factory(state, ct).ConfigureAwait(false), default, feo, tags, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -104,7 +104,7 @@ public sealed class FusionHybridCache
 		{
 			return _fusionCache.ClearAsync(true, NoEntryOptions, cancellationToken);
 		}
-		
+
 		return _fusionCache.RemoveByTagAsync(tag, NoEntryOptions, cancellationToken);
 	}
 
