@@ -1714,4 +1714,37 @@ public partial class L1Tests
 
 		Assert.Equal(1, factoryCallsCount);
 	}
+
+	//[Fact]
+	//public void RemoveByTagStarDoesAClear()
+	//{
+	//	using var cache = new FusionCache(new FusionCacheOptions
+	//	{
+	//		DefaultEntryOptions = {
+	//			Duration = TimeSpan.FromSeconds(10)
+	//		}
+	//	});
+
+	//	var clearCallsCount = 0;
+
+	//	cache.Events.Clear += (sender, e) =>
+	//	{
+	//		clearCallsCount++;
+	//	};
+
+	//	cache.Set<int>("foo", 1, token: TestContext.Current.CancellationToken);
+	//	cache.Set<int>("bar", 2, token: TestContext.Current.CancellationToken);
+	//	cache.Set<int>("baz", 3, token: TestContext.Current.CancellationToken);
+
+	//	cache.RemoveByTag("*", token: TestContext.Current.CancellationToken);
+
+	//	var maybeFoo = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+	//	var maybeBar = cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
+	//	var maybeBaz = cache.TryGet<int>("baz", token: TestContext.Current.CancellationToken);
+
+	//	Assert.False(maybeFoo.HasValue);
+	//	Assert.False(maybeBar.HasValue);
+	//	Assert.False(maybeBaz.HasValue);
+	//	Assert.Equal(1, clearCallsCount);
+	//}
 }

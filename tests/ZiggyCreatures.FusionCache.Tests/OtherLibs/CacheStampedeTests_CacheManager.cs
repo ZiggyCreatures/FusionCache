@@ -20,7 +20,7 @@ public abstract class CacheStampedeTests_CacheManager
 
 			Parallel.For(0, accessorsCount, _ =>
 			{
-				cache.GetOrAdd(
+				cache.TryGetOrAddCacheItem(
 					"foo",
 					key =>
 					{
@@ -32,7 +32,8 @@ public abstract class CacheStampedeTests_CacheManager
 							ExpirationMode.Absolute,
 							TimeSpan.FromSeconds(10)
 						);
-					}
+					},
+					out var _
 				);
 			});
 
