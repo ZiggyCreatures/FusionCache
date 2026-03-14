@@ -2,25 +2,25 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.5.0</Version>
+		<Version>2.6.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Add: support for distributed Cache Stampede protection, thanks to a new IFusionCacheDistributedLocker component
-			- Add: new MemoryCacheDuration option to override the normal Duration for the L1 (memory level), useful when using an L2 without a backplane (to reduce the incoherency window)
-			- Add: Best Practices Advisor for automatic analysis and suggestions
-			- Add: new IgnoreTimeoutsWhenDebugging option, to ignore timeouts when a debugger is attached
-			- Change: the timestamp for a new entry produced by a factory is now set when the factory ends and not when it starts, to better reflect the mos precise moment in time when the value has been produced
-			- Perf: various internal performance improvements, mostly for edge cases
+			- Add: add option to configure the underlying RemoveByTag() behavior, between Remove and Expire
+			- Add: add MemoryLockTimeout option, just like DistributedLockTimeout option
+			- Add: add support for RemoveByTag("*") in the HybridCache adapter
+			- Add: add ReThrowDistributedLockerExceptions option
+			- Perf: faster GenerateOperationId()
+			- Fix: fixed distributed locker to work better with timeouts (in general + Eager Refresh)
+			- Fix: added a couple of missing ConfigureAwait(false)
+			- Change: in the Advisor, stop warning for a missing backplane when using L2
 			- Update: package dependencies
 		</PackageReleaseNotes>
-		<!--
-		<EnablePackageValidation>true</EnablePackageValidation>
-		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
-		-->
+		<!--<EnablePackageValidation>true</EnablePackageValidation>-->
+		<PackageValidationBaselineVersion>2.5.0</PackageValidationBaselineVersion>
 		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsAotCompatible>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
