@@ -946,7 +946,6 @@ public partial class FusionCache
 							break;
 					}
 
-
 					return (entry, false);
 				}
 			}
