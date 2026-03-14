@@ -187,7 +187,7 @@ public partial class FusionCache
 				// DISTRIBUTED LOCK
 				if (HasDistributedLocker && options.SkipDistributedLocker == false)
 				{
-					distributedLockObj = await AcquireDistributedLockAsync(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), options,token).ConfigureAwait(false);
+					distributedLockObj = await AcquireDistributedLockAsync(operationId, key, options.GetAppropriateDistributedLockTimeout(_options, memoryEntry is not null), options, token).ConfigureAwait(false);
 				}
 
 				if (distributedLockObj is not null)
@@ -1014,6 +1014,15 @@ public partial class FusionCache
 		CheckDisposed();
 
 		CheckTaggingEnabled();
+
+		// TODO: NOT 100% SURE ABOUT THIS...
+
+		//// INTERCEPT HYBRIDCACHE-LIKE CLEAR
+		//if (tag == "*")
+		//{
+		//	await ClearAsync().ConfigureAwait(false);
+		//	return;
+		//}
 
 		ValidateTag(tag);
 

@@ -1016,6 +1016,15 @@ public partial class FusionCache
 
 		CheckTaggingEnabled();
 
+		// TODO: NOT 100% SURE ABOUT THIS...
+
+		//// INTERCEPT HYBRIDCACHE-LIKE CLEAR
+		//if (tag == "*")
+		//{
+		//	Clear();
+		//	return;
+		//}
+
 		ValidateTag(tag);
 
 		var operationId = MaybeGenerateOperationId();
