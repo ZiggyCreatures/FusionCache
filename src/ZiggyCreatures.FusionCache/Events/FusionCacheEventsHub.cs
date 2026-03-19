@@ -173,7 +173,7 @@ public sealed class FusionCacheEventsHub
 		// METRIC
 		Metrics.CounterClear.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId);
 
-		Clear?.SafeExecute(operationId, "", _cache, new EventArgs(), nameof(Clear), _logger, _errorsLogLevel, _syncExecution);
+		Clear?.SafeExecute(operationId, "", _cache, EventArgs.Empty, nameof(Clear), _logger, _errorsLogLevel, _syncExecution);
 	}
 
 	// OVERRIDES

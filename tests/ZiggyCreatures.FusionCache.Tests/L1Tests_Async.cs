@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using CacheManager.Core.Internal;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -1281,6 +1282,77 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public async Task CanRemoveByTagWithBehaviorExpireAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Expire
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		await cache.SetAsync<int>("bar", 2, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = await cache.GetOrSetAsync<int>("foo", async _ => 11, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		var bar1 = await cache.GetOrSetAsync<int>("bar", async _ => 22, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+
+		await cache.RemoveByTagAsync("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+		var foo3 = await cache.TryGetAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+		var bar2 = await cache.TryGetAsync<int>("bar", token: TestContext.Current.CancellationToken);
+		var bar3 = await cache.TryGetAsync<int>("bar", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+
+		Assert.False(foo2.HasValue);
+		Assert.True(foo3.HasValue);
+		Assert.Equal(1, foo3.Value);
+		Assert.True(bar2.HasValue);
+		Assert.Equal(2, bar2.Value);
+		Assert.True(bar3.HasValue);
+		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
+	public async Task CanRemoveByTagWithBehaviorRemoveAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		await cache.SetAsync<int>("bar", 2, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = await cache.GetOrSetAsync<int>("foo", async _ => 11, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		var bar1 = await cache.GetOrSetAsync<int>("bar", async _ => 22, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+
+		await cache.RemoveByTagAsync("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+		var foo3 = await cache.TryGetAsync<int>("foo", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+		var bar2 = await cache.TryGetAsync<int>("bar", token: TestContext.Current.CancellationToken);
+		var bar3 = await cache.TryGetAsync<int>("bar", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+
+		Assert.False(foo2.HasValue);
+		Assert.False(foo3.HasValue);
+		Assert.True(bar2.HasValue);
+		Assert.Equal(2, bar2.Value);
+		Assert.True(bar3.HasValue);
+		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
 	public async Task CanClearAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
@@ -1694,4 +1766,37 @@ public partial class L1Tests
 
 		Assert.Equal(1, factoryCallsCount);
 	}
+
+	//[Fact]
+	//public async Task RemoveByTagStarDoesAClearAsync()
+	//{
+	//	using var cache = new FusionCache(new FusionCacheOptions
+	//	{
+	//		DefaultEntryOptions = {
+	//			Duration = TimeSpan.FromSeconds(10)
+	//		}
+	//	});
+
+	//	var clearCallsCount = 0;
+
+	//	cache.Events.Clear += (sender, e) =>
+	//	{
+	//		clearCallsCount++;
+	//	};
+
+	//	await cache.SetAsync<int>("foo", 1, token: TestContext.Current.CancellationToken);
+	//	await cache.SetAsync<int>("bar", 2, token: TestContext.Current.CancellationToken);
+	//	await cache.SetAsync<int>("baz", 3, token: TestContext.Current.CancellationToken);
+
+	//	await cache.RemoveByTagAsync("*", token: TestContext.Current.CancellationToken);
+
+	//	var maybeFoo = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+	//	var maybeBar = await cache.TryGetAsync<int>("bar", token: TestContext.Current.CancellationToken);
+	//	var maybeBaz = await cache.TryGetAsync<int>("baz", token: TestContext.Current.CancellationToken);
+
+	//	Assert.False(maybeFoo.HasValue);
+	//	Assert.False(maybeBar.HasValue);
+	//	Assert.False(maybeBaz.HasValue);
+	//	Assert.Equal(1, clearCallsCount);
+	//}
 }

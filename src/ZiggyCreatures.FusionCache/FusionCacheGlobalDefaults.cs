@@ -169,6 +169,11 @@ public static class FusionCacheGlobalDefaults
 	public static bool EntryOptionsEnableAutoClone { get; set; } = false;
 
 	/// <summary>
+	/// The global default <see cref="FusionCacheEntryOptions.ReThrowDistributedLockerExceptions"/>.
+	/// </summary>
+	public static bool EntryOptionsReThrowDistributedLockerExceptions { get; set; } = false;
+
+	/// <summary>
 	/// The global default <see cref="FusionCacheEntryOptions.SkipDistributedLocker"/>.
 	/// </summary>
 	public static bool EntryOptionsSkipDistributedLocker { get; set; } = false;

@@ -45,18 +45,79 @@ public abstract class AbstractChaosComponent
 	public float ChaosThrowProbability { get; set; }
 
 	/// <summary>
-	/// Force chaos delays to always be between certain amounts.
+	/// Determines if an exception should be thrown.
 	/// </summary>
-	/// <param name="minDelay">The minimum amount of delay.</param>
-	/// <param name="maxDelay">The maximum amount of delay.</param>
-	public virtual void SetAlwaysDelay(TimeSpan minDelay, TimeSpan maxDelay)
+	/// <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
+	public virtual bool ShouldThrow()
+	{
+		return FusionCacheChaosUtils.ShouldThrow(ChaosThrowProbability);
+	}
+
+	/// <summary>
+	/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
+	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
+	/// </summary>
+	protected void MaybeChaos(CancellationToken token = default)
+	{
+		FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability, token);
+	}
+
+	/// <summary>
+	/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
+	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
+	/// </summary>
+	protected async Task MaybeChaosAsync(CancellationToken token = default)
+	{
+		await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability, token).ConfigureAwait(false);
+	}
+
+	// THROW
+
+	/// <summary>
+	/// Force chaos exceptions to always be thrown.
+	/// </summary>
+	/// <param name="probability">The value for <see cref="ChaosThrowProbability"/>, from 0.0 to 1.0, that represents the probability of throwing an exception: set it to 0.0 to never throw or to 1.0 to always throw.</param>
+	public virtual void SetMaybeThrow(float probability)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetDelay");
+			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetMaybeThrow");
 
-		ChaosMinDelay = minDelay;
-		ChaosMaxDelay = maxDelay;
+		// CLAMP
+		if (probability < 0.0f)
+		{
+			probability = 0.0f;
+		}
+		else if (probability > 1.0f)
+		{
+			probability = 1.0f;
+		}
+
+		ChaosThrowProbability = probability;
 	}
+
+	/// <summary>
+	/// Force chaos exceptions to always be thrown.
+	/// </summary>
+	public virtual void SetAlwaysThrow()
+	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysThrow");
+
+		ChaosThrowProbability = 1f;
+	}
+
+	/// <summary>
+	/// Force chaos exceptions to never be thrown.
+	/// </summary>
+	public virtual void SetNeverThrow()
+	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverThrow");
+
+		ChaosThrowProbability = 0f;
+	}
+
+	// DELAY
 
 	/// <summary>
 	/// Force chaos delays to always be of exactly this amount.
@@ -72,15 +133,32 @@ public abstract class AbstractChaosComponent
 	}
 
 	/// <summary>
-	/// Force chaos exceptions to always be thrown.
+	/// Force chaos delays to always be between certain amounts.
 	/// </summary>
-	public virtual void SetAlwaysThrow()
+	/// <param name="minDelay">The minimum amount of delay.</param>
+	/// <param name="maxDelay">The maximum amount of delay.</param>
+	public virtual void SetAlwaysDelay(TimeSpan minDelay, TimeSpan maxDelay)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysThrow");
+			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetDelay");
 
-		ChaosThrowProbability = 1f;
+		ChaosMinDelay = minDelay;
+		ChaosMaxDelay = maxDelay;
 	}
+
+	/// <summary>
+	/// Force chaos delays to never happen.
+	/// </summary>
+	public virtual void SetNeverDelay()
+	{
+		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverDelay");
+
+		ChaosMinDelay = TimeSpan.Zero;
+		ChaosMaxDelay = TimeSpan.Zero;
+	}
+
+	// CHASO (DELAY + THROW)
 
 	/// <summary>
 	/// Force chaos exceptions to always throw, and chaos delays to always be of exactly this amount.
@@ -119,55 +197,5 @@ public abstract class AbstractChaosComponent
 
 		SetNeverThrow();
 		SetNeverDelay();
-	}
-
-	/// <summary>
-	/// Force chaos delays to never happen.
-	/// </summary>
-	public virtual void SetNeverDelay()
-	{
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverDelay");
-
-		ChaosMinDelay = TimeSpan.Zero;
-		ChaosMaxDelay = TimeSpan.Zero;
-	}
-
-	/// <summary>
-	/// Force chaos exceptions to never be thrown.
-	/// </summary>
-	public virtual void SetNeverThrow()
-	{
-		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverThrow");
-
-		ChaosThrowProbability = 0f;
-	}
-
-	/// <summary>
-	/// Determines if an exception should be thrown.
-	/// </summary>
-	/// <returns><see langword="true"/> if an exception should be thrown, <see langword="false"/> otherwise.</returns>
-	public virtual bool ShouldThrow()
-	{
-		return FusionCacheChaosUtils.ShouldThrow(ChaosThrowProbability);
-	}
-
-	/// <summary>
-	/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
-	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
-	/// </summary>
-	protected void MaybeChaos(CancellationToken token = default)
-	{
-		FusionCacheChaosUtils.MaybeChaos(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability, token);
-	}
-
-	/// <summary>
-	/// Randomize an actual delay with a value between the configured min/max values, and if needed waits for it.
-	/// Then, maybe, throw a <see cref="ChaosException"/> based on the specified probability.
-	/// </summary>
-	protected async Task MaybeChaosAsync(CancellationToken token = default)
-	{
-		await FusionCacheChaosUtils.MaybeChaosAsync(ChaosMinDelay, ChaosMaxDelay, ChaosThrowProbability, token).ConfigureAwait(false);
 	}
 }

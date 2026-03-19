@@ -95,7 +95,7 @@ public sealed partial class FusionCache
 		_options = optionsAccessor.Value;
 
 		if (_options is null)
-			throw new NullReferenceException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
+			throw new InvalidOperationException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
 
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
@@ -212,7 +212,7 @@ public sealed partial class FusionCache
 		{
 			_ = Task.Run(async () =>
 			{
-				await Task.Delay(1000);
+				await Task.Delay(1000).ConfigureAwait(false);
 				RunBestPracticesAdvisor();
 			});
 		}
@@ -556,7 +556,7 @@ public sealed partial class FusionCache
 					ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				if (distributedLockObj is not null)
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, CancellationToken.None).ConfigureAwait(false);
+					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
 			}
 		});
 	}
@@ -568,7 +568,7 @@ public sealed partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] waiting to acquire the MEMORY LOCK", CacheName, InstanceId, operationId, key);
 
-		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token);
+		var lockObj = await _memoryLocker.AcquireLockAsync(CacheName, InstanceId, operationId, key, timeout, _logger, token).ConfigureAwait(false);
 
 		if (lockObj is not null)
 		{
@@ -633,23 +633,23 @@ public sealed partial class FusionCache
 
 	// DISTRIBUTED LOCKER
 
-	private async ValueTask<object?> AcquireDistributedLockAsync(string operationId, string key, TimeSpan timeout, CancellationToken token)
+	private async ValueTask<object?> AcquireDistributedLockAsync(string operationId, string key, TimeSpan timeout, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		return await _dla!.AcquireLockAsync(operationId, key, timeout, token);
+		return await _dla!.AcquireLockAsync(operationId, key, timeout, options, token).ConfigureAwait(false);
 	}
 
-	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, CancellationToken token)
+	private object? AcquireDistributedLock(string operationId, string key, TimeSpan timeout, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		return _dla!.AcquireLock(operationId, key, timeout, token);
+		return _dla!.AcquireLock(operationId, key, timeout, options, token);
 	}
 
-	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, CancellationToken token)
+	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
 			return;
@@ -657,10 +657,10 @@ public sealed partial class FusionCache
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, token);
+		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, options, token).ConfigureAwait(false);
 	}
 
-	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, CancellationToken token)
+	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
 			return;
@@ -668,7 +668,7 @@ public sealed partial class FusionCache
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		_dla!.ReleaseDistributedLock(operationId, key, lockObj, token);
+		_dla!.ReleaseDistributedLock(operationId, key, lockObj, options, token);
 	}
 
 	// FACTORY STUFF
@@ -1262,7 +1262,7 @@ public sealed partial class FusionCache
 		)
 		{
 			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
-				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
+				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions, even more so when using Tagging or the Clear() feature. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
 		}
 
 		// CHECK:
@@ -1279,25 +1279,26 @@ public sealed partial class FusionCache
 				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: it has been detected a situation where there *IS* a backplane (BACKPLANE={BackplaneType}), there is *NOT* a distributed cache and the DefaultEntryOptions.SkipBackplaneNotifications option is set to false. This will probably cause problems, since a notification will be sent automatically at every change in the cache (Set, Remove, Expire and also GetOrSet when the factory is called) but there is not a distributed cache that different nodes can use, basically resulting in a situation where the cache will keep invalidating itself at every change. It is suggested to either (1) add a distributed cache or (2) change the DefaultEntryOptions.SkipBackplaneNotifications to true.", CacheName, InstanceId, Backplane!.GetType().FullName);
 		}
 
-		// CHECK:
-		// - HAS L2
-		// - AND NO BACKPLANE
-		// - AND (
-		//   NO DefaultEntryOptions.MemoryCacheDuration
-		//   OR NO TagsDefaultEntryOptions.MemoryCacheDuration
-		// )
-		if (
-			HasDistributedCache
-			&& HasBackplane == false
-			&& (
-				_defaultEntryOptions.MemoryCacheDuration is null
-				|| _tagsDefaultEntryOptions.MemoryCacheDuration is null
-			)
-		)
-		{
-			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using an L2 (distributed cache) without a backplane, which will potentially leave other nodes' L1s (memory caches) out-of-sync after an update (see: cache coherence). To solve this, you can use a backplane. If that is not possible, you can mitigate the situation by setting both DefaultEntryOptions.MemoryCacheDuration and TagsDefaultEntryOptions.MemoryCacheDuration to a low value: this will refresh data in the L1 from the L2 more frequently, reducing the incoherence window.", CacheName, InstanceId);
-		}
+		// TODO: RE-ENABLE THIS, BUT MAKE IT BETTER/MORE CONFIGURABLE
+		//// CHECK:
+		//// - HAS L2
+		//// - AND NO BACKPLANE
+		//// - AND (
+		////   NO DefaultEntryOptions.MemoryCacheDuration
+		////   OR NO TagsDefaultEntryOptions.MemoryCacheDuration
+		//// )
+		//if (
+		//	HasDistributedCache
+		//	&& HasBackplane == false
+		//	&& (
+		//		_defaultEntryOptions.MemoryCacheDuration is null
+		//		|| _tagsDefaultEntryOptions.MemoryCacheDuration is null
+		//	)
+		//)
+		//{
+		//	if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+		//		_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}]: you are using an L2 (distributed cache) without a backplane, which will potentially leave other nodes' L1s (memory caches) out-of-sync after an update (see: cache coherence). To solve this, you can use a backplane. If that is not possible, you can mitigate the situation by setting both DefaultEntryOptions.MemoryCacheDuration and TagsDefaultEntryOptions.MemoryCacheDuration to a low value: this will refresh data in the L1 from the L2 more frequently, reducing the incoherence window.", CacheName, InstanceId);
+		//}
 
 		// CHECK:
 		// - HAS DISTRIBUTED LOCKER

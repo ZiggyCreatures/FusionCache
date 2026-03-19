@@ -1222,12 +1222,83 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public void CanRemoveByTagWithBehaviorExpire()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Expire
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		cache.Set<int>("bar", 2, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = cache.GetOrSet<int>("foo", _ => 11, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		var bar1 = cache.GetOrSet<int>("bar", _ => 22, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+
+		cache.RemoveByTag("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+		var foo3 = cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+		var bar2 = cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
+		var bar3 = cache.TryGet<int>("bar", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+
+		Assert.False(foo2.HasValue);
+		Assert.True(foo3.HasValue);
+		Assert.Equal(1, foo3.Value);
+		Assert.True(bar2.HasValue);
+		Assert.Equal(2, bar2.Value);
+		Assert.True(bar3.HasValue);
+		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
+	public void CanRemoveByTagWithBehaviorRemove()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		cache.Set<int>("bar", 2, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = cache.GetOrSet<int>("foo", _ => 11, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+		var bar1 = cache.GetOrSet<int>("bar", _ => 22, tags: ["y", "z"], token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, foo1);
+		Assert.Equal(2, bar1);
+
+		cache.RemoveByTag("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+		var foo3 = cache.TryGet<int>("foo", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+		var bar2 = cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
+		var bar3 = cache.TryGet<int>("bar", options => options.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
+
+		Assert.False(foo2.HasValue);
+		Assert.False(foo3.HasValue);
+		Assert.True(bar2.HasValue);
+		Assert.Equal(2, bar2.Value);
+		Assert.True(bar3.HasValue);
+		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
 	public void CanClear()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
 		// CACHE A: PASSING A MEMORY CACHE -> CANNOT EXECUTE RAW CLEAR
-		MemoryCache? mcA = new MemoryCache(new MemoryCacheOptions());
+		using MemoryCache? mcA = new MemoryCache(new MemoryCacheOptions());
 		using var cacheA = new FusionCache(new FusionCacheOptions() { CacheName = "CACHE_A" }, mcA, logger: logger);
 
 		// CACHE B: NOT PASSING A MEMORY CACHE -> CAN EXECUTE RAW CLEAR
@@ -1643,4 +1714,37 @@ public partial class L1Tests
 
 		Assert.Equal(1, factoryCallsCount);
 	}
+
+	//[Fact]
+	//public void RemoveByTagStarDoesAClear()
+	//{
+	//	using var cache = new FusionCache(new FusionCacheOptions
+	//	{
+	//		DefaultEntryOptions = {
+	//			Duration = TimeSpan.FromSeconds(10)
+	//		}
+	//	});
+
+	//	var clearCallsCount = 0;
+
+	//	cache.Events.Clear += (sender, e) =>
+	//	{
+	//		clearCallsCount++;
+	//	};
+
+	//	cache.Set<int>("foo", 1, token: TestContext.Current.CancellationToken);
+	//	cache.Set<int>("bar", 2, token: TestContext.Current.CancellationToken);
+	//	cache.Set<int>("baz", 3, token: TestContext.Current.CancellationToken);
+
+	//	cache.RemoveByTag("*", token: TestContext.Current.CancellationToken);
+
+	//	var maybeFoo = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
+	//	var maybeBar = cache.TryGet<int>("bar", token: TestContext.Current.CancellationToken);
+	//	var maybeBaz = cache.TryGet<int>("baz", token: TestContext.Current.CancellationToken);
+
+	//	Assert.False(maybeFoo.HasValue);
+	//	Assert.False(maybeBar.HasValue);
+	//	Assert.False(maybeBaz.HasValue);
+	//	Assert.Equal(1, clearCallsCount);
+	//}
 }

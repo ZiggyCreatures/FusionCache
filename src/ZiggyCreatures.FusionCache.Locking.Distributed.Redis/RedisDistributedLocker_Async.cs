@@ -13,7 +13,7 @@ public partial class RedisDistributedLocker
 		if (_provider is null)
 			return null;
 
-		return await _provider.AcquireLockAsync(lockName, timeout, token).ConfigureAwait(false);
+		return await _provider.TryAcquireLockAsync(lockName, timeout, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>

@@ -34,8 +34,8 @@ public class ChaosDistributedLocker
 	/// <inheritdoc/>
 	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
-		await MaybeChaosAsync(token);
-		return await _innerDistributedLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, lockName, timeout, logger, token);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
+		return await _innerDistributedLocker.AcquireLockAsync(cacheName, cacheInstanceId, operationId, key, lockName, timeout, logger, token).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -48,7 +48,7 @@ public class ChaosDistributedLocker
 	/// <inheritdoc/>
 	public async ValueTask ReleaseLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, object? lockObj, ILogger? logger, CancellationToken token)
 	{
-		await MaybeChaosAsync(token);
-		await _innerDistributedLocker.ReleaseLockAsync(cacheName, cacheInstanceId, operationId, key, lockName, lockObj, logger, token);
+		await MaybeChaosAsync(token).ConfigureAwait(false);
+		await _innerDistributedLocker.ReleaseLockAsync(cacheName, cacheInstanceId, operationId, key, lockName, lockObj, logger, token).ConfigureAwait(false);
 	}
 }

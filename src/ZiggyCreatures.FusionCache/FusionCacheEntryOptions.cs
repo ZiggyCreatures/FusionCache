@@ -60,6 +60,7 @@ public sealed class FusionCacheEntryOptions
 		SkipMemoryCacheRead = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheRead;
 		SkipMemoryCacheWrite = FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheWrite;
 
+		ReThrowDistributedLockerExceptions = FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedLockerExceptions;
 		SkipDistributedLocker = FusionCacheGlobalDefaults.EntryOptionsSkipDistributedLocker;
 	}
 
@@ -487,6 +488,16 @@ public sealed class FusionCacheEntryOptions
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
 	/// </summary>
 	public bool EnableAutoClone { get; set; }
+
+	/// <summary>
+	///	Set this to <see langword="true"/> to allow the bubble up of distributed locker exceptions (default is <see langword="false"/>).
+	///	Please note that, even if set to <see langword="true"/>, in some cases you would also need <see cref="AllowBackgroundDistributedCacheOperations"/> set to <see langword="false"/> and no timeout (neither soft nor hard) specified.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public bool ReThrowDistributedLockerExceptions { get; set; }
 
 	/// <summary>
 	/// Gets or sets a value indicating whether to bypass the distributed lock mechanism during the operation.
@@ -972,6 +983,21 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Set the distributed lock timeout.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <param name="timeout">The value for the <see cref="DistributedLockTimeout"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetDistributedLockTimeout(TimeSpan timeout)
+	{
+		DistributedLockTimeout = timeout;
+		return this;
+	}
+
+	/// <summary>
 	/// Set the <see cref="EnableAutoClone"/> option.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/AutoClone.md"/>
@@ -1238,6 +1264,7 @@ public sealed class FusionCacheEntryOptions
 			ReThrowDistributedCacheExceptions = ReThrowDistributedCacheExceptions,
 			ReThrowSerializationExceptions = ReThrowSerializationExceptions,
 			ReThrowBackplaneExceptions = ReThrowBackplaneExceptions,
+			ReThrowDistributedLockerExceptions = ReThrowDistributedLockerExceptions,
 
 			AllowBackgroundDistributedCacheOperations = AllowBackgroundDistributedCacheOperations,
 			AllowBackgroundBackplaneOperations = AllowBackgroundBackplaneOperations,

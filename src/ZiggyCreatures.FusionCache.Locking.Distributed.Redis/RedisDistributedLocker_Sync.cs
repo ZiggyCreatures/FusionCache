@@ -13,7 +13,7 @@ public partial class RedisDistributedLocker
 		if (_provider is null)
 			return null;
 
-		return _provider.AcquireLock(lockName, timeout, token);
+		return _provider.TryAcquireLock(lockName, timeout, token);
 	}
 
 	/// <inheritdoc/>

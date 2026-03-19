@@ -81,6 +81,7 @@ public partial class GeneralTests
 			ReThrowDistributedCacheExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedCacheExceptions,
 			ReThrowSerializationExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowSerializationExceptions,
 			ReThrowBackplaneExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowBackplaneExceptions,
+			ReThrowDistributedLockerExceptions = !FusionCacheGlobalDefaults.EntryOptionsReThrowDistributedLockerExceptions,
 
 			AllowBackgroundDistributedCacheOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundDistributedCacheOperations,
 			AllowBackgroundBackplaneOperations = !FusionCacheGlobalDefaults.EntryOptionsAllowBackgroundBackplaneOperations,

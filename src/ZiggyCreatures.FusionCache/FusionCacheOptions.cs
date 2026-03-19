@@ -100,6 +100,10 @@ public class FusionCacheOptions
 		AutoRecoveryMaxRetryCount = null;
 		AutoRecoveryDelay = TimeSpan.FromMilliseconds(5_000);
 
+		// TAGGING
+		DisableTagging = false;
+		RemoveByTagBehavior = RemoveByTagBehavior.Expire;
+
 		// BEST PRACTICES
 		EnableBestPracticesAdvisor = true;
 
@@ -465,6 +469,14 @@ public class FusionCacheOptions
 	public bool DisableTagging { get; set; }
 
 	/// <summary>
+	/// Specifies the behavior to use when removing items by tag.
+	/// <br/><br/>
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
+	/// </summary>
+	public RemoveByTagBehavior RemoveByTagBehavior { get; set; }
+
+	/// <summary>
 	/// If set to <see langword="true"/>, ignores the timeouts when debugging, meaning when there's a debugger attached (check done via <see cref="Debugger.IsAttached"/>).
 	/// <br/>
 	/// All the available timeouts are supported: factory timeouts (soft + hard), distributed cache timeouts (soft + hard), lock timeout, etc.
@@ -625,6 +637,7 @@ public class FusionCacheOptions
 			IncludeTagsInMetrics = IncludeTagsInMetrics,
 
 			DisableTagging = DisableTagging,
+			RemoveByTagBehavior = RemoveByTagBehavior,
 
 			IgnoreTimeoutsWhenDebugging = IgnoreTimeoutsWhenDebugging,
 

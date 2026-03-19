@@ -79,7 +79,7 @@ public partial class RedisDistributedLocker
 			}
 			else
 			{
-				_muxer = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions());
+				_muxer = await ConnectionMultiplexer.ConnectAsync(GetConfigurationOptions()).ConfigureAwait(false);
 			}
 
 			if (_muxer is not null)

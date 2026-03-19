@@ -1,7 +1,7 @@
 ﻿namespace ZiggyCreatures.Caching.Fusion;
 
 /// <summary>
-/// The generic exception that is thrown when a distributed cache error occurs: the InnerException contains the original exception.
+/// The generic exception that is thrown when a backplane error occurs: the InnerException contains the original exception.
 /// </summary>
 [Serializable]
 public class FusionCacheBackplaneException

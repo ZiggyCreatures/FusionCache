@@ -14,6 +14,7 @@ public sealed class FusionHybridCache
 	: HybridCache
 {
 	private const FusionCacheEntryOptions? NoEntryOptions = null;
+	private const string ClearAllTag = "*";
 
 	private readonly IFusionCache _fusionCache;
 
@@ -83,11 +84,11 @@ public sealed class FusionHybridCache
 			// THE RETURN TYPE SIGNATURE THEREFORE TECHNICALLY "WRONG", BUT THERE'S NOTHING I CAN DO
 			// ABOUT IT, AND RETURNING null IN THOSE CASES IS ANYWAY THE EXPECTED BEHAVIOUR FOR
 			// HybridCache USERS.
-			return (await _fusionCache.GetOrDefaultAsync<T>(key, default, feo, cancellationToken))!;
+			return (await _fusionCache.GetOrDefaultAsync<T>(key, default, feo, cancellationToken).ConfigureAwait(false))!;
 		}
 
 		// GET + SET
-		return await _fusionCache.GetOrSetAsync<T>(key, async (_, ct) => await factory(state, ct), default, feo, tags, cancellationToken);
+		return await _fusionCache.GetOrSetAsync<T>(key, async (_, ct) => await factory(state, ct).ConfigureAwait(false), default, feo, tags, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
@@ -99,6 +100,11 @@ public sealed class FusionHybridCache
 	/// <inheritdoc/>
 	public override ValueTask RemoveByTagAsync(string tag, CancellationToken cancellationToken = default)
 	{
+		if (tag == ClearAllTag)
+		{
+			return _fusionCache.ClearAsync(true, NoEntryOptions, cancellationToken);
+		}
+
 		return _fusionCache.RemoveByTagAsync(tag, NoEntryOptions, cancellationToken);
 	}
 

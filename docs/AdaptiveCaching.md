@@ -86,7 +86,6 @@ You may change other options too, like the `Priority` for example.
 
 Of course ther are some changes that wouldn't make much sense: if for example we change the `FactorySoftTimeout` after the factory has been already executed we shouldn't expect much to happen, right 😅 ?
 
-
 ## ⏱ Timeouts & Background Factory Completion
 
 Short version: everything works as expected!
@@ -98,3 +97,44 @@ A nice feature of FusionCache is the ability to set soft/hard [timeouts](Timeout
 A question we may ask ourselves is if adaptive caching would still work in that scenario.
 
 The answer is **absolutely yes**: you don't need to change anything, do extra steps or give up on some features 🎉
+
+
+## 🧙‍♂️ Use Adaptive Caching to skip cache writes
+
+Adaptive caching can also be used to skip writing to the cache altogether: this pattern is useful when you want to avoid caching certain values returned by the factory.
+
+Here is an example:
+
+```csharp
+var id = 42;
+
+// USE ADAPTIVE CACHING TO SKIP CACHE WRITE FOR SOME VALUES RETURNED BY THE FACTORY
+var product = cache.GetOrSet<Product>(
+    $"product:{id}",
+    (ctx, ct) => {
+        var product = GetProductFromDb(id, ct);
+
+        if (product.IsFlashSale) {
+            // FLASH‑SALE PRODUCTS CHANGE PRICE AND STOCK CONSTANTLY
+			// SO WE AVOID CACHING THEM TO PREVENT SERVING STALE DATA
+            ctx.Options.SkipMemoryCacheWrite = true;
+			ctx.Options.SkipDistributedCacheWrite = true;
+        } else if (product is null) {
+            // CACHE null FOR 5 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(5);
+        } else if (product.LastUpdatedAt > DateTime.UtcNow.AddDays(-1)) {
+            // CACHE PRODUCTS UPDATED IN THE LAST DAY FOR 1 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(1);
+        } else if (product.LastUpdatedAt > DateTime.UtcNow.AddDays(-10)) {
+            // CACHE PRODUCTS UPDATED IN THE LAST 10 DAYS FOR 10 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(10);
+        } else {
+            // CACHE ANY OLDER PRODUCT FOR 30 MIN
+            ctx.Options.Duration = TimeSpan.FromMinutes(30);
+        }
+
+        return product;
+    },
+    options => options.SetDuration(TimeSpan.FromMinutes(1)) // DEFAULT: 1 MIN
+);
+```

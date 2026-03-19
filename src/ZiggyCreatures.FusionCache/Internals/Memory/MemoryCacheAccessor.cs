@@ -277,27 +277,19 @@ internal sealed class MemoryCacheAccessor
 
 	// IDISPOSABLE
 	private bool _disposedValue = false;
-	private void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				if (_cacheIsOwned)
-				{
-					(_cache as MemoryCache)?.Compact(1);
-					_cache.Dispose();
-				}
-			}
-#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
-			_cache = null;
-#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
-			_disposedValue = true;
-		}
-	}
 
 	public void Dispose()
 	{
-		Dispose(true);
+		if (_disposedValue)
+			return;
+
+		if (_cacheIsOwned)
+		{
+			TryClear();
+			_cache.Dispose();
+		}
+		_cache = null!;
+
+		_disposedValue = true;
 	}
 }

@@ -270,7 +270,7 @@ internal sealed class AutoRecoveryService
 			return false;
 
 		// ACQUIRE THE LOCK
-		if (await _lock.WaitAsync(0, token) == false)
+		if (await _lock.WaitAsync(0, token).ConfigureAwait(false) == false)
 		{
 			// IF THE LOCK HAS NOT BEEN ACQUIRED IMMEDIATELY -> PROCESSING IS ALREADY ONGOING, SO WE JUST RETURN
 			return false;
@@ -309,7 +309,7 @@ internal sealed class AutoRecoveryService
 
 				if (IsBehindBarrier())
 				{
-					hasStopped = true;
+					//hasStopped = true;
 					return false;
 				}
 
@@ -375,8 +375,8 @@ internal sealed class AutoRecoveryService
 		{
 			if (hasStopped)
 			{
-				if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-					_logger.Log(LogLevel.Error, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, processedCount);
+				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
+					_logger.Log(LogLevel.Warning, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): stopped auto-recovery because of an error after {Count} processed items", _cache.CacheName, _cache.InstanceId, operationId, lastProcessedItem?.CacheKey, processedCount);
 
 				if (lastProcessedItem is not null)
 				{
@@ -627,12 +627,12 @@ internal sealed class AutoRecoveryService
 
 				await Task.Delay(delay, ct).ConfigureAwait(false);
 
-				// AFTER THE DELAY, READ THE BARRIER AGAIN, IN CASE IT HAS BEEN MODIFIED
-				// WHILE WAITING: IF UPDATED -> SKIP TO THE NEXT LOOP CYCLE
+				// AFTER THE DELAY, READ THE BARRIER AGAIN, IN CASE IT HAS BEEN
+				// MODIFIED WHILE WAITING: IF UPDATED -> SKIP TO THE NEXT LOOP CYCLE
 				if (IsBehindBarrier())
 				{
-					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a barrier has been set after having awaited to start processing the auto-recovery queue: skipping to the next loop cycle", _cache.CacheName, _cache.InstanceId, operationId);
+					//if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					//	_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): a barrier has been set after having awaited to start processing the auto-recovery queue: skipping to the next loop cycle", _cache.CacheName, _cache.InstanceId, operationId);
 
 					continue;
 				}
