@@ -845,7 +845,7 @@ internal class Program
 					}
 					break;
 				case 'B' or 'b':
-					// TOGGLE DISTRIBUTED CACHES
+					// TOGGLE BACKPLANE
 					BackplanesEnabled = !BackplanesEnabled;
 					foreach (var backplane in Backplanes)
 					{
