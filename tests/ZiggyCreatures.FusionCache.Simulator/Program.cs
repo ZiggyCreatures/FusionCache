@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using FASTERCache;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -32,14 +31,15 @@ internal static class SimulatorOptions
 	public static bool EnableRandomUpdates = false;
 
 	// DURATION
-	public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
+	public static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(10);
+	//public static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
 	// LOGGING
 	public static readonly bool EnableFusionCacheLogging = false;
 	public static readonly bool EnableSimulatorLogging = false;
 	public static readonly bool EnableLoggingExceptions = false;
 
-	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,defaultDatabase={0},connectTimeout=1000,syncTimeout=1000";
+	private static readonly string RedisConnection = "localhost:6379,ssl=False,abortConnect=false,defaultDatabase={0},connectTimeout=1000,syncTimeout=1000";
 
 	// DISTRIBUTED CACHE
 	public static readonly DistributedCacheType DistributedCacheType = DistributedCacheType.Memory;
@@ -59,7 +59,7 @@ internal static class SimulatorOptions
 	public static readonly TimeSpan? ChaosBackplaneSyntheticDelay = null; //TimeSpan.FromMilliseconds(500);
 
 	// AUTO-RECOVERY
-	public static readonly bool EnableAutoRecovery = true;
+	public static bool EnableAutoRecovery = true;
 	public static readonly TimeSpan? AutoRecoveryDelay = null;
 	public static readonly TimeSpan AutoRecoveryDefaultDelay = new FusionCacheOptions().AutoRecoveryDelay;
 
@@ -67,8 +67,8 @@ internal static class SimulatorOptions
 	public static readonly TimeSpan RefreshDelay = TimeSpan.FromMilliseconds(500);
 	public static readonly TimeSpan DataChangesMinDelay = TimeSpan.FromSeconds(1);
 	public static readonly TimeSpan DataChangesMaxDelay = TimeSpan.FromSeconds(1);
-	public static readonly bool UpdateCacheOnSaveToDb = true;
 	public static readonly TimeSpan? PostUpdateCooldownDelay = TimeSpan.FromMilliseconds(150);
+	public static readonly CacheCoherenceProtocol CoherenceProtocol = CacheCoherenceProtocol.WriteUpdate;
 }
 
 internal class Program
@@ -104,7 +104,7 @@ internal class Program
 	private static readonly Color Color_LightRed = Color.Red3_1;
 	private static readonly Color Color_FlashRed = Color.Red1;
 
-	// NOTE: THIS SEEMS TO HAVE PROBLEMS WHEN CONNECTING MULTIPLE TIMES TO THE SAME REDIS INSTANCE
+	// NOTE: IT LOOKS LIKE THERE ARE PROBLEMS WHEN CONNECTING MULTIPLE TIMES TO THE SAME REDIS INSTANCE
 	// FROM THE SAME PROCESS, PARTICULARLY REGARDING PUBSUB
 	private static bool ReUseConnectionMultiplexers = false;
 
@@ -131,10 +131,6 @@ internal class Program
 				{
 					ConnectionMultiplexerFactory = async () => GetRedisConnectionMultiplexer(clusterIdx, -1)
 				});
-			case DistributedCacheType.FASTER:
-				var directory = Path.Combine(Path.GetTempPath(), $"FusionCacheSimulator_{clusterIdx}");
-				Debug.WriteLine($"DIRECTORY: {directory}");
-				return new FASTERCacheBuilder(directory).CreateDistributedCache();
 			default:
 				return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 		}
@@ -206,21 +202,31 @@ internal class Program
 			{
 				SaveToDb(clusterIdx, LastValue);
 
-				// UPDATE CACHE
-				if (SimulatorOptions.UpdateCacheOnSaveToDb)
+				// CACHE COHERENCE
+				switch (SimulatorOptions.CoherenceProtocol)
 				{
-					var cluster = CacheClusters[clusterIdx];
-					var nodeIdx = RNG.Next(cluster.Nodes.Count);
-					var node = cluster.Nodes[nodeIdx];
+					case CacheCoherenceProtocol.WriteUpdate:
+					case CacheCoherenceProtocol.WriteInvalidate:
+						var cluster = CacheClusters[clusterIdx];
+						var nodeIdx = RNG.Next(cluster.Nodes.Count);
+						var node = cluster.Nodes[nodeIdx];
 
-					logger?.LogInformation("BEFORE CACHE SET ({CacheInstanceId}) TOOK: {ElapsedMs} ms", node.Cache.InstanceId, sw.ElapsedMilliseconds);
-					sw.Restart();
-					await node.Cache.SetAsync(CacheKey, LastValue, opt => opt.SetSkipBackplaneNotifications(false));
-					sw.Stop();
-					logger?.LogInformation("AFTER CACHE SET ({CacheInstanceId}) TOOK: {ElapsedMs} ms", node.Cache.InstanceId, sw.ElapsedMilliseconds);
+						if (SimulatorOptions.CoherenceProtocol == CacheCoherenceProtocol.WriteUpdate)
+						{
+							await node.Cache.SetAsync(CacheKey, LastValue, opt => opt.SetSkipBackplaneNotifications(false));
+						}
+						else
+						{
+							await node.Cache.RemoveAsync(CacheKey, opt => opt.SetSkipBackplaneNotifications(false));
+						}
 
-					// SAVE LAST XYZ
-					cluster.LastUpdatedNodeIndex = nodeIdx;
+
+						// SAVE LAST XYZ
+						cluster.LastUpdatedNodeIndex = nodeIdx;
+						break;
+					case CacheCoherenceProtocol.None:
+					default:
+						break;
 				}
 			}
 			catch
@@ -726,6 +732,23 @@ internal class Program
 			if (tmp.KeyChar is 'y' or 'n')
 			{
 				SimulatorOptions.EnableFailSafe = tmp.KeyChar == 'y';
+				inputProvided = true;
+			}
+			else
+			{
+				AnsiConsole.WriteLine();
+			}
+		}
+		AnsiConsole.WriteLine();
+
+		inputProvided = false;
+		while (inputProvided == false)
+		{
+			AnsiConsole.Markup($"[deepskyblue1]AUTO-RECOVERY (y/n):[/] ");
+			var tmp = Console.ReadKey();
+			if (tmp.KeyChar is 'y' or 'n')
+			{
+				SimulatorOptions.EnableAutoRecovery = tmp.KeyChar == 'y';
 				inputProvided = true;
 			}
 			else
