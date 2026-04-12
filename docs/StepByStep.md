@@ -704,6 +704,66 @@ services.AddFusionCache()
 
 That's all we need to do: FusionCache will automatically start using it, coordinating the factory execution on multiple nodes so that only one will run at the same time for the same data even on multiple nodes, all automatically.
 
+Oh, one more thing: we're using Redis a lot, more precisely for all the distributed components (distributed cache + backplane + distributed locker).
+
+That is absolutely not an issue, but maybe we can optimize its usage a little bit.
+
+Right now we are using the connection string to connect to it, which is the easiest way to do it: but this means that each component will create a separate connection to the same Redis instance and, since a connection is relatively heavy object, that is not ideal.
+
+So, since all of the Redis-based distributed components are all based on the amazing [StackExchange.Redis](https://github.com/stackexchange/stackexchange.redis) package, we can just create one connection multiplexer object and reuse it (it's totally thread safe so it's ok).
+
+Like this:
+
+```csharp
+// CREATE THE MUXER ONCE
+IConnectionMultiplexer muxer = await ConnectionMultiplexer.ConnectAsync("CONNECTION STRING");
+
+services.AddFusionCache()
+    .WithOptions(options => {
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+    })
+    .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+        Duration = TimeSpan.FromMinutes(1),
+        
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromHours(2),
+        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+        EagerRefreshThreshold = 0.9f,
+
+        FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+        FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
+
+        DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
+        DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
+        AllowBackgroundDistributedCacheOperations = true,
+
+        JitterMaxDuration = TimeSpan.FromSeconds(2)
+    })
+    .WithSerializer(
+        new FusionCacheSystemTextJsonSerializer()
+    )
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions() {
+			// USE THE MUXER
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+    )
+    .WithBackplane(
+        new RedisBackplane(new RedisBackplaneOptions() {
+			// USE THE MUXER
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+    )
+	.WithDistributedLocker(
+		new RedisDistributedLocker(new RedisDistributedLockerOptions {
+			// USE THE MUXER
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+	)
+;
+```
+
 ### 🏆 Results
 
 This will totally remove the chance that a factory will run on multiple nodes, thereby reducing the number of database queries to the bare minimum.
