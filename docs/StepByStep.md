@@ -704,15 +704,40 @@ services.AddFusionCache()
 
 That's all we need to do: FusionCache will automatically start using it, coordinating the factory execution on multiple nodes so that only one will run at the same time for the same data even on multiple nodes, all automatically.
 
-Oh, one more thing: we're using Redis a lot, more precisely for all the distributed components (distributed cache + backplane + distributed locker).
+### 🏆 Results
 
-That is absolutely not an issue, but maybe we can optimize its usage a little bit.
+This will totally remove the chance that a factory will run on multiple nodes, thereby reducing the number of database queries to the bare minimum.
 
-Right now we are using the connection string to connect to it, which is the easiest way to do it: but this means that each component will create a separate connection to the same Redis instance and, since a connection is relatively heavy object, that is not ideal.
+Since we are dealing with `1,000` different products being requested for `10 min` straight and being cached for `1 min` at a time, this means `1,000` factory executions every `1 min` for `10 min`.
 
-So, since all of the Redis-based distributed components are all based on the amazing [StackExchange.Redis](https://github.com/stackexchange/stackexchange.redis) package, we can just create one connection multiplexer object and reuse it (it's totally thread safe so it's ok).
+This all `1,000 * 10` = `10,000` database queries, the absolute minimum possible.
 
-Like this:
+**TOTAL DATABASE QUERIES IN 10 MIN**: `10,000` (before was `19,000`)
+
+![Distributed Stampede Results](images/stepbystep-08-backplane.png)
+
+<br/>
+<br/>
+
+## 11) Optimize Redis Usage
+
+We're using Redis a lot.
+
+More precisely, all the distributed components are using it:
+- distributed cache
+- backplane
+- distributed locker
+
+This is absolutely not an issue, but maybe we can _optimize_ its usage a little bit.
+
+Right now we are passing a _connection string_ to all distributed components, which is the easiest way to do it, but this also means that each component will create a separate connection to the same Redis instance and, since a connection is relatively _heavy object_, that is not ideal.
+
+So, since all of the Redis-based distributed components are based on the amazing [StackExchange.Redis](https://github.com/stackexchange/stackexchange.redis) package, we can just create one connection multiplexer object (muxer) and reuse it, by passing it instead of the connection string.
+
+> [!NOTE]
+> It's totally ok to share the same `IConnectionMultiplexer` with multiple concurrent uses, since it's thread safe and designed for that.
+
+Here's how we can do it:
 
 ```csharp
 // CREATE THE MUXER ONCE
@@ -766,20 +791,12 @@ services.AddFusionCache()
 
 ### 🏆 Results
 
-This will totally remove the chance that a factory will run on multiple nodes, thereby reducing the number of database queries to the bare minimum.
-
-Since we are dealing with `1,000` different products being requested for `10 min` straight and being cached for `1 min` at a time, this means `1,000` factory executions every `1 min` for `10 min`.
-
-This all `1,000 * 10` = `10,000` database queries, the absolute minimum possible.
-
-**TOTAL DATABASE QUERIES IN 10 MIN**: `10,000` (before was `19,000`)
-
-![Distributed Stampede Results](images/stepbystep-08-backplane.png)
+This will **reduce the connections** to the same Redis instance, which in turn will reduce the overall resource usage of both the client (our app) and the server (Redis itself).
 
 <br/>
 <br/>
 
-## 11) Logging ([more](Logging.md))
+## 12) Logging ([more](Logging.md))
 
 Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: [**logging**](Logging.md).
 
@@ -797,6 +814,8 @@ To avoid this we can:
 Here is an example where we set (somewhere else, depending of the specific logger used) the minimum log level to `LogLevel.Warning` and we don't care to log every time a factory or a distributed cache operation does a timeout (since the infrastructure is not in perfect shape) but we want a `LogLevel.Error` for every other kind of problem and also an `LogLevel.Warning` every time the serialization from/to the distributed cache fails:
 
 ```csharp
+IConnectionMultiplexer muxer = await ConnectionMultiplexer.ConnectAsync("CONNECTION STRING");
+
 services.AddFusionCache()
     .WithOptions(options => {
         options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
@@ -831,16 +850,23 @@ services.AddFusionCache()
         new FusionCacheSystemTextJsonSerializer()
     )
     .WithDistributedCache(
-        new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
+        new RedisCache(new RedisCacheOptions() {
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
     )
     .WithBackplane(
-        new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
+        new RedisBackplane(new RedisBackplaneOptions() {
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
     )
 	.WithDistributedLocker(
-		new RedisDistributedLocker(new RedisDistributedLockerOptions { Configuration = "CONNECTION STRING" })
+		new RedisDistributedLocker(new RedisDistributedLockerOptions {
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
 	)
 ;
 ```
+
 ### 🏆 Results
 
 This will **reduce the amount of logged data** a lot, consuming less bandwidth and storage (and spending less money) while giving us less background noise when troubleshooting a production issue.
@@ -848,7 +874,7 @@ This will **reduce the amount of logged data** a lot, consuming less bandwidth a
 <br/>
 <br/>
 
-## 12) OpenTelemetry ([more](OpenTelemetry.md))
+## 13) OpenTelemetry ([more](OpenTelemetry.md))
 
 Logging is great, but nowadays we can do even more to have a clearer view of our production systems, and maybe react to what is happening to prevent problems: full observability with traces and metrics.
 
@@ -869,6 +895,8 @@ services.AddOpenTelemetry()
     .AddConsoleExporter() // OR ANY ANOTHER EXPORTER
   );
 ```
+
+### 🏆 Results
 
 With this, we'll be able to get a clear picture of what is going on in production, right away:
 
