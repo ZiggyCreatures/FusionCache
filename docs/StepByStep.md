@@ -32,9 +32,10 @@ In the **10 min** period suppose we have a nice, uniform usage pattern where **e
 - **`100` ms** of average response time from the database, with sometimes peaks of **1 sec**
 - our service is deployed on **`3` nodes** to better handle the traffic
 
-| **:bulb: NOTE** |
-|:----------------|
-| It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
+> [!IMPORTANT]
+> It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario.
+> 
+> On one hand not everything would be so beautifully synchronized and so perfectly periodical about requests patter, on the other I hope you don't have to deal with a database that, over 10 min, is slow for 2 min and completely down for 3 😅 ...
 
 <br/>
 <br/>
@@ -393,7 +394,7 @@ The number of database requests in this case remains the same.
 <br/>
 <br/>
 
-## 6) Distributed cache ([more](CacheLevels.md))
+## 6) Distributed Cache ([more](CacheLevels.md))
 
 Now everything is great on every node, but each node goes to the database for the same data, **without sharing it** with the other nodes that probably already did the same, and that is a waste.
 
@@ -430,11 +431,11 @@ services.AddFusionCache()
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
     })
-    // ADD FUSIONCACHE SERIALIZATION BASED ON System.Text.Json
+    // ADD SERIALIZATION BASED ON System.Text.Json
     .WithSerializer(
         new FusionCacheSystemTextJsonSerializer()
     )
-    // ADD REDIS DISTRIBUTED CACHE SUPPORT
+    // ADD DISTRIBUTED CACHE BASED ON REDIS
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
     )
@@ -460,7 +461,7 @@ Keep reading to find out how to easily solve that.
 <br/>
 <br/>
 
-## 7) Distributed cache options
+## 7) Distributed Cache Options
 
 Since the distributed cache is a secondary system and we want it to impact our service as little as possible in case it has problems (if it's slow or completely down) we set:
 
@@ -620,7 +621,7 @@ services.AddFusionCache()
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
     )
-    // ADD THE FUSION CACHE BACKPLANE FOR REDIS
+    // ADD BACKPLANE BASED ON REDIS
     .WithBackplane(
         new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
     )
@@ -644,7 +645,81 @@ Let's say this gives us another `20%` of the original `39,500` so that (`50%` + 
 <br/>
 <br/>
 
-## 10) Logging ([more](Logging.md))
+## 10) Distributed Stampede Protection ([more](CacheStampede.md#%EF%B8%8F-distributed-cache-stampede))
+
+With Jittering added above we have _reduced the probability_ of a factory (meaning: a database query) running on different nodes at the same time for the same data.
+
+But we only reduced the probabilty, not removed it entirely.
+
+So how to to solve this issue completely? We can use a [Distributed Locker](CacheStampede.md#-distributed-locker).
+
+Let's say we want to use [Redis](https://redis.io/) for the distributed locker, since we are already using it as a distributed cache (L2) and for the backplane.
+
+We simply install the specific package:
+
+```PowerShell
+PM> Install-Package ZiggyCreatures.FusionCache.Locking.Distributed.Redis
+```
+
+and add the registration during startup:
+
+```csharp
+services.AddFusionCache()
+    .WithOptions(options => {
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+    })
+    .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+        Duration = TimeSpan.FromMinutes(1),
+        
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromHours(2),
+        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+        EagerRefreshThreshold = 0.9f,
+
+        FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+        FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
+
+        DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
+        DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
+        AllowBackgroundDistributedCacheOperations = true,
+
+        JitterMaxDuration = TimeSpan.FromSeconds(2)
+    })
+    .WithSerializer(
+        new FusionCacheSystemTextJsonSerializer()
+    )
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
+    )
+    .WithBackplane(
+        new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
+    )
+    // ADD THE DISTRIBUTED LOCKER BASED ON REDIS
+	.WithDistributedLocker(
+		new RedisDistributedLocker(new RedisDistributedLockerOptions { Configuration = "CONNECTION STRING" })
+	)
+;
+```
+
+That's all we need to do: FusionCache will automatically start using it, coordinating the factory execution on multiple nodes so that only one will run at the same time for the same data even on multiple nodes, all automatically.
+
+### 🏆 Results
+
+This will totally remove the chance that a factory will run on multiple nodes, thereby reducing the number of database queries to the bare minimum.
+
+Since we are dealing with `1,000` different products being requested for `10 min` straight and being cached for `1 min` at a time, this means `1,000` factory executions every `1 min` for `10 min`.
+
+This all `1,000 * 10` = `10,000` database queries, the absolute minimum possible.
+
+**TOTAL DATABASE QUERIES IN 10 MIN**: `10,000` (before was `19,000`)
+
+![Distributed Stampede Results](images/stepbystep-08-backplane.png)
+
+<br/>
+<br/>
+
+## 11) Logging ([more](Logging.md))
 
 Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: [**logging**](Logging.md).
 
@@ -701,6 +776,9 @@ services.AddFusionCache()
     .WithBackplane(
         new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
     )
+	.WithDistributedLocker(
+		new RedisDistributedLocker(new RedisDistributedLockerOptions { Configuration = "CONNECTION STRING" })
+	)
 ;
 ```
 ### 🏆 Results
@@ -710,7 +788,7 @@ This will **reduce the amount of logged data** a lot, consuming less bandwidth a
 <br/>
 <br/>
 
-## 10) OpenTelemetry ([more](OpenTelemetry.md))
+## 12) OpenTelemetry ([more](OpenTelemetry.md))
 
 Logging is great, but nowadays we can do even more to have a clearer view of our production systems, and maybe react to what is happening to prevent problems: full observability with traces and metrics.
 
