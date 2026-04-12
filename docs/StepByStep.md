@@ -561,7 +561,7 @@ As said this should increase the probabilty that when something expires in the m
 
 Let's say this gives us another `20%` of the original `39,500` so that (`30%` + `20%`) = `50%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
-**TOTAL DATABASE QUERIES IN 10 MIN**: around `19,000` (before was `27,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `20,000` (before was `27,000`)
 
 ![Fail-Safe Results](images/stepbystep-07-distributedoptions.png)
 
@@ -638,7 +638,7 @@ The second is that, since at every change all the other nodes (the has that entr
 
 Let's say this gives us another `20%` of the original `39,500` so that (`50%` + `20%`) = `70%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
-**TOTAL DATABASE QUERIES IN 10 MIN**: around `11,000` (before was `19,000` + everything is now synchronized)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `12,000` (before was `20,000` + everything is now synchronized)
 
 ![Backplane Results](images/stepbystep-08-backplane.png)
 
@@ -712,7 +712,7 @@ Since we are dealing with `1,000` different products being requested for `10 min
 
 This all `1,000 * 10` = `10,000` database queries, the absolute minimum possible.
 
-**TOTAL DATABASE QUERIES IN 10 MIN**: `10,000` (before was `19,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: `10,000` (before was `12,000`)
 
 ![Distributed Stampede Results](images/stepbystep-08-backplane.png)
 
