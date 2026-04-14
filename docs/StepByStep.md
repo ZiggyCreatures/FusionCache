@@ -35,7 +35,7 @@ In the **10 min** period suppose we have a nice, uniform usage pattern where **e
 > [!IMPORTANT]
 > It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario.
 > 
-> On one hand not everything would be so beautifully synchronized and so perfectly periodical about requests patter, on the other I hope you don't have to deal with a database that, over 10 min, is slow for 2 min and completely down for 3 😅 ...
+> On one hand not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, on the other hand I hope you don't have to deal with a database that, over `10 min`, is slow for `2 min` and completely down for `3 min` 😅 ...
 
 <br/>
 <br/>
@@ -634,7 +634,7 @@ That's all we need to do: FusionCache will automatically start using it, sending
 
 The first result is that everything is beautifully synchronized, and the cache as a whole is now always **coherent**.
 
-The second is that, since at every change all the other nodes (the has that entry in their own L1) will update their local copy immediately, it is possible this would make it less frequent that multiple requests to the database would be needed at the same time on different nodes.
+The second is that every change to an entry is automatically propagated to all the other nodes which, if they have the same entry in their own L1, will update their local copy immediately from L2: this may turn requests to the database less needed at the same time on different nodes.
 
 Let's say this gives us another `20%` of the original `39,500` so that (`50%` + `20%`) = `70%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
