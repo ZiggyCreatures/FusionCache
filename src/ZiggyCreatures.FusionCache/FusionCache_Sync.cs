@@ -1063,17 +1063,17 @@ public partial class FusionCache
 		options ??= _tagsDefaultEntryOptions;
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
-			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): RemoveByTag call {Options}", CacheName, InstanceId, operationId, options.ToLogString());
+			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} T={Tag}): RemoveByTagAsync call {Options}", CacheName, InstanceId, operationId, tag, options.ToLogString());
 
 		// ACTIVITY
 		using var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.RemoveByTag, CacheName, InstanceId, null, operationId);
 
 		try
 		{
-			if (_options.IncludeTagsInTraces)
-			{
-				activity?.AddTag(Tags.Names.OperationTag, tag);
-			}
+			//if (_options.IncludeTagsInTraces)
+			//{
+			activity?.AddTag(Tags.Names.OperationTag, tag);
+			//}
 
 			SetTagDataInternal(tag, FusionCacheInternalUtils.GetCurrentTimestamp(), options, token);
 
