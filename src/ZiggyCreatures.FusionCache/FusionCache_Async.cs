@@ -177,6 +177,22 @@ public partial class FusionCache
 				}
 			}
 
+			// MAKE SURE DISTRIBUTED ENTRY IS NEWER THAN MEMORY ENTRY (IF ANY)
+			// NOTE: THIS MAY HAPPEN IF THERE AN EXPIRE OPERATION IN-FLIGHT, NOT
+			// YET REFLECTED IN THE DISTRIBUTED CACHE
+			if (memoryEntry is not null && distributedEntry is not null && distributedEntryIsValid)
+			{
+				if (distributedEntry.Timestamp < memoryEntry.Timestamp)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);
+
+					// PRETEND DISTRIBUTED ENTRY IS NOT THERE
+					distributedEntry = null;
+					distributedEntryIsValid = false;
+				}
+			}
+
 			if (distributedEntryIsValid)
 			{
 				isStale = false;
@@ -545,6 +561,22 @@ public partial class FusionCache
 		if (distributedEntry is not null)
 		{
 			(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, true, token).ConfigureAwait(false);
+		}
+
+		// MAKE SURE DISTRIBUTED ENTRY IS NEWER THAN MEMORY ENTRY (IF ANY)
+		// NOTE: THIS MAY HAPPEN IF THERE AN EXPIRE OPERATION IN-FLIGHT, NOT
+		// YET REFLECTED IN THE DISTRIBUTED CACHE
+		if (memoryEntry is not null && distributedEntry is not null && distributedEntryIsValid)
+		{
+			if (distributedEntry.Timestamp < memoryEntry.Timestamp)
+			{
+				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): memory entry more fresh than distributed entry, do not update memory entry", CacheName, InstanceId, operationId, key);
+
+				// PRETEND DISTRIBUTED ENTRY IS NOT THERE
+				distributedEntry = null;
+				distributedEntryIsValid = false;
+			}
 		}
 
 		if (distributedEntryIsValid)

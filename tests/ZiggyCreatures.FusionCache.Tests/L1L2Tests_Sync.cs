@@ -1315,4 +1315,45 @@ public partial class L1L2Tests
 		Assert.NotEqual(1, maybeFooB3.Value);
 		Assert.Equal(maybeFooA3.Value, maybeFooB3.Value);
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void CanHandleExpireMidFlight(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var duration = TimeSpan.FromSeconds(10);
+
+		var dcache = CreateDistributedCache();
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = duration,
+		};
+
+		using var cache = new FusionCache(options, logger: logger);
+		cache.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+
+		// SET
+		cache.Set<int>(
+			"foo",
+			1,
+			token: TestContext.Current.CancellationToken
+		);
+
+		// EXPIRE (ONLY IN MEMORY)
+		cache.Expire(
+			"foo",
+			options => options.SetSkipDistributedCache(true, true),
+			token: TestContext.Current.CancellationToken
+		);
+
+		var foo = cache.GetOrSet<int>(
+			"foo",
+			ct => 2,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(2, foo);
+	}
 }

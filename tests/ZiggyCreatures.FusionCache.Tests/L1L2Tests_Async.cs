@@ -1387,6 +1387,47 @@ public partial class L1L2Tests
 		Assert.Equal(maybeFooA3.Value, maybeFooB3.Value);
 	}
 
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanHandleExpireMidFlightAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var duration = TimeSpan.FromSeconds(10);
+
+		var dcache = CreateDistributedCache();
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = duration,
+		};
+
+		using var cache = new FusionCache(options, logger: logger);
+		cache.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+
+		// SET
+		await cache.SetAsync<int>(
+			"foo",
+			1,
+			token: TestContext.Current.CancellationToken
+		);
+
+		// EXPIRE (ONLY IN MEMORY)
+		await cache.ExpireAsync(
+			"foo",
+			options => options.SetSkipDistributedCache(true, true),
+			token: TestContext.Current.CancellationToken
+		);
+
+		var foo = await cache.GetOrSetAsync<int>(
+			"foo",
+			async ct => 2,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(2, foo);
+	}
+
 	//[Theory]
 	//[ClassData(typeof(SerializerTypesClassData))]
 	//public async Task MemoryExpirationPreservedWhenL1L2DurationsAreDifferentAsync(SerializerType serializerType)

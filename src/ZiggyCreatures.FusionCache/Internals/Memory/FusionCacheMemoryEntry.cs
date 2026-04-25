@@ -30,6 +30,11 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		}
 	}
 
+	public void Touch(long? timestamp = null)
+	{
+		Timestamp = timestamp ?? FusionCacheInternalUtils.GetCurrentTimestamp();
+	}
+
 	public long Timestamp { get; private set; }
 
 	public long LogicalExpirationTimestamp { get; set; }
