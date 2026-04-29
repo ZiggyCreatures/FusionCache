@@ -86,7 +86,7 @@ public class HybridL1L2Tests
 		var keyFoo = CreateRandomCacheKey("foo");
 
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 		var options = CreateFusionCacheOptions();
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
 		using var fc = new FusionCache(options).SetupDistributedCache(chaosdc, TestsUtils.GetSerializer(serializerType));
@@ -125,7 +125,7 @@ public class HybridL1L2Tests
 
 		using var mc = new MemoryCache(new MemoryCacheOptions());
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 		var options = CreateFusionCacheOptions();
 		options.DistributedCacheKeyModifierMode = CacheKeyModifierMode.None;
 		using var fc = new FusionCache(options, mc).SetupDistributedCache(chaosdc, TestsUtils.GetSerializer(serializerType));
@@ -163,7 +163,7 @@ public class HybridL1L2Tests
 		var softTimeout = TimeSpan.FromMilliseconds(100);
 		var hardTimeout = TimeSpan.FromMilliseconds(1_000);
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 
 		using var mc = new MemoryCache(new MemoryCacheOptions());
 		var options = CreateFusionCacheOptions();
@@ -199,7 +199,7 @@ public class HybridL1L2Tests
 		var duration = TimeSpan.FromSeconds(1);
 
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 
 		var options = CreateFusionCacheOptions();
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
@@ -238,7 +238,7 @@ public class HybridL1L2Tests
 
 		var circuitBreakerDuration = TimeSpan.FromSeconds(2);
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 
 		using var mc = new MemoryCache(new MemoryCacheOptions());
 		var options = CreateFusionCacheOptions();
@@ -271,7 +271,7 @@ public class HybridL1L2Tests
 		var keyBar = CreateRandomCacheKey("bar");
 
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 
 		chaosdc.SetAlwaysThrow();
 		var options = CreateFusionCacheOptions();
@@ -301,7 +301,7 @@ public class HybridL1L2Tests
 		var keyBar = CreateRandomCacheKey("bar");
 
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc);
+		var chaosdc = ChaosDistributedCache.Create(dc);
 
 		chaosdc.SetAlwaysThrow();
 		using var fc = new FusionCache(CreateFusionCacheOptions());
@@ -330,7 +330,7 @@ public class HybridL1L2Tests
 		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
 		options.DefaultEntryOptions.DistributedCacheDuration = TimeSpan.FromSeconds(10);
 		using var fc = new FusionCache(options, logger: logger);
-		var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
+		var serializer = ChaosSerializer.Create(TestsUtils.GetSerializer(serializerType));
 		var dc = CreateDistributedCache();
 		fc.SetupDistributedCache(dc, serializer);
 
@@ -628,7 +628,7 @@ public class HybridL1L2Tests
 		var eagerRefreshThreshold = 0.2f;
 
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc, CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosdc = ChaosDistributedCache.Create(dc, CreateXUnitLogger<ChaosDistributedCache>());
 
 		var options = CreateFusionCacheOptions();
 		options.DefaultEntryOptions.Duration = duration;
@@ -717,7 +717,7 @@ public class HybridL1L2Tests
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var mc = new MemoryCache(new MemoryCacheOptions());
 		var dc = CreateDistributedCache();
-		var chaosdc = new ChaosDistributedCache(dc, CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosdc = ChaosDistributedCache.Create(dc, CreateXUnitLogger<ChaosDistributedCache>());
 		var options = CreateFusionCacheOptions();
 		options.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(10);
 		options.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = true;

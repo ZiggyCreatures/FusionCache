@@ -1,11 +1,22 @@
 ﻿using System.Diagnostics;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
-internal partial class DistributedCacheAccessor
+internal abstract partial class DistributedCacheAccessor<TSerialized>
 {
+	protected abstract ValueTask<TSerialized?> SerializeAsync<T>(FusionCacheDistributedEntry<T> obj, CancellationToken ct);
+
+	protected abstract ValueTask<T?> DeserializeAsync<T>(TSerialized data, CancellationToken ct);
+
+	protected abstract Task<TSerialized?> GetCacheEntryAsync(string key, CancellationToken ct);
+
+	protected abstract Task SetCacheEntryAsync(string key, TSerialized data, DistributedCacheEntryOptions distributedOptions, CancellationToken ct);
+
+	protected abstract Task RemoveCacheEntryAsync(string key, CancellationToken ct);
+	
 	private async ValueTask<bool> ExecuteOperationAsync(string operationId, string key, Func<CancellationToken, Task> action, string actionDescription, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		//if (IsCurrentlyUsable(operationId, key) == false)
@@ -70,7 +81,7 @@ internal partial class DistributedCacheAccessor
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 		// SERIALIZATION
-		byte[]? data;
+		TSerialized? data;
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -78,11 +89,11 @@ internal partial class DistributedCacheAccessor
 
 			if (_options.PreferSyncSerialization)
 			{
-				data = _serializer.Serialize(distributedEntry);
+				data = Serialize(distributedEntry);
 			}
 			else
 			{
-				data = await _serializer.SerializeAsync(distributedEntry, token).ConfigureAwait(false);
+				data = await SerializeAsync(distributedEntry, token).ConfigureAwait(false);
 			}
 		}
 		catch (Exception exc)
@@ -128,7 +139,7 @@ internal partial class DistributedCacheAccessor
 			{
 				var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 
-				await _cache.SetAsync(MaybeProcessCacheKey(key), data, distributedOptions, ct).ConfigureAwait(false);
+				await SetCacheEntryAsync(MaybeProcessCacheKey(key), data, distributedOptions, ct).ConfigureAwait(false);
 
 				// EVENT
 				_events.OnSet(operationId, key);
@@ -154,12 +165,12 @@ internal partial class DistributedCacheAccessor
 		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
 		// GET FROM DISTRIBUTED CACHE
-		byte[]? data;
+		TSerialized? data;
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(_options, hasFallbackValue);
-			data = await RunUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
-				async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
+			data = await RunUtils.RunAsyncFuncWithTimeoutAsync<TSerialized?>(
+				async ct => await GetCacheEntryAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
 				timeout.Value,
 				true,
 				token: token
@@ -185,7 +196,7 @@ internal partial class DistributedCacheAccessor
 				}
 			}
 
-			data = null;
+			data = default;
 		}
 
 		if (data is null)
@@ -204,11 +215,11 @@ internal partial class DistributedCacheAccessor
 			FusionCacheDistributedEntry<TValue>? entry;
 			if (_options.PreferSyncSerialization)
 			{
-				entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data);
+				entry = Deserialize<FusionCacheDistributedEntry<TValue>>(data);
 			}
 			else
 			{
-				entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data, token).ConfigureAwait(false);
+				entry = await DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data, token).ConfigureAwait(false);
 			}
 
 			var isValid = false;
@@ -292,7 +303,7 @@ internal partial class DistributedCacheAccessor
 			key,
 			async ct =>
 			{
-				await _cache.RemoveAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false);
+				await RemoveCacheEntryAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false);
 
 				// EVENT
 				_events.OnRemove(operationId, key);
