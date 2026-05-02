@@ -74,7 +74,7 @@ Another example is when we want to skip read/write operations on each level via:
 - `SkipDistributedCacheWrite`
 - `SkipDistributedCacheRead`
 
-In general, if there's a `WhateverOption` and it makes sense to be able to speficy a different value for each level, we can expect to find a `MemoryCacheWhateverOption` and a `DistributedCacheWhateverOption` and that, if a level-specific value is not provided, the normal one will be used.
+In general, if there's a `WhateverOption` and it makes sense to be able to specify a different value for each level, we can expect to find a `MemoryCacheWhateverOption` and a `DistributedCacheWhateverOption` and that, if a level-specific value is not provided, the normal one will be used.
 
 
 ## 📢 Backplane ([more](Backplane.md))
