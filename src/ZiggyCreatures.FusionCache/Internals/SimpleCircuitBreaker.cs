@@ -1,4 +1,6 @@
-﻿namespace ZiggyCreatures.Caching.Fusion.Internals;
+using System.Diagnostics;
+
+namespace ZiggyCreatures.Caching.Fusion.Internals;
 
 /// <summary>
 /// A simple, reusable circuit-breaker.
@@ -8,9 +10,10 @@ internal sealed class SimpleCircuitBreaker
 	private const int CircuitStateClosed = 0;
 	private const int CircuitStateOpen = 1;
 
+	private const long NoAnchor = long.MinValue;
+
 	private int _circuitState;
-	private long _gatewayTicks;
-	private readonly long _breakDurationTicks;
+	private long _gatewayTimestamp = NoAnchor;
 
 	/// <summary>
 	/// Creates a new <see cref="SimpleCircuitBreaker"/> instance.
@@ -19,8 +22,6 @@ internal sealed class SimpleCircuitBreaker
 	public SimpleCircuitBreaker(TimeSpan breakDuration)
 	{
 		BreakDuration = breakDuration;
-		_breakDurationTicks = BreakDuration.Ticks;
-		_gatewayTicks = DateTimeOffset.MinValue.Ticks;
 	}
 
 	/// <summary>
@@ -36,13 +37,13 @@ internal sealed class SimpleCircuitBreaker
 	public bool TryOpen(out bool isStateChanged)
 	{
 		// NO CIRCUIT-BREAKER DURATION
-		if (_breakDurationTicks == 0)
+		if (BreakDuration == TimeSpan.Zero)
 		{
 			isStateChanged = false;
 			return false;
 		}
 
-		Interlocked.Exchange(ref _gatewayTicks, DateTimeOffset.UtcNow.Ticks + _breakDurationTicks);
+		Interlocked.Exchange(ref _gatewayTimestamp, Stopwatch.GetTimestamp());
 
 		// DETECT CIRCUIT STATE CHANGE
 		var oldCircuitState = Interlocked.Exchange(ref _circuitState, CircuitStateOpen);
@@ -57,7 +58,7 @@ internal sealed class SimpleCircuitBreaker
 	/// <param name="isStateChanged">Indicates if the circuit has been closed with this operation.</param>
 	public void Close(out bool isStateChanged)
 	{
-		Interlocked.Exchange(ref _gatewayTicks, DateTimeOffset.MinValue.Ticks);
+		Interlocked.Exchange(ref _gatewayTimestamp, NoAnchor);
 
 		// DETECT CIRCUIT STATE CHANGE
 		var oldCircuitState = Interlocked.Exchange(ref _circuitState, CircuitStateClosed);
@@ -75,13 +76,13 @@ internal sealed class SimpleCircuitBreaker
 		isStateChanged = false;
 
 		// NO CIRCUIT-BREAKER DURATION
-		if (_breakDurationTicks == 0)
+		if (BreakDuration == TimeSpan.Zero)
 			return true;
 
-		long gatewayTicksLocal = Interlocked.Read(ref _gatewayTicks);
+		var anchor = Interlocked.Read(ref _gatewayTimestamp);
 
 		// NOT ENOUGH TIME IS PASSED
-		if (DateTimeOffset.UtcNow.Ticks < gatewayTicksLocal)
+		if (anchor != NoAnchor && StopwatchPolyfill.GetElapsedTime(anchor) < BreakDuration)
 			return false;
 
 		if (_circuitState == CircuitStateOpen)
