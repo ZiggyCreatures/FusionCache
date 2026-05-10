@@ -91,7 +91,7 @@ public interface IFusionCacheBuilder
 	/// <summary>
 	/// A custom setup logic for the <see cref="FusionCacheOptions"/> object, to allow for fine-grained customization.
 	/// </summary>
-	Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
+	Action<IServiceProvider, FusionCacheOptions>? SetupOptionsAction { get; set; }
 
 	#endregion
 
