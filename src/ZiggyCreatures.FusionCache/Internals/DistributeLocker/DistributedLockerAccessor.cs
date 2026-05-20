@@ -35,6 +35,9 @@ internal sealed partial class DistributedLockerAccessor
 	private string GetLockName(string key)
 	{
 		return $"{key}{_options.InternalStrings.DistributedLockerLockNameSuffix}";
+
+		// NOTE: THE CacheKeyPrefix IS NOT NEEDED BECAUSE THE CACHE KEY ALREADY CONTAINS IT
+		//return $"{_options.CacheKeyPrefix}{key}{_options.InternalStrings.DistributedLockerLockNameSuffix}";
 	}
 
 	//private void UpdateLastError(string operationId, string key)
