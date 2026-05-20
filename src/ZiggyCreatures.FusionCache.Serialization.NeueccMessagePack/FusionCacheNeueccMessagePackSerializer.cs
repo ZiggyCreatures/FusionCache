@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using MessagePack;
 using MessagePack.Resolvers;
 
@@ -10,7 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.NeueccMessagePack;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses Neuecc's famous MessagePack serializer.
 /// </summary>
 public class FusionCacheNeueccMessagePackSerializer
-	: IFusionCacheSerializer
+	: IFusionCacheSerializer, IBufferFusionCacheSerializer
 {
 	/// <summary>
 	/// The options class for the <see cref="FusionCacheNeueccMessagePackSerializer"/> class.
@@ -56,9 +57,23 @@ public class FusionCacheNeueccMessagePackSerializer
 
 	/// <inheritdoc />
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		MessagePackSerializer.Serialize(destination, obj, _serializerOptions);
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public T? Deserialize<T>(byte[] data)
 	{
 		return MessagePackSerializer.Deserialize<T?>(data.AsMemory(), _serializerOptions);
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		return MessagePackSerializer.Deserialize<T?>(data, _serializerOptions);
 	}
 
 	/// <inheritdoc />
@@ -71,10 +86,27 @@ public class FusionCacheNeueccMessagePackSerializer
 
 	/// <inheritdoc />
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask SerializeAsync<T>(T? obj, IBufferWriter<byte> destination, CancellationToken token = default)
+	{
+		// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
+		Serialize(obj, destination);
+		return new ValueTask();
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
 		return new ValueTask<T?>(Deserialize<T>(data));
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask<T?> DeserializeAsync<T>(ReadOnlySequence<byte> data, CancellationToken token = default)
+	{
+		// PER @neuecc 'S SUGGESTION: AVOID AWAITING ON A MEMORY STREAM
+		return new ValueTask<T?>(Deserialize<T>(in data));
 	}
 
 	/// <inheritdoc />

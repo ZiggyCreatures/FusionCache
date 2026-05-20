@@ -1,7 +1,7 @@
 ﻿using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text;
 using ServiceStack.Text;
-
 using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
@@ -10,14 +10,11 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
 /// </summary>
 public class FusionCacheServiceStackJsonSerializer
-	: IFusionCacheSerializer
+	: IFusionCacheSerializer, IBufferFusionCacheSerializer
 {
 	static FusionCacheServiceStackJsonSerializer()
 	{
-		JsConfig.Init(new Config
-		{
-			DateHandler = DateHandler.ISO8601
-		});
+		JsConfig.Init(new Config { DateHandler = DateHandler.ISO8601 });
 	}
 
 	/// <summary>
@@ -30,9 +27,21 @@ public class FusionCacheServiceStackJsonSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		using var stream = new ArrayPoolWritableStream();
+		using var bufferWriter = new ArrayPoolBufferWriter();
+
+		using (var stream = new BufferWriterStream(bufferWriter))
+		{
+			JsonSerializer.SerializeToStream<T?>(obj, stream);
+		}
+
+		return bufferWriter.ToArray();
+	}
+
+	/// <inheritdoc />
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		using var stream = new BufferWriterStream(destination);
 		JsonSerializer.SerializeToStream<T?>(obj, stream);
-		return stream.GetBytes();
 	}
 
 	/// <inheritdoc />
@@ -42,8 +51,30 @@ public class FusionCacheServiceStackJsonSerializer
 		var chars = ArrayPool<char>.Shared.Rent(numChars);
 		try
 		{
-			Encoding.UTF8.GetChars(data, 0, data.Length, chars, 0);
-			return JsonSerializer.DeserializeFromSpan<T?>(chars.AsSpan(0, numChars));
+			var written = Encoding.UTF8.GetChars(data, 0, data.Length, chars, 0);
+			return JsonSerializer.DeserializeFromSpan<T?>(chars.AsSpan(0, written));
+		}
+		finally
+		{
+			ArrayPool<char>.Shared.Return(chars);
+		}
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		if (!data.IsSingleSegment || !MemoryMarshal.TryGetArray(data.First, out var segment))
+		{
+			var bytes = data.ToArray();
+			segment = new ArraySegment<byte>(bytes);
+		}
+
+		int numChars = Encoding.UTF8.GetCharCount(segment.Array!, segment.Offset, segment.Count);
+		var chars = ArrayPool<char>.Shared.Rent(numChars);
+		try
+		{
+			var written = Encoding.UTF8.GetChars(segment.Array!, segment.Offset, segment.Count, chars, 0);
+			return JsonSerializer.DeserializeFromSpan<T?>(chars.AsSpan(0, written));
 		}
 		finally
 		{
@@ -63,6 +94,13 @@ public class FusionCacheServiceStackJsonSerializer
 	}
 
 	/// <inheritdoc />
+	public ValueTask SerializeAsync<T>(T? obj, IBufferWriter<byte> destination, CancellationToken token = default)
+	{
+		Serialize(obj, destination);
+		return new ValueTask();
+	}
+
+	/// <inheritdoc />
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
@@ -70,6 +108,12 @@ public class FusionCacheServiceStackJsonSerializer
 		// NOTE: DON'T USE THE STREAM VERSION, IT'S BUGGED
 		//using var stream = new MemoryStream(data);
 		//return await JsonSerializer.DeserializeFromStreamAsync<T?>(stream);
+	}
+
+	/// <inheritdoc />
+	public ValueTask<T?> DeserializeAsync<T>(ReadOnlySequence<byte> data, CancellationToken token = default)
+	{
+		return new ValueTask<T?>(Deserialize<T>(in data));
 	}
 
 	/// <inheritdoc />

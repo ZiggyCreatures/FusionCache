@@ -7,14 +7,20 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests;
 
-public partial class SerializationTests
+public abstract partial class SerializationTestsBase
 	: AbstractTests
 {
-	private static async Task<T?> LoopDeLoopAsync<T>(IFusionCacheSerializer serializer, T? obj)
+	private async Task<T?> LoopDeLoopAsync<T>(IBufferFusionCacheSerializer serializer, T? obj)
 	{
-		var data = await serializer.SerializeAsync(obj);
-		return await serializer.DeserializeAsync<T>(data);
+		var data = await SerializeAsync(serializer, obj, TestContext.Current.CancellationToken);
+		return await DeserializeAsync<T>(serializer, data, TestContext.Current.CancellationToken);
 	}
+
+	protected abstract ValueTask<byte[]> SerializeAsync<T>(IBufferFusionCacheSerializer serializer, T? obj,
+		CancellationToken ct);
+
+	protected abstract ValueTask<T?> DeserializeAsync<T>(IBufferFusionCacheSerializer serializer, byte[] data,
+		CancellationToken ct);
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
@@ -61,12 +67,12 @@ public partial class SerializationTests
 		var now = DateTimeOffset.UtcNow;
 		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).UtcTicks, "abc123", now.UtcTicks, 123, 1));
 
-		var data = await serializer.SerializeAsync(obj, TestContext.Current.CancellationToken);
+		var data = await SerializeAsync(serializer, obj, TestContext.Current.CancellationToken);
 
 		Assert.NotNull(data);
 		Assert.NotEmpty(data);
 
-		var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data, TestContext.Current.CancellationToken);
+		var looped = await DeserializeAsync<FusionCacheDistributedEntry<string>>(serializer, data, TestContext.Current.CancellationToken);
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
@@ -87,12 +93,12 @@ public partial class SerializationTests
 		var now = DateTimeOffset.UtcNow;
 		var obj = new FusionCacheDistributedEntry<string>(SampleString, now.UtcTicks, now.AddSeconds(10).UtcTicks, [], null);
 
-		var data = await serializer.SerializeAsync(obj, TestContext.Current.CancellationToken);
+		var data = await SerializeAsync(serializer, obj, TestContext.Current.CancellationToken);
 
 		Assert.NotNull(data);
 		Assert.NotEmpty(data);
 
-		var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<string>>(data, TestContext.Current.CancellationToken);
+		var looped = await DeserializeAsync<FusionCacheDistributedEntry<string>>(serializer, data, TestContext.Current.CancellationToken);
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
@@ -108,12 +114,12 @@ public partial class SerializationTests
 		var now = DateTimeOffset.UtcNow;
 		var obj = new FusionCacheDistributedEntry<ComplexType>(ComplexType.CreateSample(), now.UtcTicks, now.AddSeconds(10).AddMicroseconds(now.Nanosecond * -1).UtcTicks, [], new FusionCacheEntryMetadata(true, now.AddSeconds(9).AddMicroseconds(now.Microsecond * -1).UtcTicks, "abc123", now.AddMicroseconds(now.Microsecond * -1).UtcTicks, 123, 1));
 
-		var data = await serializer.SerializeAsync(obj, TestContext.Current.CancellationToken);
+		var data = await SerializeAsync(serializer, obj, TestContext.Current.CancellationToken);
 
 		Assert.NotNull(data);
 		Assert.NotEmpty(data);
 
-		var looped = await serializer.DeserializeAsync<FusionCacheDistributedEntry<ComplexType>>(data, TestContext.Current.CancellationToken);
+		var looped = await DeserializeAsync<FusionCacheDistributedEntry<ComplexType>>(serializer, data, TestContext.Current.CancellationToken);
 		Assert.NotNull(looped);
 		Assert.Equal(obj.Value, looped.Value);
 		Assert.Equal(obj.Timestamp, looped.Timestamp);
@@ -148,10 +154,10 @@ public partial class SerializationTests
 			null
 		);
 
-		var serializedData = await serializer.SerializeAsync(sourceEntry, TestContext.Current.CancellationToken);
+		var serializedData = await SerializeAsync(serializer, sourceEntry, TestContext.Current.CancellationToken);
 		logger.LogInformation("SERIALIZED DATA: {bytes} bytes (+{delta} bytes)", serializedData.Length, serializedData.Length - sourceData.Length);
 
-		var targetEntry = await serializer.DeserializeAsync<FusionCacheDistributedEntry<byte[]>>(serializedData, TestContext.Current.CancellationToken);
+		var targetEntry = await DeserializeAsync<FusionCacheDistributedEntry<byte[]>>(serializer, serializedData, TestContext.Current.CancellationToken);
 		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
 
 		Assert.Equal(sourceData, targetEntry.Value);

@@ -24,6 +24,18 @@ public class ChaosDistributedCache
 		_innerCache = innerCache ?? throw new ArgumentNullException(nameof(innerCache));
 	}
 
+	/// <summary>
+	/// Initializes a new instance of the ChaosDistributedCache class that implements the <see cref="IBufferDistributedCache"/> interface if the given <paramref name="innerCache"/> does.
+	/// </summary>
+	/// <param name="innerCache">The actual <see cref="IDistributedCache"/> used if and when chaos does not happen.</param>
+	/// <param name="logger">The logger to use, or <see langword="null"/>.</param>
+	public static ChaosDistributedCache Create(IDistributedCache innerCache, ILogger<ChaosDistributedCache>? logger = null)
+	{
+		return innerCache is IBufferDistributedCache bufferCache
+			? new ChaosBufferDistributedCache(bufferCache, logger)
+			: new ChaosDistributedCache(innerCache, logger);
+	}
+
 	/// <inheritdoc/>
 	public byte[]? Get(string key)
 	{

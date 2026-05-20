@@ -6,27 +6,17 @@ using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 
-internal sealed partial class DistributedCacheAccessor
+internal abstract partial class DistributedCacheAccessor<TSerialized> : IDistributedCacheAccessor
+	where TSerialized : notnull
 {
-	private readonly IDistributedCache _cache;
-	private readonly IFusionCacheSerializer _serializer;
 	private readonly FusionCacheOptions _options;
 	private readonly ILogger? _logger;
 	private readonly FusionCacheDistributedEventsHub _events;
 	private readonly SimpleCircuitBreaker _breaker;
 	private readonly string _wireFormatToken;
 
-	public DistributedCacheAccessor(IDistributedCache distributedCache, IFusionCacheSerializer serializer, FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
+	protected DistributedCacheAccessor(FusionCacheOptions options, ILogger? logger, FusionCacheDistributedEventsHub events)
 	{
-		if (distributedCache is null)
-			throw new ArgumentNullException(nameof(distributedCache));
-
-		if (serializer is null)
-			throw new ArgumentNullException(nameof(serializer));
-
-		_cache = distributedCache;
-		_serializer = serializer;
-
 		_options = options;
 
 		_logger = logger;
@@ -45,10 +35,9 @@ internal sealed partial class DistributedCacheAccessor
 		};
 	}
 
-	public IDistributedCache DistributedCache
-	{
-		get { return _cache; }
-	}
+	public abstract IDistributedCache DistributedCache { get; }
+	
+	public abstract IFusionCacheSerializer Serializer { get; }
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private string MaybeProcessCacheKey(string key)
@@ -64,7 +53,7 @@ internal sealed partial class DistributedCacheAccessor
 	private void UpdateLastError(string operationId, string key)
 	{
 		// NO DISTRIBUTEC CACHE
-		if (_cache is null)
+		if (DistributedCache is null)
 			return;
 
 		var res = _breaker.TryOpen(out var hasChanged);

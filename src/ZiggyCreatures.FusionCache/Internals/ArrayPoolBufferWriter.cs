@@ -57,9 +57,14 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Memory<byte> GetMemory(int sizeHint = 0)
 	{
+		if (sizeHint <= 0)
+		{
+			sizeHint = 1;
+		}
+
 		var requiredCapacity = _bytesWritten + sizeHint;
 		var currentBufferLength = _buffer.Length;
-		if (requiredCapacity >= currentBufferLength)
+		if (requiredCapacity > currentBufferLength)
 		{
 			var newSize = Math.Max(currentBufferLength * 2, requiredCapacity);
 			var newBuffer = _arrayPool.Rent(newSize);
@@ -71,6 +76,16 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 		}
 
 		return _buffer.AsMemory(_bytesWritten);
+	}
+
+	/// <summary>
+	/// Returns the data written so far.
+	/// Any other method call on the writer makes the returned sequence invalid.
+	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ReadOnlySequence<byte> GetWrittenBuffer()
+	{
+		return new ReadOnlySequence<byte>(_buffer, 0, _bytesWritten);
 	}
 
 	/// <summary>

@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text;
 using Newtonsoft.Json;
 
@@ -17,7 +18,7 @@ internal class JsonArrayPool : IArrayPool<char>
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses the Newtonsoft Json.NET serializer.
 /// </summary>
 public class FusionCacheNewtonsoftJsonSerializer
-	: IFusionCacheSerializer
+	: IFusionCacheSerializer, IBufferFusionCacheSerializer
 {
 	private readonly JsonSerializer _jsonSerializer;
 	/// <summary>
@@ -58,13 +59,29 @@ public class FusionCacheNewtonsoftJsonSerializer
 	/// <inheritdoc />
 	public byte[] Serialize<T>(T? obj)
 	{
-		using var stream = new ArrayPoolWritableStream();
+		using var bufferWriter = new ArrayPoolBufferWriter();
+
+		using (var stream = new BufferWriterStream(bufferWriter))
+		{
+			using var writer = new StreamWriter(stream);
+			using JsonTextWriter jsonWriter = new JsonTextWriter(writer);
+			jsonWriter.ArrayPool = JsonArrayPool.Shared;
+			_jsonSerializer.Serialize(jsonWriter, obj);
+			jsonWriter.Flush();
+		}
+
+		return bufferWriter.ToArray();
+	}
+
+	/// <inheritdoc />
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		using var stream = new BufferWriterStream(destination);
 		using var writer = new StreamWriter(stream);
 		using JsonTextWriter jsonWriter = new JsonTextWriter(writer);
 		jsonWriter.ArrayPool = JsonArrayPool.Shared;
 		_jsonSerializer.Serialize(jsonWriter, obj);
 		jsonWriter.Flush();
-		return stream.GetBytes();
 	}
 
 	/// <inheritdoc />
@@ -78,15 +95,38 @@ public class FusionCacheNewtonsoftJsonSerializer
 	}
 
 	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		using var stream = new ReadOnlySequenceStream(in data);
+		using var reader = new StreamReader(stream, _encoding);
+		using var jsonReader = new JsonTextReader(reader);
+		jsonReader.ArrayPool = JsonArrayPool.Shared;
+		return _jsonSerializer.Deserialize<T>(jsonReader);
+	}
+
+	/// <inheritdoc />
 	public ValueTask<byte[]> SerializeAsync<T>(T? obj, CancellationToken token = default)
 	{
 		return new ValueTask<byte[]>(Serialize<T>(obj));
 	}
 
 	/// <inheritdoc />
+	public ValueTask SerializeAsync<T>(T? obj, IBufferWriter<byte> destination, CancellationToken token = default)
+	{
+		Serialize(obj, destination);
+		return new ValueTask();
+	}
+
+	/// <inheritdoc />
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
+	}
+
+	/// <inheritdoc />
+	public ValueTask<T?> DeserializeAsync<T>(ReadOnlySequence<byte> data, CancellationToken token = default)
+	{
+		return new ValueTask<T?>(Deserialize<T>(in data));
 	}
 
 	/// <inheritdoc />

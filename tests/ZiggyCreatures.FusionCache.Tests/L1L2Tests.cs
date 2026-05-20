@@ -1,24 +1,12 @@
 ﻿using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.Extensions.Options;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 
 namespace FusionCacheTests;
 
-public partial class L1L2Tests
-	: AbstractTests
+public abstract partial class L1L2Tests(ITestOutputHelper output) : AbstractTests(output, "MyCache")
 {
-	private static readonly bool UseRedis = false;
-	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
-
-	public L1L2Tests(ITestOutputHelper output)
-		: base(output, "MyCache:")
-	{
-	}
-
 	private FusionCacheOptions CreateFusionCacheOptions(string? cacheName = null, Action<FusionCacheOptions>? configure = null)
 	{
 		var res = new FusionCacheOptions
@@ -37,13 +25,7 @@ public partial class L1L2Tests
 		return res;
 	}
 
-	private static IDistributedCache CreateDistributedCache()
-	{
-		if (UseRedis)
-			return new RedisCache(new RedisCacheOptions() { Configuration = RedisConnection });
-
-		return new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-	}
+	protected abstract IDistributedCache CreateDistributedCache();
 
 	private static string CreateRandomCacheName(string cacheName)
 	{

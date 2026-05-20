@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Buffers;
+using System.Text.Json;
 
 namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
@@ -6,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses the System.Text.Json serializer.
 /// </summary>
 public class FusionCacheSystemTextJsonSerializer
-	: IFusionCacheSerializer
+	: IFusionCacheSerializer, IBufferFusionCacheSerializer
 {
 	/// <summary>
 	/// The options class for the <see cref="FusionCacheSystemTextJsonSerializer"/> class.
@@ -47,9 +48,47 @@ public class FusionCacheSystemTextJsonSerializer
 	}
 
 	/// <inheritdoc />
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		var options = _options?.SerializerOptions ?? JsonSerializerOptions.Default;
+		var writerOptions = new JsonWriterOptions
+		{
+			Encoder = options.Encoder,
+			Indented = options.WriteIndented,
+			MaxDepth = options.MaxDepth,
+			SkipValidation = true,
+		};
+
+		using var writer = new Utf8JsonWriter(destination, writerOptions);
+
+		JsonSerializer.Serialize<T?>(writer, obj, options);
+	}
+
+	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
 		return JsonSerializer.Deserialize<T>(data, _options?.SerializerOptions);
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		var options = _options?.SerializerOptions ?? JsonSerializerOptions.Default;
+
+		if (data.IsSingleSegment)
+		{
+			return JsonSerializer.Deserialize<T>(data.First.Span, options);
+		}
+
+		var readerOptions = new JsonReaderOptions
+		{
+			AllowTrailingCommas = options.AllowTrailingCommas,
+			CommentHandling = options.ReadCommentHandling,
+			MaxDepth = options.MaxDepth,
+		};
+
+		var reader = new Utf8JsonReader(data, readerOptions);
+		return JsonSerializer.Deserialize<T>(ref reader, options);
 	}
 
 	/// <inheritdoc />
@@ -59,9 +98,22 @@ public class FusionCacheSystemTextJsonSerializer
 	}
 
 	/// <inheritdoc />
+	public ValueTask SerializeAsync<T>(T? obj, IBufferWriter<byte> destination, CancellationToken token = default)
+	{
+		Serialize(obj, destination);
+		return new ValueTask();
+	}
+
+	/// <inheritdoc />
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
+	}
+
+	/// <inheritdoc />
+	public ValueTask<T?> DeserializeAsync<T>(ReadOnlySequence<byte> data, CancellationToken token = default)
+	{
+		return new ValueTask<T?>(Deserialize<T>(in data));
 	}
 
 	/// <inheritdoc />

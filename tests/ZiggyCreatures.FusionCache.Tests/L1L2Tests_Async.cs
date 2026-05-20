@@ -37,7 +37,7 @@ public partial class L1L2Tests
 		var keyFoo = CreateRandomCacheKey("foo");
 
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 		fusionCache.DefaultEntryOptions.AllowBackgroundDistributedCacheOperations = false;
 		var initialValue = await fusionCache.GetOrSetAsync<int>(keyFoo, _ => Task.FromResult(42), new FusionCacheEntryOptions() { Duration = TimeSpan.FromSeconds(1), IsFailSafeEnabled = true }, token: TestContext.Current.CancellationToken);
@@ -57,7 +57,7 @@ public partial class L1L2Tests
 		var softTimeout = TimeSpan.FromMilliseconds(100);
 		var hardTimeout = TimeSpan.FromMilliseconds(1_000);
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache);
@@ -86,7 +86,7 @@ public partial class L1L2Tests
 		var duration = TimeSpan.FromSeconds(1);
 
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 
 		var options = CreateFusionCacheOptions();
 		options.TagsDefaultEntryOptions.DistributedCacheSoftTimeout = softTimeout;
@@ -120,7 +120,7 @@ public partial class L1L2Tests
 
 		var circuitBreakerDuration = TimeSpan.FromSeconds(2);
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var options = CreateFusionCacheOptions();
@@ -195,7 +195,7 @@ public partial class L1L2Tests
 		var keyBar = CreateRandomCacheKey("bar");
 
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 
 		chaosDistributedCache.SetAlwaysThrow();
 		var options = CreateFusionCacheOptions();
@@ -224,7 +224,7 @@ public partial class L1L2Tests
 		var keyBar = CreateRandomCacheKey("bar");
 
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 
 		chaosDistributedCache.SetAlwaysThrow();
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions());
@@ -249,7 +249,7 @@ public partial class L1L2Tests
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var cache = new FusionCache(CreateFusionCacheOptions(CreateRandomCacheName("foo")), logger: logger);
-		var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
+		var serializer = ChaosSerializer.Create(TestsUtils.GetSerializer(serializerType));
 		var distributedCache = CreateDistributedCache();
 		cache.SetupDistributedCache(distributedCache, serializer);
 
@@ -395,7 +395,7 @@ public partial class L1L2Tests
 	{
 		var keyFoo = CreateRandomCacheKey("foo");
 
-		var dc = new ChaosDistributedCache(CreateDistributedCache());
+		var dc = ChaosDistributedCache.Create(CreateDistributedCache());
 		dc.SetAlwaysThrow();
 		using var fc = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
 
@@ -600,7 +600,7 @@ public partial class L1L2Tests
 		var eagerRefreshThreshold = 0.2f;
 
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
 		using var cache = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
 		cache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 
@@ -682,7 +682,7 @@ public partial class L1L2Tests
 		var logger = CreateXUnitLogger<FusionCache>();
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
 		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger);
 		fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 
@@ -1102,7 +1102,7 @@ public partial class L1L2Tests
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var distributedCache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache);
 		var options = CreateFusionCacheOptions();
 		options.DistributedCacheKeyModifierMode = CacheKeyModifierMode.None;
 		using var fusionCache = new FusionCache(options, memoryCache).SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
@@ -1137,7 +1137,7 @@ public partial class L1L2Tests
 		var memoryCacheDuration = TimeSpan.FromSeconds(1);
 
 		var dcache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(dcache);
 		var options = CreateFusionCacheOptions(Guid.NewGuid().ToString("N"));
 		options.DefaultEntryOptions = new FusionCacheEntryOptions
 		{
@@ -1225,7 +1225,7 @@ public partial class L1L2Tests
 		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
 
 		var dcache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(dcache);
 		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
 		options.DefaultEntryOptions = new FusionCacheEntryOptions
 		{
@@ -1291,7 +1291,7 @@ public partial class L1L2Tests
 		var duration = TimeSpan.FromSeconds(10);
 
 		var dcache = CreateDistributedCache();
-		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var chaosDistributedCache = ChaosDistributedCache.Create(dcache);
 		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
 		options.DefaultEntryOptions = new FusionCacheEntryOptions
 		{

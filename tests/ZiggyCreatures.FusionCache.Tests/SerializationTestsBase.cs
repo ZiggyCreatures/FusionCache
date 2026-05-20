@@ -3,12 +3,12 @@ using Xunit;
 
 namespace FusionCacheTests;
 
-public partial class SerializationTests
+public partial class SerializationTestsBase
 	: AbstractTests
 {
 	private static readonly ComplexType[] BigData;
 
-	static SerializationTests()
+	static SerializationTestsBase()
 	{
 		var len = 1024 * 1024;
 		BigData = new ComplexType[len];
@@ -18,7 +18,7 @@ public partial class SerializationTests
 		}
 	}
 
-	public SerializationTests(ITestOutputHelper output)
+	public SerializationTestsBase(ITestOutputHelper output)
 			: base(output, null)
 	{
 	}

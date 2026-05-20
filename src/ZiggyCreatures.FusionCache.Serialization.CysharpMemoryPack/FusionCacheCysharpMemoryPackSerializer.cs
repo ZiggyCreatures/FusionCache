@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -10,7 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
 /// </summary>
 public class FusionCacheCysharpMemoryPackSerializer
-	: IFusionCacheSerializer
+	: IFusionCacheSerializer, IBufferFusionCacheSerializer
 {
 	/// <summary>
 	/// The options class for the <see cref="FusionCacheCysharpMemoryPackSerializer"/> class.
@@ -55,7 +56,8 @@ public class FusionCacheCysharpMemoryPackSerializer
 	public byte[] Serialize<T>(T? obj)
 	{
 		var buffer = new ArrayPoolBufferWriter();
-		MemoryPackWriter<ArrayPoolBufferWriter> writer = new(ref buffer, MemoryPackWriterOptionalStatePool.Rent(_serializerOptions));
+		using var writerState = MemoryPackWriterOptionalStatePool.Rent(_serializerOptions);
+		MemoryPackWriter<ArrayPoolBufferWriter> writer = new(ref buffer, writerState);
 		try
 		{
 			MemoryPackSerializer.Serialize(ref writer, obj);
@@ -69,9 +71,23 @@ public class FusionCacheCysharpMemoryPackSerializer
 
 	/// <inheritdoc />
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		MemoryPackSerializer.Serialize(destination, obj, _serializerOptions);
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public T? Deserialize<T>(byte[] data)
 	{
 		return MemoryPackSerializer.Deserialize<T?>(data, _serializerOptions);
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		return MemoryPackSerializer.Deserialize<T?>(in data, _serializerOptions);
 	}
 
 	/// <inheritdoc />
@@ -83,9 +99,24 @@ public class FusionCacheCysharpMemoryPackSerializer
 
 	/// <inheritdoc />
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask SerializeAsync<T>(T? obj, IBufferWriter<byte> destination, CancellationToken token = default)
+	{
+		Serialize(obj, destination);
+		return new ValueTask();
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default)
 	{
 		return new ValueTask<T?>(Deserialize<T>(data));
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask<T?> DeserializeAsync<T>(ReadOnlySequence<byte> data, CancellationToken token = default)
+	{
+		return new ValueTask<T?>(Deserialize<T>(in data));
 	}
 
 	/// <inheritdoc />
