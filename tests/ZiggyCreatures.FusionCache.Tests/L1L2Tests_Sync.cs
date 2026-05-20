@@ -1318,6 +1318,82 @@ public partial class L1L2Tests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public void DistributedLockerWorksWithCacheKeyPrefix(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
+
+		var distributedLocker = new MemoryDistributedLocker(new MemoryDistributedLockerOptions());
+		var dcache = CreateDistributedCache();
+
+		// CACHE A
+		var optionsA = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		optionsA.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = TimeSpan.FromSeconds(10)
+		};
+		//optionsA.CacheKeyPrefix = "AAA:";
+		using var cacheA = new FusionCache(optionsA, logger: logger);
+		cacheA.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		// CACHE B
+		var optionsB = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		optionsB.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = TimeSpan.FromSeconds(10)
+		};
+		//optionsB.CacheKeyPrefix = "AAA:";
+		using var cacheB = new FusionCache(optionsB, logger: logger);
+		cacheB.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		int fooA = 0;
+		int fooB = 0;
+		Stopwatch swA = new Stopwatch();
+		Stopwatch swB = new Stopwatch();
+
+		_ = Task.Run(() =>
+		{
+			swA.Start();
+			fooA = cacheA.GetOrSet<int>(
+				"foo",
+				ct =>
+				{
+					// DELAY
+					Thread.Sleep(simulatedFactoryDuration.PlusALittleBit());
+					return 1;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+			swA.Stop();
+		}, TestContext.Current.CancellationToken);
+
+		Thread.Sleep(200);
+
+		swB.Start();
+		fooB = cacheB.GetOrSet<int>(
+			"foo",
+			ct =>
+			{
+				// NO DELAY
+				return 2;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+		swB.Stop();
+
+		Thread.Sleep(simulatedFactoryDuration.PlusASecond());
+
+		Assert.True(swA.ElapsedMilliseconds > simulatedFactoryDuration.TotalMilliseconds);
+		Assert.True(swB.ElapsedMilliseconds < simulatedFactoryDuration.TotalMilliseconds);
+		Assert.Equal(1, fooA);
+		Assert.Equal(2, fooB);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public void CanHandleExpireMidFlight(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
