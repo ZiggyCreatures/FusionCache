@@ -1258,11 +1258,13 @@ public sealed partial class FusionCache
 			&& (
 				_mca.IsOwned == false
 				|| HasDistributedCache
+				//|| HasBackplane
+				|| HasDistributedLocker
 			)
 		)
 		{
 			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
-				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: a named cache is being used, and no CacheKeyPrefix has been specified. It's usually better to specify a prefix to automatically avoid cache key collisions, even more so when using Tagging or the Clear() feature. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
+				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: this named cache does not have a CacheKeyPrefix specified, and it's using either a shared memory cache (L1), a distributed cache (L2) or a distributed locker: it is usually better to specify a CacheKeyPrefix to automatically avoid cache key collisions, even more so when using Tagging or the Clear() feature. If collisions are already avoided when manually creating the cache keys, you can change the MissingCacheKeyPrefixWarningLogLevel option.", CacheName, InstanceId);
 		}
 
 		// CHECK:
