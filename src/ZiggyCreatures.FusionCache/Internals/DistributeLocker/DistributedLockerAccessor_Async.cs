@@ -28,6 +28,14 @@ internal partial class DistributedLockerAccessor
 
 			return lockObj;
 		}
+		catch (OperationCanceledException) when (token.IsCancellationRequested)
+		{
+			// CALLER CANCELLATION: the caller's own token was canceled (eg: HttpContext.RequestAborted)
+			// while waiting to acquire the distributed lock. This is not a distributed locker error, so
+			// it must not be logged as one: just let the cancellation flow to the caller, consistently
+			// with how caller cancellation is handled on the factory path.
+			throw;
+		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(_options.DistributedLockerErrorsLogLevel) ?? false)
