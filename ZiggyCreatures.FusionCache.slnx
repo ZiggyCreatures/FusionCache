@@ -2,6 +2,13 @@
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/ZiggyCreatures.FusionCache.Benchmarks/ZiggyCreatures.FusionCache.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/examples/" />
+  <Folder Name="/examples/Playground/">
+    <Project Path="eaxmple/Playground/Playground.AppHost/Playground.AppHost.csproj" />
+    <Project Path="eaxmple/Playground/Playground.ServiceDefaults/Playground.ServiceDefaults.csproj" />
+    <Project Path="eaxmple/Playground/WebApplication1/WebApplication1.csproj" />
+    <Project Path="eaxmple/Playground/WebApplication2/WebApplication2.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
@@ -9,6 +16,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Backplane.AzureServiceBus/ZiggyCreatures.FusionCache.Backplane.AzureServiceBus.csproj" Id="c48413a2-1999-439c-b017-693fd79bfeec" />
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.Memory/ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Chaos/ZiggyCreatures.FusionCache.Chaos.csproj" />

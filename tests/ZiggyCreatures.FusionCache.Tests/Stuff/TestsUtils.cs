@@ -6,6 +6,8 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
+using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -150,6 +152,19 @@ public static class TestsUtils
 			return null;
 
 		return typeof(RedisBackplane).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as RedisBackplaneOptions; ;
+	}
+
+	public static string? GetAzureServiceBusCommunicatorTopicName(IFusionCache cache)
+	{
+		var backplane = GetBackplane<AzureServiceBusBackplane>(cache);
+		if (backplane is null)
+			return null;
+
+		var communicator = typeof(AzureServiceBusBackplane).GetField("_serviceBusCommunicator", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as AzureServiceBusClientWrapper;
+		if (communicator is null)
+			return null;
+
+		return typeof(AzureServiceBusClientWrapper).GetField("_topicName", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(communicator) as string;
 	}
 
 	public static IFusionCachePlugin[]? GetPlugins(IFusionCache cache)

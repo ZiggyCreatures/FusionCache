@@ -31,6 +31,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.AzureServiceBus\ZiggyCreatures.FusionCache.Backplane.AzureServiceBus.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Locking.Distributed.Memory\ZiggyCreatures.FusionCache.Locking.Distributed.Memory.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Chaos\ZiggyCreatures.FusionCache.Chaos.csproj" />
