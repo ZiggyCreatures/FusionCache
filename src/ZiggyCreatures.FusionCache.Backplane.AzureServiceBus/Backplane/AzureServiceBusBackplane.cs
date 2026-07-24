@@ -29,17 +29,22 @@ public partial class AzureServiceBusBackplane
 	public AzureServiceBusBackplane(
 		IAzureServiceBusClientWrapper serviceBusCommunicator,
 		IAzureServiceBusAdminWrapper serviceBusProvisioner,
-		ILogger<AzureServiceBusBackplane>? logger = null)
+		ILogger<AzureServiceBusBackplane>? logger = null,
+		TimeSpan? lockTimeout = null)
 	{
 		_serviceBusCommunicator = serviceBusCommunicator ?? throw new ArgumentNullException(nameof(serviceBusCommunicator));
 		_serviceBusProvisioner = serviceBusProvisioner ?? throw new ArgumentNullException(nameof(serviceBusProvisioner));
 		_logger = logger;
+		_lockTimeout = lockTimeout ?? TimeSpan.FromSeconds(5);
+		if (_lockTimeout <= TimeSpan.Zero)
+			throw new ArgumentOutOfRangeException(nameof(lockTimeout));
 	}
 
 	private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
 	private readonly IAzureServiceBusClientWrapper _serviceBusCommunicator;
 	private readonly IAzureServiceBusAdminWrapper _serviceBusProvisioner;
 	private readonly ILogger? _logger;
+	private readonly TimeSpan _lockTimeout;
 
 	private string? _cacheName;
 	private string? _cacheInstanceId;

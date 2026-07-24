@@ -22,7 +22,7 @@ public partial class AzureServiceBusBackplane
 		if (options.IncomingMessageHandler is null && options.IncomingMessageHandlerAsync is null)
 			throw new ArgumentException("At least one of the incoming message handlers must be provided.");
 
-		if (!await _lock.WaitAsync(TimeSpan.FromSeconds(5)))
+		if (!await _lock.WaitAsync(_lockTimeout))
 			throw new TimeoutException("Can't acquire lock");
 
 		try
@@ -79,6 +79,11 @@ public partial class AzureServiceBusBackplane
 	/// <inheritdoc/>
 	public async ValueTask UnsubscribeAsync()
 	{
+		if (!await _lock.WaitAsync(_lockTimeout))
+			throw new TimeoutException("Can't acquire lock");
+
+		try
+		{
 		if (_incomingMessageHandler is null)
 			return;
 
@@ -89,5 +94,16 @@ public partial class AzureServiceBusBackplane
 		}
 
 		await _serviceBusCommunicator.Unsubscribe(_incomingMessageHandler);
+		_incomingMessageHandler = null;
+		_cacheName = null;
+		_cacheInstanceId = null;
+
+		await _serviceBusCommunicator.DisposeAsync();
+		await _serviceBusProvisioner.DisposeAsync();
+		}
+		finally
+		{
+			_lock.Release();
+		}
 	}
 }

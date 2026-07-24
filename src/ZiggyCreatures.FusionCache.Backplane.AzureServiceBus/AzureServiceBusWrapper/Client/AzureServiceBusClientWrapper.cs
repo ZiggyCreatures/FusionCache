@@ -1,6 +1,6 @@
-﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using System.Collections.Immutable;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.Helpers;
 
@@ -19,11 +19,13 @@ namespace ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 /// <param name="topicName">The name of the topic to use. Must already exist by the time <see cref="Subscribe"/> is called.</param>
 /// <param name="subscriptionName">The name of the subscription to use. Must already exist by the time <see cref="Subscribe"/> is called.</param>
 /// <param name="logger">The logger to use.</param>
+/// <param name="asbOptions">The backplane options used for synchronization timeouts.</param>
 public class AzureServiceBusClientWrapper(
 		ServiceBusClient serviceBusClient,
 		string topicName,
 		string subscriptionName,
-		ILogger<AzureServiceBusClientWrapper> logger, IOptions<AzureServiceBusBackplaneOptions> asbOptions) : IAzureServiceBusClientWrapper
+		ILogger<AzureServiceBusClientWrapper> logger,
+		AzureServiceBusBackplaneOptions asbOptions) : IAzureServiceBusClientWrapper
 {
 	/// <summary>
 	/// The application property used to carry the publishing instance's subscription name, for self-message filtering.
@@ -43,9 +45,9 @@ public class AzureServiceBusClientWrapper(
 	/// The name of the Service Bus topic this instance talks on.
 	/// </summary>
 	internal string TopicName => topicName;
-	private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-	private readonly List<Func<ServiceBusReceivedMessage, Task>> _handlers = new();
 
+	private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
+	private ImmutableArray<Func<ServiceBusReceivedMessage, Task>> _handlers = ImmutableArray<Func<ServiceBusReceivedMessage, Task>>.Empty;
 
 	private ServiceBusProcessor? _serviceBusProcessor;
 	private ServiceBusSender? _serviceBusSender;
@@ -53,12 +55,16 @@ public class AzureServiceBusClientWrapper(
 	/// <inheritdoc/>
 	public async Task Subscribe(Func<ServiceBusReceivedMessage, Task> handler)
 	{
-		if (!await _lock.WaitAsync(asbOptions.Value.LockTimeout))
+		if (handler is null)
+			throw new ArgumentNullException(nameof(handler));
+
+		if (!await _lock.WaitAsync(asbOptions.LockTimeout))
 			throw new TimeoutException("Can't acquire lock");
 
 		try
 		{
-			_handlers.Add(handler);
+			if (!_handlers.Contains(handler))
+				_handlers = _handlers.Add(handler);
 		}
 		finally
 		{
@@ -71,17 +77,23 @@ public class AzureServiceBusClientWrapper(
 	/// <inheritdoc/>
 	public async Task Unsubscribe(Func<ServiceBusReceivedMessage, Task> handler)
 	{
-		if (!await _lock.WaitAsync(asbOptions.Value.LockTimeout))
+		if (!await _lock.WaitAsync(asbOptions.LockTimeout))
 			throw new TimeoutException("Can't acquire lock");
+
+		var shouldStopProcessor = false;
 
 		try
 		{
-			_handlers.Remove(handler);
+			_handlers = _handlers.Remove(handler);
+			shouldStopProcessor = _handlers.IsEmpty;
 		}
 		finally
 		{
 			_lock.Release();
 		}
+
+		if (shouldStopProcessor)
+			await StopProcessorAsync();
 	}
 
 	/// <inheritdoc/>
@@ -95,24 +107,37 @@ public class AzureServiceBusClientWrapper(
 	/// <inheritdoc/>
 	public async ValueTask DisposeAsync()
 	{
+		await StopProcessorAsync();
+
+		if (_serviceBusSender is not null)
+		{
+			await _serviceBusSender.DisposeAsync();
+			_serviceBusSender = null;
+		}
+
+		await serviceBusClient.DisposeAsync();
+	}
+
+	private async Task StopProcessorAsync()
+	{
 		if (_serviceBusProcessor is null)
 			return;
 
-		if (!await _lock.WaitAsync(asbOptions.Value.LockTimeout))
+		if (!await _lock.WaitAsync(asbOptions.LockTimeout))
 			throw new TimeoutException("Can't acquire lock");
 
 		try
 		{
-			if (_serviceBusProcessor is not null)
-			{
-				await _serviceBusProcessor.StopProcessingAsync();
-				await _serviceBusProcessor.DisposeAsync();
-				_serviceBusProcessor = null;
-			}
+			if (_serviceBusProcessor is null)
+				return;
+
+			await _serviceBusProcessor.StopProcessingAsync();
+			await _serviceBusProcessor.DisposeAsync();
+			_serviceBusProcessor = null;
 		}
 		catch (Exception exc)
 		{
-			logger.LogError(exc, "An error occurred while stopping the processor for {subscriptionName}", subscriptionName);
+			logger.LogError(exc, "An error occurred while stopping the processor for {SubscriptionName}", subscriptionName);
 		}
 		finally
 		{
@@ -125,8 +150,9 @@ public class AzureServiceBusClientWrapper(
 		if (_serviceBusProcessor is not null)
 			return _serviceBusProcessor;
 
-		if (!await _lock.WaitAsync(asbOptions.Value.LockTimeout))
+		if (!await _lock.WaitAsync(asbOptions.LockTimeout))
 			throw new TimeoutException("Can't acquire lock");
+
 		try
 		{
 			if (_serviceBusProcessor is null)
@@ -158,7 +184,7 @@ public class AzureServiceBusClientWrapper(
 
 		await EnsureProcessor();
 
-		if (!await _lock.WaitAsync(asbOptions.Value.LockTimeout))
+		if (!await _lock.WaitAsync(asbOptions.LockTimeout))
 			throw new TimeoutException("Can't acquire lock");
 
 		try
@@ -188,7 +214,20 @@ public class AzureServiceBusClientWrapper(
 			return;
 		}
 
-		foreach (var handler in _handlers)
+		ImmutableArray<Func<ServiceBusReceivedMessage, Task>> handlers;
+		if (!await _lock.WaitAsync(asbOptions.LockTimeout))
+			throw new TimeoutException("Can't acquire lock");
+
+		try
+		{
+			handlers = _handlers;
+		}
+		finally
+		{
+			_lock.Release();
+		}
+
+		foreach (var handler in handlers)
 		{
 			await handler(args.Message);
 		}

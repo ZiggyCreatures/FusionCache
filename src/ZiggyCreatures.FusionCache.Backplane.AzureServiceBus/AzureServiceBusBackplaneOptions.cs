@@ -1,14 +1,11 @@
-﻿using Azure.Core;
-using Azure.Messaging.ServiceBus;
-using Azure.Messaging.ServiceBus.Administration;
-using Microsoft.Extensions.Options;
+using Azure.Core;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 
 /// <summary>
 /// Represents the options available for the Azure Service Bus backplane.
 /// </summary>
-public class AzureServiceBusBackplaneOptions : IOptions<AzureServiceBusBackplaneOptions>
+public class AzureServiceBusBackplaneOptions
 {
 	/// <summary>
 	/// The connection string used to connect to Azure Service Bus.
@@ -61,10 +58,4 @@ public class AzureServiceBusBackplaneOptions : IOptions<AzureServiceBusBackplane
 	/// The max amount of time to wait to acquire the internal lock used to coordinate connection/subscription setup.
 	/// </summary>
 	public TimeSpan LockTimeout { get; set; } = TimeSpan.FromSeconds(5);
-
-	AzureServiceBusBackplaneOptions IOptions<AzureServiceBusBackplaneOptions>.Value
-	{
-		get { return this; }
-	}
-
 }

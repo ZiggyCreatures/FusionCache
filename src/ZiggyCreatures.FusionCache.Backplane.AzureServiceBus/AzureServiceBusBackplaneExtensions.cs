@@ -1,4 +1,5 @@
-﻿using Azure.Messaging.ServiceBus;
+using Azure.Core;
+using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -21,8 +22,8 @@ public static class AzureServiceBusBackplaneExtensions
 	{
 		var backplaneLogger = sp.GetService<ILogger<AzureServiceBusBackplane>>();
 
-		var client = new ServiceBusClient(options.ConnectionString);
-		var adminClient = new ServiceBusAdministrationClient(options.ConnectionString);
+		ValidateOptions(options);
+		var (client, adminClient) = CreateClients(options);
 		var topicName = AzureServiceBusHelpers.ResolveTopicName(options.TopicName, topicNameFallback);
 
 		string subscriptionName;
@@ -33,21 +34,61 @@ public static class AzureServiceBusBackplaneExtensions
 			subscriptionName = options.SubscriptionName ?? AzureServiceBusHelpers.GenerateId();
 
 			var provisionerLogger = sp.GetService<ILogger<AzureServiceBusAdminWrapper>>() ?? NullLogger<AzureServiceBusAdminWrapper>.Instance;
-			provisioner = new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, provisionerLogger);
+			provisioner = new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, options.SubscriptionAutoDeleteOnIdle, provisionerLogger);
 		}
 		else
 		{
-			if (string.IsNullOrWhiteSpace(options.SubscriptionName))
-				throw new InvalidOperationException($"{nameof(AzureServiceBusBackplaneOptions)}.{nameof(AzureServiceBusBackplaneOptions.IsAdmin)} is false, but no {nameof(AzureServiceBusBackplaneOptions.SubscriptionName)} was provided: without administrative rights, an existing subscription name must be specified upfront.");
-
 			subscriptionName = options.SubscriptionName!;
 			provisioner = NoOpAzureServiceBusAdminWrapper.Instance;
 		}
 
 		var communicatorLogger = sp.GetService<ILogger<AzureServiceBusClientWrapper>>() ?? NullLogger<AzureServiceBusClientWrapper>.Instance;
-		var communicator = new AzureServiceBusClientWrapper(client, topicName, subscriptionName, communicatorLogger,options);
+		var communicator = new AzureServiceBusClientWrapper(client, topicName, subscriptionName, communicatorLogger, options);
 
-		return new AzureServiceBusBackplane(communicator, provisioner, backplaneLogger);
+		return new AzureServiceBusBackplane(communicator, provisioner, backplaneLogger, options.LockTimeout);
+	}
+
+	private static void ValidateOptions(AzureServiceBusBackplaneOptions options)
+	{
+		if (options.LockTimeout <= TimeSpan.Zero)
+			throw new InvalidOperationException($"{nameof(options.LockTimeout)} must be greater than zero.");
+
+		if (options.SubscriptionAutoDeleteOnIdle <= TimeSpan.Zero)
+			throw new InvalidOperationException($"{nameof(options.SubscriptionAutoDeleteOnIdle)} must be greater than zero.");
+
+		if (!options.IsAdmin && string.IsNullOrWhiteSpace(options.SubscriptionName))
+			throw new InvalidOperationException($"{nameof(options.SubscriptionName)} is required when {nameof(options.IsAdmin)} is false. It must identify a unique, externally provisioned subscription for this cache-process instance.");
+
+		ValidateAuthentication(options);
+	}
+
+	private static void ValidateAuthentication(AzureServiceBusBackplaneOptions options)
+	{
+		var hasConnectionString = !string.IsNullOrWhiteSpace(options.ConnectionString);
+		var hasNamespace = !string.IsNullOrWhiteSpace(options.FullyQualifiedNamespace);
+		var hasCredential = options.Credential is not null;
+
+		if (hasConnectionString && (hasNamespace || hasCredential))
+			throw new InvalidOperationException("Configure either ConnectionString or FullyQualifiedNamespace with Credential, not both.");
+
+		if (hasConnectionString)
+			return;
+
+		if (!hasNamespace || !hasCredential)
+			throw new InvalidOperationException("Configure either ConnectionString or both FullyQualifiedNamespace and Credential.");
+	}
+
+	private static (ServiceBusClient Client, ServiceBusAdministrationClient AdminClient) CreateClients(AzureServiceBusBackplaneOptions options)
+	{
+		ValidateAuthentication(options);
+
+		if (!string.IsNullOrWhiteSpace(options.ConnectionString))
+			return (new ServiceBusClient(options.ConnectionString), new ServiceBusAdministrationClient(options.ConnectionString));
+
+		return (
+			new ServiceBusClient(options.FullyQualifiedNamespace!, options.Credential!),
+			new ServiceBusAdministrationClient(options.FullyQualifiedNamespace!, options.Credential!)
+		);
 	}
 
 	/// <summary>
