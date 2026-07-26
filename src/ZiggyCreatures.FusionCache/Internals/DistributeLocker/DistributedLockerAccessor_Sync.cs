@@ -30,8 +30,8 @@ internal partial class DistributedLockerAccessor
 		}
 		catch (Exception exc)
 		{
-			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
-				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
+			if (_logger?.IsEnabled(_options.DistributedLockerErrorsLogLevel) ?? false)
+				_logger.Log(_options.DistributedLockerErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] acquiring the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
 
 			if (options.ReThrowDistributedLockerExceptions)
 			{
@@ -66,8 +66,8 @@ internal partial class DistributedLockerAccessor
 		}
 		catch (Exception exc)
 		{
-			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
+			if (_logger?.IsEnabled(_options.DistributedLockerErrorsLogLevel) ?? false)
+				_logger.Log(_options.DistributedLockerErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing the DISTRIBUTED LOCK has thrown an exception", _options.CacheName, _options.InstanceId, operationId, key);
 
 			if (options.ReThrowDistributedLockerExceptions)
 			{

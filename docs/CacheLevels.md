@@ -74,7 +74,7 @@ Another example is when we want to skip read/write operations on each level via:
 - `SkipDistributedCacheWrite`
 - `SkipDistributedCacheRead`
 
-In general, if there's a `WhateverOption` and it makes sense to be able to speficy a different value for each level, we can expect to find a `MemoryCacheWhateverOption` and a `DistributedCacheWhateverOption` and that, if a level-specific value is not provided, the normal one will be used.
+In general, if there's a `WhateverOption` and it makes sense to be able to specify a different value for each level, we can expect to find a `MemoryCacheWhateverOption` and a `DistributedCacheWhateverOption` and that, if a level-specific value is not provided, the normal one will be used.
 
 
 ## 📢 Backplane ([more](Backplane.md))
@@ -231,6 +231,7 @@ There are a variety of already existing `IDistributedCache` implementations avai
 | [Microsoft.Extensions.Caching.Cosmos](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Cosmos/) <br/> The official Microsoft implementation for Cosmos DB | `MIT` | [![NuGet](https://img.shields.io/nuget/v/Microsoft.Extensions.Caching.Cosmos.svg)](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Cosmos/) |
 | [MongoDbCache](https://www.nuget.org/packages/MongoDbCache/) <br/> An implementation for MongoDB | `MIT` | [![NuGet](https://img.shields.io/nuget/v/MongoDbCache.svg)](https://www.nuget.org/packages/MongoDbCache/) |
 | [Community.Microsoft.Extensions.Caching.PostgreSql](https://www.nuget.org/packages/Community.Microsoft.Extensions.Caching.PostgreSql/) <br/> An implementation for PostgreSQL | `MIT` | [![NuGet](https://img.shields.io/nuget/v/Community.Microsoft.Extensions.Caching.PostgreSql.svg)](https://www.nuget.org/packages/Community.Microsoft.Extensions.Caching.PostgreSql/) |
+| [Microsoft.Extensions.Caching.Postgres](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Postgres/) <br/> An implementation for PostgreSQL, by Microsoft | `MIT` | [![NuGet](https://img.shields.io/nuget/v/Microsoft.Extensions.Caching.Postgres.svg)](https://www.nuget.org/packages/Microsoft.Extensions.Caching.Postgres/) |
 | [MarkCBB.Extensions.Caching.MongoDB](https://www.nuget.org/packages/MarkCBB.Extensions.Caching.MongoDB/) <br/> Another implementation for MongoDB | `Apache v2` | [![NuGet](https://img.shields.io/nuget/v/MarkCBB.Extensions.Caching.MongoDB.svg)](https://www.nuget.org/packages/MarkCBB.Extensions.Caching.MongoDB/) |
 | [EnyimMemcachedCore](https://www.nuget.org/packages/EnyimMemcachedCore/) <br/> An implementation for Memcached | `Apache v2` | [![NuGet](https://img.shields.io/nuget/v/EnyimMemcachedCore.svg)](https://www.nuget.org/packages/EnyimMemcachedCore/) |
 | [NeoSmart.Caching.Sqlite](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) <br/> An implementation for SQLite | `MIT` | [![NuGet](https://img.shields.io/nuget/v/NeoSmart.Caching.Sqlite.svg)](https://www.nuget.org/packages/NeoSmart.Caching.Sqlite/) |

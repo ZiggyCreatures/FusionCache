@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
+using ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.Memory;
 
@@ -82,7 +83,10 @@ internal static class FusionCacheInternalUtils
 
 	public static string MaybeGenerateOperationId(ILogger? logger)
 	{
-		if (logger is null)
+		//if (logger is null)
+		//	return string.Empty;
+
+		if (logger is null && Activities.HasAnyListeners() == false)
 			return string.Empty;
 
 		return GeneratorUtils.GenerateOperationId();

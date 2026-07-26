@@ -72,7 +72,10 @@ internal static class Metrics
 	{
 		return [
 			new KeyValuePair<string, object?>(Tags.Names.CacheName, cacheName),
-			// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS, PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES
+			// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS:
+			// - THIS MAY CAUSE A SO CALLED CARDINALITY EXPLOSION
+			// - PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES/ATTRIBUTES COMBINATION
+
 			//new KeyValuePair<string, object?>(Tags.Names.CacheInstanceId, cacheInstanceId),
 			//new KeyValuePair<string, object?>(Tags.Names.OperationKey, key),
 			//new KeyValuePair<string, object?>(Tags.Names.OperationId, operationId),

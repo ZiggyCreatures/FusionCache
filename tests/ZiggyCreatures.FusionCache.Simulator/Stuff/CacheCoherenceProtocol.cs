@@ -1,8 +1,8 @@
 ﻿namespace ZiggyCreatures.Caching.Fusion.Simulator.Stuff;
 
-public enum DistributedCacheType
+public enum CacheCoherenceProtocol
 {
 	None = 0,
-	Memory = 1,
-	Redis = 2
+	WriteUpdate = 1,
+	WriteInvalidate = 2
 }

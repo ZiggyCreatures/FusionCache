@@ -32,9 +32,10 @@ In the **10 min** period suppose we have a nice, uniform usage pattern where **e
 - **`100` ms** of average response time from the database, with sometimes peaks of **1 sec**
 - our service is deployed on **`3` nodes** to better handle the traffic
 
-| **:bulb: NOTE** |
-|:----------------|
-| It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario. On one side not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, while on the other I hope you don't have to deal with a database that, on a 10 minutes range, is slow for 2 minutes and completely down for 3 :sweat_smile: |
+> [!IMPORTANT]
+> It's important to say upfront that this is both **overly simplified** and (hopefully) **more disastrous** than a typical real world scenario.
+> 
+> On one hand not everything would be so beautifully synchronized and so perfectly periodical about requests pattern, on the other hand I hope you don't have to deal with a database that, over `10 min`, is slow for `2 min` and completely down for `3 min` 😅 ...
 
 <br/>
 <br/>
@@ -393,7 +394,7 @@ The number of database requests in this case remains the same.
 <br/>
 <br/>
 
-## 6) Distributed cache ([more](CacheLevels.md))
+## 6) Distributed Cache ([more](CacheLevels.md))
 
 Now everything is great on every node, but each node goes to the database for the same data, **without sharing it** with the other nodes that probably already did the same, and that is a waste.
 
@@ -430,11 +431,11 @@ services.AddFusionCache()
         FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
         FactoryHardTimeout = TimeSpan.FromMilliseconds(1500)
     })
-    // ADD FUSIONCACHE SERIALIZATION BASED ON System.Text.Json
+    // ADD SERIALIZATION BASED ON System.Text.Json
     .WithSerializer(
         new FusionCacheSystemTextJsonSerializer()
     )
-    // ADD REDIS DISTRIBUTED CACHE SUPPORT
+    // ADD DISTRIBUTED CACHE BASED ON REDIS
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
     )
@@ -460,7 +461,7 @@ Keep reading to find out how to easily solve that.
 <br/>
 <br/>
 
-## 7) Distributed cache options
+## 7) Distributed Cache Options
 
 Since the distributed cache is a secondary system and we want it to impact our service as little as possible in case it has problems (if it's slow or completely down) we set:
 
@@ -560,7 +561,7 @@ As said this should increase the probabilty that when something expires in the m
 
 Let's say this gives us another `20%` of the original `39,500` so that (`30%` + `20%`) = `50%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
-**TOTAL DATABASE QUERIES IN 10 MIN**: around `19,000` (before was `27,000`)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `20,000` (before was `27,000`)
 
 ![Fail-Safe Results](images/stepbystep-07-distributedoptions.png)
 
@@ -620,7 +621,7 @@ services.AddFusionCache()
     .WithDistributedCache(
         new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
     )
-    // ADD THE FUSION CACHE BACKPLANE FOR REDIS
+    // ADD BACKPLANE BASED ON REDIS
     .WithBackplane(
         new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
     )
@@ -633,18 +634,169 @@ That's all we need to do: FusionCache will automatically start using it, sending
 
 The first result is that everything is beautifully synchronized, and the cache as a whole is now always **coherent**.
 
-The second is that, since at every change all the other nodes (the has that entry in their own L1) will update their local copy immediately, it is possible this would make it less frequent that multiple requests to the database would be needed at the same time on different nodes.
+The second is that every change to an entry is automatically propagated to all the other nodes which, if they have the same entry in their own L1, will update their local copy immediately from L2: this may turn requests to the database less needed at the same time on different nodes.
 
 Let's say this gives us another `20%` of the original `39,500` so that (`50%` + `20%`) = `70%` of the times the data needed will be already fresh in the distributed cache, put there by one of the `3` nodes.
 
-**TOTAL DATABASE QUERIES IN 10 MIN**: around `11,000` (before was `19,000` + everything is now synchronized)
+**TOTAL DATABASE QUERIES IN 10 MIN**: around `12,000` (before was `20,000` + everything is now synchronized)
 
 ![Backplane Results](images/stepbystep-08-backplane.png)
 
 <br/>
 <br/>
 
-## 10) Logging ([more](Logging.md))
+## 10) Distributed Stampede Protection ([more](CacheStampede.md#%EF%B8%8F-distributed-cache-stampede))
+
+With Jittering added above we have _reduced the probability_ of a factory (meaning: a database query) running on different nodes at the same time for the same data.
+
+But we only reduced the probabilty, not removed it entirely.
+
+So how to to solve this issue completely? We can use a [Distributed Locker](CacheStampede.md#-distributed-locker).
+
+Let's say we want to use [Redis](https://redis.io/) for the distributed locker, since we are already using it as a distributed cache (L2) and for the backplane.
+
+We simply install the specific package:
+
+```PowerShell
+PM> Install-Package ZiggyCreatures.FusionCache.Locking.Distributed.Redis
+```
+
+and add the registration during startup:
+
+```csharp
+services.AddFusionCache()
+    .WithOptions(options => {
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+    })
+    .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+        Duration = TimeSpan.FromMinutes(1),
+        
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromHours(2),
+        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+        EagerRefreshThreshold = 0.9f,
+
+        FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+        FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
+
+        DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
+        DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
+        AllowBackgroundDistributedCacheOperations = true,
+
+        JitterMaxDuration = TimeSpan.FromSeconds(2)
+    })
+    .WithSerializer(
+        new FusionCacheSystemTextJsonSerializer()
+    )
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
+    )
+    .WithBackplane(
+        new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
+    )
+    // ADD THE DISTRIBUTED LOCKER BASED ON REDIS
+	.WithDistributedLocker(
+		new RedisDistributedLocker(new RedisDistributedLockerOptions { Configuration = "CONNECTION STRING" })
+	)
+;
+```
+
+That's all we need to do: FusionCache will automatically start using it, coordinating the factory execution on multiple nodes so that only one will run at the same time for the same data even on multiple nodes, all automatically.
+
+### 🏆 Results
+
+This will totally remove the chance that a factory will run on multiple nodes, thereby reducing the number of database queries to the bare minimum.
+
+Since we are dealing with `1,000` different products being requested for `10 min` straight and being cached for `1 min` at a time, this means `1,000` factory executions every `1 min` for `10 min`.
+
+This all `1,000 * 10` = `10,000` database queries, the absolute minimum possible.
+
+**TOTAL DATABASE QUERIES IN 10 MIN**: `10,000` (before was `12,000`)
+
+![Distributed Stampede Results](images/stepbystep-08-backplane.png)
+
+<br/>
+<br/>
+
+## 11) Optimize Redis Usage
+
+We're using Redis a lot.
+
+More precisely, all the distributed components are using it:
+- distributed cache
+- backplane
+- distributed locker
+
+This is absolutely not an issue, but maybe we can _optimize_ its usage a little bit.
+
+Right now we are passing a _connection string_ to all distributed components, which is the easiest way to do it, but this also means that each component will create a separate connection to the same Redis instance and, since a connection is relatively _heavy object_, that is not ideal.
+
+So, since all of the Redis-based distributed components are based on the amazing [StackExchange.Redis](https://github.com/stackexchange/stackexchange.redis) package, we can just create one connection multiplexer object (muxer) and reuse it, by passing it instead of the connection string.
+
+> [!NOTE]
+> It's totally ok to share the same `IConnectionMultiplexer` with multiple concurrent uses, since it's thread safe and designed for that.
+
+Here's how we can do it:
+
+```csharp
+// CREATE THE MUXER ONCE
+IConnectionMultiplexer muxer = await ConnectionMultiplexer.ConnectAsync("CONNECTION STRING");
+
+services.AddFusionCache()
+    .WithOptions(options => {
+        options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
+    })
+    .WithDefaultEntryOptions(new FusionCacheEntryOptions {
+        Duration = TimeSpan.FromMinutes(1),
+        
+        IsFailSafeEnabled = true,
+        FailSafeMaxDuration = TimeSpan.FromHours(2),
+        FailSafeThrottleDuration = TimeSpan.FromSeconds(30),
+
+        EagerRefreshThreshold = 0.9f,
+
+        FactorySoftTimeout = TimeSpan.FromMilliseconds(100),
+        FactoryHardTimeout = TimeSpan.FromMilliseconds(1500),
+
+        DistributedCacheSoftTimeout = TimeSpan.FromSeconds(1),
+        DistributedCacheHardTimeout = TimeSpan.FromSeconds(2),
+        AllowBackgroundDistributedCacheOperations = true,
+
+        JitterMaxDuration = TimeSpan.FromSeconds(2)
+    })
+    .WithSerializer(
+        new FusionCacheSystemTextJsonSerializer()
+    )
+    .WithDistributedCache(
+        new RedisCache(new RedisCacheOptions() {
+			// USE THE MUXER
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+    )
+    .WithBackplane(
+        new RedisBackplane(new RedisBackplaneOptions() {
+			// USE THE MUXER
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+    )
+	.WithDistributedLocker(
+		new RedisDistributedLocker(new RedisDistributedLockerOptions {
+			// USE THE MUXER
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+	)
+;
+```
+
+### 🏆 Results
+
+This will **reduce the connections** to the same Redis instance, which in turn will reduce the overall resource usage of both the client (our app) and the server (Redis itself).
+
+<br/>
+<br/>
+
+## 12) Logging ([more](Logging.md))
 
 Robustness, performance and data synchronization are now in a very good shape, but there's one more thing we can do to do well in a production environment: [**logging**](Logging.md).
 
@@ -662,6 +814,8 @@ To avoid this we can:
 Here is an example where we set (somewhere else, depending of the specific logger used) the minimum log level to `LogLevel.Warning` and we don't care to log every time a factory or a distributed cache operation does a timeout (since the infrastructure is not in perfect shape) but we want a `LogLevel.Error` for every other kind of problem and also an `LogLevel.Warning` every time the serialization from/to the distributed cache fails:
 
 ```csharp
+IConnectionMultiplexer muxer = await ConnectionMultiplexer.ConnectAsync("CONNECTION STRING");
+
 services.AddFusionCache()
     .WithOptions(options => {
         options.DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(2);
@@ -696,13 +850,23 @@ services.AddFusionCache()
         new FusionCacheSystemTextJsonSerializer()
     )
     .WithDistributedCache(
-        new RedisCache(new RedisCacheOptions() { Configuration = "CONNECTION STRING" })
+        new RedisCache(new RedisCacheOptions() {
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
     )
     .WithBackplane(
-        new RedisBackplane(new RedisBackplaneOptions() { Configuration = "CONNECTION STRING" })
+        new RedisBackplane(new RedisBackplaneOptions() {
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
     )
+	.WithDistributedLocker(
+		new RedisDistributedLocker(new RedisDistributedLockerOptions {
+			ConnectionMultiplexerFactory = () => Task.FromResult(muxer)
+		})
+	)
 ;
 ```
+
 ### 🏆 Results
 
 This will **reduce the amount of logged data** a lot, consuming less bandwidth and storage (and spending less money) while giving us less background noise when troubleshooting a production issue.
@@ -710,7 +874,7 @@ This will **reduce the amount of logged data** a lot, consuming less bandwidth a
 <br/>
 <br/>
 
-## 10) OpenTelemetry ([more](OpenTelemetry.md))
+## 13) OpenTelemetry ([more](OpenTelemetry.md))
 
 Logging is great, but nowadays we can do even more to have a clearer view of our production systems, and maybe react to what is happening to prevent problems: full observability with traces and metrics.
 
@@ -731,6 +895,8 @@ services.AddOpenTelemetry()
     .AddConsoleExporter() // OR ANY ANOTHER EXPORTER
   );
 ```
+
+### 🏆 Results
 
 With this, we'll be able to get a clear picture of what is going on in production, right away:
 

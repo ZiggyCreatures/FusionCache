@@ -236,6 +236,7 @@ internal sealed class MemoryCacheAccessor
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] expiring memory entry", _options.CacheName, _options.InstanceId, operationId, key);
 
 			// MAKE THE ENTRY LOGICALLY EXPIRE
+			entry.Touch();
 			entry.LogicalExpirationTimestamp = 0L;
 			if (entry.Metadata is not null)
 			{

@@ -33,15 +33,13 @@ internal sealed partial class DistributedLockerAccessor
 	}
 
 	private string GetLockName(string key)
-    {
-        var lockName = $"{key}{_options.InternalStrings.DistributedLockerLockNameSuffix}";
 
-        if (_options.CacheKeyPrefix is not null)
-        {
-            lockName = _options.CacheKeyPrefix + lockName;
-        }
+	{
+		return $"{key}{_options.InternalStrings.DistributedLockerLockNameSuffix}";
 
-        return lockName;
+		// NOTE: THE CacheKeyPrefix IS NOT NEEDED BECAUSE THE CACHE KEY ALREADY CONTAINS IT
+		//return $"{_options.CacheKeyPrefix}{key}{_options.InternalStrings.DistributedLockerLockNameSuffix}";
+
 	}
 
 	//private void UpdateLastError(string operationId, string key)

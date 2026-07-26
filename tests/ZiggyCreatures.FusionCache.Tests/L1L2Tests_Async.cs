@@ -1387,6 +1387,123 @@ public partial class L1L2Tests
 		Assert.Equal(maybeFooA3.Value, maybeFooB3.Value);
 	}
 
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task DistributedLockerWorksWithCacheKeyPrefixAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(4);
+
+		var distributedLocker = new MemoryDistributedLocker(new MemoryDistributedLockerOptions());
+		var dcache = CreateDistributedCache();
+
+		// CACHE A
+		var optionsA = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		optionsA.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = TimeSpan.FromSeconds(10)
+		};
+		//optionsA.CacheKeyPrefix = "AAA:";
+		using var cacheA = new FusionCache(optionsA, logger: logger);
+		cacheA.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		// CACHE B
+		var optionsB = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		optionsB.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = TimeSpan.FromSeconds(10)
+		};
+		//optionsB.CacheKeyPrefix = "AAA:";
+		using var cacheB = new FusionCache(optionsB, logger: logger);
+		cacheB.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		int fooA = 0;
+		int fooB = 0;
+		Stopwatch swA = new Stopwatch();
+		Stopwatch swB = new Stopwatch();
+
+		_ = Task.Run(async () =>
+		{
+			swA.Start();
+			fooA = await cacheA.GetOrSetAsync<int>(
+				"foo",
+				async ct =>
+				{
+					// DELAY
+					await Task.Delay(simulatedFactoryDuration.PlusALittleBit(), ct);
+					return 1;
+				},
+				token: TestContext.Current.CancellationToken
+			);
+			swA.Stop();
+		}, TestContext.Current.CancellationToken);
+
+		await Task.Delay(200, TestContext.Current.CancellationToken);
+
+		swB.Start();
+		fooB = await cacheB.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				// NO DELAY
+				return 2;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+		swB.Stop();
+
+		await Task.Delay(simulatedFactoryDuration.PlusASecond(), TestContext.Current.CancellationToken);
+
+		Assert.True(swA.ElapsedMilliseconds > simulatedFactoryDuration.TotalMilliseconds);
+		Assert.True(swB.ElapsedMilliseconds < simulatedFactoryDuration.TotalMilliseconds);
+		Assert.Equal(1, fooA);
+		Assert.Equal(2, fooB);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanHandleExpireMidFlightAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var duration = TimeSpan.FromSeconds(10);
+
+		var dcache = CreateDistributedCache();
+		var options = CreateFusionCacheOptions(FusionCacheInternalUtils.GenerateOperationId());
+		options.DefaultEntryOptions = new FusionCacheEntryOptions
+		{
+			Duration = duration,
+		};
+
+		using var cache = new FusionCache(options, logger: logger);
+		cache.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+
+		// SET
+		await cache.SetAsync<int>(
+			"foo",
+			1,
+			token: TestContext.Current.CancellationToken
+		);
+
+		// EXPIRE (ONLY IN MEMORY)
+		await cache.ExpireAsync(
+			"foo",
+			options => options.SetSkipDistributedCache(true, true),
+			token: TestContext.Current.CancellationToken
+		);
+
+		var foo = await cache.GetOrSetAsync<int>(
+			"foo",
+			async ct => 2,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(2, foo);
+	}
+
 	//[Theory]
 	//[ClassData(typeof(SerializerTypesClassData))]
 	//public async Task MemoryExpirationPreservedWhenL1L2DurationsAreDifferentAsync(SerializerType serializerType)

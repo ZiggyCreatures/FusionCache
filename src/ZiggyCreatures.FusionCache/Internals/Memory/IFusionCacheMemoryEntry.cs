@@ -9,6 +9,8 @@ namespace ZiggyCreatures.Caching.Fusion.Internals.Memory;
 internal interface IFusionCacheMemoryEntry
 	: IFusionCacheEntry
 {
+	void Touch(long? timestamp = null);
+
 	object? Value { get; }
 
 	byte[] GetSerializedValue(IFusionCacheSerializer serializer);

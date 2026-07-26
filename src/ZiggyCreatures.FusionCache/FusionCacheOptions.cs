@@ -118,6 +118,7 @@ public class FusionCacheOptions
 		EventHandlingErrorsLogLevel = LogLevel.Warning;
 		BackplaneSyntheticTimeoutsLogLevel = LogLevel.Warning;
 		BackplaneErrorsLogLevel = LogLevel.Warning;
+		DistributedLockerErrorsLogLevel = LogLevel.Warning;
 		PluginsInfoLogLevel = LogLevel.Information;
 		PluginsErrorsLogLevel = LogLevel.Error;
 		MissingCacheKeyPrefixWarningLogLevel = LogLevel.Warning;
@@ -567,6 +568,13 @@ public class FusionCacheOptions
 	public LogLevel BackplaneErrorsLogLevel { get; set; }
 
 	/// <summary>
+	/// Specify the <see cref="LogLevel"/> to use when an error occurs during a distributed locking operation.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
+	/// </summary>
+	public LogLevel DistributedLockerErrorsLogLevel { get; set; }
+
+	/// <summary>
 	/// Specify the <see cref="LogLevel"/> to use when logging info about plugins.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -656,6 +664,8 @@ public class FusionCacheOptions
 
 			BackplaneSyntheticTimeoutsLogLevel = BackplaneSyntheticTimeoutsLogLevel,
 			BackplaneErrorsLogLevel = BackplaneErrorsLogLevel,
+
+			DistributedLockerErrorsLogLevel = DistributedLockerErrorsLogLevel,
 
 			EventHandlingErrorsLogLevel = EventHandlingErrorsLogLevel,
 
