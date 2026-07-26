@@ -1,11 +1,11 @@
-using FusionCacheTests.Stuff;
+﻿using FusionCacheTests.Stuff;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.AzureServiceBus;
 
 public class AzureServiceBusBackplaneExtensionsTests
 	: AbstractTests

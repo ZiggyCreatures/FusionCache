@@ -2,12 +2,12 @@
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.Helpers;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.AzureServiceBus;
 
-public class AzureServiceBusNamingTests
+public class AzureServiceBusHelpersTests
 	: AbstractTests
 {
-	public AzureServiceBusNamingTests(ITestOutputHelper output)
+	public AzureServiceBusHelpersTests(ITestOutputHelper output)
 		: base(output, null)
 	{
 	}
@@ -15,13 +15,13 @@ public class AzureServiceBusNamingTests
 	[Fact]
 	public void SanitizeEntityNameThrowsWhenNameIsNull()
 	{
-		Assert.Throws<ArgumentNullException>(() => AzureServiceBusNaming.SanitizeEntityName(null!, 50));
+		Assert.Throws<ArgumentNullException>(() => AzureServiceBusHelpers.SanitizeEntityName(null!, 50));
 	}
 
 	[Fact]
 	public void SanitizeEntityNameLeavesValidCharactersUntouched()
 	{
-		var result = AzureServiceBusNaming.SanitizeEntityName("My.Cache-Name_v1/sub", 260);
+		var result = AzureServiceBusHelpers.SanitizeEntityName("My.Cache-Name_v1/sub", 260);
 
 		Assert.Equal("My.Cache-Name_v1/sub", result);
 	}
@@ -30,7 +30,7 @@ public class AzureServiceBusNamingTests
 	public void SanitizeEntityNameReplacesInvalidCharactersWithDashes()
 	{
 		// ':' AND ' ' ARE NOT VALID SERVICE BUS ENTITY NAME CHARACTERS
-		var result = AzureServiceBusNaming.SanitizeEntityName("MyCache.Backplane:v1", 260);
+		var result = AzureServiceBusHelpers.SanitizeEntityName("MyCache.Backplane:v1", 260);
 
 		Assert.Equal("MyCache.Backplane-v1", result);
 		Assert.DoesNotContain(':', result);
@@ -39,7 +39,7 @@ public class AzureServiceBusNamingTests
 	[Fact]
 	public void SanitizeEntityNameTrimsLeadingAndTrailingSeparators()
 	{
-		var result = AzureServiceBusNaming.SanitizeEntityName("///cache-name---", 260);
+		var result = AzureServiceBusHelpers.SanitizeEntityName("///cache-name---", 260);
 
 		Assert.Equal("cache-name", result);
 	}
@@ -49,7 +49,7 @@ public class AzureServiceBusNamingTests
 	{
 		var longName = new string('a', 300);
 
-		var result = AzureServiceBusNaming.SanitizeEntityName(longName, 50);
+		var result = AzureServiceBusHelpers.SanitizeEntityName(longName, 50);
 
 		Assert.Equal(50, result.Length);
 	}
@@ -57,7 +57,7 @@ public class AzureServiceBusNamingTests
 	[Fact]
 	public void SanitizeEntityNameReturnsFallbackWhenResultWouldBeEmpty()
 	{
-		var result = AzureServiceBusNaming.SanitizeEntityName("::: ***", 50, fallback: "my-fallback");
+		var result = AzureServiceBusHelpers.SanitizeEntityName("::: ***", 50, fallback: "my-fallback");
 
 		Assert.Equal("my-fallback", result);
 	}
@@ -65,7 +65,7 @@ public class AzureServiceBusNamingTests
 	[Fact]
 	public void ResolveTopicNameUsesExplicitTopicNameWhenProvided()
 	{
-		var result = AzureServiceBusNaming.ResolveTopicName("my-explicit-topic", "MyCache.Backplane:v1");
+		var result = AzureServiceBusHelpers.ResolveTopicName("my-explicit-topic", "MyCache.Backplane:v1");
 
 		Assert.Equal("my-explicit-topic", result);
 	}
@@ -75,7 +75,7 @@ public class AzureServiceBusNamingTests
 	{
 		// THIS IS FUSIONCACHE'S DEFAULT COMPUTED CHANNEL NAME SHAPE (SEE FusionCacheInternalUtils.GetBackplaneChannelName):
 		// THE ':' SEPARATOR IS NOT A VALID SERVICE BUS CHARACTER, SO IT MUST BE SANITIZED AWAY
-		var result = AzureServiceBusNaming.ResolveTopicName(null, "MyCache.Backplane:v1");
+		var result = AzureServiceBusHelpers.ResolveTopicName(null, "MyCache.Backplane:v1");
 
 		Assert.Equal("MyCache.Backplane-v1", result);
 	}
@@ -83,7 +83,7 @@ public class AzureServiceBusNamingTests
 	[Fact]
 	public void ResolveTopicNameFallsBackToChannelNameWhenExplicitTopicNameIsWhitespace()
 	{
-		var result = AzureServiceBusNaming.ResolveTopicName("   ", "MyCache.Backplane:v1");
+		var result = AzureServiceBusHelpers.ResolveTopicName("   ", "MyCache.Backplane:v1");
 
 		Assert.Equal("MyCache.Backplane-v1", result);
 	}

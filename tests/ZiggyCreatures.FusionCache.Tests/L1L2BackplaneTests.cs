@@ -9,7 +9,6 @@ using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
-using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.Helpers;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
@@ -43,10 +42,7 @@ public partial class L1L2BackplaneTests
 	private static readonly bool UseAzureServiceBus = true;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
 
-	// DEFAULTS TO THE AZURE SERVICE BUS EMULATOR'S WELL-KNOWN LOCAL CONNECTION STRING (SEE MICROSOFT'S EMULATOR DOCS);
-	// SET THE FUSIONCACHE_TESTS_AZURESERVICEBUS_CONNECTIONSTRING ENV VAR TO POINT AT A REAL NAMESPACE INSTEAD
-	private static readonly string AzureServiceBusConnectionString =
-		Environment.GetEnvironmentVariable("FUSIONCACHE_TESTS_AZURESERVICEBUS_CONNECTIONSTRING")
+	private static readonly string AzureServiceBusConnectionString = Environment.GetEnvironmentVariable("FUSIONCACHE_TESTS_AZURESERVICEBUS_CONNECTIONSTRING")
 		?? "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
 
 	private readonly TimeSpan InitialBackplaneDelay = TimeSpan.FromMilliseconds(300);
@@ -58,18 +54,14 @@ public partial class L1L2BackplaneTests
 			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
 		if (UseAzureServiceBus)
 		{
-			// USE THE SHARED connectionId AS THE TOPIC NAME, SO ALL THE BACKPLANE INSTANCES CREATED FOR THE SAME
-			// LOGICAL TEST "BUS" (E.G. cache1/cache2/cache3 IN A GIVEN TEST) END UP TALKING ON THE SAME SERVICE BUS
-			// TOPIC. EACH INSTANCE STILL NEEDS ITS OWN, UNIQUE SUBSCRIPTION (OTHERWISE THEY'D BE COMPETING CONSUMERS
-			// ON A SHARED SUBSCRIPTION, INSTEAD OF EACH RECEIVING EVERY MESSAGE AS A BACKPLANE REQUIRES).
-			var topicName = AzureServiceBusNaming.SanitizeEntityName($"fusioncache-tests-{connectionId}", AzureServiceBusNaming.MaxTopicNameLength);
-			var subscriptionName = AzureServiceBusClientWrapper.GenerateId();
+			var topicName = AzureServiceBusHelpers.SanitizeEntityName($"fusioncache-tests", AzureServiceBusHelpers.MaxTopicNameLength);
+			var subscriptionName = AzureServiceBusHelpers.GenerateId();
 			var adminClient = new ServiceBusAdministrationClient(AzureServiceBusConnectionString);
 			var client = new ServiceBusClient(AzureServiceBusConnectionString);
-			var communicator = new AzureServiceBusClientWrapper(client, topicName, subscriptionName, CreateXUnitLogger<AzureServiceBusClientWrapper>());
-			var provisioner = new AzureServiceBusAdminProvisioner(adminClient, topicName, subscriptionName, CreateXUnitLogger<AzureServiceBusAdminProvisioner>());
+			var clientWrapper = new AzureServiceBusClientWrapper(client, topicName, subscriptionName, CreateXUnitLogger<AzureServiceBusClientWrapper>(), new AzureServiceBusBackplaneOptions());
+			var adminWrapper = new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, TimeSpan.FromMinutes(10), CreateXUnitLogger<AzureServiceBusAdminWrapper>());
 
-			return new AzureServiceBusBackplane(communicator, provisioner, CreateXUnitLogger<AzureServiceBusBackplane>());
+			return new AzureServiceBusBackplane(clientWrapper, adminWrapper, CreateXUnitLogger<AzureServiceBusBackplane>());
 		}
 		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
 	}

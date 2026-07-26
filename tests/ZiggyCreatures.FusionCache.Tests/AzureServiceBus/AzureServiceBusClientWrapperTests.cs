@@ -6,43 +6,18 @@ using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.Helpers;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.AzureServiceBus;
 
-public class AzureServiceBusCommunicatorTests
+public class AzureServiceBusClientWrapperTests
 	: AbstractTests
 {
-	public AzureServiceBusCommunicatorTests(ITestOutputHelper output)
+	public AzureServiceBusClientWrapperTests(ITestOutputHelper output)
 		: base(output, null)
 	{
 	}
 
 	private const string FakeConnectionString = "Endpoint=sb://fake-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=ZmFrZS1rZXk=";
-
-	[Fact]
-	public void ConstructorThrowsWhenSubscriptionNameIsMissing()
-	{
-		var client = new ServiceBusClient(FakeConnectionString);
-
-		Assert.Throws<ArgumentException>(() => new AzureServiceBusClientWrapper(
-			serviceBusClient: client,
-			topicName: "my-topic",
-			subscriptionName: null!,
-			logger: NullLogger<AzureServiceBusClientWrapper>.Instance
-		));
-	}
-
-	[Fact]
-	public void ConstructorThrowsWhenSubscriptionNameIsWhitespace()
-	{
-		var client = new ServiceBusClient(FakeConnectionString);
-
-		Assert.Throws<ArgumentException>(() => new AzureServiceBusClientWrapper(
-			serviceBusClient: client,
-			topicName: "my-topic",
-			subscriptionName: "   ",
-			logger: NullLogger<AzureServiceBusClientWrapper>.Instance
-		));
-	}
+	private static AzureServiceBusBackplaneOptions Options => new() { LockTimeout = TimeSpan.FromSeconds(1) };
 
 	[Fact]
 	public void ConstructorUsesTheGivenTopicAndSubscriptionNames()
@@ -53,7 +28,8 @@ public class AzureServiceBusCommunicatorTests
 			serviceBusClient: client,
 			topicName: "my-topic",
 			subscriptionName: "my-existing-subscription",
-			logger: NullLogger<AzureServiceBusClientWrapper>.Instance
+			logger: NullLogger<AzureServiceBusClientWrapper>.Instance,
+			asbOptions: Options
 		);
 
 		Assert.Equal("my-topic", communicator.TopicName);
@@ -69,7 +45,8 @@ public class AzureServiceBusCommunicatorTests
 			serviceBusClient: client,
 			topicName: "my-topic",
 			subscriptionName: "my-existing-subscription",
-			logger: NullLogger<AzureServiceBusClientWrapper>.Instance
+			logger: NullLogger<AzureServiceBusClientWrapper>.Instance,
+			asbOptions: Options
 		);
 
 		Task Handler() => Task.CompletedTask;
@@ -81,16 +58,16 @@ public class AzureServiceBusCommunicatorTests
 	[Fact]
 	public void GenerateIdReturnsAValidSubscriptionNameLength()
 	{
-		var id = AzureServiceBusClientWrapper.GenerateId();
+		var id = AzureServiceBusHelpers.GenerateId();
 
-		Assert.True(id.Length <= AzureServiceBusNaming.MaxSubscriptionNameLength, $"Expected length <= {AzureServiceBusNaming.MaxSubscriptionNameLength}, but was {id.Length} ('{id}')");
+		Assert.True(id.Length <= AzureServiceBusHelpers.MaxSubscriptionNameLength, $"Expected length <= {AzureServiceBusHelpers.MaxSubscriptionNameLength}, but was {id.Length} ('{id}')");
 		Assert.NotEmpty(id);
 	}
 
 	[Fact]
 	public void GenerateIdOnlyContainsValidServiceBusEntityNameCharacters()
 	{
-		var id = AzureServiceBusClientWrapper.GenerateId();
+		var id = AzureServiceBusHelpers.GenerateId();
 
 		foreach (var c in id)
 		{
@@ -101,8 +78,8 @@ public class AzureServiceBusCommunicatorTests
 	[Fact]
 	public void GenerateIdReturnsDifferentValuesOnSuccessiveCalls()
 	{
-		var id1 = AzureServiceBusClientWrapper.GenerateId();
-		var id2 = AzureServiceBusClientWrapper.GenerateId();
+		var id1 = AzureServiceBusHelpers.GenerateId();
+		var id2 = AzureServiceBusHelpers.GenerateId();
 
 		Assert.NotEqual(id1, id2);
 	}

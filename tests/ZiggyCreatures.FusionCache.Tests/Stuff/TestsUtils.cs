@@ -164,7 +164,7 @@ public static class TestsUtils
 		if (communicator is null)
 			return null;
 
-		return typeof(AzureServiceBusClientWrapper).GetField("_topicName", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(communicator) as string;
+		return (string?)typeof(AzureServiceBusClientWrapper).GetProperty("TopicName", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(communicator);
 	}
 
 	public static IFusionCachePlugin[]? GetPlugins(IFusionCache cache)

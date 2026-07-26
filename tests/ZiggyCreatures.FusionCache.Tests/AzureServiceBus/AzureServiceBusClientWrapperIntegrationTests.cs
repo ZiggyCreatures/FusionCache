@@ -7,24 +7,24 @@ using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.Helpers;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.AzureServiceBus;
 
 /// <summary>
-/// Integration tests for <see cref="AzureServiceBusClientWrapper"/> and <see cref="AzureServiceBusAdminProvisioner"/> that
+/// Integration tests for <see cref="AzureServiceBusClientWrapper"/> and <see cref="AzureServiceBusAdminWrapper"/> that
 /// require a real or emulated Azure Service Bus broker. Skipped automatically unless the <see cref="ConnectionStringEnvVarName"/>
 /// environment variable is set, e.g. to:
 /// - a real Azure Service Bus namespace connection string, or
 /// - the local connection string exposed by the Azure Service Bus emulator (mcr.microsoft.com/azure-messaging/servicebus-emulator).
 /// Each test provisions its own uniquely-named topic and deletes it afterward, so tests can run concurrently/repeatedly without colliding.
-/// These tests manually do what <see cref="AzureServiceBusBackplane"/> does internally: run the provisioner before subscribing
+/// These tests manually do what <see cref="AzureServiceBusBackplane"/> does internally: run the admin wrapper before subscribing
 /// the communicator, and (where relevant) after unsubscribing it.
 /// </summary>
-public class AzureServiceBusCommunicatorIntegrationTests
+public class AzureServiceBusClientWrapperIntegrationTests
 	: AbstractTests
 {
 	private const string ConnectionStringEnvVarName = "FUSIONCACHE_TESTS_AZURESERVICEBUS_CONNECTIONSTRING";
 
-	public AzureServiceBusCommunicatorIntegrationTests(ITestOutputHelper output)
+	public AzureServiceBusClientWrapperIntegrationTests(ITestOutputHelper output)
 		: base(output, null)
 	{
 		_connectionString = Environment.GetEnvironmentVariable(ConnectionStringEnvVarName);
@@ -47,38 +47,38 @@ public class AzureServiceBusCommunicatorIntegrationTests
 	{
 		var topicName = $"fusioncache-tests-{testName}-{Guid.NewGuid():N}".ToLowerInvariant();
 
-		return topicName.Length > AzureServiceBusNaming.MaxTopicNameLength
-			? topicName.Substring(0, AzureServiceBusNaming.MaxTopicNameLength)
+		return topicName.Length > AzureServiceBusHelpers.MaxTopicNameLength
+			? topicName.Substring(0, AzureServiceBusHelpers.MaxTopicNameLength)
 			: topicName;
 	}
 
-	private static AzureServiceBusAdminProvisioner CreateProvisioner(ServiceBusAdministrationClient adminClient, string topicName, string subscriptionName)
+	private static AzureServiceBusAdminWrapper CreateAdminWrapper(ServiceBusAdministrationClient adminClient, string topicName, string subscriptionName)
 	{
-		return new AzureServiceBusAdminProvisioner(adminClient, topicName, subscriptionName, NullLogger<AzureServiceBusAdminProvisioner>.Instance);
+		return new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, TimeSpan.FromMinutes(10), NullLogger<AzureServiceBusAdminWrapper>.Instance);
 	}
 
 	private static AzureServiceBusClientWrapper CreateCommunicator(ServiceBusClient client, string topicName, string subscriptionName)
 	{
-		return new AzureServiceBusClientWrapper(client, topicName, subscriptionName, NullLogger<AzureServiceBusClientWrapper>.Instance);
+		return new AzureServiceBusClientWrapper(client, topicName, subscriptionName, NullLogger<AzureServiceBusClientWrapper>.Instance, new AzureServiceBusBackplaneOptions());
 	}
 
 	[Fact]
-	public async Task ProvisionerEnsureMethodsAreIdempotentWhenCalledTwiceAsync()
+	public async Task AdminWrapperEnsureMethodsAreIdempotentWhenCalledTwiceAsync()
 	{
 		SkipIfNoBrokerConfigured();
 
-		var topicName = CreateUniqueTopicName(nameof(ProvisionerEnsureMethodsAreIdempotentWhenCalledTwiceAsync));
+		var topicName = CreateUniqueTopicName(nameof(AdminWrapperEnsureMethodsAreIdempotentWhenCalledTwiceAsync));
 		const string subscriptionName = "idempotent-test-subscription";
 		var (_, adminClient) = CreateClients();
 
 		try
 		{
-			var provisioner = CreateProvisioner(adminClient, topicName, subscriptionName);
+			var adminWrapper = CreateAdminWrapper(adminClient, topicName, subscriptionName);
 
-			await provisioner.EnsureTopicAsync();
-			await provisioner.EnsureTopicAsync();
-			await provisioner.EnsureSubscriptionAsync();
-			await provisioner.EnsureSubscriptionAsync();
+			await adminWrapper.EnsureTopicAsync();
+			await adminWrapper.EnsureTopicAsync();
+			await adminWrapper.EnsureSubscriptionAsync();
+			await adminWrapper.EnsureSubscriptionAsync();
 
 			Assert.True(await adminClient.TopicExistsAsync(topicName, TestContext.Current.CancellationToken));
 			Assert.True(await adminClient.SubscriptionExistsAsync(topicName, subscriptionName, TestContext.Current.CancellationToken));
@@ -99,13 +99,13 @@ public class AzureServiceBusCommunicatorIntegrationTests
 
 		try
 		{
-			var provisionerA = CreateProvisioner(adminClientA, topicName, "subscription-a");
-			await provisionerA.EnsureTopicAsync();
-			await provisionerA.EnsureSubscriptionAsync();
+			var adminWrapperA = CreateAdminWrapper(adminClientA, topicName, "subscription-a");
+			await adminWrapperA.EnsureTopicAsync();
+			await adminWrapperA.EnsureSubscriptionAsync();
 
 			var (clientB, adminClientB) = CreateClients();
-			var provisionerB = CreateProvisioner(adminClientB, topicName, "subscription-b");
-			await provisionerB.EnsureSubscriptionAsync();
+			var adminWrapperB = CreateAdminWrapper(adminClientB, topicName, "subscription-b");
+			await adminWrapperB.EnsureSubscriptionAsync();
 
 			await using var communicatorA = CreateCommunicator(clientA, topicName, "subscription-a");
 			await using var communicatorB = CreateCommunicator(clientB, topicName, "subscription-b");
@@ -131,19 +131,19 @@ public class AzureServiceBusCommunicatorIntegrationTests
 	}
 
 	[Fact]
-	public async Task SubscriptionMissingEventFiresAndProvisionerRecreatesTheSubscriptionAsync()
+	public async Task SubscriptionMissingEventFiresAndAdminWrapperRecreatesTheSubscriptionAsync()
 	{
 		SkipIfNoBrokerConfigured();
 
-		var topicName = CreateUniqueTopicName(nameof(SubscriptionMissingEventFiresAndProvisionerRecreatesTheSubscriptionAsync));
+		var topicName = CreateUniqueTopicName(nameof(SubscriptionMissingEventFiresAndAdminWrapperRecreatesTheSubscriptionAsync));
 		const string subscriptionName = "self-healing-test-subscription";
 		var (client, adminClient) = CreateClients();
 
 		try
 		{
-			var provisioner = CreateProvisioner(adminClient, topicName, subscriptionName);
-			await provisioner.EnsureTopicAsync();
-			await provisioner.EnsureSubscriptionAsync();
+			var adminWrapper = CreateAdminWrapper(adminClient, topicName, subscriptionName);
+			await adminWrapper.EnsureTopicAsync();
+			await adminWrapper.EnsureSubscriptionAsync();
 
 			await using var communicator = CreateCommunicator(client, topicName, subscriptionName);
 
@@ -151,7 +151,7 @@ public class AzureServiceBusCommunicatorIntegrationTests
 			communicator.SubscriptionMissing += async () =>
 			{
 				missingSignaled.TrySetResult(true);
-				await provisioner.EnsureSubscriptionAsync();
+				await adminWrapper.EnsureSubscriptionAsync();
 			};
 
 			await communicator.Subscribe(_ => Task.CompletedTask);
@@ -173,23 +173,23 @@ public class AzureServiceBusCommunicatorIntegrationTests
 	}
 
 	[Fact]
-	public async Task UnprovisionAsyncDeletesTheSubscriptionButNotTheTopicAsync()
+	public async Task DisposeAsyncDeletesTheSubscriptionButNotTheTopicAsync()
 	{
 		SkipIfNoBrokerConfigured();
 
-		var topicName = CreateUniqueTopicName(nameof(UnprovisionAsyncDeletesTheSubscriptionButNotTheTopicAsync));
+		var topicName = CreateUniqueTopicName(nameof(DisposeAsyncDeletesTheSubscriptionButNotTheTopicAsync));
 		const string subscriptionName = "unprovision-test-subscription";
 		var (_, adminClient) = CreateClients();
 
 		try
 		{
-			var provisioner = CreateProvisioner(adminClient, topicName, subscriptionName);
-			await provisioner.EnsureTopicAsync();
-			await provisioner.EnsureSubscriptionAsync();
+			var adminWrapper = CreateAdminWrapper(adminClient, topicName, subscriptionName);
+			await adminWrapper.EnsureTopicAsync();
+			await adminWrapper.EnsureSubscriptionAsync();
 
 			Assert.True(await adminClient.SubscriptionExistsAsync(topicName, subscriptionName, TestContext.Current.CancellationToken));
 
-			await provisioner.UnprovisionAsync();
+			await adminWrapper.DisposeAsync();
 
 			Assert.False(await adminClient.SubscriptionExistsAsync(topicName, subscriptionName, TestContext.Current.CancellationToken));
 			Assert.True(await adminClient.TopicExistsAsync(topicName, TestContext.Current.CancellationToken));
@@ -201,17 +201,17 @@ public class AzureServiceBusCommunicatorIntegrationTests
 	}
 
 	[Fact]
-	public async Task CommunicatorWorksAgainstAnExternallyProvisionedSubscriptionWithoutAProvisionerAsync()
+	public async Task ClientWrapperWorksAgainstAnExternallyProvisionedSubscriptionWithoutAnAdminWrapperAsync()
 	{
 		SkipIfNoBrokerConfigured();
 
-		var topicName = CreateUniqueTopicName(nameof(CommunicatorWorksAgainstAnExternallyProvisionedSubscriptionWithoutAProvisionerAsync));
+		var topicName = CreateUniqueTopicName(nameof(ClientWrapperWorksAgainstAnExternallyProvisionedSubscriptionWithoutAnAdminWrapperAsync));
 		const string subscriptionName = "no-provisioner-test-subscription";
 		var (_, adminClient) = CreateClients();
 
 		try
 		{
-			// PROVISION OUT OF BAND (E.G. VIA IAC), WITHOUT EVER USING AzureServiceBusAdminProvisioner. NOTE THIS
+			// PROVISION OUT OF BAND (E.G. VIA IAC), WITHOUT EVER USING AzureServiceBusAdminWrapper. NOTE THIS
 			// SUBSCRIPTION KEEPS ITS DEFAULT MATCH-ALL RULE: NO ONE HERE CREATES THE "FilterOutOwnMessages" SQL RULE.
 			await adminClient.CreateTopicAsync(topicName, TestContext.Current.CancellationToken);
 			await adminClient.CreateSubscriptionAsync(new CreateSubscriptionOptions(topicName, subscriptionName), TestContext.Current.CancellationToken);

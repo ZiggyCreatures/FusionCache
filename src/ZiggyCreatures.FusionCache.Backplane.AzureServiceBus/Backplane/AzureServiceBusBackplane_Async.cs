@@ -71,8 +71,7 @@ public partial class AzureServiceBusBackplane
 		await _serviceBusCommunicator.SendMessage(new ServiceBusMessage
 		{
 			Body = new BinaryData(BackplaneMessage.ToByteArray(message)),
-			Subject = _cacheName,
-			TimeToLive = TimeSpan.FromSeconds(5) + options.Duration // ADD A BUFFER TO BE SURE THE MESSAGE IS PROPAGATED, EVEN WITH A ZERO DURATION
+			Subject = _cacheName
 		}, token);
 	}
 

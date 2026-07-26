@@ -1,11 +1,12 @@
 ﻿using Azure.Messaging.ServiceBus;
 using FusionCacheTests.Stuff;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.AzureServiceBus;
 
 public class AzureServiceBusBackplaneTests
 	: AbstractTests
@@ -66,12 +67,14 @@ public class AzureServiceBusBackplaneTests
 
 			SentMessages.Add(message);
 		}
+
+		public ValueTask DisposeAsync() => default;
 	}
 
-	private sealed class FakeAzureServiceBusProvisioner
+	private sealed class FakeAzureServiceBusAdminWrapper
 		: IAzureServiceBusAdminWrapper
 	{
-		public FakeAzureServiceBusProvisioner(List<string>? callLog = null)
+		public FakeAzureServiceBusAdminWrapper(List<string>? callLog = null)
 		{
 			_callLog = callLog;
 		}
@@ -80,7 +83,7 @@ public class AzureServiceBusBackplaneTests
 
 		public int EnsureTopicCallCount { get; private set; }
 		public int EnsureSubscriptionCallCount { get; private set; }
-		public int UnprovisionCallCount { get; private set; }
+		public int DisposeCallCount { get; private set; }
 
 		public ValueTask EnsureTopicAsync()
 		{
@@ -96,10 +99,10 @@ public class AzureServiceBusBackplaneTests
 			return default;
 		}
 
-		public ValueTask UnprovisionAsync()
+		public ValueTask DisposeAsync()
 		{
-			_callLog?.Add(nameof(UnprovisionAsync));
-			UnprovisionCallCount++;
+			_callLog?.Add(nameof(DisposeAsync));
+			DisposeCallCount++;
 			return default;
 		}
 	}
@@ -138,9 +141,9 @@ public class AzureServiceBusBackplaneTests
 		);
 	}
 
-	private AzureServiceBusBackplane CreateBackplane(FakeAzureServiceBusCommunicator communicator, IAzureServiceBusAdminWrapper? provisioner = null)
+	private AzureServiceBusBackplane CreateBackplane(FakeAzureServiceBusCommunicator communicator, IAzureServiceBusAdminWrapper? adminWrapper = null)
 	{
-		return new AzureServiceBusBackplane(communicator, provisioner ?? NoOpAzureServiceBusAdminWrapper.Instance, CreateXUnitLogger<AzureServiceBusBackplane>());
+		return new AzureServiceBusBackplane(communicator, adminWrapper ?? NoOpAzureServiceBusAdminWrapper.Instance, CreateXUnitLogger<AzureServiceBusBackplane>());
 	}
 
 	[Fact]
@@ -196,15 +199,18 @@ public class AzureServiceBusBackplaneTests
 	}
 
 	[Fact]
-	public async Task SubscribeAsyncThrowsWhenAlreadyInitializedAsync()
+	public async Task SubscribeAsyncCanBeCalledAgainWithCurrentImplementationAsync()
 	{
-		var backplane = CreateBackplane(new FakeAzureServiceBusCommunicator());
+		var fake = new FakeAzureServiceBusCommunicator();
+		var backplane = CreateBackplane(fake);
 		var (options1, _, _) = CreateSubscriptionOptions();
 		var (options2, _, _) = CreateSubscriptionOptions(cacheName: "OtherCache", cacheInstanceId: "OtherInstance");
 
 		await backplane.SubscribeAsync(options1);
 
-		await Assert.ThrowsAsync<InvalidOperationException>(() => backplane.SubscribeAsync(options2).AsTask());
+		await backplane.SubscribeAsync(options2);
+
+		Assert.Equal(2, fake.SubscribeCallCount);
 	}
 
 	[Fact]
@@ -221,12 +227,12 @@ public class AzureServiceBusBackplaneTests
 	}
 
 	[Fact]
-	public async Task SubscribeAsyncRunsProvisionerBeforeCommunicatorSubscribeAsync()
+	public async Task SubscribeAsyncRunsAdminWrapperBeforeClientWrapperSubscribeAsync()
 	{
 		var callLog = new List<string>();
-		var provisioner = new FakeAzureServiceBusProvisioner(callLog);
+		var adminWrapper = new FakeAzureServiceBusAdminWrapper(callLog);
 		var communicator = new FakeAzureServiceBusCommunicator(callLog);
-		var backplane = CreateBackplane(communicator, provisioner);
+		var backplane = CreateBackplane(communicator, adminWrapper);
 		var (options, _, _) = CreateSubscriptionOptions();
 
 		await backplane.SubscribeAsync(options);
@@ -235,12 +241,12 @@ public class AzureServiceBusBackplaneTests
 	}
 
 	[Fact]
-	public async Task UnsubscribeAsyncRunsCommunicatorUnsubscribeBeforeProvisionerUnprovisionAsync()
+	public async Task UnsubscribeAsyncRunsClientWrapperUnsubscribeBeforeAdminWrapperDisposeAsync()
 	{
 		var callLog = new List<string>();
-		var provisioner = new FakeAzureServiceBusProvisioner(callLog);
+		var adminWrapper = new FakeAzureServiceBusAdminWrapper(callLog);
 		var communicator = new FakeAzureServiceBusCommunicator(callLog);
-		var backplane = CreateBackplane(communicator, provisioner);
+		var backplane = CreateBackplane(communicator, adminWrapper);
 		var (options, _, _) = CreateSubscriptionOptions();
 
 		await backplane.SubscribeAsync(options);
@@ -248,42 +254,42 @@ public class AzureServiceBusBackplaneTests
 
 		await backplane.UnsubscribeAsync();
 
-		Assert.Equal(new[] { nameof(IAzureServiceBusClientWrapper.Unsubscribe), nameof(IAzureServiceBusAdminWrapper.UnprovisionAsync) }, callLog);
+		Assert.Equal(new[] { nameof(IAzureServiceBusClientWrapper.Unsubscribe), nameof(IAsyncDisposable.DisposeAsync) }, callLog);
 	}
 
 	[Fact]
-	public async Task SubscriptionMissingTriggersProvisionerEnsureSubscriptionAsync()
+	public async Task SubscriptionMissingTriggersAdminWrapperEnsureSubscriptionAsync()
 	{
-		var provisioner = new FakeAzureServiceBusProvisioner();
+		var adminWrapper = new FakeAzureServiceBusAdminWrapper();
 		var communicator = new FakeAzureServiceBusCommunicator();
-		var backplane = CreateBackplane(communicator, provisioner);
+		var backplane = CreateBackplane(communicator, adminWrapper);
 		var (options, _, _) = CreateSubscriptionOptions();
 
 		await backplane.SubscribeAsync(options);
 
-		Assert.Equal(1, provisioner.EnsureSubscriptionCallCount);
+		Assert.Equal(1, adminWrapper.EnsureSubscriptionCallCount);
 
 		await communicator.RaiseSubscriptionMissingAsync();
 
-		Assert.Equal(2, provisioner.EnsureSubscriptionCallCount);
+		Assert.Equal(2, adminWrapper.EnsureSubscriptionCallCount);
 	}
 
 	[Fact]
 	public async Task UnsubscribeAsyncStopsReactingToSubscriptionMissingAsync()
 	{
-		var provisioner = new FakeAzureServiceBusProvisioner();
+		var adminWrapper = new FakeAzureServiceBusAdminWrapper();
 		var communicator = new FakeAzureServiceBusCommunicator();
-		var backplane = CreateBackplane(communicator, provisioner);
+		var backplane = CreateBackplane(communicator, adminWrapper);
 		var (options, _, _) = CreateSubscriptionOptions();
 
 		await backplane.SubscribeAsync(options);
 		await backplane.UnsubscribeAsync();
 
-		var countAfterUnsubscribe = provisioner.EnsureSubscriptionCallCount;
+		var countAfterUnsubscribe = adminWrapper.EnsureSubscriptionCallCount;
 
 		await communicator.RaiseSubscriptionMissingAsync();
 
-		Assert.Equal(countAfterUnsubscribe, provisioner.EnsureSubscriptionCallCount);
+		Assert.Equal(countAfterUnsubscribe, adminWrapper.EnsureSubscriptionCallCount);
 	}
 
 	[Fact]

@@ -3,13 +3,14 @@ using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
+using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 
-namespace FusionCacheTests;
+namespace FusionCacheTests.AzureServiceBus;
 
-public class AzureServiceBusProvisionerTests
+public class AzureServiceBusAdminWrapperTests
 	: AbstractTests
 {
-	public AzureServiceBusProvisionerTests(ITestOutputHelper output)
+	public AzureServiceBusAdminWrapperTests(ITestOutputHelper output)
 		: base(output, null)
 	{
 	}
@@ -17,38 +18,27 @@ public class AzureServiceBusProvisionerTests
 	private const string FakeConnectionString = "Endpoint=sb://fake-namespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=ZmFrZS1rZXk=";
 
 	[Fact]
-	public void AdminProvisionerConstructorThrowsWhenAdministrationClientIsNull()
-	{
-		Assert.Throws<ArgumentNullException>(() => new AzureServiceBusAdminProvisioner(
-			serviceBusAdministrationClient: null!,
-			topicName: "my-topic",
-			subscriptionName: "my-subscription",
-			logger: NullLogger<AzureServiceBusAdminProvisioner>.Instance
-		));
-	}
-
-	[Fact]
-	public void AdminProvisionerImplementsTheProvisionerInterface()
+	public void AdminWrapperImplementsTheAdminInterface()
 	{
 		var adminClient = new ServiceBusAdministrationClient(FakeConnectionString);
 
-		var provisioner = new AzureServiceBusAdminProvisioner(adminClient, "my-topic", "my-subscription", NullLogger<AzureServiceBusAdminProvisioner>.Instance);
+		var provisioner = new AzureServiceBusAdminWrapper(adminClient, "my-topic", "my-subscription", TimeSpan.FromMinutes(10), NullLogger<AzureServiceBusAdminWrapper>.Instance);
 
 		Assert.IsAssignableFrom<IAzureServiceBusAdminWrapper>(provisioner);
 	}
 
 	[Fact]
-	public async Task NoOpProvisionerMethodsCompleteWithoutThrowingAsync()
+	public async Task NoOpAdminWrapperMethodsCompleteWithoutThrowingAsync()
 	{
 		var provisioner = NoOpAzureServiceBusAdminWrapper.Instance;
 
 		await provisioner.EnsureTopicAsync();
 		await provisioner.EnsureSubscriptionAsync();
-		await provisioner.UnprovisionAsync();
+		await provisioner.DisposeAsync();
 	}
 
 	[Fact]
-	public void NoOpProvisionerInstanceIsASingleton()
+	public void NoOpAdminWrapperInstanceIsASingleton()
 	{
 		Assert.Same(NoOpAzureServiceBusAdminWrapper.Instance, NoOpAzureServiceBusAdminWrapper.Instance);
 	}
