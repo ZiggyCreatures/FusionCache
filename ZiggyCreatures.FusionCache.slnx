@@ -34,10 +34,10 @@
     <Project Path="tests/ZiggyCreatures.FusionCache.Tests/ZiggyCreatures.FusionCache.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Aspire.Playground/">
-    <Project Path="eaxmple/Playground/Playground.AppHost/Playground.AppHost.csproj" />
-    <Project Path="eaxmple/Playground/Playground.ServiceDefaults/Playground.ServiceDefaults.csproj" />
-    <Project Path="eaxmple/Playground/Playground.Shared/Playground.Shared.csproj" />
-    <Project Path="eaxmple/Playground/WebApplication1/WebApplication1.csproj" />
-    <Project Path="eaxmple/Playground/WebApplication2/WebApplication2.csproj" />
+    <Project Path="tests/Aspire.Playground/Playground.AppHost/Playground.AppHost.csproj" />
+    <Project Path="tests/Aspire.Playground/Playground.ServiceDefaults/Playground.ServiceDefaults.csproj" />
+    <Project Path="tests/Aspire.Playground/Playground.Shared/Playground.Shared.csproj" />
+    <Project Path="tests/Aspire.Playground/WebApplication1/WebApplication1.csproj" />
+    <Project Path="tests/Aspire.Playground/WebApplication2/WebApplication2.csproj" />
   </Folder>
 </Solution>
