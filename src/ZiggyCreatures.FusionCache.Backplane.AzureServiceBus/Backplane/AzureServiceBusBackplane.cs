@@ -32,8 +32,8 @@ public partial class AzureServiceBusBackplane
 		ILogger<AzureServiceBusBackplane>? logger = null,
 		TimeSpan? lockTimeout = null)
 	{
-		_serviceBusCommunicator = serviceBusCommunicator ?? throw new ArgumentNullException(nameof(serviceBusCommunicator));
-		_serviceBusProvisioner = serviceBusProvisioner ?? throw new ArgumentNullException(nameof(serviceBusProvisioner));
+		_serviceBusClientWrapper = serviceBusCommunicator ?? throw new ArgumentNullException(nameof(serviceBusCommunicator));
+		_serviceBusAdminWrapper = serviceBusProvisioner ?? throw new ArgumentNullException(nameof(serviceBusProvisioner));
 		_logger = logger;
 		_lockTimeout = lockTimeout ?? TimeSpan.FromSeconds(5);
 		if (_lockTimeout <= TimeSpan.Zero)
@@ -41,8 +41,8 @@ public partial class AzureServiceBusBackplane
 	}
 
 	private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
-	private readonly IAzureServiceBusClientWrapper _serviceBusCommunicator;
-	private readonly IAzureServiceBusAdminWrapper _serviceBusProvisioner;
+	private readonly IAzureServiceBusClientWrapper _serviceBusClientWrapper;
+	private readonly IAzureServiceBusAdminWrapper _serviceBusAdminWrapper;
 	private readonly ILogger? _logger;
 	private readonly TimeSpan _lockTimeout;
 

@@ -27,8 +27,8 @@ public partial class AzureServiceBusBackplane
 
 		try
 		{
-			await _serviceBusProvisioner.EnsureTopicAsync();
-			await _serviceBusProvisioner.EnsureSubscriptionAsync();
+			await _serviceBusAdminWrapper.EnsureTopicAsync();
+			await _serviceBusAdminWrapper.EnsureSubscriptionAsync();
 
 			_cacheName = options.CacheName;
 			_cacheInstanceId = options.CacheInstanceId;
@@ -46,10 +46,10 @@ public partial class AzureServiceBusBackplane
 					options.IncomingMessageHandler?.Invoke(msg);
 			};
 
-			_subscriptionMissingHandler = () => _serviceBusProvisioner.EnsureSubscriptionAsync().AsTask();
-			_serviceBusCommunicator.SubscriptionMissing += _subscriptionMissingHandler;
+			_subscriptionMissingHandler = () => _serviceBusAdminWrapper.EnsureSubscriptionAsync().AsTask();
+			_serviceBusClientWrapper.SubscriptionMissing += _subscriptionMissingHandler;
 
-			await _serviceBusCommunicator.Subscribe(_incomingMessageHandler);
+			await _serviceBusClientWrapper.Subscribe(_incomingMessageHandler);
 
 			if (options.ConnectHandlerAsync is not null)
 				await options.ConnectHandlerAsync(new BackplaneConnectionInfo(false));
@@ -68,7 +68,7 @@ public partial class AzureServiceBusBackplane
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] new message {Action} {CacheKey} - {Duration} - {DistributedDuration}", _cacheName, _cacheInstanceId, message.Action, message.CacheKey, options.Duration, options.DistributedCacheDuration);
 
-		await _serviceBusCommunicator.SendMessage(new ServiceBusMessage
+		await _serviceBusClientWrapper.SendMessage(new ServiceBusMessage
 		{
 			Body = new BinaryData(BackplaneMessage.ToByteArray(message)),
 			Subject = _cacheName
@@ -88,17 +88,17 @@ public partial class AzureServiceBusBackplane
 
 		if (_subscriptionMissingHandler is not null)
 		{
-			_serviceBusCommunicator.SubscriptionMissing -= _subscriptionMissingHandler;
+			_serviceBusClientWrapper.SubscriptionMissing -= _subscriptionMissingHandler;
 			_subscriptionMissingHandler = null;
 		}
 
-		await _serviceBusCommunicator.Unsubscribe(_incomingMessageHandler);
+		await _serviceBusClientWrapper.Unsubscribe(_incomingMessageHandler);
 		_incomingMessageHandler = null;
 		_cacheName = null;
 		_cacheInstanceId = null;
 
-		await _serviceBusCommunicator.DisposeAsync();
-		await _serviceBusProvisioner.DisposeAsync();
+		await _serviceBusClientWrapper.DisposeAsync();
+		await _serviceBusAdminWrapper.DisposeAsync();
 		}
 		finally
 		{

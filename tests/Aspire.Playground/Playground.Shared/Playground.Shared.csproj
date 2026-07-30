@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -7,15 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Playground.ServiceDefaults\Playground.ServiceDefaults.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="..\..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
-    <ProjectReference Include="..\..\..\src\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis\ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
     <ProjectReference Include="..\..\..\src\ZiggyCreatures.FusionCache.Backplane.AzureServiceBus\ZiggyCreatures.FusionCache.Backplane.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\src\ZiggyCreatures.FusionCache.Serialization.SystemTextJson\ZiggyCreatures.FusionCache.Serialization.SystemTextJson.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="StackExchange.Redis" Version="3.0.0" />
-	  <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.7" />
   </ItemGroup>
 
 </Project>

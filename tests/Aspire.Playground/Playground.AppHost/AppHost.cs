@@ -1,4 +1,7 @@
-﻿var builder = DistributedApplication.CreateBuilder(args);
+﻿using Aspire.Hosting.Azure;
+using Microsoft.AspNetCore.SignalR;
+
+var builder = DistributedApplication.CreateBuilder(args);
 
 var redis = builder.AddRedis("cache-redis").WithRedisInsight();
 var serviceBus = builder
@@ -10,9 +13,10 @@ var serviceBus = builder
 	});
 
 var topic = serviceBus.AddServiceBusTopic("fusioncache-playground");
-topic.AddServiceBusSubscription("webApp1-sub");
-topic.AddServiceBusSubscription("webApp2-sub");
+var subscription1 = topic.AddServiceBusSubscription("webApp1-sub");
+var subscription2 = topic.AddServiceBusSubscription("webApp2-sub");
 
+;
 builder
 	.AddProject<Projects.WebApplication1>("webapplication1")
 	.WithReference(redis)
