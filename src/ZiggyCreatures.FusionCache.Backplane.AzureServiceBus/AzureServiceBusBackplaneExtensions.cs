@@ -1,4 +1,4 @@
-using Azure.Core;
+﻿using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -34,7 +34,7 @@ public static class AzureServiceBusBackplaneExtensions
 			subscriptionName = options.SubscriptionName ?? AzureServiceBusHelpers.GenerateId();
 
 			var provisionerLogger = sp.GetService<ILogger<AzureServiceBusAdminWrapper>>() ?? NullLogger<AzureServiceBusAdminWrapper>.Instance;
-			provisioner = new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, options.SubscriptionAutoDeleteOnIdle, provisionerLogger);
+			provisioner = new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, provisionerLogger);
 		}
 		else
 		{
@@ -52,9 +52,6 @@ public static class AzureServiceBusBackplaneExtensions
 	{
 		if (options.LockTimeout <= TimeSpan.Zero)
 			throw new InvalidOperationException($"{nameof(options.LockTimeout)} must be greater than zero.");
-
-		if (options.SubscriptionAutoDeleteOnIdle <= TimeSpan.Zero)
-			throw new InvalidOperationException($"{nameof(options.SubscriptionAutoDeleteOnIdle)} must be greater than zero.");
 
 		if (!options.IsAdmin && string.IsNullOrWhiteSpace(options.SubscriptionName))
 			throw new InvalidOperationException($"{nameof(options.SubscriptionName)} is required when {nameof(options.IsAdmin)} is false. It must identify a unique, externally provisioned subscription for this cache-process instance.");

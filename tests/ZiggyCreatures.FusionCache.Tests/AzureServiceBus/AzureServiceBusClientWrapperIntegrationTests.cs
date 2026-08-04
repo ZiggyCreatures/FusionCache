@@ -54,7 +54,7 @@ public class AzureServiceBusClientWrapperIntegrationTests
 
 	private static AzureServiceBusAdminWrapper CreateAdminWrapper(ServiceBusAdministrationClient adminClient, string topicName, string subscriptionName)
 	{
-		return new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, TimeSpan.FromMinutes(10), NullLogger<AzureServiceBusAdminWrapper>.Instance);
+		return new AzureServiceBusAdminWrapper(adminClient, topicName, subscriptionName, NullLogger<AzureServiceBusAdminWrapper>.Instance);
 	}
 
 	private static AzureServiceBusClientWrapper CreateCommunicator(ServiceBusClient client, string topicName, string subscriptionName)
@@ -211,8 +211,6 @@ public class AzureServiceBusClientWrapperIntegrationTests
 
 		try
 		{
-			// PROVISION OUT OF BAND (E.G. VIA IAC), WITHOUT EVER USING AzureServiceBusAdminWrapper. NOTE THIS
-			// SUBSCRIPTION KEEPS ITS DEFAULT MATCH-ALL RULE: NO ONE HERE CREATES THE "FilterOutOwnMessages" SQL RULE.
 			await adminClient.CreateTopicAsync(topicName, TestContext.Current.CancellationToken);
 			await adminClient.CreateSubscriptionAsync(new CreateSubscriptionOptions(topicName, subscriptionName), TestContext.Current.CancellationToken);
 
@@ -224,15 +222,11 @@ public class AzureServiceBusClientWrapperIntegrationTests
 
 			await communicator.SendMessage(new ServiceBusMessage(new BinaryData(new byte[] { 7 })), TestContext.Current.CancellationToken);
 
-			// WITHOUT A SERVER-SIDE SELF-FILTER RULE, THE SUBSCRIPTION'S DEFAULT RULE DELIVERS THE MESSAGE BACK TO
-			// THIS SAME COMMUNICATOR. THE APP-LEVEL SELF-CHECK IN ProcessMessageAsync IS WHAT PREVENTS IT FROM EVER
-			// REACHING A REGISTERED HANDLER, SO IF THIS NEVER COMPLETES, THAT GUARD DID ITS JOB.
 			var completed = await Task.WhenAny(receivedTcs.Task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
 			Assert.NotSame(receivedTcs.Task, completed);
 
 			await communicator.DisposeAsync();
 
-			// THE COMMUNICATOR HAS NO ADMINISTRATIVE CAPABILITY AT ALL: DISPOSING IT MUST NEVER DELETE THE SUBSCRIPTION
 			Assert.True(await adminClient.SubscriptionExistsAsync(topicName, subscriptionName, TestContext.Current.CancellationToken));
 		}
 		finally
@@ -243,13 +237,6 @@ public class AzureServiceBusClientWrapperIntegrationTests
 
 	private static async Task TryDeleteTopicAsync(ServiceBusAdministrationClient adminClient, string topicName)
 	{
-		try
-		{
-			await adminClient.DeleteTopicAsync(topicName);
-		}
-		catch
-		{
-			// BEST-EFFORT CLEANUP: DON'T FAIL THE TEST RUN IF THE TOPIC WAS NEVER CREATED OR IS ALREADY GONE
-		}
+		await adminClient.DeleteTopicAsync(topicName);
 	}
 }

@@ -19,21 +19,21 @@ public partial class AzureServiceBusBackplane
 	/// <summary>
 	/// Initializes a new instance of the <see cref="AzureServiceBusBackplane"/> class.
 	/// </summary>
-	/// <param name="serviceBusCommunicator">The <see cref="IAzureServiceBusClientWrapper"/> to use for sending/receiving messages.</param>
-	/// <param name="serviceBusProvisioner">
+	/// <param name="serviceBusClientWrapper">The <see cref="IAzureServiceBusClientWrapper"/> to use for sending/receiving messages.</param>
+	/// <param name="serviceBusAdminWrapper">
 	/// The <see cref="IAzureServiceBusAdminWrapper"/> to use for provisioning the topic/subscription before subscribing, and
 	/// tearing it down after unsubscribing. Use <see cref="NoOpAzureServiceBusAdminWrapper.Instance"/> when this instance has
 	/// no administrative capability and the topic/subscription are provisioned out of band.
 	/// </param>
 	/// <param name="logger">The <see cref="ILogger{TCategoryName}"/> instance to use. If null, logging will be completely disabled.</param>
 	public AzureServiceBusBackplane(
-		IAzureServiceBusClientWrapper serviceBusCommunicator,
-		IAzureServiceBusAdminWrapper serviceBusProvisioner,
+		IAzureServiceBusClientWrapper serviceBusClientWrapper,
+		IAzureServiceBusAdminWrapper serviceBusAdminWrapper,
 		ILogger<AzureServiceBusBackplane>? logger = null,
 		TimeSpan? lockTimeout = null)
 	{
-		_serviceBusClientWrapper = serviceBusCommunicator ?? throw new ArgumentNullException(nameof(serviceBusCommunicator));
-		_serviceBusAdminWrapper = serviceBusProvisioner ?? throw new ArgumentNullException(nameof(serviceBusProvisioner));
+		_serviceBusClientWrapper = serviceBusClientWrapper ?? throw new ArgumentNullException(nameof(serviceBusClientWrapper));
+		_serviceBusAdminWrapper = serviceBusAdminWrapper ?? throw new ArgumentNullException(nameof(serviceBusAdminWrapper));
 		_logger = logger;
 		_lockTimeout = lockTimeout ?? TimeSpan.FromSeconds(5);
 		if (_lockTimeout <= TimeSpan.Zero)

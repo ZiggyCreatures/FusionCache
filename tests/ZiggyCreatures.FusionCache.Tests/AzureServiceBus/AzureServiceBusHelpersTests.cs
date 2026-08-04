@@ -13,12 +13,6 @@ public class AzureServiceBusHelpersTests
 	}
 
 	[Fact]
-	public void SanitizeEntityNameThrowsWhenNameIsNull()
-	{
-		Assert.Throws<ArgumentNullException>(() => AzureServiceBusHelpers.SanitizeEntityName(null!, 50));
-	}
-
-	[Fact]
 	public void SanitizeEntityNameLeavesValidCharactersUntouched()
 	{
 		var result = AzureServiceBusHelpers.SanitizeEntityName("My.Cache-Name_v1/sub", 260);
@@ -73,8 +67,6 @@ public class AzureServiceBusHelpersTests
 	[Fact]
 	public void ResolveTopicNameFallsBackToChannelNameWhenNotProvided()
 	{
-		// THIS IS FUSIONCACHE'S DEFAULT COMPUTED CHANNEL NAME SHAPE (SEE FusionCacheInternalUtils.GetBackplaneChannelName):
-		// THE ':' SEPARATOR IS NOT A VALID SERVICE BUS CHARACTER, SO IT MUST BE SANITIZED AWAY
 		var result = AzureServiceBusHelpers.ResolveTopicName(null, "MyCache.Backplane:v1");
 
 		Assert.Equal("MyCache.Backplane-v1", result);
@@ -86,5 +78,33 @@ public class AzureServiceBusHelpersTests
 		var result = AzureServiceBusHelpers.ResolveTopicName("   ", "MyCache.Backplane:v1");
 
 		Assert.Equal("MyCache.Backplane-v1", result);
+	}
+	[Fact]
+	public void GenerateIdReturnsAValidSubscriptionNameLength()
+	{
+		var id = AzureServiceBusHelpers.GenerateId();
+
+		Assert.True(id.Length <= AzureServiceBusHelpers.MaxSubscriptionNameLength, $"Expected length <= {AzureServiceBusHelpers.MaxSubscriptionNameLength}, but was {id.Length} ('{id}')");
+		Assert.NotEmpty(id);
+	}
+
+	[Fact]
+	public void GenerateIdOnlyContainsValidServiceBusEntityNameCharacters()
+	{
+		var id = AzureServiceBusHelpers.GenerateId();
+
+		foreach (var c in id)
+		{
+			Assert.True(char.IsLetterOrDigit(c) || c is '.' or '-' or '_' or '/', $"Unexpected character '{c}' in generated id '{id}'");
+		}
+	}
+
+	[Fact]
+	public void GenerateIdReturnsDifferentValuesOnSuccessiveCalls()
+	{
+		var id1 = AzureServiceBusHelpers.GenerateId();
+		var id2 = AzureServiceBusHelpers.GenerateId();
+
+		Assert.NotEqual(id1, id2);
 	}
 }

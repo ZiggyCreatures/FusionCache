@@ -1,4 +1,4 @@
-using Azure.Core;
+﻿using Azure.Core;
 
 namespace ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
 
@@ -48,11 +48,6 @@ public class AzureServiceBusBackplaneOptions
 	/// subscription name is generated automatically for this instance.
 	/// </summary>
 	public string? SubscriptionName { get; set; }
-
-	/// <summary>
-	/// The <see cref="TimeSpan"/> after which an idle, auto-created per-instance subscription will be deleted by the Service Bus service.
-	/// </summary>
-	public TimeSpan SubscriptionAutoDeleteOnIdle { get; set; } = TimeSpan.FromMinutes(10);
 
 	/// <summary>
 	/// The max amount of time to wait to acquire the internal lock used to coordinate connection/subscription setup.

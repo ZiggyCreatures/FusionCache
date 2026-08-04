@@ -160,7 +160,7 @@ public static class TestsUtils
 		if (backplane is null)
 			return null;
 
-		var communicator = typeof(AzureServiceBusBackplane).GetField("_serviceBusCommunicator", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as AzureServiceBusClientWrapper;
+		var communicator = typeof(AzureServiceBusBackplane).GetField("_serviceBusClientWrapper", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(backplane) as AzureServiceBusClientWrapper;
 		if (communicator is null)
 			return null;
 

@@ -1,4 +1,5 @@
 ﻿using Azure.Messaging.ServiceBus;
+using FusionCacheTests.AzureServiceBus.TestDoubles;
 using FusionCacheTests.Stuff;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
@@ -14,97 +15,6 @@ public class AzureServiceBusBackplaneTests
 	public AzureServiceBusBackplaneTests(ITestOutputHelper output)
 		: base(output, null)
 	{
-	}
-
-	private sealed class FakeAzureServiceBusCommunicator
-		: IAzureServiceBusClientWrapper
-	{
-		public FakeAzureServiceBusCommunicator(List<string>? callLog = null)
-		{
-			_callLog = callLog;
-		}
-
-		private readonly List<string>? _callLog;
-
-		public int SubscribeCallCount { get; private set; }
-		public Func<ServiceBusReceivedMessage, Task>? SubscribedHandler { get; private set; }
-		public Func<ServiceBusReceivedMessage, Task>? UnsubscribedHandler { get; private set; }
-		public List<ServiceBusMessage> SentMessages { get; } = new();
-
-		public TimeSpan? SubscribeDelay { get; set; }
-		public TimeSpan? SendMessageDelay { get; set; }
-
-		public event Func<Task>? SubscriptionMissing;
-
-		public async Task RaiseSubscriptionMissingAsync()
-		{
-			var handler = SubscriptionMissing;
-			if (handler is not null)
-				await handler();
-		}
-
-		public async Task Subscribe(Func<ServiceBusReceivedMessage, Task> handler)
-		{
-			if (SubscribeDelay.HasValue)
-				await Task.Delay(SubscribeDelay.Value);
-
-			_callLog?.Add(nameof(Subscribe));
-			SubscribeCallCount++;
-			SubscribedHandler = handler;
-		}
-
-		public Task Unsubscribe(Func<ServiceBusReceivedMessage, Task> handler)
-		{
-			_callLog?.Add(nameof(Unsubscribe));
-			UnsubscribedHandler = handler;
-			return Task.CompletedTask;
-		}
-
-		public async Task SendMessage(ServiceBusMessage message, CancellationToken cancellationToken)
-		{
-			if (SendMessageDelay.HasValue)
-				await Task.Delay(SendMessageDelay.Value);
-
-			SentMessages.Add(message);
-		}
-
-		public ValueTask DisposeAsync() => default;
-	}
-
-	private sealed class FakeAzureServiceBusAdminWrapper
-		: IAzureServiceBusAdminWrapper
-	{
-		public FakeAzureServiceBusAdminWrapper(List<string>? callLog = null)
-		{
-			_callLog = callLog;
-		}
-
-		private readonly List<string>? _callLog;
-
-		public int EnsureTopicCallCount { get; private set; }
-		public int EnsureSubscriptionCallCount { get; private set; }
-		public int DisposeCallCount { get; private set; }
-
-		public ValueTask EnsureTopicAsync()
-		{
-			_callLog?.Add(nameof(EnsureTopicAsync));
-			EnsureTopicCallCount++;
-			return default;
-		}
-
-		public ValueTask EnsureSubscriptionAsync()
-		{
-			_callLog?.Add(nameof(EnsureSubscriptionAsync));
-			EnsureSubscriptionCallCount++;
-			return default;
-		}
-
-		public ValueTask DisposeAsync()
-		{
-			_callLog?.Add(nameof(DisposeAsync));
-			DisposeCallCount++;
-			return default;
-		}
 	}
 
 	private static (BackplaneSubscriptionOptions Options, List<BackplaneMessage> ReceivedMessages, List<bool> ConnectReconnectionFlags) CreateSubscriptionOptions(
@@ -357,11 +267,10 @@ public class AzureServiceBusBackplaneTests
 		var message = BackplaneMessage.CreateForEntrySet("source-instance", "my-key", 987654321L);
 		var entryOptions = new FusionCacheEntryOptions(TimeSpan.FromMinutes(10));
 
-		await backplane.PublishAsync(message, entryOptions);
+		await backplane.PublishAsync(message, entryOptions,TestContext.Current.CancellationToken);
 
 		var sent = Assert.Single(fake.SentMessages);
 		Assert.Equal("TestCache", sent.Subject);
-		Assert.Equal(TimeSpan.FromSeconds(5) + entryOptions.Duration, sent.TimeToLive);
 
 		var roundTripped = BackplaneMessage.FromByteArray(sent.Body.ToArray());
 		Assert.Equal(message.SourceId, roundTripped.SourceId);

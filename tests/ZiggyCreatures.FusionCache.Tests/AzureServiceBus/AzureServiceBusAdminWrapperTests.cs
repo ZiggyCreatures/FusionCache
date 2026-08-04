@@ -22,7 +22,7 @@ public class AzureServiceBusAdminWrapperTests
 	{
 		var adminClient = new ServiceBusAdministrationClient(FakeConnectionString);
 
-		var provisioner = new AzureServiceBusAdminWrapper(adminClient, "my-topic", "my-subscription", TimeSpan.FromMinutes(10), NullLogger<AzureServiceBusAdminWrapper>.Instance);
+		var provisioner = new AzureServiceBusAdminWrapper(adminClient, "my-topic", "my-subscription", NullLogger<AzureServiceBusAdminWrapper>.Instance);
 
 		Assert.IsAssignableFrom<IAzureServiceBusAdminWrapper>(provisioner);
 	}

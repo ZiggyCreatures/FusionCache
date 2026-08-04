@@ -3,8 +3,6 @@ using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
-using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
-using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.Helpers;
 
 namespace FusionCacheTests.AzureServiceBus;
 
@@ -55,32 +53,4 @@ public class AzureServiceBusClientWrapperTests
 		communicator.SubscriptionMissing -= Handler;
 	}
 
-	[Fact]
-	public void GenerateIdReturnsAValidSubscriptionNameLength()
-	{
-		var id = AzureServiceBusHelpers.GenerateId();
-
-		Assert.True(id.Length <= AzureServiceBusHelpers.MaxSubscriptionNameLength, $"Expected length <= {AzureServiceBusHelpers.MaxSubscriptionNameLength}, but was {id.Length} ('{id}')");
-		Assert.NotEmpty(id);
-	}
-
-	[Fact]
-	public void GenerateIdOnlyContainsValidServiceBusEntityNameCharacters()
-	{
-		var id = AzureServiceBusHelpers.GenerateId();
-
-		foreach (var c in id)
-		{
-			Assert.True(char.IsLetterOrDigit(c) || c is '.' or '-' or '_' or '/', $"Unexpected character '{c}' in generated id '{id}'");
-		}
-	}
-
-	[Fact]
-	public void GenerateIdReturnsDifferentValuesOnSuccessiveCalls()
-	{
-		var id1 = AzureServiceBusHelpers.GenerateId();
-		var id2 = AzureServiceBusHelpers.GenerateId();
-
-		Assert.NotEqual(id1, id2);
-	}
 }

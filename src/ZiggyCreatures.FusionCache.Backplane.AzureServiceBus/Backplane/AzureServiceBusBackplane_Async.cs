@@ -68,11 +68,12 @@ public partial class AzureServiceBusBackplane
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}]: [BP] new message {Action} {CacheKey} - {Duration} - {DistributedDuration}", _cacheName, _cacheInstanceId, message.Action, message.CacheKey, options.Duration, options.DistributedCacheDuration);
 
-		await _serviceBusClientWrapper.SendMessage(new ServiceBusMessage
+		var asb_message = new ServiceBusMessage
 		{
 			Body = new BinaryData(BackplaneMessage.ToByteArray(message)),
 			Subject = _cacheName
-		}, token);
+		};
+		await _serviceBusClientWrapper.SendMessage(asb_message, token);
 	}
 
 	/// <inheritdoc/>

@@ -17,7 +17,6 @@ public class AzureServiceBusAdminWrapper(
 		ServiceBusAdministrationClient serviceBusAdministrationClient,
 		string topicName,
 		string subscriptionName,
-		TimeSpan subscriptionAutoDeleteOnIdle,
 		ILogger<AzureServiceBusAdminWrapper> logger) : IAzureServiceBusAdminWrapper
 {
 	internal const string SelfMessageFilterRuleName = "FilterOutOwnMessages";
@@ -39,11 +38,7 @@ public class AzureServiceBusAdminWrapper(
 		if (!await serviceBusAdministrationClient.SubscriptionExistsAsync(topicName, subscriptionName))
 		{
 			logger.LogInformation("Creating a new topic subscription: {SubscriptionName}", subscriptionName);
-			await serviceBusAdministrationClient.CreateSubscriptionAsync(new CreateSubscriptionOptions(topicName, subscriptionName)
-			{
-				AutoDeleteOnIdle = subscriptionAutoDeleteOnIdle
-			});
-
+			await serviceBusAdministrationClient.CreateSubscriptionAsync(new CreateSubscriptionOptions(topicName, subscriptionName));
 		}
 
 		if (await serviceBusAdministrationClient.RuleExistsAsync(topicName, subscriptionName, SelfMessageFilterRuleName))

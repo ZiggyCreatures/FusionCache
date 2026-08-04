@@ -28,7 +28,6 @@ public class AzureServiceBusBackplaneOptionsTests
 		var options = new AzureServiceBusBackplaneOptions();
 
 		Assert.True(options.IsAdmin);
-		Assert.Equal(TimeSpan.FromMinutes(10), options.SubscriptionAutoDeleteOnIdle);
 		Assert.Equal(TimeSpan.FromSeconds(5), options.LockTimeout);
 	}
 
