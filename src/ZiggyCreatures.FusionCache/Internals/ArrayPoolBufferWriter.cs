@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -6,10 +6,17 @@ namespace ZiggyCreatures.Caching.Fusion.Internals;
 
 /// <summary>
 /// The <see cref="ArrayPoolBufferWriter"/> class is an implementation of <see cref="T:IBufferWriter{byte}"/> that uses an <see cref="T:ArrayPool{byte}"/> to rent and return buffers.
+/// <br/><br/>
+/// The buffer is contiguous (grown by doubling), so the written data is always available as a single-segment <see cref="ReadOnlySequence{T}"/>: this enables single-span fast paths in serializers and avoids linearization in consumers like the Redis implementation of IBufferDistributedCache.
 /// </summary>
 public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 {
+	// LEGACY DEFAULT POOL: ISOLATED, WITH A 1MB MAX ARRAY LENGTH AND NO TRIMMING.
+	// NOTE: FOR BUFFERS ABOVE ITS MAX ARRAY LENGTH AN ISOLATED POOL FALLS BACK TO PLAIN
+	// ALLOCATIONS, WHICH IS VERY COSTLY WITH LARGE PAYLOADS: PREFER PASSING ArrayPool<byte>.Shared
 	private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Create();
+
+	private readonly ArrayPool<byte> _pool;
 	private byte[] _buffer;
 	private int _bytesWritten = 0;
 	private bool disposedValue;
@@ -25,18 +32,30 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	public int BufferSize => _buffer.Length;
 
 	/// <summary>
-	/// Creates a new instance of the <see cref="ArrayPoolBufferWriter"/> class.
+	/// Creates a new instance of the <see cref="ArrayPoolBufferWriter"/> class, using an isolated <see cref="T:ArrayPool{byte}"/> with a 1MB max array length.
 	/// </summary>
 	public ArrayPoolBufferWriter()
+		: this(null)
 	{
-		_buffer = _arrayPool.Rent(4096);
+		// EMPTY
+	}
+
+	/// <summary>
+	/// Creates a new instance of the <see cref="ArrayPoolBufferWriter"/> class using the specified pool.
+	/// </summary>
+	/// <param name="pool">The <see cref="T:ArrayPool{byte}"/> to rent buffers from (eg: <see cref="ArrayPool{T}.Shared"/>, which supports buffers of any size and releases unused ones under memory pressure), or <see langword="null"/> to use the default isolated pool.</param>
+	/// <param name="initialCapacity">The initial buffer capacity.</param>
+	public ArrayPoolBufferWriter(ArrayPool<byte>? pool, int initialCapacity = 4096)
+	{
+		_pool = pool ?? _arrayPool;
+		_buffer = _pool.Rent(initialCapacity);
 	}
 
 	/// <inheritdoc/>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void Advance(int count)
 	{
-		if (_bytesWritten + count > _buffer.Length)
+		if (count < 0 || _bytesWritten + count > _buffer.Length)
 		{
 			ThrowInvalidOperationException();
 		}
@@ -57,21 +76,33 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public Memory<byte> GetMemory(int sizeHint = 0)
 	{
+		if (sizeHint < 1)
+		{
+			sizeHint = 1;
+		}
+
 		var requiredCapacity = _bytesWritten + sizeHint;
 		var currentBufferLength = _buffer.Length;
-		if (requiredCapacity >= currentBufferLength)
+		if (requiredCapacity > currentBufferLength)
 		{
 			var newSize = Math.Max(currentBufferLength * 2, requiredCapacity);
-			var newBuffer = _arrayPool.Rent(newSize);
+			var newBuffer = _pool.Rent(newSize);
 			var bufferSpan = _buffer.AsSpan();
 			var newBufferSpan = newBuffer.AsSpan();
 			Unsafe.CopyBlockUnaligned(ref MemoryMarshal.GetReference(newBufferSpan), ref MemoryMarshal.GetReference(bufferSpan), (uint)_bytesWritten);
-			_arrayPool.Return(_buffer);
+			_pool.Return(_buffer);
 			_buffer = newBuffer;
 		}
 
 		return _buffer.AsMemory(_bytesWritten);
 	}
+
+	/// <summary>
+	/// Returns the written data as a (single-segment) <see cref="ReadOnlySequence{T}"/>, without copying.
+	/// <br/><br/>
+	/// <strong>IMPORTANT:</strong> the sequence is backed by the pooled buffer, so it is only valid until the writer is disposed or written to again.
+	/// </summary>
+	public ReadOnlySequence<byte> WrittenSequence => new(_buffer, 0, _bytesWritten);
 
 	/// <summary>
 	/// Returns the buffer as an array of <see cref="T:byte[]" />
@@ -108,7 +139,7 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 			return;
 		}
 
-		_arrayPool.Return(_buffer);
+		_pool.Return(_buffer);
 		disposedValue = true;
 	}
 }

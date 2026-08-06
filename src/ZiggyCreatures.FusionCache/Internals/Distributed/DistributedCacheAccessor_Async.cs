@@ -70,13 +70,19 @@ internal partial class DistributedCacheAccessor
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 		// SERIALIZATION
-		byte[]? data;
+		byte[]? data = null;
+		ArrayPoolBufferWriter? bufferData = null;
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
-			if (_options.PreferSyncSerialization)
+			if (_useBuffers)
+			{
+				bufferData = new ArrayPoolBufferWriter(_bufferPool);
+				_bufferSerializer!.Serialize(distributedEntry, bufferData);
+			}
+			else if (_options.PreferSyncSerialization)
 			{
 				data = _serializer.Serialize(distributedEntry);
 			}
@@ -87,6 +93,9 @@ internal partial class DistributedCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// SERIALIZATION IS SYNCHRONOUS ON THE BUFFERED PATH, SO NOTHING ELSE CAN BE USING THE BUFFER HERE
+			bufferData?.Dispose();
+
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while serializing an entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
@@ -112,7 +121,7 @@ internal partial class DistributedCacheAccessor
 			//data = null;
 		}
 
-		if (data is null)
+		if (data is null && bufferData is null)
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] the entry {Entry} has been serialized to null, skipping", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
@@ -128,7 +137,17 @@ internal partial class DistributedCacheAccessor
 			{
 				var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 
-				await _cache.SetAsync(MaybeProcessCacheKey(key), data, distributedOptions, ct).ConfigureAwait(false);
+				if (bufferData is not null)
+				{
+					await _bufferCache!.SetAsync(MaybeProcessCacheKey(key), bufferData.WrittenSequence, distributedOptions, ct).ConfigureAwait(false);
+
+					// RELEASE THE BUFFER ONLY ON SUCCESS: ON FAILURE THE OPERATION MAY STILL BE USING IT
+					bufferData.Dispose();
+				}
+				else
+				{
+					await _cache.SetAsync(MaybeProcessCacheKey(key), data!, distributedOptions, ct).ConfigureAwait(false);
+				}
 
 				// EVENT
 				_events.OnSet(operationId, key);
@@ -154,16 +173,37 @@ internal partial class DistributedCacheAccessor
 		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
 		// GET FROM DISTRIBUTED CACHE
-		byte[]? data;
+		byte[]? data = null;
+		ArrayPoolBufferWriter? bufferData = null;
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(_options, hasFallbackValue);
-			data = await RunUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
-				async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
-				timeout.Value,
-				true,
-				token: token
-			).ConfigureAwait(false);
+			if (_useBuffers)
+			{
+				bufferData = await RunUtils.RunAsyncFuncWithTimeoutAsync<ArrayPoolBufferWriter?>(
+					async ct =>
+					{
+						var writer = new ArrayPoolBufferWriter(_bufferPool);
+						if (await _bufferCache!.TryGetAsync(MaybeProcessCacheKey(key), writer, ct).ConfigureAwait(false))
+							return writer;
+
+						writer.Dispose();
+						return null;
+					},
+					timeout.Value,
+					true,
+					token: token
+				).ConfigureAwait(false);
+			}
+			else
+			{
+				data = await RunUtils.RunAsyncFuncWithTimeoutAsync<byte[]?>(
+					async ct => await _cache.GetAsync(MaybeProcessCacheKey(key), ct).ConfigureAwait(false),
+					timeout.Value,
+					true,
+					token: token
+				).ConfigureAwait(false);
+			}
 		}
 		catch (Exception exc)
 		{
@@ -185,10 +225,14 @@ internal partial class DistributedCacheAccessor
 				}
 			}
 
+			// NOTE: ON FAILURE (INCLUDING TIMEOUT) THE POOLED BUFFER IS INTENTIONALLY NOT DISPOSED,
+			// SINCE THE UNDERLYING OPERATION MAY STILL BE RUNNING AND WRITING INTO IT: IT WILL SIMPLY
+			// BE COLLECTED, WITHOUT BEING RETURNED TO THE POOL
 			data = null;
+			bufferData = null;
 		}
 
-		if (data is null)
+		if (data is null && bufferData is null)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
@@ -202,13 +246,20 @@ internal partial class DistributedCacheAccessor
 		try
 		{
 			FusionCacheDistributedEntry<TValue>? entry;
-			if (_options.PreferSyncSerialization)
+			if (bufferData is not null)
 			{
-				entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data);
+				entry = _bufferSerializer!.Deserialize<FusionCacheDistributedEntry<TValue>>(bufferData.WrittenSequence);
+
+				// RELEASE THE BUFFER ONLY ON SUCCESS
+				bufferData.Dispose();
+			}
+			else if (_options.PreferSyncSerialization)
+			{
+				entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data!);
 			}
 			else
 			{
-				entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data, token).ConfigureAwait(false);
+				entry = await _serializer.DeserializeAsync<FusionCacheDistributedEntry<TValue>>(data!, token).ConfigureAwait(false);
 			}
 
 			var isValid = false;
@@ -247,6 +298,9 @@ internal partial class DistributedCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// DESERIALIZATION IS SYNCHRONOUS AND OWNS THE BUFFER HERE, SO IT IS SAFE TO RELEASE IT
+			bufferData?.Dispose();
+
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
 

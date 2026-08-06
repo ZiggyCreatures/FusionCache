@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using ProtoBuf.Meta;
 using ZiggyCreatures.Caching.Fusion.Internals;
@@ -11,7 +12,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ProtoBufNet;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses protobuf-net, one of the most used .NET Protobuf serializer, by Marc Gravell.
 /// </summary>
 public class FusionCacheProtoBufNetSerializer
-	: IFusionCacheSerializer
+	: IBufferFusionCacheSerializer
 {
 	/// <summary>
 	/// The options class for the <see cref="FusionCacheProtoBufNetSerializer"/> class.
@@ -108,6 +109,14 @@ public class FusionCacheProtoBufNetSerializer
 	}
 
 	/// <inheritdoc />
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		MaybeRegisterDistributedEntryModel<T>();
+
+		_model.Serialize(destination, obj);
+	}
+
+	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
 		if (data.Length == 0)
@@ -116,6 +125,17 @@ public class FusionCacheProtoBufNetSerializer
 		MaybeRegisterDistributedEntryModel<T>();
 
 		return _model.Deserialize<T?>((ReadOnlySpan<byte>)data);
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		if (data.Length == 0)
+			return default;
+
+		MaybeRegisterDistributedEntryModel<T>();
+
+		return _model.Deserialize<T?>(data);
 	}
 
 	/// <inheritdoc />
