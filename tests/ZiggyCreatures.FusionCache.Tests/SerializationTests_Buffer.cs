@@ -3,6 +3,7 @@ using FusionCacheTests.Stuff;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests;
@@ -132,5 +133,18 @@ public partial class SerializationTests
 
 		var looped = serializer.Deserialize<string>(new ReadOnlySequence<byte>(writer.WrittenSpan.ToArray()));
 		Assert.Null(looped);
+	}
+
+	[Fact]
+	public void NullSerializerSupportsBuffers()
+	{
+		var serializer = Assert.IsAssignableFrom<IBufferFusionCacheSerializer>(new NullSerializer());
+
+		// SAME AS THE CLASSIC PATH: WRITES NOTHING, READS BACK NOTHING
+		var writer = new ArrayBufferWriter<byte>();
+		serializer.Serialize(SampleString, writer);
+		Assert.Equal(0, writer.WrittenCount);
+
+		Assert.Null(serializer.Deserialize<string>(ReadOnlySequence<byte>.Empty));
 	}
 }
