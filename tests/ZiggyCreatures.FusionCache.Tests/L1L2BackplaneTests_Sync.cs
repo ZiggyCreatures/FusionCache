@@ -721,7 +721,7 @@ public partial class L1L2BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public void CanClear(SerializerType serializerType)
+	public async Task CanClear(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
@@ -821,8 +821,9 @@ public partial class L1L2BackplaneTests
 		Assert.Equal(0, cache2_foo_4);
 		Assert.Equal(0, cache2_bar_4);
 
-		logger.LogInformation("STEP 10");
+		Thread.Sleep(10);
 
+		logger.LogInformation("STEP 10");
 		var cache1_foo_5 = cache1.GetOrDefault<int>("foo", opt => opt.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
 		var cache1_bar_5 = cache1.GetOrDefault<int>("bar", opt => opt.SetAllowStaleOnReadOnly(), token: TestContext.Current.CancellationToken);
 
