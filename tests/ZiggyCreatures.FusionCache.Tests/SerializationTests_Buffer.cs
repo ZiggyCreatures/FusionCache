@@ -26,6 +26,9 @@ public partial class SerializationTests
 
 	private static ReadOnlySequence<byte> ToMultiSegmentSequence(byte[] data, int segmentSize)
 	{
+		if (segmentSize < 1)
+			throw new ArgumentOutOfRangeException(nameof(segmentSize));
+
 		if (data.Length <= segmentSize)
 			return new ReadOnlySequence<byte>(data);
 

@@ -16,6 +16,9 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	// ALLOCATIONS, WHICH IS VERY COSTLY WITH LARGE PAYLOADS: PREFER PASSING ArrayPool<byte>.Shared
 	private static readonly ArrayPool<byte> _arrayPool = ArrayPool<byte>.Create();
 
+	// NOTE: SAME VALUE AS Array.MaxLength, WHICH IS NOT AVAILABLE ON ALL THE TARGET FRAMEWORKS
+	private const int MaxBufferLength = 0X7FFFFFC7;
+
 	private readonly ArrayPool<byte> _pool;
 	private byte[] _buffer;
 	private int _bytesWritten = 0;
@@ -55,7 +58,10 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void Advance(int count)
 	{
-		if (count < 0 || _bytesWritten + count > _buffer.Length)
+		// NOTE: THE BOUNDS CHECK IS SUBTRACTION-BASED (INSTEAD OF _bytesWritten + count) SO THAT
+		// IT CANNOT OVERFLOW: SINCE _bytesWritten IS ALWAYS <= _buffer.Length, THE RIGHT-HAND SIDE
+		// IS ALWAYS A NON-NEGATIVE int
+		if (count < 0 || count > _buffer.Length - _bytesWritten)
 		{
 			ThrowInvalidOperationException();
 		}
@@ -81,11 +87,18 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 			sizeHint = 1;
 		}
 
-		var requiredCapacity = _bytesWritten + sizeHint;
+		// NOTE: ALL THE SIZE MATH IS DONE IN long TO AVOID OVERFLOWS WITH VERY LARGE PAYLOADS
+		// (EG: A sizeHint NEAR int.MaxValue, OR DOUBLING A BUFFER ALREADY ABOVE 1GB)
 		var currentBufferLength = _buffer.Length;
-		if (requiredCapacity > currentBufferLength)
+		if (sizeHint > currentBufferLength - _bytesWritten)
 		{
-			var newSize = Math.Max(currentBufferLength * 2, requiredCapacity);
+			var requiredCapacity = (long)_bytesWritten + sizeHint;
+			if (requiredCapacity > MaxBufferLength)
+			{
+				ThrowOutOfMemoryException();
+			}
+
+			var newSize = (int)Math.Min(MaxBufferLength, Math.Max((long)currentBufferLength * 2, requiredCapacity));
 			var newBuffer = _pool.Rent(newSize);
 			var bufferSpan = _buffer.AsSpan();
 			var newBufferSpan = newBuffer.AsSpan();
@@ -129,6 +142,12 @@ public sealed class ArrayPoolBufferWriter : IBufferWriter<byte>, IDisposable
 	private static void ThrowInvalidOperationException()
 	{
 		throw new InvalidOperationException("Cannot advance past the end of the buffer.");
+	}
+
+	[MethodImpl(MethodImplOptions.NoInlining)]
+	private static void ThrowOutOfMemoryException()
+	{
+		throw new OutOfMemoryException("Cannot grow the buffer past the maximum array length.");
 	}
 
 	/// <inheritdoc/>
