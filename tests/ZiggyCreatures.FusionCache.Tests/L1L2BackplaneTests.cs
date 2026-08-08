@@ -39,7 +39,7 @@ public partial class L1L2BackplaneTests
 	}
 
 	private static readonly bool UseRedis = false;
-	private static readonly bool UseAzureServiceBus = true;
+	private static readonly bool UseAzureServiceBus = false;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
 
 	private readonly L1L2AzureServiceBusFixture _azureServiceBusFixture;
