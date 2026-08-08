@@ -820,7 +820,7 @@ public partial class L1L2BackplaneTests
 
 		Assert.Equal(0, cache2_foo_4);
 		Assert.Equal(0, cache2_bar_4);
-		Thread.Sleep(10);
+		await Task.Delay(10, TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 10");
 

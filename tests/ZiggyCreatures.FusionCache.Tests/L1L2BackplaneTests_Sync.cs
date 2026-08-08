@@ -721,7 +721,7 @@ public partial class L1L2BackplaneTests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
-	public async Task CanClear(SerializerType serializerType)
+	public void CanClear(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
 
