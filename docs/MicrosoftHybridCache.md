@@ -102,13 +102,14 @@ Let's see which features are on the table.
 
 For the Microsoft implementation, the features are:
 
-- cache stampede protection (also [in FusionCache](CacheStampede.md))
+- cache stampede protection, only limited to a single node (also [in FusionCache](CacheStampede.md), but extended to multiple nodes)
 - usable as L1 only (memory) or L1+L2 (memory + distributed) (also [in FusionCache](CacheLevels.md))
 - tagging (also [in FusionCache](Tagging.md))
 - serialization compression (not there yet in FusionCache, but already working on it)
 
 FusionCache on the other hand has more, like:
 
+- [cache stampede protection](CacheStampede.md) also works on multiple nodes
 - [fail-safe](FailSafe.md)
 - [backplane](Backplane.md) for multi-node invalidations (⚠️ this is important, see below for more)
 - [soft/hard timeouts](Timeouts.md)

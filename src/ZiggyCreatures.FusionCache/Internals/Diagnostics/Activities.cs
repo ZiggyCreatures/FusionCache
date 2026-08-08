@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace ZiggyCreatures.Caching.Fusion.Internals.Diagnostics;
 
@@ -8,6 +9,16 @@ internal static class Activities
 	public static readonly ActivitySource SourceMemoryLevel = new(FusionCacheDiagnostics.ActivitySourceNameMemoryLevel, FusionCacheDiagnostics.FusionCacheVersion);
 	public static readonly ActivitySource SourceDistributedLevel = new(FusionCacheDiagnostics.ActivitySourceNameDistributedLevel, FusionCacheDiagnostics.FusionCacheVersion);
 	public static readonly ActivitySource SourceBackplane = new(FusionCacheDiagnostics.ActivitySourceNameBackplane, FusionCacheDiagnostics.FusionCacheVersion);
+
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static bool HasAnyListeners()
+	{
+		return
+			Source.HasListeners() ||
+			SourceMemoryLevel.HasListeners() ||
+			SourceDistributedLevel.HasListeners() ||
+			SourceBackplane.HasListeners();
+	}
 
 	internal static class Names
 	{
@@ -69,7 +80,7 @@ internal static class Activities
 		return res;
 	}
 
-	public static Activity? StartActivityWithCommonTags(this ActivitySource source, string activityName, string? cacheName, string? cacheInstanceId, string? key, string? operationId, CacheLevelKind? levelKind = null)
+	public static Activity? StartActivityWithCommonTags(this ActivitySource source, string activityName, string? cacheName, string? cacheInstanceId, string? key, string? operationId, CacheLevelKind? levelKind = null, ActivityContext? parentContext = null)
 	{
 		if (source.HasListeners() == false)
 			return null;
@@ -77,7 +88,8 @@ internal static class Activities
 		return source.StartActivity(
 			ActivityKind.Internal,
 			tags: GetCommonTags(cacheName, cacheInstanceId, key, operationId, levelKind),
-			name: activityName
+			name: activityName,
+			parentContext: parentContext ?? Activity.Current?.Context ?? default
 		);
 	}
 
