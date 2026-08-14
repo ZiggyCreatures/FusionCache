@@ -60,6 +60,7 @@ public partial class GeneralTests
 			JitterMaxDuration = TimeSpan.FromSeconds(3),
 
 			EagerRefreshThreshold = 0.456f,
+			EagerRefreshFactoryOnly = !FusionCacheGlobalDefaults.EntryOptionsEagerRefreshFactoryOnly,
 
 			EnableAutoClone = !FusionCacheGlobalDefaults.EntryOptionsEnableAutoClone,
 
@@ -188,6 +189,27 @@ public partial class GeneralTests
 			JsonConvert.SerializeObject(original),
 			JsonConvert.SerializeObject(duplicated)
 		);
+	}
+
+	[Fact]
+	public void EagerRefreshFactoryOnlyHasBackwardCompatibleDefaultsAndFluentSetter()
+	{
+		var originalGlobalDefault = FusionCacheGlobalDefaults.EntryOptionsEagerRefreshFactoryOnly;
+
+		try
+		{
+			FusionCacheGlobalDefaults.EntryOptionsEagerRefreshFactoryOnly = true;
+
+			var options = new FusionCacheEntryOptions();
+
+			Assert.True(options.EagerRefreshFactoryOnly);
+			Assert.Same(options, options.SetEagerRefreshFactoryOnly(false));
+			Assert.False(options.EagerRefreshFactoryOnly);
+		}
+		finally
+		{
+			FusionCacheGlobalDefaults.EntryOptionsEagerRefreshFactoryOnly = originalGlobalDefault;
+		}
 	}
 
 	[Fact]
