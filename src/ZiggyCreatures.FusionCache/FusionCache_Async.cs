@@ -12,7 +12,7 @@ public partial class FusionCache
 {
 	// GET OR SET
 
-	private async ValueTask MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, CancellationToken token)
+	private async ValueTask MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, ActivityContext parentContext, CancellationToken token)
 	{
 		// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
 		object? distributedLockObj = null;
@@ -39,7 +39,7 @@ public partial class FusionCache
 		_events.OnEagerRefresh(operationId, key);
 
 		// ACTIVITY
-		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId);
+		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId, parentContext: parentContext);
 		activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
 
 		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
@@ -89,9 +89,10 @@ public partial class FusionCache
 				}
 				else
 				{
+					var currentContext = Activity.Current?.Context ?? default;
 					_ = Task.Run(async () =>
 					{
-						await MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, tmpMemoryLockObj, token).ConfigureAwait(false);
+						await MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(operationId, key, originalKey, tags, factory, options, memoryEntry!, tmpMemoryLockObj, currentContext, token).ConfigureAwait(false);
 					});
 				}
 			}
@@ -411,7 +412,7 @@ public partial class FusionCache
 		if (factory is null)
 			throw new ArgumentNullException(nameof(factory), "Factory cannot be null");
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrSetAsync<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -463,7 +464,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrSetAsync<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -657,7 +658,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): TryGetAsync<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -708,7 +709,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): GetOrDefaultAsync<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -760,7 +761,7 @@ public partial class FusionCache
 
 		token.ThrowIfCancellationRequested();
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): SetAsync<T> call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -798,7 +799,7 @@ public partial class FusionCache
 
 	private async ValueTask RemoveInternalAsync(string key, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): RemoveAsync call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -849,7 +850,7 @@ public partial class FusionCache
 
 	private async ValueTask ExpireInternalAsync(string key, FusionCacheEntryOptions options, CancellationToken token = default)
 	{
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		if (_logger?.IsEnabled(LogLevel.Information) ?? false)
 			_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): ExpireAsync call {Options}", CacheName, InstanceId, operationId, key, options.ToLogString());
@@ -1058,7 +1059,7 @@ public partial class FusionCache
 
 		ValidateTag(tag);
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		options ??= _tagsDefaultEntryOptions;
 
@@ -1125,7 +1126,7 @@ public partial class FusionCache
 
 		CheckTaggingEnabled();
 
-		var operationId = MaybeGenerateOperationId();
+		var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 
 		options ??= _tagsDefaultEntryOptions;
 

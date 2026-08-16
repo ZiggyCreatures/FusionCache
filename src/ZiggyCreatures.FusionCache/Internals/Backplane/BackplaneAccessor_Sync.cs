@@ -135,8 +135,8 @@ internal partial class BackplaneAccessor
 			ProcessError(operationId, cacheKey, exc, actionDescription);
 
 			// ACTIVITY
-			Activity.Current?.SetStatus(ActivityStatusCode.Error, exc.Message);
-			Activity.Current?.AddException(exc);
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+			activity?.AddException(exc);
 
 			if (exc is not SyntheticTimeoutException && options.ReThrowBackplaneExceptions)
 			{
@@ -238,23 +238,23 @@ internal partial class BackplaneAccessor
 
 		// ACTIVITY
 
-		// TEMP SWAP THE CURRENT ACTIVITY TO HAVE THE NEW ONE AS ROOT
-		var previous = Activity.Current;
-		Activity.Current = null;
+		//// TEMP SWAP THE CURRENT ACTIVITY TO HAVE THE NEW ONE AS ROOT
+		//var previous = Activity.Current;
+		//Activity.Current = null;
 
-		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId);
+		using var activity = Activities.SourceBackplane.StartActivityWithCommonTags(Activities.Names.BackplaneReceive, _options.CacheName, _options.InstanceId!, message.CacheKey!, operationId, parentContext: default(ActivityContext));
 		activity?.SetTag(Tags.Names.BackplaneMessageAction, message.Action.ToString());
 		activity?.SetTag(Tags.Names.BackplaneMessageSourceId, message.SourceId);
 
-		// REVERT THE PREVIOUS CURRENT ACTIVITY
-		if (Activities.CanSetAsCurrent(previous))
-		{
-			Activity.Current = previous;
-		}
-		else
-		{
-			Activity.Current = null;
-		}
+		//// REVERT THE PREVIOUS CURRENT ACTIVITY
+		//if (Activities.CanSetAsCurrent(previous))
+		//{
+		//	Activity.Current = previous;
+		//}
+		//else
+		//{
+		//	Activity.Current = null;
+		//}
 
 		// EVENT
 		_events.OnMessageReceived(operationId, message);

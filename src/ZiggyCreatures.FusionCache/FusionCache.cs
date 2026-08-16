@@ -321,12 +321,6 @@ public sealed partial class FusionCache
 			key = _cacheKeyPrefix + key;
 	}
 
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private string MaybeGenerateOperationId()
-	{
-		return FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
-	}
-
 	// MEMORY ACCESSOR
 
 	internal MemoryCacheAccessor MemoryCacheAccessor
