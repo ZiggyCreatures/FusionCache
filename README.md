@@ -69,7 +69,7 @@ If you are interested in all things caching, I published 2 courses on Dometrain:
 
 If you like the FusionCache docs, you may like it too.
 
-But mind you, it's not just about FusionCache but about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios. We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
+But mind you, they are not just about FusionCache but about caching as a whole: we'll go from the very foundations to pretty advanced topics and scenarios. We'll cover performance, robustness, resiliency and we'll see different real-world problems and, most importantly, solutions for them.
 
 I tried condensing 20+ years dealing with caching in one place, all in an approachable way.
 
