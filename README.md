@@ -57,7 +57,7 @@ In search of all the docs? There's a [page](docs/README.md) for that, too.
 
 ## 🧑‍🏫 Courses ([more](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) and [more](https://dometrain.com/course/deep-dive-caching-in-dotnet/?ref=jody-donetti))
 
-If you are interested in all things caching, I published 2 courses on Dometrain: Caching in .NET, Getting Started & Deep Dive.
+If you are interested in all things caching, I published 2 courses on Dometrain: Caching in .NET, [Getting Started](https://dometrain.com/course/getting-started-caching-in-dotnet/?ref=jody-donetti) & [Deep Dive](https://dometrain.com/course/deep-dive-caching-in-dotnet/?ref=jody-donetti).
 
 <div align="center">
 
