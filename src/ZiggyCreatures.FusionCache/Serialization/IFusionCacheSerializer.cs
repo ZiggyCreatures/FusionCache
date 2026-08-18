@@ -35,7 +35,7 @@ public interface IFusionCacheSerializer
 	/// </summary>
 	/// <typeparam name="T">The type of the object to be returned.</typeparam>
 	/// <param name="data">The data to deserialize.</param>
-	/// /// <param name="token">The cancellation token.</param>
+	/// <param name="token">The cancellation token.</param>
 	/// <returns>The deserialized object.</returns>
 	ValueTask<T?> DeserializeAsync<T>(byte[] data, CancellationToken token = default);
 }

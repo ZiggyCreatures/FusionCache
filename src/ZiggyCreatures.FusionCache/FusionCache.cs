@@ -44,7 +44,7 @@ public sealed partial class FusionCache
 	private readonly bool _mcaCanClear;
 
 	// DISTRIBUTED CACHE
-	private DistributedCacheAccessor? _dca;
+	private IDistributedCacheAccessor? _dca;
 	private IFusionCacheSerializer? _serializer;
 
 	// BACKPLANE
@@ -330,7 +330,7 @@ public sealed partial class FusionCache
 
 	// DISTRIBUTED ACCESSOR
 
-	internal DistributedCacheAccessor? DistributedCacheAccessor
+	internal IDistributedCacheAccessor? DistributedCacheAccessor
 	{
 		get { return _dca; }
 	}
@@ -817,7 +817,9 @@ public sealed partial class FusionCache
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 			_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}]: setup distributed cache (CACHE={DistributedCacheType})", CacheName, InstanceId, distributedCache.GetType().FullName);
 
-		_dca = new DistributedCacheAccessor(distributedCache, _serializer, _options, _logger, _events.Distributed);
+		_dca = distributedCache is IBufferDistributedCache bufferDistributedCache && _serializer is IBufferFusionCacheSerializer bufferSerializer
+			? new BufferDistributedCacheAccessor(bufferDistributedCache, bufferSerializer, _options, _logger, _events.Distributed)
+			: new ClassicDistributedCacheAccessor(distributedCache, _serializer, _options, _logger, _events.Distributed);
 
 		return this;
 	}

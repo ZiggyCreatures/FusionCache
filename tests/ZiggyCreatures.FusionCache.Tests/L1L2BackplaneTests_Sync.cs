@@ -355,7 +355,7 @@ public partial class L1L2BackplaneTests
 		using var fusionCache = new FusionCache(options, memoryCache, logger);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache, CreateXUnitLogger<ChaosDistributedCache>());
 		fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 
 		var backplane = new MemoryBackplane(Options.Create(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }));

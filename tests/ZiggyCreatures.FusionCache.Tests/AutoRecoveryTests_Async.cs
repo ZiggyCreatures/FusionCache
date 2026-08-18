@@ -27,7 +27,7 @@ public partial class AutoRecoveryTests
 		var _value = 0;
 		var key = "foo";
 
-		var distributedCache = new ChaosDistributedCache(CreateDistributedCache(), CreateXUnitLogger<ChaosDistributedCache>());
+		var distributedCache = ChaosDistributedCache.Create(CreateDistributedCache(), CreateXUnitLogger<ChaosDistributedCache>());
 
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
@@ -267,7 +267,7 @@ public partial class AutoRecoveryTests
 		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
 
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
@@ -353,7 +353,7 @@ public partial class AutoRecoveryTests
 		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
 
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
@@ -450,7 +450,7 @@ public partial class AutoRecoveryTests
 		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		var chaosDistributedCache = new ChaosDistributedCache(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
+		var chaosDistributedCache = ChaosDistributedCache.Create(distributedCache, logger: CreateXUnitLogger<ChaosDistributedCache>());
 
 		// SETUP CACHE A
 		var backplaneA = new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId });
