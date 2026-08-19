@@ -20,7 +20,9 @@ internal sealed class AutoRecoveryService
 	private readonly TimeSpan _delay;
 	private static readonly TimeSpan _minDelay = TimeSpan.FromMilliseconds(10);
 	private CancellationTokenSource? _cts;
-	private long _barrierTicks = 0;
+
+	private const long NoBarrierAnchor = long.MinValue;
+	private long _barrierTimestamp = NoBarrierAnchor;
 
 	public AutoRecoveryService(FusionCache cache, FusionCacheOptions options, ILogger<FusionCache>? logger)
 	{
@@ -239,8 +241,8 @@ internal sealed class AutoRecoveryService
 		if (_queue.IsEmpty)
 			return false;
 
-		var newBarrier = DateTimeOffset.UtcNow.Ticks + _delay.Ticks;
-		var oldBarrier = Interlocked.Exchange(ref _barrierTicks, newBarrier);
+		var newBarrier = Stopwatch.GetTimestamp();
+		var oldBarrier = Interlocked.Exchange(ref _barrierTimestamp, newBarrier);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery barrier set from {OldAutoRecoveryBarrier} to {NewAutoRecoveryBarrier}", _cache.CacheName, _cache.InstanceId, operationId, oldBarrier, newBarrier);
@@ -253,12 +255,12 @@ internal sealed class AutoRecoveryService
 
 	internal bool IsBehindBarrier()
 	{
-		var barrierTicks = Interlocked.Read(ref _barrierTicks);
+		var anchor = Interlocked.Read(ref _barrierTimestamp);
 
-		if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
-			return true;
+		if (anchor == NoBarrierAnchor)
+			return false;
 
-		return false;
+		return StopwatchPolyfill.GetElapsedTime(anchor) < _delay;
 	}
 
 	internal async ValueTask<bool> TryProcessQueueAsync(string operationId, CancellationToken token)
@@ -599,24 +601,27 @@ internal sealed class AutoRecoveryService
 			{
 				var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 				var delay = _delay;
-				var nowTicks = DateTimeOffset.UtcNow.Ticks;
-				var barrierTicks = Interlocked.Read(ref _barrierTicks);
-				if (nowTicks < barrierTicks)
+				var anchor = Interlocked.Read(ref _barrierTimestamp);
+				if (anchor != NoBarrierAnchor)
 				{
-					// SET THE NEW DELAY TO REACH THE BARRIER (+ A MICROSCOPIC EXTRA)
-					var oldDelay = delay;
-					var newDelayTicks = barrierTicks - nowTicks + 1_000;
-					delay = TimeSpan.FromTicks(newDelayTicks);
-
-					// CHECK IF THE NEW DELAY IS BELOW A SAFETY LIMIT
-					if (delay < _minDelay)
+					var elapsed = StopwatchPolyfill.GetElapsedTime(anchor);
+					if (elapsed < _delay)
 					{
-						delay = _minDelay;
-						newDelayTicks = delay.Ticks;
-					}
+						// SET THE NEW DELAY TO REACH THE BARRIER (+ A MICROSCOPIC EXTRA)
+						var oldDelay = delay;
+						var newDelayTicks = (_delay - elapsed).Ticks + 1_000;
+						delay = TimeSpan.FromTicks(newDelayTicks);
 
-					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): instead of the standard auto-recovery delay of {AutoRecoveryNormalDelay} the new delay is {AutoRecoveryNewDelay} ({AutoRecoveryNewDelayMs} ms, {AutoRecoveryNewDelayTicks} ticks)", _cache.CacheName, _cache.InstanceId, operationId, oldDelay, delay, delay.TotalMilliseconds, newDelayTicks);
+						// CHECK IF THE NEW DELAY IS BELOW A SAFETY LIMIT
+						if (delay < _minDelay)
+						{
+							delay = _minDelay;
+							newDelayTicks = delay.Ticks;
+						}
+
+						if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+							_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): instead of the standard auto-recovery delay of {AutoRecoveryNormalDelay} the new delay is {AutoRecoveryNewDelay} ({AutoRecoveryNewDelayMs} ms, {AutoRecoveryNewDelayTicks} ticks)", _cache.CacheName, _cache.InstanceId, operationId, oldDelay, delay, delay.TotalMilliseconds, newDelayTicks);
+					}
 				}
 
 				if (_queue.IsEmpty == false)
