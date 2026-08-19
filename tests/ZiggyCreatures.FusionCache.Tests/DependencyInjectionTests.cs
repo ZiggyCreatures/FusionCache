@@ -170,6 +170,30 @@ public class DependencyInjectionTests
 	}
 
 	[Fact]
+	public void CanSpecifyCacheKeyPrefixOfNamedCacheViaOptionsAndDI()
+	{
+		var services = new ServiceCollection();
+
+		services.AddKeyedSingleton<String>("cachePrefix", "foo_prefix");
+
+		services.AddFusionCache("foo")
+			.WithOptions((sp, opt) =>
+			{
+				opt.CacheKeyPrefix = sp.GetRequiredKeyedService<String>("cachePrefix");
+			});
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+
+		var cache = cacheProvider.GetCache("foo");
+
+		Assert.NotNull(cache);
+		Assert.Equal("foo", cache.CacheName);
+		Assert.Equal("foo_prefix", cache.GetOptions().CacheKeyPrefix);
+	}
+
+	[Fact]
 	public void CanDirectlyAddANamedCacheInstance()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();

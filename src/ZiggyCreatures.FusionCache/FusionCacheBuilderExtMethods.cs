@@ -75,22 +75,43 @@ public static partial class FusionCacheBuilderExtMethods
 		if (action is null)
 			throw new ArgumentNullException(nameof(action));
 
-		builder.SetupOptionsAction += action;
+		builder.SetupOptionsAction += (s, o) => action(o);
 
 		return builder;
 	}
 
-	/// <summary>
-	/// Set the cache key prefix to use.
-	/// <br/><br/>
-	/// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
-	/// <br/><br/>
-	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
-	/// </summary>
-	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
-	/// <param name="cacheKeyPrefix">The cache key prefix to use.</param>
-	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
-	public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder, string? cacheKeyPrefix)
+    /// <summary>
+    /// Specify a custom logic to further configure the <see cref="FusionCacheOptions"/> instance to be used.
+    /// <br/><br/>
+    /// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+    /// </summary>
+    /// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+    /// <param name="action">The custom action that configure the <see cref="FusionCacheOptions"/> object.</param>
+    /// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+    public static IFusionCacheBuilder WithOptions(this IFusionCacheBuilder builder, Action<IServiceProvider, FusionCacheOptions> action)
+    {
+        if (builder is null)
+            throw new ArgumentNullException(nameof(builder));
+
+        if (action is null)
+            throw new ArgumentNullException(nameof(action));
+
+        builder.SetupOptionsAction += action;
+
+        return builder;
+    }
+
+    /// <summary>
+    /// Set the cache key prefix to use.
+    /// <br/><br/>
+    /// <strong>EXAMPLE</strong>: if the CacheKeyPrefix specified is "MyCache:", a later call to cache.GetOrDefault("Product/123") will actually work on the cache key "MyCache:Product/123".
+    /// <br/><br/>
+    /// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+    /// </summary>
+    /// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+    /// <param name="cacheKeyPrefix">The cache key prefix to use.</param>
+    /// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+    public static IFusionCacheBuilder WithCacheKeyPrefix(this IFusionCacheBuilder builder, string? cacheKeyPrefix)
 	{
 		if (builder is null)
 			throw new ArgumentNullException(nameof(builder));
