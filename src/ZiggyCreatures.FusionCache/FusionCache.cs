@@ -1240,6 +1240,20 @@ public sealed partial class FusionCache
 	private void RunBestPracticesAdvisor()
 	{
 		// CHECK:
+		// - THERE IS A SERIALIZER
+		// - THE SERIALIZER SEEMS TO BE BASED ON System.Text.JSON
+		// - A VALUE TUPLE IS NOT DESERIALIZED CORRECTLY
+		if (
+			_serializer is not null
+			&& (_serializer.GetType().FullName?.Contains("SystemTextJson", StringComparison.InvariantCultureIgnoreCase) ?? false)
+			&& _serializer.Deserialize<(int, int)>(_serializer.Serialize((1, 2))) is not (1, 2)
+		)
+		{
+			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
+				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: it looks like you are using a serializer based on System.Text.Json not correctly configured to handle value tuples: this may lead to surprises down the road (including data loss when deserializing) so it's better to configure the related JsonSerializerOptions accordingly (see https://github.com/dotnet/runtime/issues/70352). If you prefer to ignore this, you can change the SerializationIssuesLogLevel option.", CacheName, InstanceId);
+		}
+
+		// CHECK:
 		// - IS NOT DEFAULT CACHE
 		// - NO CACHE KEY PREFIX
 		// - AND (
@@ -1252,7 +1266,6 @@ public sealed partial class FusionCache
 			&& (
 				_mca.IsOwned == false
 				|| HasDistributedCache
-				//|| HasBackplane
 				|| HasDistributedLocker
 			)
 		)
