@@ -1241,7 +1241,7 @@ public sealed partial class FusionCache
 	{
 		// CHECK:
 		// - THERE IS A SERIALIZER
-		// - THE SERIALIZER SEEMS TO BE BASED ON System.Text.JSON
+		// - THE SERIALIZER SEEMS TO BE BASED ON System.Text.Json
 		// - A VALUE TUPLE IS NOT DESERIALIZED CORRECTLY
 		if (
 			_serializer is not null
@@ -1249,8 +1249,8 @@ public sealed partial class FusionCache
 			&& _serializer.Deserialize<(int, int)>(_serializer.Serialize((1, 2))) is not (1, 2)
 		)
 		{
-			if (_logger?.IsEnabled(_options.MissingCacheKeyPrefixWarningLogLevel) ?? false)
-				_logger.Log(_options.MissingCacheKeyPrefixWarningLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: it looks like you are using a serializer based on System.Text.Json not correctly configured to handle value tuples: this may lead to surprises down the road (including data loss when deserializing) so it's better to configure the related JsonSerializerOptions accordingly (see https://github.com/dotnet/runtime/issues/70352). If you prefer to ignore this, you can change the SerializationIssuesLogLevel option.", CacheName, InstanceId);
+			if (_logger?.IsEnabled(_options.SerializationConfigIssuesLogLevel) ?? false)
+				_logger.Log(_options.SerializationConfigIssuesLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}]: it looks like you are using a serializer based on System.Text.Json not correctly configured to handle value tuples: this may lead to surprises down the road (including data loss when deserializing) so it's better to configure the related JsonSerializerOptions accordingly (see https://github.com/dotnet/runtime/issues/70352). If you prefer to ignore this, you can change the SerializationConfigIssuesLogLevel option.", CacheName, InstanceId);
 		}
 
 		// CHECK:
