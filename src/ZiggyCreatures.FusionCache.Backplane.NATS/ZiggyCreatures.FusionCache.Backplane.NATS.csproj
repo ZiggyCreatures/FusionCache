@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
+		<Version>2.5.0</Version>
+		<PackageId>ZiggyCreatures.FusionCache.Backplane.NATS</PackageId>
+		<Description>FusionCache backplane for NATS based on the NATS.Net library</Description>
+		<PackageTags>backplane;nats;synadia;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
+		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.NATS</RootNamespace>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="artwork\logo-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="docs\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="NATS.Client.Core" Version="2.6.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+</Project>
