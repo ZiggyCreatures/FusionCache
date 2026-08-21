@@ -24,6 +24,27 @@ As is common in these situations the percentage is expressed as a `float` rangin
 
 Of course only the FIRST request will trigger an eager refresh, because FusionCache protects us from [Cache Stampede](CacheStampede.md) even in this case.
 
+## Revalidate From The Distributed Cache
+
+By default, eager refresh directly executes the factory, preserving the behavior of previous FusionCache versions.
+
+When using both memory (L1) and distributed (L2) caches, another node may already have refreshed L2. Set `EagerRefreshFactoryOnly` to `false` to check L2 before calling the factory:
+
+```csharp
+product = cache.GetOrSet<Product>(
+    "product:123",
+    _ => GetProductFromDb(123),
+    options => options
+        .SetDuration(TimeSpan.FromMinutes(10))
+        .SetEagerRefresh(0.9f)
+        .SetEagerRefreshFactoryOnly(false)
+);
+```
+
+If L2 contains a valid, non-stale entry that is not in its own eager refresh window, FusionCache promotes it to L1 while preserving its logical expiration. It does not execute the factory, extend or rewrite L2, or send a backplane notification.
+
+If L2 is unavailable, skipped by the entry options, missing, expired, stale, older than L1, or in its own eager refresh window, eager refresh uses the normal factory path. The L2 read happens in the background and honors the configured distributed cache timeouts, circuit-breaker, exception handling, events, and metrics.
+
 ## Only When Actively Used
 
 It's important to understand how eager refresh works: it does not start a timer or something similar, but it will act only IF a request comes in after the specified threshold.

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using FusionCacheTests.Stuff;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -7,6 +8,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
 namespace FusionCacheTests;
@@ -586,6 +588,177 @@ public partial class L1L2Tests
 		Assert.True(v4 > v3);
 		Assert.True(v5 > v4);
 		Assert.Equal(v5, v6);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void EagerRefreshUsesFactoryOnlyByDefault(SerializerType serializerType)
+	{
+		var key = CreateRandomCacheKey("eager-default");
+		var entryOptions = CreateEagerRefreshEntryOptions();
+		var distributedCache = CreateDistributedCache();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		using var cache = new FusionCache(CreateEagerRefreshTestOptions(), memoryCache).SetupDistributedCache(distributedCache, serializer);
+		using var otherCache = new FusionCache(CreateEagerRefreshTestOptions()).SetupDistributedCache(distributedCache, serializer);
+
+		cache.Set(key, 1, entryOptions, token: TestContext.Current.CancellationToken);
+		otherCache.Set(key, 2, entryOptions.Duplicate().SetSkipMemoryCacheWrite(), token: TestContext.Current.CancellationToken);
+		MakeMemoryEntryEager(memoryCache, key);
+
+		var distributedHits = 0;
+		var factoryCalls = 0;
+		using var backgroundFactoryCompleted = new ManualResetEventSlim();
+		cache.Events.Distributed.Hit += (_, _) => Interlocked.Increment(ref distributedHits);
+		cache.Events.BackgroundFactorySuccess += (_, _) => backgroundFactoryCompleted.Set();
+
+		var value = cache.GetOrSet(
+			key,
+			_ =>
+			{
+				Interlocked.Increment(ref factoryCalls);
+				return 3;
+			},
+			entryOptions,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(backgroundFactoryCompleted.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+		Assert.True(entryOptions.EagerRefreshFactoryOnly);
+		Assert.Equal(1, value);
+		Assert.Equal(1, Volatile.Read(ref factoryCalls));
+		Assert.Equal(0, Volatile.Read(ref distributedHits));
+		Assert.Equal(3, GetMemoryEntry(memoryCache, key).GetValue<int>());
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public void EagerRefreshCanAdoptFreshDistributedEntry(SerializerType serializerType)
+	{
+		var key = CreateRandomCacheKey("eager-l2");
+		var entryOptions = CreateEagerRefreshEntryOptions(factoryOnly: false);
+		var distributedCache = CreateDistributedCache();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		using var cache = new FusionCache(CreateEagerRefreshTestOptions(), memoryCache).SetupDistributedCache(distributedCache, serializer);
+		using var otherCache = new FusionCache(CreateEagerRefreshTestOptions()).SetupDistributedCache(distributedCache, serializer);
+
+		cache.Set(key, 1, entryOptions, token: TestContext.Current.CancellationToken);
+		otherCache.Set(key, 2, entryOptions.Duplicate().SetSkipMemoryCacheWrite(), token: TestContext.Current.CancellationToken);
+
+		var distributedData = distributedCache.Get(GetProcessedCacheKey(key));
+		var distributedEntry = serializer.Deserialize<FusionCacheDistributedEntry<int>>(distributedData!);
+		Assert.NotNull(distributedEntry);
+		Assert.Equal(2, distributedEntry.Value);
+
+		MakeMemoryEntryEager(memoryCache, key);
+
+		var distributedHits = 0;
+		var factoryCalls = 0;
+		using var distributedEntryRead = new ManualResetEventSlim();
+		using var memoryEntryUpdated = new ManualResetEventSlim();
+		cache.Events.Distributed.Hit += (_, _) =>
+		{
+			Interlocked.Increment(ref distributedHits);
+			distributedEntryRead.Set();
+		};
+		cache.Events.Memory.Set += (_, _) =>
+		{
+			if (GetMemoryEntry(memoryCache, key).GetValue<int>() == 2)
+				memoryEntryUpdated.Set();
+		};
+
+		var value = cache.GetOrSet(
+			key,
+			_ =>
+			{
+				Interlocked.Increment(ref factoryCalls);
+				return 3;
+			},
+			entryOptions,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(distributedEntryRead.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+		Assert.True(memoryEntryUpdated.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+
+		var adoptedMemoryEntry = GetMemoryEntry(memoryCache, key);
+		Assert.Equal(1, value);
+		Assert.Equal(0, Volatile.Read(ref factoryCalls));
+		Assert.Equal(1, Volatile.Read(ref distributedHits));
+		Assert.Equal(2, adoptedMemoryEntry.GetValue<int>());
+		Assert.Equal(distributedEntry.LogicalExpirationTimestamp, adoptedMemoryEntry.LogicalExpirationTimestamp);
+		Assert.Equal(2, cache.GetOrDefault<int>(key, token: TestContext.Current.CancellationToken));
+	}
+
+	[Theory]
+	[InlineData(EagerRefreshDistributedEntryState.Eager)]
+	[InlineData(EagerRefreshDistributedEntryState.Expired)]
+	[InlineData(EagerRefreshDistributedEntryState.Missing)]
+	public void EagerRefreshUsesFactoryWhenDistributedEntryCannotBeAdopted(EagerRefreshDistributedEntryState state)
+	{
+		var key = CreateRandomCacheKey("eager-l2-fallback");
+		var entryOptions = CreateEagerRefreshEntryOptions(factoryOnly: false);
+		var distributedCache = CreateDistributedCache();
+		var serializer = TestsUtils.GetSerializer(SerializerType.SystemTextJson);
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		using var cache = new FusionCache(CreateEagerRefreshTestOptions(), memoryCache).SetupDistributedCache(distributedCache, serializer);
+
+		cache.Set(key, 1, entryOptions, token: TestContext.Current.CancellationToken);
+
+		var processedKey = GetProcessedCacheKey(key);
+		if (state == EagerRefreshDistributedEntryState.Missing)
+		{
+			distributedCache.Remove(processedKey);
+		}
+		else
+		{
+			var distributedData = distributedCache.Get(processedKey);
+			var distributedEntry = serializer.Deserialize<FusionCacheDistributedEntry<int>>(distributedData!);
+			Assert.NotNull(distributedEntry);
+
+			if (state == EagerRefreshDistributedEntryState.Eager)
+			{
+				Assert.NotNull(distributedEntry.Metadata);
+				distributedEntry.Metadata.EagerExpirationTimestamp = 0;
+			}
+			else
+			{
+				distributedEntry.LogicalExpirationTimestamp = DateTimeOffset.UtcNow.AddSeconds(-1).UtcTicks;
+			}
+
+			var updatedData = serializer.Serialize(distributedEntry);
+			distributedCache.Set(
+				processedKey,
+				updatedData,
+				new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1) }
+			);
+		}
+
+		MakeMemoryEntryEager(memoryCache, key);
+
+		var factoryCalls = 0;
+		using var backgroundFactoryCompleted = new ManualResetEventSlim();
+		cache.Events.BackgroundFactorySuccess += (_, _) => backgroundFactoryCompleted.Set();
+
+		var value = cache.GetOrSet(
+			key,
+			_ =>
+			{
+				Interlocked.Increment(ref factoryCalls);
+				return 2;
+			},
+			entryOptions,
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.True(backgroundFactoryCompleted.Wait(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken));
+		Assert.Equal(1, value);
+		Assert.Equal(1, Volatile.Read(ref factoryCalls));
+		Assert.Equal(2, GetMemoryEntry(memoryCache, key).GetValue<int>());
 	}
 
 	[Theory]

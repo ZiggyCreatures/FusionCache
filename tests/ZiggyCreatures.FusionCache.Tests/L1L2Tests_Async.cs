@@ -8,6 +8,7 @@ using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Chaos;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
 using ZiggyCreatures.Caching.Fusion.Internals;
+using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
 namespace FusionCacheTests;
@@ -586,6 +587,179 @@ public partial class L1L2Tests
 		Assert.True(v4 > v3);
 		Assert.True(v5 > v4);
 		Assert.Equal(v5, v6);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task EagerRefreshUsesFactoryOnlyByDefaultAsync(SerializerType serializerType)
+	{
+		var key = CreateRandomCacheKey("eager-default");
+		var entryOptions = CreateEagerRefreshEntryOptions();
+		var distributedCache = CreateDistributedCache();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		using var cache = new FusionCache(CreateEagerRefreshTestOptions(), memoryCache).SetupDistributedCache(distributedCache, serializer);
+		using var otherCache = new FusionCache(CreateEagerRefreshTestOptions()).SetupDistributedCache(distributedCache, serializer);
+
+		await cache.SetAsync(key, 1, entryOptions, token: TestContext.Current.CancellationToken);
+		await otherCache.SetAsync(key, 2, entryOptions.Duplicate().SetSkipMemoryCacheWrite(), token: TestContext.Current.CancellationToken);
+		MakeMemoryEntryEager(memoryCache, key);
+
+		var distributedHits = 0;
+		var factoryCalls = 0;
+		var backgroundFactoryCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+		cache.Events.Distributed.Hit += (_, _) => Interlocked.Increment(ref distributedHits);
+		cache.Events.BackgroundFactorySuccess += (_, _) => backgroundFactoryCompleted.TrySetResult(true);
+
+		var value = await cache.GetOrSetAsync(
+			key,
+			_ =>
+			{
+				Interlocked.Increment(ref factoryCalls);
+				return Task.FromResult(3);
+			},
+			entryOptions,
+			token: TestContext.Current.CancellationToken
+		);
+
+		await backgroundFactoryCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+		Assert.True(entryOptions.EagerRefreshFactoryOnly);
+		Assert.Equal(1, value);
+		Assert.Equal(1, Volatile.Read(ref factoryCalls));
+		Assert.Equal(0, Volatile.Read(ref distributedHits));
+		Assert.Equal(3, GetMemoryEntry(memoryCache, key).GetValue<int>());
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task EagerRefreshCanAdoptFreshDistributedEntryAsync(SerializerType serializerType)
+	{
+		var key = CreateRandomCacheKey("eager-l2");
+		var entryOptions = CreateEagerRefreshEntryOptions(factoryOnly: false);
+		var distributedCache = CreateDistributedCache();
+		var serializer = TestsUtils.GetSerializer(serializerType);
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		using var cache = new FusionCache(CreateEagerRefreshTestOptions(), memoryCache).SetupDistributedCache(distributedCache, serializer);
+		using var otherCache = new FusionCache(CreateEagerRefreshTestOptions()).SetupDistributedCache(distributedCache, serializer);
+
+		await cache.SetAsync(key, 1, entryOptions, token: TestContext.Current.CancellationToken);
+		await otherCache.SetAsync(key, 2, entryOptions.Duplicate().SetSkipMemoryCacheWrite(), token: TestContext.Current.CancellationToken);
+
+		var distributedData = await distributedCache.GetAsync(GetProcessedCacheKey(key), TestContext.Current.CancellationToken);
+		var distributedEntry = await serializer.DeserializeAsync<FusionCacheDistributedEntry<int>>(distributedData!, TestContext.Current.CancellationToken);
+		Assert.NotNull(distributedEntry);
+		Assert.Equal(2, distributedEntry.Value);
+
+		MakeMemoryEntryEager(memoryCache, key);
+
+		var distributedHits = 0;
+		var factoryCalls = 0;
+		var distributedEntryRead = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var memoryEntryUpdated = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+		cache.Events.Distributed.Hit += (_, _) =>
+		{
+			Interlocked.Increment(ref distributedHits);
+			distributedEntryRead.TrySetResult(true);
+		};
+		cache.Events.Memory.Set += (_, _) =>
+		{
+			if (GetMemoryEntry(memoryCache, key).GetValue<int>() == 2)
+				memoryEntryUpdated.TrySetResult(true);
+		};
+
+		var value = await cache.GetOrSetAsync(
+			key,
+			_ =>
+			{
+				Interlocked.Increment(ref factoryCalls);
+				return Task.FromResult(3);
+			},
+			entryOptions,
+			token: TestContext.Current.CancellationToken
+		);
+
+		await Task.WhenAll(distributedEntryRead.Task, memoryEntryUpdated.Task).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+		var adoptedMemoryEntry = GetMemoryEntry(memoryCache, key);
+		Assert.Equal(1, value);
+		Assert.Equal(0, Volatile.Read(ref factoryCalls));
+		Assert.Equal(1, Volatile.Read(ref distributedHits));
+		Assert.Equal(2, adoptedMemoryEntry.GetValue<int>());
+		Assert.Equal(distributedEntry.LogicalExpirationTimestamp, adoptedMemoryEntry.LogicalExpirationTimestamp);
+		Assert.Equal(2, await cache.GetOrDefaultAsync<int>(key, token: TestContext.Current.CancellationToken));
+	}
+
+	[Theory]
+	[InlineData(EagerRefreshDistributedEntryState.Eager)]
+	[InlineData(EagerRefreshDistributedEntryState.Expired)]
+	[InlineData(EagerRefreshDistributedEntryState.Missing)]
+	public async Task EagerRefreshUsesFactoryWhenDistributedEntryCannotBeAdoptedAsync(EagerRefreshDistributedEntryState state)
+	{
+		var key = CreateRandomCacheKey("eager-l2-fallback");
+		var entryOptions = CreateEagerRefreshEntryOptions(factoryOnly: false);
+		var distributedCache = CreateDistributedCache();
+		var serializer = TestsUtils.GetSerializer(SerializerType.SystemTextJson);
+
+		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
+		using var cache = new FusionCache(CreateEagerRefreshTestOptions(), memoryCache).SetupDistributedCache(distributedCache, serializer);
+
+		await cache.SetAsync(key, 1, entryOptions, token: TestContext.Current.CancellationToken);
+
+		var processedKey = GetProcessedCacheKey(key);
+		if (state == EagerRefreshDistributedEntryState.Missing)
+		{
+			await distributedCache.RemoveAsync(processedKey, TestContext.Current.CancellationToken);
+		}
+		else
+		{
+			var distributedData = await distributedCache.GetAsync(processedKey, TestContext.Current.CancellationToken);
+			var distributedEntry = await serializer.DeserializeAsync<FusionCacheDistributedEntry<int>>(distributedData!, TestContext.Current.CancellationToken);
+			Assert.NotNull(distributedEntry);
+
+			if (state == EagerRefreshDistributedEntryState.Eager)
+			{
+				Assert.NotNull(distributedEntry.Metadata);
+				distributedEntry.Metadata.EagerExpirationTimestamp = 0;
+			}
+			else
+			{
+				distributedEntry.LogicalExpirationTimestamp = DateTimeOffset.UtcNow.AddSeconds(-1).UtcTicks;
+			}
+
+			var updatedData = await serializer.SerializeAsync(distributedEntry, TestContext.Current.CancellationToken);
+			await distributedCache.SetAsync(
+				processedKey,
+				updatedData,
+				new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(1) },
+				TestContext.Current.CancellationToken
+			);
+		}
+
+		MakeMemoryEntryEager(memoryCache, key);
+
+		var factoryCalls = 0;
+		var backgroundFactoryCompleted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+		cache.Events.BackgroundFactorySuccess += (_, _) => backgroundFactoryCompleted.TrySetResult(true);
+
+		var value = await cache.GetOrSetAsync(
+			key,
+			_ =>
+			{
+				Interlocked.Increment(ref factoryCalls);
+				return Task.FromResult(2);
+			},
+			entryOptions,
+			token: TestContext.Current.CancellationToken
+		);
+
+		await backgroundFactoryCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, value);
+		Assert.Equal(1, Volatile.Read(ref factoryCalls));
+		Assert.Equal(2, GetMemoryEntry(memoryCache, key).GetValue<int>());
 	}
 
 	[Theory]
