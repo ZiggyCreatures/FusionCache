@@ -1,9 +1,11 @@
 ﻿using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Logging;
 using Xunit;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Serialization;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace FusionCacheTests;
 
@@ -155,5 +157,27 @@ public partial class SerializationTests
 		logger.LogInformation("TARGET DATA: {bytes} bytes", targetEntry!.Value.Length);
 
 		Assert.Equal(sourceData, targetEntry.Value);
+	}
+
+	[Fact]
+	public void CanDetectSystemTextJsonValueTupleProblems()
+	{
+		var logLevel = LogLevel.Critical;
+
+		var logger1 = CreateListLogger<FusionCache>(logLevel);
+		var serializer1 = new FusionCacheSystemTextJsonSerializer();
+		var cache1 = new FusionCache(new FusionCacheOptions { SerializationConfigIssuesLogLevel = logLevel }, logger: logger1);
+		cache1.SetupSerializer(serializer1);
+		Thread.Sleep(2_000);
+		var messages1 = logger1.Items.Where(x => x.LogLevel == logLevel && x.Message.Contains("System.Text.Json", StringComparison.InvariantCultureIgnoreCase)).ToArray();
+		Assert.Single(messages1);
+
+		var logger2 = CreateListLogger<FusionCache>(logLevel);
+		var serializer2 = new FusionCacheSystemTextJsonSerializer(new System.Text.Json.JsonSerializerOptions { IncludeFields = true });
+		var cache2 = new FusionCache(new FusionCacheOptions { SerializationConfigIssuesLogLevel = logLevel }, logger: logger2);
+		cache2.SetupSerializer(serializer2);
+		Thread.Sleep(2_000);
+		var messages2 = logger2.Items.Where(x => x.LogLevel == logLevel && x.Message.Contains("System.Text.Json", StringComparison.InvariantCultureIgnoreCase)).ToArray();
+		Assert.Empty(messages2);
 	}
 }
