@@ -26,8 +26,6 @@ internal sealed class FusionCacheProvider
 				// MORE THAN 1 CACHE -> ADD NULL
 				// NOTE: THIS WILL SIGNAL THAT THERE WERE MULTIPLE ONES AND, SINCE
 				// THEY WILL NOT BE ACCESSIBLE ANYWAY, WILL SAVE SOME MEMORY
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION: multiple FusionCache registrations detected with cache name {CacheName}. This should be avoided as it will lead to surprises.", group.Key);
 
 				items.Add(new(group.Key, null));
 			}
@@ -36,29 +34,9 @@ internal sealed class FusionCacheProvider
 		var directCachesCount = directCaches.Count();
 		if (directCachesCount > 0)
 		{
-			var nonDefaultDirectCacheNames = directCaches.Where(x => x.CacheName != FusionCacheOptions.DefaultCacheName).Select(x => x.CacheName).Distinct().ToArray();
-			if (nonDefaultDirectCacheNames.Length > 0)
-			{
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION: one or more direct IFusionCache registrations have been detected with a cache name which is not the default one: {CacheNames}.", string.Join(", ", nonDefaultDirectCacheNames));
-			}
-
-			if (directCachesCount > 1)
-			{
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION: multiple direct IFusionCache registrations have been detected. The last one will be used, as per Microsoft standard DI implementation, but it should be avoided when possible to prevent bad surprises.");
-			}
-
 			// THE LAST ONE REGISTERED WILL BE THE ONE USED, FOLLOWING
 			// THE STANDARD BEHAVIOR OF MICROSOFT'S DI CONTAINER.
 			var directCache = directCaches.Last();
-
-			if (directCache.CacheName != FusionCacheOptions.DefaultCacheName)
-			{
-				if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
-					_logger.Log(LogLevel.Warning, "FUSION: the direct IFusionCache registration that will be used has a cache name ({CacheName}) that is different from the default one. This should be avoided when possible to prevent bad surprises.", directCache.CacheName);
-			}
-
 			items.Add(new(directCache.CacheName, new LazyNamedCache(directCache.CacheName, directCache)));
 		}
 

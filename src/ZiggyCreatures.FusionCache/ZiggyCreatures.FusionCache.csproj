@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.7.0</Version>
+		<Version>2.7.1</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
@@ -13,7 +13,7 @@
 			- Change: better handling of parent traces with observability
 			- Change: now the tag is included in the trace when doing a RemoveByTag(tag) operation
 			- Change: in the Advisor, add warning for System.Text.Json serialization issues related (mainly) to value tuples
-			- Add: new SerializationIssuesLogLevel option
+			- Add: new SerializationConfigIssuesLogLevel option
 			- Change: in the Advisor, better check for a missing CacheKeyPrefix
 			- Fix: better temporal checks during an L2 to L1 copy
 			- Fix: the OperationId is now automatically generated even without a logger if there are listeners for activities (e.g.: OTEL traces)

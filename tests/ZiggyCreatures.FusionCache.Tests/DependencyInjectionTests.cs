@@ -37,7 +37,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseDependencyInjection()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache();
 
@@ -52,7 +56,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void EmptyBuilderDoesNotUseExtraComponents()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheSystemTextJsonSerializer();
@@ -85,7 +93,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanConfigureVariousOptions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		var options = new FusionCacheOptions
 		{
@@ -125,7 +137,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CannotSpecifyCacheNameOfDefaultCacheViaOptions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache()
 			.WithOptions(opt =>
@@ -150,7 +166,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CannotSpecifyCacheNameOfNamedCacheViaOptions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache("foo")
 			.WithOptions(opt =>
@@ -225,7 +245,12 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanAddPlugins()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddTransient<IFusionCachePlugin>(sp => new SimplePlugin("P_1"));
 
 		services.AddFusionCache()
@@ -257,7 +282,12 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseRegisteredMemoryLocker()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddTransient<IFusionCacheMemoryLocker>(sp => new SimpleMemoryLocker());
 
 		services.AddFusionCache()
@@ -282,7 +312,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanThrowWithoutRegisteredMemoryLocker()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache()
 			.WithRegisteredMemoryLocker()
@@ -299,7 +333,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseCustomMemoryLocker()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache()
 			.WithMemoryLocker(new SimpleMemoryLocker())
@@ -323,7 +361,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void UsesStandardMemoryLockerByDefault()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache();
 
@@ -345,14 +387,18 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseRegisteredDistributedCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheServiceStackJsonSerializer();
 
 		services.AddFusionCache()
 			.WithRegisteredSerializer()
-			.WithRegisteredDistributedCache(false)
-		;
+			.WithRegisteredDistributedCache(false);
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -374,7 +420,12 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseRegisteredBackplane()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddFusionCacheMemoryBackplane();
 
 		services.AddFusionCache()
@@ -401,7 +452,12 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseRegisteredDistributedLocker()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddTransient<IFusionCacheDistributedLocker>(sp => new SimpleDistributedLocker());
 
 		services.AddFusionCache()
@@ -428,7 +484,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void TryAutoSetupWorks()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheSystemTextJsonSerializer();
@@ -454,8 +514,7 @@ public class DependencyInjectionTests
 		var services = new ServiceCollection();
 
 		services.AddFusionCache()
-			.WithRegisteredLogger()
-		;
+			.WithRegisteredLogger();
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -468,11 +527,14 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DontThrowIfMissingRegisteredLogger()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddFusionCache()
-			.TryWithRegisteredLogger()
-		;
+			.TryWithRegisteredLogger();
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -484,11 +546,14 @@ public class DependencyInjectionTests
 	[Fact]
 	public void ThrowsIfMissingRegisteredDistributedCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddFusionCache()
-			.WithRegisteredDistributedCache()
-		;
+			.WithRegisteredDistributedCache();
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -501,11 +566,14 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DontThrowIfMissingRegisteredDistributedCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		services.AddFusionCache()
-			.TryWithRegisteredDistributedCache()
-		;
+			.TryWithRegisteredDistributedCache();
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -518,7 +586,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void ThrowsIfMissingSerializerWhenUsingDistributedCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddDistributedMemoryCache();
 
@@ -572,7 +644,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseMultipleNamedCachesAndConfigureThem()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheNewtonsoftJsonSerializer();
@@ -688,7 +764,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseDefaultCacheWithMultipleNamedCaches()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache().TryWithAutoSetup();
 		services.AddFusionCache("FooCache").TryWithAutoSetup();
@@ -720,19 +800,21 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUsePostSetupActions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		var entryOptions = new FusionCacheEntryOptions()
-			.SetDuration(TimeSpan.FromMinutes(1))
-		;
+			.SetDuration(TimeSpan.FromMinutes(1));
 
 		services.AddFusionCache()
 			.WithDefaultEntryOptions(entryOptions)
 			.WithPostSetup((sp, c) =>
 			{
 				c.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(123);
-			})
-		;
+			});
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -747,11 +829,14 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanResetPostSetupActions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+
 		var entryOptions = new FusionCacheEntryOptions()
-			.SetDuration(TimeSpan.FromMinutes(1))
-		;
+			.SetDuration(TimeSpan.FromMinutes(1));
 
 		services.AddFusionCache()
 			.WithDefaultEntryOptions(entryOptions)
@@ -779,7 +864,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DontThrowWhenRequestingAnUnregisteredCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache("FooCache");
 		services.AddFusionCache();
@@ -794,7 +883,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DefaultCacheIsTheSameWhenRequestedInDifferentWays()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache();
 		services.AddFusionCache();
@@ -809,7 +902,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void ThrowsOrNotWhenRequestingUnregisteredNamedCaches()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache("Foo");
 		services.AddFusionCache("Foo");
@@ -854,7 +951,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void ThrowsOrNotWhenRequestingUnregisteredDefaultCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache("Foo");
 
@@ -877,7 +978,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CacheInstancesAreAlwaysTheSame()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache();
 		services.AddFusionCache("Foo");
@@ -906,7 +1011,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DifferentNamedCachesDoNotShareTheSameMemoryCacheByDefault()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddMemoryCache();
 
@@ -939,24 +1048,25 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DifferentNamedCachesCanShareTheSameMemoryCacheWithCollisions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddMemoryCache();
 
 		// DEFAULT
 		services.AddFusionCache()
-			.WithRegisteredMemoryCache()
-		;
+			.WithRegisteredMemoryCache();
 
 		// FOO
 		services.AddFusionCache("FooCache")
-			.WithRegisteredMemoryCache()
-		;
+			.WithRegisteredMemoryCache();
 
 		// BAR
 		services.AddFusionCache("BarCache")
-			.WithRegisteredMemoryCache()
-		;
+			.WithRegisteredMemoryCache();
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -978,24 +1088,25 @@ public class DependencyInjectionTests
 	[Fact]
 	public void DifferentNamedCachesCanShareTheSameMemoryCacheWithoutCollisions()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddMemoryCache();
 
 		// DEFAULT
 		services.AddFusionCache()
-			.WithRegisteredMemoryCache()
-		;
+			.WithRegisteredMemoryCache();
 
 		// FOO
 		services.AddFusionCache("FooCache")
-			.WithRegisteredMemoryCache().WithCacheKeyPrefixByCacheName()
-		;
+			.WithRegisteredMemoryCache().WithCacheKeyPrefixByCacheName();
 
 		// BAR
 		services.AddFusionCache("BarCache")
-			.WithRegisteredMemoryCache().WithCacheKeyPrefixByCacheName()
-		;
+			.WithRegisteredMemoryCache().WithCacheKeyPrefixByCacheName();
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -1017,9 +1128,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void BuilderWithSpecificComponentsWorks()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
-		services.AddLogging();
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		// FOO: EXTERNAL (NAMED) OPTIONS + DISTRIBUTED CACHE (MEMORY, DIRECT) + SERIALIZER (FACTORY) + BACKPLANE (REDIS)
 		services.Configure<RedisBackplaneOptions>("Foo", opt =>
@@ -1032,8 +1145,7 @@ public class DependencyInjectionTests
 			.WithDistributedCache(
 				new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
 			)
-			.WithStackExchangeRedisBackplane()
-		;
+			.WithStackExchangeRedisBackplane();
 
 		// BAR: PLAIN
 		services.AddFusionCache("Bar");
@@ -1054,16 +1166,14 @@ public class DependencyInjectionTests
 
 				return new MemoryDistributedCache(Options.Create(options), loggerFactory);
 			})
-			.WithMemoryBackplane()
-		;
+			.WithMemoryBackplane();
 
 		// DEFAULT: BACKPLANE (REDIS) VIA DIRECT INSTANCE
 		services.AddFusionCache()
 			.WithBackplane(new RedisBackplane(new RedisBackplaneOptions
 			{
 				Configuration = "CONN_DEFAULT"
-			}))
-		;
+			}));
 
 		using var serviceProvider = services.BuildServiceProvider();
 
@@ -1116,13 +1226,14 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanDoWithoutLogger()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
 
-		services.AddLogging();
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache()
-			.WithoutLogger()
-		;
+			.WithoutLogger();
 
 		using var serviceProvider = services.BuildServiceProvider();
 		var cache = serviceProvider.GetRequiredService<IFusionCache>();
@@ -1133,7 +1244,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanActAsKeyedService()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddDistributedMemoryCache();
 		services.AddFusionCacheNewtonsoftJsonSerializer();
@@ -1149,8 +1264,7 @@ public class DependencyInjectionTests
 			.WithDefaultEntryOptions(opt => opt
 				.SetDuration(TimeSpan.FromMinutes(10))
 				.SetFailSafe(true)
-			)
-		;
+			);
 
 		// BAR: 42 SEC DURATION + 3 SEC SOFT TIMEOUT + DIST CACHE
 		services.AddFusionCache("BarCache")
@@ -1163,8 +1277,7 @@ public class DependencyInjectionTests
 				.SetDuration(TimeSpan.FromSeconds(42))
 				.SetFactoryTimeouts(TimeSpan.FromSeconds(3))
 			)
-			.WithRegisteredDistributedCache(false)
-		;
+			.WithRegisteredDistributedCache(false);
 
 		// BAZ: 3 HOURS DURATION + FAIL-SAFE + BACKPLANE (POST-SETUP)
 		var bazServiceKey = new SimpleServiceKey(123);
@@ -1181,8 +1294,7 @@ public class DependencyInjectionTests
 			.WithPostSetup((sp, c) =>
 			{
 				c.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
-			})
-		;
+			});
 
 		// QUX (CUSTOM INSTANCE): 1 SEC DURATION + 123 DAYS DIST DURATION
 		var quxCacheOriginal = new FusionCache(new FusionCacheOptions()
@@ -1263,7 +1375,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseKeyedMemoryCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		var registeredMemoryCache = new ChaosMemoryCache(new MemoryCache(new MemoryCacheOptions()));
 		services.AddKeyedSingleton<IMemoryCache>("FooMemoryCache", registeredMemoryCache);
@@ -1286,7 +1402,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseKeyedDistributedCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
 		var registeredSerializer = new ChaosSerializer(new FusionCacheSystemTextJsonSerializer());
@@ -1315,7 +1435,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseKeyedMemoryLocker()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
 		var registeredMemoryLocker = new ChaosMemoryLocker(new StandardMemoryLocker());
@@ -1339,7 +1463,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseKeyedBackplane()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
 		var registeredBackplane = new ChaosBackplane(new MemoryBackplane(new MemoryBackplaneOptions()));
@@ -1363,7 +1491,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseKeyedPlugins()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		// NOTE: THIS SHOULD BE TRANSIENT, NOT SINGLETON: I'M DOING THIS ONLY FOR TESTING PURPOSES
 		IFusionCachePlugin[] registeredKeyedPlugins = [
@@ -1513,7 +1645,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseNamedCachesWithoutDefaultCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache("Foo");
 		services.AddFusionCache("Bar");
@@ -1532,7 +1668,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseASerializerWithoutADistributedCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache("Foo")
 			.WithDefaultEntryOptions(opt =>
@@ -1570,7 +1710,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseAsHybridCache()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		services.AddFusionCache()
 			.AsHybridCache()
@@ -1599,7 +1743,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseNullImplementation()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
 
 		// NULL IMPLEMENTATION
 		services.AddFusionCache()
@@ -1699,5 +1847,44 @@ public class DependencyInjectionTests
 		Assert.NotSame(fc1, fc3);
 		Assert.NotSame(hc1, hc2);
 		Assert.NotSame(hc1, hc3);
+	}
+
+	[Fact]
+	public void CanDetectInvalidRegistrations()
+	{
+		var logger = CreateListLogger<FusionCache>(LogLevel.Warning);
+
+		var services = new ServiceCollection();
+
+		services.AddSingleton<ILogger<FusionCache>>(logger);
+		services.AddFusionCache();
+		services.AddFusionCache().AsKeyedService("ServiceKey1");
+		services.AddFusionCache().AsKeyedService("ServiceKey1");
+		services.AddFusionCache("Foo");
+		services.AddFusionCache("Foo").AsKeyedService("ServiceKey2");
+		services.AddFusionCache("Bar").AsKeyedService("ServiceKey2");
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache1 = serviceProvider.GetRequiredService<IFusionCache>();
+		var cacheProvider = serviceProvider.GetRequiredService<IFusionCacheProvider>();
+		var cache2 = cacheProvider.GetDefaultCache();
+		IFusionCache? fooCache = null;
+		Assert.ThrowsAny<InvalidOperationException>(() =>
+		{
+			fooCache = cacheProvider.GetCacheOrNull("Foo");
+		});
+		var barCache = cacheProvider.GetCache("Bar");
+		var bazCache = cacheProvider.GetCacheOrNull("Baz");
+
+		Assert.NotNull(cache1);
+		Assert.NotNull(cache2);
+		Assert.Equal(cache1, cache2);
+		Assert.Null(fooCache);
+		Assert.NotNull(barCache);
+		Assert.Null(bazCache);
+		Assert.NotEqual(cache1, fooCache);
+		Assert.NotEqual(fooCache, barCache);
+		Assert.Equal(4, logger.Items.Count(x => x.LogLevel >= LogLevel.Warning && x.Message.StartsWith("FUSION: multiple ")));
 	}
 }
