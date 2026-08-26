@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Serilog;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
-using ZiggyCreatures.Caching.Fusion.Serialization.NewtonsoftJson;
+using ZiggyCreatures.Caching.Fusion.Serialization.SystemTextJson;
 
 namespace ZiggyCreatures.Caching.Fusion.Playground.Scenarios;
 
@@ -54,7 +54,7 @@ public static class ScratchpadScenario
 		var cache = new FusionCache(options, logger: logger);
 
 		var distributedCache = new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
-		var serializer = new FusionCacheNewtonsoftJsonSerializer();
+		var serializer = new FusionCacheSystemTextJsonSerializer();
 		cache.SetupDistributedCache(distributedCache, serializer);
 
 		var backplane = new MemoryBackplane(new MemoryBackplaneOptions());

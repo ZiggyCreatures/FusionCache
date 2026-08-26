@@ -203,6 +203,10 @@ internal sealed class FusionCacheBuilder
 			throw new InvalidOperationException("A logger has not been specified, or found in the DI container.");
 		}
 
+		// CHECK DI REGISTRATIONS
+		var validator = serviceProvider.GetService<FusionCacheDependencyInjectionValidator>();
+		validator?.CheckInvalidRegistrations(Services, serviceProvider, logger);
+
 		// MEMORY CACHE
 		IMemoryCache? memoryCache;
 

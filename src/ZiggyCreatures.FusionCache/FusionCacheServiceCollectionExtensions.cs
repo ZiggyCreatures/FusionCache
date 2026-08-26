@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Internals.Builder;
 using ZiggyCreatures.Caching.Fusion.Internals.Provider;
@@ -12,9 +13,30 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// </summary>
 public static class FusionCacheServiceCollectionExtensions
 {
+	private static IServiceCollection AddFusionCacheDependencyInjectionValidator(this IServiceCollection services)
+	{
+		// WE USE A SINGLETON SERVICE INSTEAD OF A STATIC CLASS TO ENSURE
+		// ONE INSTANCE PER CONTAINER, SINCE IT'S POSSIBLE TO HAVE MULTIPLE
+		// CONTAINERS IN THE SAME APP DOMAIN.
+		// 
+		// YEAH, I KNOW, PRETTY RARE. BUT STILL.
+		services.TryAddSingleton<FusionCacheDependencyInjectionValidator>();
+
+		return services;
+	}
+
 	private static IServiceCollection AddFusionCacheProvider(this IServiceCollection services)
 	{
-		services.TryAddSingleton<IFusionCacheProvider, FusionCacheProvider>();
+		services.AddFusionCacheDependencyInjectionValidator();
+
+		services.TryAddSingleton<IFusionCacheProvider>(sp =>
+		{
+			// CHECK DI REGISTRATIONS
+			var validator = sp.GetService<FusionCacheDependencyInjectionValidator>();
+			validator?.CheckInvalidRegistrations(services, sp, sp.GetService<ILogger<FusionCache>>());
+
+			return new FusionCacheProvider(sp.GetServices<IFusionCache>(), sp.GetServices<LazyNamedCache>(), sp.GetService<ILogger<FusionCache>>());
+		});
 
 		return services;
 	}
