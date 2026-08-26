@@ -201,10 +201,10 @@ All these informations are fully available via IntelliSense, auto-suggest or sim
 | 🧙‍♂️ `AllowBackgroundBackplaneOperations` | `bool` | `true` | By default every operation on the backplane is non-blocking: that is to say the FusionCache method call would not wait for each backplane operation to be completed. Setting this flag to `false` will execute these operations in a blocking fashion, typically resulting in worse performance. |
 | 🧙‍♂️ `ReThrowBackplaneExceptions` | `bool` | `false` | Set this to true to allow the bubble up of backplane exceptions (default is `false`). Please note that, even if set to true, in some cases we would also need `AllowBackgroundBackplaneOperations` set to false. |
 | 🧙‍♂️ `EagerRefreshThreshold` | `float?` | `null` | The threshold to apply when deciding whether to refresh the cache entry eagerly (that is, before the actual expiration). |
+| 🧙‍♂️ `EagerRefreshFactoryOnly` | `bool` | `true` | When `true`, eager refresh immediately executes the factory. When `false`, FusionCache first checks L2 and promotes a valid, non-stale entry outside its own eager refresh window into L1; the factory runs only when L2 cannot satisfy the refresh. |
 | 🧙‍♂️ `SkipDistributedCacheWrite` | `bool` | `false` | Skip writing to the distributed cache, if any. |
 | `SkipDistributedCacheRead` | `bool` | `false` | Skip reading from the distributed cache, if any. |
 | `SkipDistributedCacheReadWhenStale` | `bool` | `false` | When a 2nd level (distributed cache) is used and a cache entry in the 1st level (memory cache) is found but is stale, a read is done on the distributed cache: the reason is that in a multi-node environment another node may have updated the cache entry, so we may found a newer version of it. |
 | 🧙‍♂️ `SkipMemoryCacheWrite` | `bool` | `false` | Skip writing to the memory cache. |
 | `SkipMemoryCacheRead` | `bool` | `false` | Skip reading from the memory cache. |
 | `SkipDistributedLocker` | `bool` | `false` | Skip the distributed locker, if any: by doing this, the cache stampede protection will not be extended to multiple nodes. |
-

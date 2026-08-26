@@ -34,6 +34,7 @@ public sealed class FusionCacheEntryOptions
 		FactorySoftTimeout = FusionCacheGlobalDefaults.EntryOptionsFactorySoftTimeout;
 		FactoryHardTimeout = FusionCacheGlobalDefaults.EntryOptionsFactoryHardTimeout;
 		AllowTimedOutFactoryBackgroundCompletion = FusionCacheGlobalDefaults.EntryOptionsAllowTimedOutFactoryBackgroundCompletion;
+		EagerRefreshFactoryOnly = FusionCacheGlobalDefaults.EntryOptionsEagerRefreshFactoryOnly;
 
 		IsFailSafeEnabled = FusionCacheGlobalDefaults.EntryOptionsIsFailSafeEnabled;
 		FailSafeMaxDuration = FusionCacheGlobalDefaults.EntryOptionsFailSafeMaxDuration;
@@ -109,6 +110,17 @@ public sealed class FusionCacheEntryOptions
 			_eagerRefreshThreshold = value;
 		}
 	}
+
+	/// <summary>
+	/// When enabled, an eager refresh immediately executes the factory.
+	/// When disabled, an available distributed cache is checked first: a valid, non-stale distributed entry outside its own eager refresh window
+	/// is promoted to the memory cache without executing the factory or updating the distributed cache.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/EagerRefresh.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	public bool EagerRefreshFactoryOnly { get; set; }
 
 	/// <summary>
 	/// The timeout to apply when trying to acquire a memory lock during a factory execution.
@@ -513,7 +525,7 @@ public sealed class FusionCacheEntryOptions
 	/// <inheritdoc/>
 	public override string ToString()
 	{
-		return $"[DUR={Duration.ToLogString()} LKTO={LockTimeout.ToLogString_Timeout()} SKMR={SkipMemoryCacheRead.ToLogStringYN()} SKMW={SkipMemoryCacheWrite.ToLogStringYN()} SKDR={SkipDistributedCacheRead.ToLogStringYN()} SKDW={SkipDistributedCacheWrite.ToLogStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToLogStringYN()} MDUR={MemoryCacheDuration.ToLogString()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} SZ={Size.ToLogString()} FS={IsFailSafeEnabled.ToLogStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToLogStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToLogStringYN()} SBN={SkipBackplaneNotifications.ToLogStringYN()} ABBO={AllowBackgroundBackplaneOperations.ToLogStringYN()} AC={EnableAutoClone.ToLogStringYN()}]";
+		return $"[DUR={Duration.ToLogString()} LKTO={LockTimeout.ToLogString_Timeout()} SKMR={SkipMemoryCacheRead.ToLogStringYN()} SKMW={SkipMemoryCacheWrite.ToLogStringYN()} SKDR={SkipDistributedCacheRead.ToLogStringYN()} SKDW={SkipDistributedCacheWrite.ToLogStringYN()} SKDRWS={SkipDistributedCacheReadWhenStale.ToLogStringYN()} MDUR={MemoryCacheDuration.ToLogString()} DDUR={DistributedCacheDuration.ToLogString()} JIT={JitterMaxDuration.ToLogString()} PR={Priority.ToLogString()} SZ={Size.ToLogString()} FS={IsFailSafeEnabled.ToLogStringYN()} FSMAX={FailSafeMaxDuration.ToLogString()} DFSMAX={DistributedCacheFailSafeMaxDuration.ToLogString()} FSTHR={FailSafeThrottleDuration.ToLogString()} FSTO={FactorySoftTimeout.ToLogString_Timeout()} FHTO={FactoryHardTimeout.ToLogString_Timeout()} TOFC={AllowTimedOutFactoryBackgroundCompletion.ToLogStringYN()} ERFO={EagerRefreshFactoryOnly.ToLogStringYN()} DSTO={DistributedCacheSoftTimeout.ToLogString_Timeout()} DHTO={DistributedCacheHardTimeout.ToLogString_Timeout()} ABDO={AllowBackgroundDistributedCacheOperations.ToLogStringYN()} SBN={SkipBackplaneNotifications.ToLogStringYN()} ABBO={AllowBackgroundBackplaneOperations.ToLogStringYN()} AC={EnableAutoClone.ToLogStringYN()}]";
 	}
 
 	/// <summary>
@@ -688,6 +700,21 @@ public sealed class FusionCacheEntryOptions
 	public FusionCacheEntryOptions SetEagerRefresh(float? threshold)
 	{
 		EagerRefreshThreshold = threshold;
+		return this;
+	}
+
+	/// <summary>
+	/// Set the <see cref="EagerRefreshFactoryOnly"/> option.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/EagerRefresh.md"/>
+	/// <br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	/// <param name="factoryOnly">The value for the <see cref="EagerRefreshFactoryOnly"/> option.</param>
+	/// <returns>The <see cref="FusionCacheEntryOptions"/> so that additional calls can be chained.</returns>
+	public FusionCacheEntryOptions SetEagerRefreshFactoryOnly(bool factoryOnly = true)
+	{
+		EagerRefreshFactoryOnly = factoryOnly;
 		return this;
 	}
 
@@ -1243,6 +1270,7 @@ public sealed class FusionCacheEntryOptions
 			DistributedLockTimeout = DistributedLockTimeout,
 
 			EagerRefreshThreshold = EagerRefreshThreshold,
+			EagerRefreshFactoryOnly = EagerRefreshFactoryOnly,
 
 			AllowStaleOnReadOnly = AllowStaleOnReadOnly,
 

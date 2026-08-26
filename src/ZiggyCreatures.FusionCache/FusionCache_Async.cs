@@ -12,41 +12,106 @@ public partial class FusionCache
 {
 	// GET OR SET
 
-	private async ValueTask MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, ActivityContext parentContext, CancellationToken token)
+	private async ValueTask<bool> TryAdoptDistributedEntryForEagerRefreshAsync<TValue>(string operationId, string key, IFusionCacheMemoryEntry memoryEntry, FusionCacheEntryOptions options, CancellationToken token)
 	{
-		// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
-		object? distributedLockObj = null;
-		if (HasDistributedLocker && options.SkipDistributedLocker == false)
+		var dca = DistributedCacheAccessor;
+		if (dca.ShouldRead(options) == false || dca.CanBeUsed(operationId, key) == false)
+			return false;
+
+		token.ThrowIfCancellationRequested();
+
+		var (distributedEntry, distributedEntryIsValid) = await dca!.TryGetEntryAsync<TValue>(operationId, key, options, true, null, token).ConfigureAwait(false);
+
+		if (distributedEntry is not null && distributedEntryIsValid)
 		{
-			distributedLockObj = await AcquireDistributedLockAsync(operationId, key, TimeSpan.Zero, options, token).ConfigureAwait(false);
-			if (distributedLockObj is null)
-			{
-				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring on another instance/node", CacheName, InstanceId, operationId, key);
-
-				ReleaseMemoryLock(operationId, key, memoryLockObj);
-
-				return;
-			}
+			(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 		}
 
-		// OK, WE CAN PROCEED WITH EAGER REFRESH
+		return TryAdoptDistributedEntryForEagerRefresh(operationId, key, memoryEntry, distributedEntry, distributedEntryIsValid, options);
+	}
 
-		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eagerly refreshing", CacheName, InstanceId, operationId, key);
+	private async ValueTask MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, ActivityContext parentContext, CancellationToken token)
+	{
+		object? localMemoryLockObj = memoryLockObj;
+		object? distributedLockObj = null;
 
-		// EVENT
-		_events.OnEagerRefresh(operationId, key);
+		try
+		{
+			if (options.EagerRefreshFactoryOnly == false)
+			{
+				if (await TryAdoptDistributedEntryForEagerRefreshAsync<TValue>(operationId, key, memoryEntry, options, token).ConfigureAwait(false))
+				{
+					NotifyEagerRefresh(operationId, key);
 
-		// ACTIVITY
-		var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId, parentContext: parentContext);
-		activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
+					return;
+				}
+			}
 
-		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
+			// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
+			if (HasDistributedLocker && options.SkipDistributedLocker == false)
+			{
+				distributedLockObj = await AcquireDistributedLockAsync(operationId, key, TimeSpan.Zero, options, token).ConfigureAwait(false);
+				if (distributedLockObj is null)
+				{
+					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring on another instance/node", CacheName, InstanceId, operationId, key);
 
-		var factoryTask = factory(ctx, CancellationToken.None);
+					if (memoryEntry.Metadata is not null && memoryEntry.IsLogicallyExpired() == false)
+					{
+						memoryEntry.Metadata.EagerExpirationTimestamp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(false, options.EagerRefreshThreshold, memoryEntry.LogicalExpirationTimestamp);
+					}
 
-		BackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, distributedLockObj, activity);
+					return;
+				}
+			}
+
+			// CHECK AGAIN AFTER ACQUIRING THE DISTRIBUTED LOCK, IN CASE ANOTHER NODE UPDATED L2 BETWEEN THE FIRST READ AND THE LOCK
+			if (options.EagerRefreshFactoryOnly == false && distributedLockObj is not null)
+			{
+				if (await TryAdoptDistributedEntryForEagerRefreshAsync<TValue>(operationId, key, memoryEntry, options, token).ConfigureAwait(false))
+				{
+					NotifyEagerRefresh(operationId, key);
+
+					return;
+				}
+			}
+
+			// OK, WE CAN PROCEED WITH EAGER REFRESH
+
+			NotifyEagerRefresh(operationId, key);
+
+			// ACTIVITY
+			var activity = Activities.Source.StartActivityWithCommonTags(Activities.Names.ExecuteFactory, CacheName, InstanceId, key, operationId, parentContext: parentContext);
+			activity?.SetTag(Tags.Names.FactoryEagerRefresh, true);
+
+			try
+			{
+				var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
+
+				var factoryTask = factory(ctx, CancellationToken.None);
+
+				BackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, localMemoryLockObj, distributedLockObj, activity);
+
+				localMemoryLockObj = null;
+				distributedLockObj = null;
+			}
+			catch (Exception exc)
+			{
+				activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+				activity?.AddException(exc);
+				activity?.Dispose();
+
+				throw;
+			}
+		}
+		finally
+		{
+			if (localMemoryLockObj is not null)
+				ReleaseMemoryLock(operationId, key, localMemoryLockObj);
+
+			if (distributedLockObj is not null)
+				await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
+		}
 	}
 
 	private async ValueTask<IFusionCacheMemoryEntry?> GetOrSetEntryInternalAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, bool isRealFactory, MaybeValue<TValue> failSafeDefaultValue, FusionCacheEntryOptions options, Activity? activity, CancellationToken token)
