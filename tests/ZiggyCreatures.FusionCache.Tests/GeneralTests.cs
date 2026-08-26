@@ -94,6 +94,10 @@ public partial class GeneralTests
 
 			SkipMemoryCacheRead = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheRead,
 			SkipMemoryCacheWrite = !FusionCacheGlobalDefaults.EntryOptionsSkipMemoryCacheWrite,
+
+			DistributedLockTimeout = TimeSpan.FromSeconds(11),
+			MemoryCacheDuration = TimeSpan.FromSeconds(10),
+			MemoryLockTimeout = TimeSpan.FromSeconds(10),
 		};
 	}
 
@@ -167,6 +171,10 @@ public partial class GeneralTests
 			PluginsInfoLogLevel = LogLevel.Critical,
 
 			MissingCacheKeyPrefixWarningLogLevel = LogLevel.Critical,
+			DistributedLockerErrorsLogLevel = LogLevel.Critical,
+			SerializationConfigIssuesLogLevel = LogLevel.Critical,
+			EnableBestPracticesAdvisor = !defaultState.EnableBestPracticesAdvisor,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove
 		};
 
 		var duplicated = original.Duplicate();
