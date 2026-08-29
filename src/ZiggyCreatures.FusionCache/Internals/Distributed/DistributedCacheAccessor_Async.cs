@@ -21,6 +21,13 @@ internal partial class DistributedCacheAccessor
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
 		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] canceled " + actionDescription, _options.CacheName, _options.InstanceId, operationId, key);
+
+			throw;
+		}
 		catch (Exception exc)
 		{
 			ProcessError(operationId, key, exc, actionDescription);
@@ -84,6 +91,13 @@ internal partial class DistributedCacheAccessor
 			{
 				data = await _serializer.SerializeAsync(distributedEntry, token).ConfigureAwait(false);
 			}
+		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] canceled serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
+
+			throw;
 		}
 		catch (Exception exc)
 		{
@@ -165,6 +179,13 @@ internal partial class DistributedCacheAccessor
 				token: token
 			).ConfigureAwait(false);
 		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] canceled get entry from distributed", _options.CacheName, _options.InstanceId, operationId, key);
+
+			throw;
+		}
 		catch (Exception exc)
 		{
 			ProcessError(operationId, key, exc, "getting entry from distributed");
@@ -244,6 +265,13 @@ internal partial class DistributedCacheAccessor
 			}
 
 			return (entry, isValid);
+		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] cancelled while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
+
+			throw;
 		}
 		catch (Exception exc)
 		{
