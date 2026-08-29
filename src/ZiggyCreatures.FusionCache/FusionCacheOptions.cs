@@ -702,7 +702,7 @@ public class FusionCacheOptions
 			SerializationIssuesLogLevel = SerializationIssuesLogLevel,
 #pragma warning restore CS0618 // Type or member is obsolete
 			SerializationConfigIssuesLogLevel = SerializationConfigIssuesLogLevel,
-			
+
 			EnableBestPracticesAdvisor = EnableBestPracticesAdvisor,
 		};
 
