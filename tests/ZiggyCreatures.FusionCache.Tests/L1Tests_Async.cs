@@ -784,7 +784,7 @@ public partial class L1Tests
 		var duration = TimeSpan.FromSeconds(2);
 		var lockTimeout = TimeSpan.FromSeconds(10);
 		var eagerRefreshThreshold = 0.1f;
-		var eagerRefreshDelay = TimeSpan.FromSeconds(5);
+		var factoryDelay = TimeSpan.FromSeconds(2);
 
 		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: memoryLocker, logger: CreateXUnitLogger<FusionCache>());
 
@@ -812,7 +812,7 @@ public partial class L1Tests
 			{
 				eagerRefreshIsStarted = true;
 
-				await Task.Delay(eagerRefreshDelay);
+				await Task.Delay(factoryDelay);
 
 				ct.ThrowIfCancellationRequested();
 
@@ -824,13 +824,13 @@ public partial class L1Tests
 		);
 
 		// ALLOW EAGER REFRESH TO START
-		await Task.Delay(TimeSpan.FromMilliseconds(50), TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
 
 		// CANCEL
 		cts.Cancel();
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		await Task.Delay(eagerRefreshDelay.PlusALittleBit(), TestContext.Current.CancellationToken);
+		await Task.Delay(factoryDelay.PlusASecond(), TestContext.Current.CancellationToken);
 
 		// GET THE REFRESHED VALUE
 		var sw = Stopwatch.StartNew();

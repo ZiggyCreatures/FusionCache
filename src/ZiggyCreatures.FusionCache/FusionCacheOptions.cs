@@ -69,10 +69,10 @@ public class FusionCacheOptions
 
 		_tagsDefaultEntryOptions = new FusionCacheEntryOptions
 		{
-			Duration = TimeSpan.FromHours(24 * 10),
-			DistributedCacheDuration = TimeSpan.FromHours(24 * 10),
+			Duration = TimeSpan.FromHours(1), // L1: 1 HOUR
+			DistributedCacheDuration = TimeSpan.FromHours(24), // L2: 24 HOURS
 			IsFailSafeEnabled = true,
-			FailSafeMaxDuration = TimeSpan.FromHours(24 * 10),
+			FailSafeMaxDuration = TimeSpan.FromHours(24 * 10), // FALLBACK: 10 DAYS
 			AllowBackgroundDistributedCacheOperations = false,
 			AllowBackgroundBackplaneOperations = false,
 			ReThrowDistributedCacheExceptions = false,
