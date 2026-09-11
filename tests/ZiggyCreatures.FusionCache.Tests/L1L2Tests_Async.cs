@@ -248,14 +248,16 @@ public partial class L1L2Tests
 	public async Task ReThrowsSerializationExceptionsAsync(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
-		using var cache = new FusionCache(CreateFusionCacheOptions(CreateRandomCacheName("foo")), logger: logger);
+		var options = CreateFusionCacheOptions(CreateRandomCacheName("foo"));
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMilliseconds(100);
+		using var cache = new FusionCache(options, logger: logger);
 		var serializer = new ChaosSerializer(TestsUtils.GetSerializer(serializerType));
 		var distributedCache = CreateDistributedCache();
 		cache.SetupDistributedCache(distributedCache, serializer);
 
 		logger.LogInformation("STEP 1");
 
-		await cache.SetAsync<string>("foo", "sloths, sloths everywhere", x => x.SetDuration(TimeSpan.FromMilliseconds(100)).SetDistributedCacheDuration(TimeSpan.FromSeconds(10)), token: TestContext.Current.CancellationToken);
+		await cache.SetAsync<string>("foo", "sloths, sloths everywhere", x => x.SetDistributedCacheDuration(TimeSpan.FromSeconds(10)), token: TestContext.Current.CancellationToken);
 
 		logger.LogInformation("STEP 2");
 
