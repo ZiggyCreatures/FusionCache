@@ -80,7 +80,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetMaybeThrow(float probability)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetMaybeThrow");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetMaybeThrow {Probability}", _className, probability.ToString("0.##"));
 
 		// CLAMP
 		if (probability < 0.0f)
@@ -101,7 +101,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetAlwaysThrow()
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysThrow");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetAlwaysThrow", _className);
 
 		ChaosThrowProbability = 1f;
 	}
@@ -112,7 +112,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetNeverThrow()
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverThrow");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetNeverThrow", _className);
 
 		ChaosThrowProbability = 0f;
 	}
@@ -126,7 +126,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetAlwaysDelayExactly(TimeSpan delay)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysDelayExactly");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetAlwaysDelayExactly {Delay}", _className, delay);
 
 		ChaosMinDelay = delay;
 		ChaosMaxDelay = delay;
@@ -140,7 +140,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetAlwaysDelay(TimeSpan minDelay, TimeSpan maxDelay)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetDelay");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetDelay {MinDelay} {MaxDelay}", _className, minDelay, maxDelay);
 
 		ChaosMinDelay = minDelay;
 		ChaosMaxDelay = maxDelay;
@@ -152,7 +152,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetNeverDelay()
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverDelay");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetNeverDelay", _className);
 
 		ChaosMinDelay = TimeSpan.Zero;
 		ChaosMaxDelay = TimeSpan.Zero;
@@ -167,7 +167,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetAlwaysChaos(TimeSpan delay)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysChaos");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetAlwaysChaos {Delay}", _className, delay);
 
 		SetAlwaysThrow();
 		SetAlwaysDelayExactly(delay);
@@ -181,7 +181,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetAlwaysChaos(TimeSpan minDelay, TimeSpan maxDelay)
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetAlwaysChaos");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetAlwaysChaos {MinDelay} {MaxDelay}", _className, minDelay, maxDelay);
 
 		SetAlwaysThrow();
 		SetAlwaysDelay(minDelay, maxDelay);
@@ -193,7 +193,7 @@ public abstract class AbstractChaosComponent
 	public virtual void SetNeverChaos()
 	{
 		if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
-			_logger.Log(LogLevel.Debug, $"FUSION {_className}: SetNeverChaos");
+			_logger.Log(LogLevel.Debug, "FUSION {ClassName}: SetNeverChaos", _className);
 
 		SetNeverThrow();
 		SetNeverDelay();
