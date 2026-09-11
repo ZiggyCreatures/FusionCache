@@ -27,4 +27,19 @@ internal static class Tags
 		public const string BackplaneMessageAction = "fusioncache.backplane.message_action";
 		public const string BackplaneMessageSourceId = "fusioncache.backplane.message_source_id";
 	}
+
+	// NOTE: PRE-BOXED bool VALUES: TAG VALUES ARE object?, SO PASSING A bool DIRECTLY WOULD BOX
+	// ON EVERY SINGLE INSTRUMENTED OPERATION. THERE ARE ONLY TWO POSSIBLE VALUES, SO CACHE THEM.
+	private static readonly object BoxedTrue = true;
+	private static readonly object BoxedFalse = false;
+
+	internal static KeyValuePair<string, object?> Tag(string name, bool value)
+	{
+		return new KeyValuePair<string, object?>(name, value ? BoxedTrue : BoxedFalse);
+	}
+
+	internal static KeyValuePair<string, object?> Tag(string name, string? value)
+	{
+		return new KeyValuePair<string, object?>(name, value);
+	}
 }
