@@ -9,8 +9,11 @@ using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.Internals.Backplane;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
+using ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis;
 using ZiggyCreatures.Caching.Fusion.Plugins;
 using ZiggyCreatures.Caching.Fusion.Serialization;
 using ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
@@ -106,6 +109,23 @@ public static class TestsUtils
 	public static IFusionCacheMemoryLocker? GetMemoryLocker(IFusionCache cache)
 	{
 		return typeof(FusionCache).GetField("_memoryLocker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as IFusionCacheMemoryLocker;
+	}
+
+	public static IFusionCacheDistributedLocker? GetDistributedLocker<TDistributedLocker>(IFusionCache cache)
+		where TDistributedLocker : class, IFusionCacheDistributedLocker
+	{
+		var dla = typeof(FusionCache).GetField("_dla", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(cache) as DistributedLockerAccessor;
+		return dla is null
+			? null
+			: typeof(DistributedLockerAccessor).GetField("_locker", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(dla) as IFusionCacheDistributedLocker;
+	}
+
+	public static RedisDistributedLockerOptions? GetRedisDistributedLockerOptions(IFusionCache cache)
+	{
+		var locker = GetDistributedLocker<RedisDistributedLocker>(cache);
+		return locker is null
+			? null
+			: typeof(RedisDistributedLocker).GetField("_options", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(locker) as RedisDistributedLockerOptions;
 	}
 
 	public static IMemoryCache? GetMemoryCache(IFusionCache cache)

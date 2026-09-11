@@ -547,6 +547,9 @@ internal static class FusionCacheInternalUtils
 
 	public static long SharedTagExpirationDataFactory(FusionCacheFactoryExecutionContext<long> ctx, CancellationToken token)
 	{
+		// IF WE ARE EXECUTING THE FACTORY -> NO NEED TO NOTIFY THE OTHER NODES
+		ctx.Options.SkipBackplaneNotifications = true;
+
 		var res = 0L;
 
 		if (ctx.HasStaleValue)
@@ -556,9 +559,8 @@ internal static class FusionCacheInternalUtils
 
 		if (res == 0L)
 		{
-			// IF THE VALUE IS 0 (ZERO) -> WE DON'T NEED TO WRITE TO DISTRIBUTED AND NOTIFY THE OTHER NODES
+			// IF THE VALUE IS 0 (ZERO) -> NO NEED TO WRITE TO UPDATE THE DISTRIBUTED CACHE
 			ctx.Options.SkipDistributedCacheWrite = true;
-			ctx.Options.SkipBackplaneNotifications = true;
 		}
 
 		return res;
