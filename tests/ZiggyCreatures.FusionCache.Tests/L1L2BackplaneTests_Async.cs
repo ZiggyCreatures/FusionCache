@@ -996,4 +996,73 @@ public partial class L1L2BackplaneTests
 		Assert.Equal(0, cache1_bar_3);
 		Assert.Equal(0, cache1_baz_3);
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task TagMarkerDoesNotRematerializeAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		static void SetupOptions(FusionCacheOptions options)
+		{
+			options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+
+			options.TagsDefaultEntryOptions.Duration = TimeSpan.FromSeconds(2);
+			options.TagsDefaultEntryOptions.DistributedCacheDuration = null;
+			options.TagsDefaultEntryOptions.FailSafeMaxDuration = TimeSpan.FromMinutes(10);
+		}
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+		var fooKey = "foo:" + Guid.NewGuid().ToString("N");
+		var barKey = "bar:" + Guid.NewGuid().ToString("N");
+
+		var xTag = "tag:x:" + Guid.NewGuid().ToString("N");
+		var yTag = "tag:y:" + Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+		using var cache1 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), SetupOptions, cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(null, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), SetupOptions, cacheInstanceId: "C2");
+
+		await Task.Delay(InitialBackplaneDelay, TestContext.Current.CancellationToken);
+
+		await cache1.RemoveByTagAsync(xTag, token: TestContext.Current.CancellationToken);
+
+		await cache1.SetAsync<int>(fooKey, 1, tags: [xTag, yTag], token: TestContext.Current.CancellationToken);
+		await cache1.SetAsync<int>(barKey, 2, tags: [xTag, yTag], token: TestContext.Current.CancellationToken);
+
+		var cache1_foo1 = await cache1.TryGetAsync<int>(fooKey, token: TestContext.Current.CancellationToken);
+		var cache1_bar1 = await cache1.TryGetAsync<int>(barKey, token: TestContext.Current.CancellationToken);
+		var cache2_foo1 = await cache2.TryGetAsync<int>(fooKey, token: TestContext.Current.CancellationToken);
+		var cache2_bar1 = await cache2.TryGetAsync<int>(barKey, token: TestContext.Current.CancellationToken);
+
+		Assert.True(cache1_foo1.HasValue);
+		Assert.Equal(1, cache1_foo1.Value);
+		Assert.True(cache1_bar1.HasValue);
+		Assert.Equal(2, cache1_bar1.Value);
+		Assert.True(cache2_foo1.HasValue);
+		Assert.Equal(1, cache2_foo1.Value);
+		Assert.True(cache2_bar1.HasValue);
+		Assert.Equal(2, cache2_bar1.Value);
+
+		logger.LogInformation("WAIT 1");
+		await Task.Delay(TimeSpan.FromSeconds(3), TestContext.Current.CancellationToken);
+
+		var cache1_foo2 = await cache1.TryGetAsync<int>(fooKey, token: TestContext.Current.CancellationToken);
+		var cache1_bar2 = await cache1.TryGetAsync<int>(barKey, token: TestContext.Current.CancellationToken);
+
+		logger.LogInformation("WAIT 2");
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+		var cache2_foo2 = await cache2.TryGetAsync<int>(fooKey, token: TestContext.Current.CancellationToken);
+		var cache2_bar2 = await cache2.TryGetAsync<int>(barKey, token: TestContext.Current.CancellationToken);
+
+		Assert.True(cache1_foo2.HasValue);
+		Assert.Equal(1, cache1_foo2.Value);
+		Assert.True(cache1_bar2.HasValue);
+		Assert.Equal(2, cache1_bar2.Value);
+		Assert.True(cache2_foo2.HasValue);
+		Assert.Equal(1, cache2_foo2.Value);
+		Assert.True(cache2_bar2.HasValue);
+		Assert.Equal(2, cache2_bar2.Value);
+	}
 }
