@@ -1098,6 +1098,9 @@ public sealed partial class FusionCache
 		if (HasBackplane && options.SkipBackplaneNotifications == false)
 			return true;
 
+		if (HasDistributedLocker && options.SkipDistributedLocker == false)
+			return true;
+
 		return false;
 	}
 
