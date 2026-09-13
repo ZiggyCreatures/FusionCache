@@ -1,4 +1,5 @@
-﻿using ZiggyCreatures.Caching.Fusion.Serialization;
+﻿using System.Buffers;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace ZiggyCreatures.Caching.Fusion.NullObjects;
 
@@ -6,7 +7,7 @@ namespace ZiggyCreatures.Caching.Fusion.NullObjects;
 /// An implementation of <see cref="IFusionCacheSerializer"/> that implements the null object pattern, meaning that it does nothing.
 /// </summary>
 public class NullSerializer
-	: IFusionCacheSerializer
+	: IBufferFusionCacheSerializer
 {
 	/// <inheritdoc/>
 	public byte[] Serialize<T>(T? obj)
@@ -15,7 +16,19 @@ public class NullSerializer
 	}
 
 	/// <inheritdoc/>
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		// EMPTY
+	}
+
+	/// <inheritdoc/>
 	public T? Deserialize<T>(byte[] data)
+	{
+		return default;
+	}
+
+	/// <inheritdoc/>
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
 	{
 		return default;
 	}
