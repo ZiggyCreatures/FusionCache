@@ -75,7 +75,42 @@ public static partial class FusionCacheBuilderExtMethods
 		if (action is null)
 			throw new ArgumentNullException(nameof(action));
 
-		builder.SetupOptionsAction += action;
+		if (builder is FusionCacheBuilder fcb)
+		{
+			fcb.SetupOptionsActionAdvanced += (_, options) => action(options);
+		}
+		else
+		{
+			builder.SetupOptionsAction += action;
+		}
+
+		return builder;
+	}
+
+	/// <summary>
+	/// Specify a custom logic to further configure the <see cref="FusionCacheOptions"/> instance to be used, with DI support.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/DependencyInjection.md"/>
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to act upon.</param>
+	/// <param name="action">The custom action that configure the <see cref="FusionCacheOptions"/> object.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithOptions(this IFusionCacheBuilder builder, Action<IServiceProvider, FusionCacheOptions> action)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		if (action is null)
+			throw new ArgumentNullException(nameof(action));
+
+		if (builder is FusionCacheBuilder fcb)
+		{
+			fcb.SetupOptionsActionAdvanced += action;
+		}
+		else
+		{
+			throw new Exception("The builder in use does not support the WithOptions() overload with DI support.");
+		}
 
 		return builder;
 	}
