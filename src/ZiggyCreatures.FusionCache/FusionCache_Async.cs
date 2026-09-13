@@ -964,13 +964,12 @@ public partial class FusionCache
 
 					if (executeCascadeAction == false)
 					{
-						if (_options.RemoveByTagBehavior == RemoveByTagBehavior.Remove)
+						switch (_options.RemoveByTagBehavior)
 						{
-							return (null, false);
-						}
-						else
-						{
-							return (entry, false);
+							case RemoveByTagBehavior.Remove:
+								return (null, false);
+							case RemoveByTagBehavior.Expire:
+								return (entry, false);
 						}
 					}
 
@@ -982,13 +981,11 @@ public partial class FusionCache
 					{
 						case RemoveByTagBehavior.Remove:
 							await RemoveInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
-							break;
+							return (null, false);
 						case RemoveByTagBehavior.Expire:
 							await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
-							break;
+							return (entry, false);
 					}
-
-					return (entry, false);
 				}
 			}
 		}
