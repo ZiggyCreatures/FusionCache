@@ -76,7 +76,7 @@ internal partial class DistributedLockerAccessor
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] canceled releasing DISTRIBUTED LOCK", _options.CacheName, _options.InstanceId, operationId, key);
-	
+
 			throw;
 		}
 		catch (Exception exc)
