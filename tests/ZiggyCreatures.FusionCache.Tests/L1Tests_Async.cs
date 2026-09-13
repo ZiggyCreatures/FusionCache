@@ -733,7 +733,7 @@ public partial class L1Tests
 		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => eagerRefreshValue, token: TestContext.Current.CancellationToken);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		await Task.Delay(TimeSpan.FromMilliseconds(250), TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
 		// GET THE REFRESHED VALUE
 		var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);

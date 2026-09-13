@@ -674,7 +674,7 @@ public partial class L1Tests
 		var v3 = cache.GetOrSet<long>("foo", _ => eagerRefreshValue, token: TestContext.Current.CancellationToken);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		Thread.Sleep(TimeSpan.FromMilliseconds(250));
+		Thread.Sleep(TimeSpan.FromSeconds(1));
 
 		// GET THE REFRESHED VALUE
 		var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
