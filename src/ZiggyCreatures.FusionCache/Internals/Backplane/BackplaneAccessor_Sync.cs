@@ -135,6 +135,9 @@ internal partial class BackplaneAccessor
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] canceled " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+
 			throw;
 		}
 		catch (Exception exc)
