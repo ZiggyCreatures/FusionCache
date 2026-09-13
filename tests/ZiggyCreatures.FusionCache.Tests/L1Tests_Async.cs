@@ -1353,6 +1353,55 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public async Task CanRemoveByTagWithBehaviorRemoveIgnoreStaleDataAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove,
+			DefaultEntryOptions = {
+				IsFailSafeEnabled = true,
+			}
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, ct) =>
+			{
+				if (ctx.HasStaleValue)
+					return ctx.NotModified();
+
+				return 11;
+			},
+			tags: ["x", "y"],
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo1);
+
+		await cache.RemoveByTagAsync("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, ct) =>
+			{
+				if (ctx.HasStaleValue)
+					return ctx.NotModified();
+
+				return 2;
+			},
+			tags: ["x", "y"],
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(2, foo2);
+	}
+
+	[Fact]
 	public async Task CanClearAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
