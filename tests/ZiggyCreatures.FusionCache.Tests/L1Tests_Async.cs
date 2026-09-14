@@ -733,7 +733,7 @@ public partial class L1Tests
 		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => eagerRefreshValue, token: TestContext.Current.CancellationToken);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		await Task.Delay(TimeSpan.FromMilliseconds(250), TestContext.Current.CancellationToken);
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
 
 		// GET THE REFRESHED VALUE
 		var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
@@ -1350,6 +1350,55 @@ public partial class L1Tests
 		Assert.Equal(2, bar2.Value);
 		Assert.True(bar3.HasValue);
 		Assert.Equal(2, bar3.Value);
+	}
+
+	[Fact]
+	public async Task CanRemoveByTagWithBehaviorRemoveIgnoreStaleDataAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove,
+			DefaultEntryOptions = {
+				IsFailSafeEnabled = true,
+			}
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		await cache.SetAsync<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, ct) =>
+			{
+				if (ctx.HasStaleValue)
+					return ctx.NotModified();
+
+				return 11;
+			},
+			tags: ["x", "y"],
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo1);
+
+		await cache.RemoveByTagAsync("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, ct) =>
+			{
+				if (ctx.HasStaleValue)
+					return ctx.NotModified();
+
+				return 2;
+			},
+			tags: ["x", "y"],
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(2, foo2);
 	}
 
 	[Fact]

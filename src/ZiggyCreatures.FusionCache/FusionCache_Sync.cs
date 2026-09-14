@@ -960,10 +960,18 @@ public partial class FusionCache
 				{
 					// NOT VALID, VIA REMOVE BY TAG
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry expired via tag {Tag}", CacheName, InstanceId, operationId, key, tag);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry invalidated by tag {Tag}", CacheName, InstanceId, operationId, key, tag);
 
 					if (executeCascadeAction == false)
-						return (entry, false);
+					{
+						switch (_options.RemoveByTagBehavior)
+						{
+							case RemoveByTagBehavior.Remove:
+								return (null, false);
+							case RemoveByTagBehavior.Expire:
+								return (entry, false);
+						}
+					}
 
 					// EXPIRE ENTRY
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -973,13 +981,11 @@ public partial class FusionCache
 					{
 						case RemoveByTagBehavior.Remove:
 							RemoveInternal(key, _cascadeRemoveByTagEntryOptions, token);
-							break;
+							return (null, false);
 						case RemoveByTagBehavior.Expire:
 							ExpireInternal(key, _cascadeRemoveByTagEntryOptions, token);
-							break;
+							return (entry, false);
 					}
-
-					return (entry, false);
 				}
 			}
 		}

@@ -51,6 +51,8 @@ public partial class L1L2Tests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task AppliesDistributedCacheHardTimeoutAsync(SerializerType serializerType)
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
 		var keyFoo = CreateRandomCacheKey("foo");
 
 		var simulatedDelayMs = TimeSpan.FromMilliseconds(2_000);
@@ -60,7 +62,7 @@ public partial class L1L2Tests
 		var chaosDistributedCache = new ChaosDistributedCache(distributedCache);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
-		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache);
+		using var fusionCache = new FusionCache(CreateFusionCacheOptions(), memoryCache, logger: logger);
 		fusionCache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
 
 		await fusionCache.SetAsync<int>(keyFoo, 42, new FusionCacheEntryOptions().SetDurationSec(1).SetFailSafe(true), token: TestContext.Current.CancellationToken);

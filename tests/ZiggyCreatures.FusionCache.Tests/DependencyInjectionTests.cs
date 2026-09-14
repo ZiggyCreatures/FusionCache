@@ -18,6 +18,7 @@ using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
 using ZiggyCreatures.Caching.Fusion.Internals.DistributedLocker;
 using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
+using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Redis;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
 using ZiggyCreatures.Caching.Fusion.Plugins;
@@ -115,6 +116,10 @@ public class DependencyInjectionTests
 			{
 				opt.DefaultEntryOptions.DistributedCacheDuration = TimeSpan.FromSeconds(123);
 			})
+			.WithOptions((sp, opt) =>
+			{
+				opt.DefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(456);
+			})
 			.WithDefaultEntryOptions(opt =>
 			{
 				opt.Duration = TimeSpan.FromMinutes(123);
@@ -131,6 +136,7 @@ public class DependencyInjectionTests
 		Assert.Equal(FusionCacheOptions.DefaultCacheName, cache.CacheName);
 		Assert.Equal(123, options2.AutoRecoveryMaxItems);
 		Assert.Equal(TimeSpan.FromSeconds(123), cache.DefaultEntryOptions.DistributedCacheDuration!.Value);
+		Assert.Equal(TimeSpan.FromSeconds(456), cache.DefaultEntryOptions.MemoryCacheDuration!.Value);
 		Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
 	}
 
@@ -1134,8 +1140,13 @@ public class DependencyInjectionTests
 
 		services.AddSingleton<ILogger<FusionCache>>(logger);
 
-		// FOO: EXTERNAL (NAMED) OPTIONS + DISTRIBUTED CACHE (MEMORY, DIRECT) + SERIALIZER (FACTORY) + BACKPLANE (REDIS)
+		// FOO: EXTERNAL (NAMED) OPTIONS + DISTRIBUTED CACHE (MEMORY, DIRECT) + SERIALIZER (FACTORY) + BACKPLANE (REDIS) + LOCKER (REDIS)
 		services.Configure<RedisBackplaneOptions>("Foo", opt =>
+		{
+			opt.Configuration = "CONN_FOO";
+		});
+
+		services.Configure<RedisDistributedLockerOptions>("Foo", opt =>
 		{
 			opt.Configuration = "CONN_FOO";
 		});
@@ -1145,7 +1156,9 @@ public class DependencyInjectionTests
 			.WithDistributedCache(
 				new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()))
 			)
-			.WithStackExchangeRedisBackplane();
+			.WithStackExchangeRedisBackplane()
+			.WithRedisDistributedLocker()
+		;
 
 		// BAR: PLAIN
 		services.AddFusionCache("Bar");
@@ -1189,6 +1202,8 @@ public class DependencyInjectionTests
 
 		var fooBackplane = TestsUtils.GetBackplane<RedisBackplane>(fooCache);
 		var fooBackplaneOptions = TestsUtils.GetRedisBackplaneOptions(fooCache)!;
+		var fooDistributedLocker = TestsUtils.GetDistributedLocker<RedisDistributedLocker>(fooCache);
+		var fooDistributedLockerLockerOptions = TestsUtils.GetRedisDistributedLockerOptions(fooCache)!;
 		var barBackplane = TestsUtils.GetBackplane<IFusionCacheBackplane>(barCache);
 		var bazBackplane = TestsUtils.GetBackplane<MemoryBackplane>(bazCache);
 		var defaultBackplane = TestsUtils.GetBackplane<RedisBackplane>(defaultCache);
@@ -1201,6 +1216,9 @@ public class DependencyInjectionTests
 		Assert.True(fooCache.HasBackplane);
 		Assert.NotNull(fooBackplane);
 		Assert.Equal("CONN_FOO", fooBackplaneOptions.Configuration);
+		Assert.True(fooCache.HasDistributedLocker);
+		Assert.NotNull(fooDistributedLocker);
+		Assert.Equal("CONN_FOO", fooDistributedLockerLockerOptions.Configuration);
 
 		Assert.NotNull(barCache);
 		Assert.Equal("Bar", barCache.CacheName);
