@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AsyncKeyedLock" Version="8.0.2" />
+		<PackageReference Include="AsyncKeyedLock" Version="8.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
