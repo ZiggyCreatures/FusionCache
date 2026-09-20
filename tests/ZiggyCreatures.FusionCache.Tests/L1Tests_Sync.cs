@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
 
 namespace FusionCacheTests;
@@ -792,6 +793,52 @@ public partial class L1Tests
 		Assert.True(v4 > v3);
 		Assert.True(v4 == v3EagerResult);
 		Assert.False(v4 == v4SupposedlyNot);
+	}
+
+	[Fact]
+	public void CanHandleEagerRefreshWithFailingFactory()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var locker = new StandardMemoryLocker();
+		var duration = TimeSpan.FromSeconds(2);
+		var eagerRefreshThreshold = 0.2f;
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold);
+
+		var options = new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = duration,
+				EagerRefreshThreshold = eagerRefreshThreshold
+			}
+		};
+		using var cache = new FusionCache(options, memoryLocker: locker, logger: logger);
+
+		Assert.False(locker.IsLockHeld("foo"));
+
+		// EXECUTE FACTORY
+		var v1 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+
+		Assert.False(locker.IsLockHeld("foo"));
+
+		// USE CACHED VALUE
+		var v2 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(v1, v2);
+		Assert.False(locker.IsLockHeld("foo"));
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		Thread.Sleep(eagerDuration.PlusALittleBit());
+
+		// EAGER REFRESH KICKS IN
+		var eagerRefreshValue = DateTimeOffset.UtcNow.Ticks;
+		logger.LogInformation("EAGER REFRESH VALUE: {EagerRefreshValue}", eagerRefreshValue);
+		var v3 = cache.GetOrSet<long>("foo", _ => throw new Exception("Simulated failure"), token: TestContext.Current.CancellationToken);
+
+		Thread.Sleep(TimeSpan.FromSeconds(1));
+
+		Assert.Equal(v2, v3);
+		Assert.False(locker.IsLockHeld("foo"));
 	}
 
 	[Fact]

@@ -44,7 +44,32 @@ public partial class FusionCache
 
 		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
 
-		var factoryTask = factory(ctx, CancellationToken.None);
+		Task<TValue>? factoryTask;
+		try
+		{
+			factoryTask = factory(ctx, CancellationToken.None);
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
+				_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
+			activity?.AddException(exc);
+			activity?.Dispose();
+
+			// EVENT
+			_events.OnBackgroundFactoryError(operationId, key);
+
+			if (memoryLockObj is not null)
+				ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+			if (distributedLockObj is not null)
+				await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
+
+			return;
+		}
 
 		BackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, distributedLockObj, activity);
 	}

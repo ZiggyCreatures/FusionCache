@@ -1,11 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using CacheManager.Core.Internal;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
 
 namespace FusionCacheTests;
@@ -851,6 +851,63 @@ public partial class L1Tests
 		Assert.True(v4 > v3);
 		Assert.True(v4 == v3EagerResult);
 		Assert.False(v4 == v4SupposedlyNot);
+	}
+
+	[Fact]
+	public async Task CanHandleEagerRefreshWithFailingFactoryAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var locker = new StandardMemoryLocker();
+		var duration = TimeSpan.FromSeconds(2);
+		var eagerRefreshThreshold = 0.2f;
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold);
+
+		var options = new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = duration,
+				EagerRefreshThreshold = eagerRefreshThreshold
+			}
+		};
+		using var cache = new FusionCache(options, memoryLocker: locker, logger: logger);
+
+		Assert.False(locker.IsLockHeld("foo"));
+		Assert.False(locker.IsLockHeld("bar"));
+
+		// EXECUTE FACTORY
+		var foo1 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		var bar1 = await cache.GetOrSetAsync<long>("bar", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+
+		Assert.False(locker.IsLockHeld("foo"));
+		Assert.False(locker.IsLockHeld("bar"));
+
+		// USE CACHED VALUE
+		var foo2 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		var bar2 = await cache.GetOrSetAsync<long>("bar", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(foo1, foo2);
+		Assert.Equal(bar1, bar2);
+		Assert.False(locker.IsLockHeld("foo"));
+		Assert.False(locker.IsLockHeld("bar"));
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		await Task.Delay(eagerDuration.PlusALittleBit(), TestContext.Current.CancellationToken);
+
+		// EAGER REFRESH KICKS IN
+		var eagerRefreshValue = DateTimeOffset.UtcNow.Ticks;
+		logger.LogInformation("EAGER REFRESH VALUE: {EagerRefreshValue}", eagerRefreshValue);
+		// NON-ASYNC FACTORY, THROWING WITHOUT THE INTERNAL ASYNC MACHINERY
+		var foo3 = await cache.GetOrSetAsync<long>("foo", _ => throw new Exception("Simulated failure"), token: TestContext.Current.CancellationToken);
+		// NORMAL ASYNC FACTORY, THROWING WITHIN THE INTERNAL ASYNC MACHINERY
+		var bar3 = await cache.GetOrSetAsync<long>("bar", async _ => throw new Exception("Simulated failure"), token: TestContext.Current.CancellationToken);
+
+		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+		Assert.Equal(foo2, foo3);
+		Assert.Equal(bar2, bar3);
+		Assert.False(locker.IsLockHeld("foo"));
+		Assert.False(locker.IsLockHeld("bar"));
 	}
 
 	[Fact]
