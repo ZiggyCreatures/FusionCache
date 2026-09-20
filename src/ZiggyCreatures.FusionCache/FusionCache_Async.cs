@@ -197,7 +197,7 @@ public partial class FusionCache
 				(distributedEntry, distributedEntryIsValid) = await _dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 
 				// TAGGING (DISTRIBUTED)
-				if (distributedEntry is not null && distributedEntryIsValid)
+				if (distributedEntry is not null /*&& distributedEntryIsValid*/)
 				{
 					(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 				}
@@ -241,7 +241,7 @@ public partial class FusionCache
 						(distributedEntry, distributedEntryIsValid) = await _dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 
 						// TAGGING (DISTRIBUTED)
-						if (distributedEntry is not null && distributedEntryIsValid)
+						if (distributedEntry is not null /*&& distributedEntryIsValid*/)
 						{
 							(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 						}

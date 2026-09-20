@@ -945,6 +945,81 @@ public partial class L1L2Tests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task CanClearWithoutReturningStaleDataAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+		var duration = TimeSpan.FromSeconds(1);
+		var memoryDuration = TimeSpan.FromMilliseconds(100);
+		var distributedCache = CreateDistributedCache();
+
+		// CACHE 1
+		var options1 = new FusionCacheOptions
+		{
+			CacheName = cacheName,
+			CacheKeyPrefix = cacheName + ":",
+			DefaultEntryOptions = {
+				Duration = duration,
+				MemoryCacheDuration = memoryDuration,
+				IsFailSafeEnabled = true
+			},
+			TagsDefaultEntryOptions = {
+				Duration = duration,
+				MemoryCacheDuration = memoryDuration,
+			}
+		};
+		options1.SetInstanceId("C1");
+		using var cache1 = new FusionCache(options1, logger: logger);
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		// CACHE 2
+		var options2 = new FusionCacheOptions
+		{
+			CacheName = cacheName,
+			CacheKeyPrefix = cacheName + ":",
+			DefaultEntryOptions = {
+				Duration = duration,
+				MemoryCacheDuration = memoryDuration,
+				IsFailSafeEnabled = true
+			},
+			TagsDefaultEntryOptions = {
+				Duration = duration,
+				MemoryCacheDuration = memoryDuration,
+			}
+		};
+		options2.SetInstanceId("C2");
+		using var cache2 = new FusionCache(options2, logger: logger);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
+
+		logger.LogInformation("CACHE 1: SET");
+		await cache1.SetAsync<int>("foo", 1, token: TestContext.Current.CancellationToken);
+
+		logger.LogInformation("CACHE 2: TRYGET");
+		var cache2MaybeFoo1 = await cache2.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(1, cache2MaybeFoo1.Value);
+
+		logger.LogInformation("WAITING TO EXPIRE");
+		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
+
+		logger.LogInformation("CACHE 1: CLEAR");
+		await cache1.ClearAsync(false, token: TestContext.Current.CancellationToken);
+
+		await Assert.ThrowsAsync<Exception>(async () =>
+		{
+			logger.LogInformation("CACHE 1: GETORSET");
+			var cache1Foo2 = await cache1.GetOrSetAsync<int>("foo", async _ => throw new Exception("Error"), token: TestContext.Current.CancellationToken);
+		});
+
+		await Assert.ThrowsAsync<Exception>(async () =>
+		{
+			logger.LogInformation("CACHE 2: GETORSET");
+			var cache2Foo2 = await cache2.GetOrSetAsync<int>("foo", async _ => throw new Exception("Error"), token: TestContext.Current.CancellationToken);
+		});
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanUseMultiNodeCachesWithSizeLimitAsync(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
