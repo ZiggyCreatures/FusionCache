@@ -1,5 +1,6 @@
 ﻿using AsyncKeyedLock;
 using Microsoft.Extensions.Logging;
+using System.Runtime.CompilerServices;
 
 namespace ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 
@@ -7,62 +8,73 @@ namespace ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
 /// An implementation of <see cref="IFusionCacheMemoryLocker"/> based on AsyncKeyedLocker.
 /// </summary>
 public sealed class AsyncKeyedMemoryLocker
-	: IFusionCacheMemoryLocker
+    : IFusionCacheMemoryLocker
 {
-	private readonly AsyncKeyedLocker<string> _locker;
+    private readonly AsyncKeyedLocker<string> _locker;
 
-	/// <summary>
-	/// Initializes a new instance of the <see cref="AsyncKeyedLocker{TKey}"/> class.
-	/// </summary>
-	public AsyncKeyedMemoryLocker(AsyncKeyedLockOptions? options = null)
-	{
-		options ??= new AsyncKeyedLockOptions();
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AsyncKeyedLocker{TKey}"/> class.
+    /// </summary>
+    public AsyncKeyedMemoryLocker(AsyncKeyedLockOptions? options = null)
+    {
+        options ??= new AsyncKeyedLockOptions();
 
-		_locker = new AsyncKeyedLocker<string>(options);
-	}
+        _locker = new AsyncKeyedLocker<string>(options);
+    }
 
-	/// <inheritdoc/>
-	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
-	{
-		return await _locker.LockOrNullAsync(key, timeout, token).ConfigureAwait(false);
-	}
+    /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+    {
+        var acquireTask = _locker.LockOrNullAsync(key, timeout, token);
 
-	/// <inheritdoc/>
-	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
-	{
-		return _locker.LockOrNull(key, timeout, token);
-	}
+        return acquireTask.IsCompletedSuccessfully ?
+            new ValueTask<object?>(acquireTask.Result) :
+            AwaitAcquireLockAsync(acquireTask);
+    }
 
-	/// <inheritdoc/>
-	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
-	{
-		if (lockObj is null)
-			return;
+    private static async ValueTask<object?> AwaitAcquireLockAsync(ValueTask<IDisposable?> acquireTask)
+    {
+        return await acquireTask.ConfigureAwait(false);
+    }
 
-		try
-		{
-			((IDisposable)lockObj).Dispose();
-		}
-		catch (Exception exc)
-		{
-			if (logger?.IsEnabled(LogLevel.Warning) ?? false)
-				logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release an AsyncKeyedLock result in the memory locker", cacheName, cacheInstanceId, operationId, key);
-		}
-	}
+    /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+    {
+        return _locker.LockOrNull(key, timeout, token);
+    }
 
-	// IDISPOSABLE
-	private bool disposedValue;
+    /// <inheritdoc/>
+    public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
+    {
+        if (lockObj is null)
+            return;
 
-	/// <inheritdoc/>
-	public void Dispose()
-	{
-		if (disposedValue)
-		{
-			return;
-		}
+        try
+        {
+            ((IDisposable)lockObj).Dispose();
+        }
+        catch (Exception exc)
+        {
+            if (logger?.IsEnabled(LogLevel.Warning) ?? false)
+                logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): an error occurred while trying to release an AsyncKeyedLock result in the memory locker", cacheName, cacheInstanceId, operationId, key);
+        }
+    }
 
-		_locker?.Dispose();
+    // IDISPOSABLE
+    private bool disposedValue;
 
-		disposedValue = true;
-	}
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (disposedValue)
+        {
+            return;
+        }
+
+        _locker?.Dispose();
+
+        disposedValue = true;
+    }
 }
