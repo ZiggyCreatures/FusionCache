@@ -347,17 +347,29 @@ public partial class FusionCache
 				}
 			}
 		}
+		catch
+		{
+			// MEMORY LOCK
+			if (memoryLockObj is not null)
+				memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+			// DISTRIBUTED LOCK
+			if (distributedLockObj is not null)
+				distributedLockObj = ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
+
+			throw;
+		}
 		finally
 		{
 			// MEMORY LOCK
 			if (memoryLockObj is not null)
-				ReleaseMemoryLock(operationId, key, memoryLockObj);
+				memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
 
-			// DISTRIBUTED LOCK
 			if (hasNewValue == false)
 			{
+				// DISTRIBUTED LOCK
 				if (distributedLockObj is not null)
-					ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
+					distributedLockObj = ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
 			}
 		}
 
@@ -369,6 +381,7 @@ public partial class FusionCache
 				if (RequiresDistributedOperations(options))
 				{
 					DistributedSetEntry<TValue>(operationId, key, entry, options, distributedLockObj, token);
+					distributedLockObj = null;
 				}
 			}
 
@@ -1215,7 +1228,7 @@ public partial class FusionCache
 
 				// DISTRIBUTED LOCKER
 				if (distributedLockObj is not null)
-					ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
+					distributedLockObj = ReleaseDistributedLock(operationId, key, distributedLockObj, options, token);
 
 				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
 				var isBackplaneBackground = isBackground || !mustAwaitBackplaneCompletion;
