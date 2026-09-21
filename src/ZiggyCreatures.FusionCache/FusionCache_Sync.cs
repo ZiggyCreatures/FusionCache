@@ -25,7 +25,7 @@ public partial class FusionCache
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring on another instance/node", CacheName, InstanceId, operationId, key);
 
 				if (memoryLockObj is not null)
-				ReleaseMemoryLock(operationId, key, memoryLockObj);
+					ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				return;
 			}
