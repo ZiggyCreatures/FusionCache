@@ -172,7 +172,7 @@ public partial class FusionCache
 				(distributedEntry, distributedEntryIsValid) = dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
 
 				// TAGGING (DISTRIBUTED)
-				if (distributedEntry is not null && distributedEntryIsValid)
+				if (distributedEntry is not null /*&& distributedEntryIsValid*/)
 				{
 					(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 				}
@@ -216,7 +216,7 @@ public partial class FusionCache
 						(distributedEntry, distributedEntryIsValid) = _dca!.TryGetEntry<TValue>(operationId, key, options, memoryEntry is not null, null, token);
 
 						// TAGGING (DISTRIBUTED)
-						if (distributedEntry is not null && distributedEntryIsValid)
+						if (distributedEntry is not null /*&& distributedEntryIsValid*/)
 						{
 							(distributedEntry, distributedEntryIsValid) = CheckEntrySecondaryExpiration(operationId, key, distributedEntry, false, token);
 						}
