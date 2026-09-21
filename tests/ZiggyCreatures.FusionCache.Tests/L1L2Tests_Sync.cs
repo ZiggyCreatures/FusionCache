@@ -1473,6 +1473,107 @@ public partial class L1L2Tests
 
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]
+	public void DistributedLockerWorksWithL1Fail(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var simulatedFactoryDuration = TimeSpan.FromSeconds(2);
+
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+		var optionsA = CreateFusionCacheOptions(cacheName);
+		optionsA.SetInstanceId("CA");
+		optionsA.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(10);
+
+		var distributedLocker = new MemoryDistributedLocker(new MemoryDistributedLockerOptions());
+
+		using var memoryCacheA = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 100
+		});
+		using var cacheA = new FusionCache(optionsA, memoryCache: memoryCacheA, logger: logger);
+		cacheA.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheA.SetupDistributedLocker(distributedLocker);
+
+		var optionsB = CreateFusionCacheOptions(cacheName);
+		optionsB.SetInstanceId("CB");
+		optionsB.DefaultEntryOptions.Duration = TimeSpan.FromSeconds(10);
+		using var memoryCacheB = new MemoryCache(new MemoryCacheOptions()
+		{
+			SizeLimit = 100
+		});
+		using var cacheB = new FusionCache(optionsB, memoryCache: memoryCacheB, logger: logger);
+		cacheB.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+		cacheB.SetupDistributedLocker(distributedLocker);
+
+		var factoryExecutionCount = 0;
+		var cacheAOperationEnded = false;
+		var cacheBOperationEnded = false;
+		int fooA1 = -1, fooB1 = -1;
+
+		var taskA = Task.Run(() =>
+		{
+			try
+			{
+				fooA1 = cacheA.GetOrSet<int>(
+					"foo",
+					ct =>
+					{
+						Interlocked.Increment(ref factoryExecutionCount);
+						Thread.Sleep(simulatedFactoryDuration);
+						return 1;
+					},
+					token: TestContext.Current.CancellationToken
+				);
+			}
+			finally
+			{
+				cacheAOperationEnded = true;
+			}
+		}, TestContext.Current.CancellationToken);
+
+		var taskB = Task.Run(() =>
+		{
+			try
+			{
+				fooB1 = cacheB.GetOrSet<int>(
+					"foo",
+					ct =>
+					{
+						Interlocked.Increment(ref factoryExecutionCount);
+						Thread.Sleep(simulatedFactoryDuration);
+						return 2;
+					},
+					token: TestContext.Current.CancellationToken
+				);
+			}
+			finally
+			{
+				cacheBOperationEnded = true;
+			}
+		}, TestContext.Current.CancellationToken);
+
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			taskA.GetAwaiter().GetResult();
+		});
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			taskB.GetAwaiter().GetResult();
+		});
+
+		Assert.Equal(2, factoryExecutionCount);
+		Assert.False(distributedLocker.IsLockHeld("foo"));
+		Assert.True(cacheAOperationEnded);
+		Assert.True(cacheBOperationEnded);
+		Assert.Equal(-1, fooA1);
+		Assert.Equal(-1, fooB1);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
 	public void CanHandleExpireMidFlight(SerializerType serializerType)
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
