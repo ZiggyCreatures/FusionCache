@@ -1242,9 +1242,7 @@ public partial class FusionCache
 
 				// DISTRIBUTED LOCKER
 				if (distributedLockObj is not null)
-				{
 					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
-				}
 
 				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
 				var isBackplaneBackground = isBackground || !mustAwaitBackplaneCompletion;
