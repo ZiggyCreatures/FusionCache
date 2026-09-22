@@ -248,7 +248,7 @@ internal partial class BackplaneAccessor
 
 		// ACTIVITY
 
-		//// TEMP SWAP THE CURRENT ACTIVITY TO HAVE THE NEW ONE AS ROOT
+		// TEMP SWAP THE CURRENT ACTIVITY TO HAVE THE NEW ONE AS ROOT
 		//var previous = Activity.Current;
 		//Activity.Current = null;
 
