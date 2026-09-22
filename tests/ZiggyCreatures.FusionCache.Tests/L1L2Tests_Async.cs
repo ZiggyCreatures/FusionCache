@@ -301,11 +301,24 @@ public partial class L1L2Tests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task SpecificDistributedCacheDurationWithFailSafeWorksAsync(SerializerType serializerType)
 	{
-		var distributedCache = CreateDistributedCache();
-		using var fusionCache = new FusionCache(CreateFusionCacheOptions()).SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
-		await fusionCache.SetAsync<int>("foo", 21, opt => opt.SetFailSafe(true).SetDuration(TimeSpan.FromSeconds(1)).SetDistributedCacheDuration(TimeSpan.FromMinutes(1)), token: TestContext.Current.CancellationToken);
+		var dcache = CreateDistributedCache();
+		using var cache = new FusionCache(CreateFusionCacheOptions());
+		cache.SetupDistributedCache(dcache, TestsUtils.GetSerializer(serializerType));
+		
+		await cache.SetAsync<int>(
+			"foo",
+			21,
+			opt => opt
+				.SetFailSafe(true)
+				.SetDuration(TimeSpan.FromSeconds(1))
+				.SetDistributedCacheDuration(TimeSpan.FromMinutes(1)),
+			token: TestContext.Current.CancellationToken
+		);
+
 		await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
-		var value = await fusionCache.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken);
+
+		var value = await cache.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken);
+
 		Assert.Equal(21, value);
 	}
 
@@ -549,6 +562,7 @@ public partial class L1L2Tests
 
 		var duration = TimeSpan.FromSeconds(2);
 		var eagerRefreshThreshold = 0.2f;
+		var eagerRefreshBarrier = (duration * eagerRefreshThreshold).PlusALittleBit();
 
 		var distributedCache = CreateDistributedCache();
 		using var cache = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
@@ -564,8 +578,7 @@ public partial class L1L2Tests
 		var v2 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
 
 		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
-		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
-		await Task.Delay(eagerDuration, TestContext.Current.CancellationToken);
+		await Task.Delay(eagerRefreshBarrier, TestContext.Current.CancellationToken);
 
 		// EAGER REFRESH KICKS IN
 		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
@@ -633,6 +646,91 @@ public partial class L1L2Tests
 		logger.LogTrace("Elapsed (with extra pad): {ElapsedMs} ms", elapsedMs);
 
 		Assert.True(elapsedMs < syntheticDelay.TotalMilliseconds);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task EagerRefreshChecksL2FirstAsync(SerializerType serializerType)
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var duration = TimeSpan.FromSeconds(10);
+		var eagerRefreshThreshold = 0.1f;
+		var eagerRefreshBarrier = (duration * eagerRefreshThreshold).PlusALittleBit();
+
+		var cacheName = FusionCacheInternalUtils.GenerateOperationId();
+
+		var dcache = CreateDistributedCache();
+		var chaosDistributedCache = new ChaosDistributedCache(dcache);
+
+		// CACHE A
+		var options = CreateFusionCacheOptions(cacheName);
+		options.SetInstanceId("C1");
+		options.DefaultEntryOptions.Duration = duration;
+		options.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
+		using var cache = new FusionCache(options, logger: logger);
+		cache.SetupDistributedCache(chaosDistributedCache, TestsUtils.GetSerializer(serializerType));
+
+		var factoryExecutionCount = 0;
+
+		logger.LogInformation("STEP 1");
+
+		var foo1 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 1;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo1);
+
+		logger.LogInformation("STEP 2");
+
+		// BYPASS L1 AND WRITE DIRECTLY TO L2 TO SIMULATE AN EXTERNAL UPDATE
+		await cache.SetAsync("foo", 11, opt => opt.SetSkipMemoryCache(), token: TestContext.Current.CancellationToken);
+
+		logger.LogInformation("WAIT FOR EAGER REFRESH BARRIER");
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE CROSSED
+		await Task.Delay(eagerRefreshBarrier, TestContext.Current.CancellationToken);
+
+		logger.LogInformation("STEP 3");
+
+		// EAGER REFRESH KICKS IN: CURRENT VALUE IS RETURNED + L1 IS UPDATED FROM L2
+		var foo2 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 2;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo2);
+
+		logger.LogInformation("WAIT FOR EAGER REFRESH TO UPDATE L1 FROM L2");
+
+		// ALLOW EAGER REFRESH TO UPDATE L1 FROM L2
+		await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+
+		logger.LogInformation("STEP 4");
+
+		var foo3 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async ct =>
+			{
+				Interlocked.Increment(ref factoryExecutionCount);
+				return 3;
+			},
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(11, foo3);
+		Assert.Equal(1, factoryExecutionCount);
 	}
 
 	[Theory]
@@ -1681,30 +1779,6 @@ public partial class L1L2Tests
 			token: TestContext.Current.CancellationToken
 		);
 
-		Assert.Equal(2, foo);
+		Assert.Equal(1, foo);
 	}
-
-	//[Theory]
-	//[ClassData(typeof(SerializerTypesClassData))]
-	//public async Task MemoryExpirationPreservedWhenL1L2DurationsAreDifferentAsync(SerializerType serializerType)
-	//{
-	//	var memoryDuration = TimeSpan.FromSeconds(2);
-	//	var distributedDuration = TimeSpan.FromSeconds(10);
-
-	//	var dc = CreateDistributedCache();
-	//	using var fc1 = new FusionCache(CreateFusionCacheOptions());
-	//	fc1.SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
-	//	using var fc2 = new FusionCache(CreateFusionCacheOptions());
-	//	fc2.SetupDistributedCache(dc, TestsUtils.GetSerializer(serializerType));
-
-	//	await fc1.SetAsync<int>("foo", 21, opt => opt.SetDuration(memoryDuration).SetDistributedCacheDuration(distributedDuration));
-	//	//await Task.Delay(memoryDuration.PlusALittleBit());
-	//	var v1 = await fc2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(memoryDuration).SetDistributedCacheDuration(distributedDuration));
-	//	await dc.RemoveAsync("foo");
-	//	await Task.Delay(memoryDuration.PlusALittleBit());
-	//	var v2 = await fc2.GetOrDefaultAsync<int>("foo", 42, opt => opt.SetDuration(memoryDuration).SetDistributedCacheDuration(distributedDuration));
-
-	//	Assert.Equal(21, v1);
-	//	Assert.Equal(42, v2);
-	//}
 }
