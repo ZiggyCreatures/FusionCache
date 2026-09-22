@@ -84,6 +84,18 @@ public sealed class MemoryDistributedLocker
 		}
 	}
 
+	internal bool IsLockHeld(string key)
+	{
+		SemaphoreSlim? semaphore = null;
+		if (_lockCache.TryGetValue(key, out semaphore) == false)
+			return false;
+
+		if (semaphore is null)
+			return false;
+
+		return semaphore.CurrentCount == 0;
+	}
+
 	/// <inheritdoc/>
 	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, string lockName, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{

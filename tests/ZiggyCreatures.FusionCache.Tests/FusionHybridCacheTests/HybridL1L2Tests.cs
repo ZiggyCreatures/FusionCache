@@ -202,6 +202,8 @@ public class HybridL1L2Tests
 		var chaosdc = new ChaosDistributedCache(dc);
 
 		var options = CreateFusionCacheOptions();
+		options.DisableTagging = true;
+		options.DefaultEntryOptions.Duration = duration;
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
 		options.DefaultEntryOptions.DistributedCacheSoftTimeout = softTimeout;
 		options.DefaultEntryOptions.DistributedCacheHardTimeout = hardTimeout;
@@ -218,8 +220,15 @@ public class HybridL1L2Tests
 		chaosdc.SetAlwaysDelayExactly(simulatedDelay);
 
 		var sw = Stopwatch.StartNew();
-		var res = await cache.GetOrCreateAsync<int>(keyFoo, async _ => throw new Exception("Sloths are cool"), new HybridCacheEntryOptions { Expiration = TimeSpan.FromSeconds(1) }
-, cancellationToken: TestContext.Current.CancellationToken);
+		var res = await cache.GetOrCreateAsync<int>(
+			keyFoo,
+			async _ => throw new Exception("Sloths are cool"),
+			new HybridCacheEntryOptions
+			{
+				Expiration = duration
+			},
+			cancellationToken: TestContext.Current.CancellationToken
+		);
 		sw.Stop();
 
 		var elapsedMs = sw.GetElapsedWithSafePad().TotalMilliseconds;
@@ -631,6 +640,7 @@ public class HybridL1L2Tests
 		var chaosdc = new ChaosDistributedCache(dc, CreateXUnitLogger<ChaosDistributedCache>());
 
 		var options = CreateFusionCacheOptions();
+		options.DisableTagging = true;
 		options.DefaultEntryOptions.Duration = duration;
 		options.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
 		using var fc = new FusionCache(options, logger: CreateXUnitLogger<FusionCache>());

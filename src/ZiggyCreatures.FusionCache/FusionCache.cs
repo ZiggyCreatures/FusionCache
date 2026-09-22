@@ -515,10 +515,7 @@ public sealed partial class FusionCache
 
 					// MEMORY LOCK
 					if (memoryLockObj is not null)
-					{
-						ReleaseMemoryLock(operationId, key, memoryLockObj);
-						memoryLockObj = null;
-					}
+						memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 					if (RequiresDistributedOperations(options))
 					{
@@ -547,10 +544,10 @@ public sealed partial class FusionCache
 			finally
 			{
 				if (memoryLockObj is not null)
-					ReleaseMemoryLock(operationId, key, memoryLockObj);
+					memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				if (distributedLockObj is not null)
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
+					distributedLockObj = await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
 			}
 		});
 	}
@@ -603,10 +600,10 @@ public sealed partial class FusionCache
 		return lockObj;
 	}
 
-	private void ReleaseMemoryLock(string operationId, string key, object? lockObj)
+	private object? ReleaseMemoryLock(string operationId, string key, object? lockObj)
 	{
 		if (lockObj is null)
-			return;
+			return null;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] releasing MEMORY LOCK", CacheName, InstanceId, operationId, key);
@@ -617,11 +614,15 @@ public sealed partial class FusionCache
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] MEMORY LOCK released", CacheName, InstanceId, operationId, key);
+
+			return null;
 		}
 		catch (Exception exc)
 		{
 			if (_logger?.IsEnabled(LogLevel.Warning) ?? false)
 				_logger.Log(LogLevel.Warning, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [ML] releasing the MEMORY LOCK has thrown an exception", CacheName, InstanceId, operationId, key);
+
+			return lockObj;
 		}
 	}
 
@@ -643,26 +644,26 @@ public sealed partial class FusionCache
 		return _dla!.AcquireLock(operationId, key, timeout, options, token);
 	}
 
-	private async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
+	private async ValueTask<object?> ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
-			return;
+			return null;
 
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, options, token).ConfigureAwait(false);
+		return await _dla!.ReleaseDistributedLockAsync(operationId, key, lockObj, options, token).ConfigureAwait(false);
 	}
 
-	private void ReleaseDistributedLock(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
+	private object? ReleaseDistributedLock(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
-			return;
+			return null;
 
 		if (HasDistributedLocker == false)
 			throw new InvalidOperationException("No distributed locker has been configured for this FusionCache instance.");
 
-		_dla!.ReleaseDistributedLock(operationId, key, lockObj, options, token);
+		return _dla!.ReleaseDistributedLock(operationId, key, lockObj, options, token);
 	}
 
 	// FACTORY STUFF
@@ -1096,6 +1097,9 @@ public sealed partial class FusionCache
 			return true;
 
 		if (HasBackplane && options.SkipBackplaneNotifications == false)
+			return true;
+
+		if (HasDistributedLocker && options.SkipDistributedLocker == false)
 			return true;
 
 		return false;

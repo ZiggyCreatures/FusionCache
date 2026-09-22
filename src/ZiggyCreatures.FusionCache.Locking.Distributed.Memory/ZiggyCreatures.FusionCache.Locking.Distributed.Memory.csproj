@@ -2,13 +2,14 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<Version>2.7.2</Version>
+		<Version>2.8.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Locking.Distributed.Memory</PackageId>
 		<Description>FusionCache in memory distributed locker, used for testing.</Description>
 		<PackageTags>distributed-locker;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
+			- Add: new builder ext methods
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--<EnablePackageValidation>true</EnablePackageValidation>-->
@@ -25,6 +26,11 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Benchmarks" />
+		<InternalsVisibleTo Include="ZiggyCreatures.FusionCache.Tests" />
 	</ItemGroup>
 
 </Project>

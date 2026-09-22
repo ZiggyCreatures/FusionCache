@@ -12,7 +12,7 @@ public partial class FusionCache
 {
 	// GET OR SET
 
-	private async ValueTask MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object memoryLockObj, ActivityContext parentContext, CancellationToken token)
+	private async ValueTask MaybeExecuteEagerRefreshWithAsyncFactoryAsync<TValue>(string operationId, string key, string originalKey, string[]? tags, Func<FusionCacheFactoryExecutionContext<TValue>, CancellationToken, Task<TValue>> factory, FusionCacheEntryOptions options, IFusionCacheMemoryEntry memoryEntry, object? memoryLockObj, ActivityContext parentContext, CancellationToken token)
 	{
 		// TRY TO GET THE DISTRIBUTED LOCK WITHOUT WAITING, SO THAT ONLY THE FIRST NODE WILL ACTUALLY REFRESH THE ENTRY
 		object? distributedLockObj = null;
@@ -24,7 +24,8 @@ public partial class FusionCache
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): eager refresh already occurring on another instance/node", CacheName, InstanceId, operationId, key);
 
-				ReleaseMemoryLock(operationId, key, memoryLockObj);
+				if (memoryLockObj is not null)
+					memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
 
 				return;
 			}
@@ -44,7 +45,32 @@ public partial class FusionCache
 
 		var ctx = FusionCacheFactoryExecutionContext<TValue>.CreateFromEntries(key, originalKey, options, null, memoryEntry, tags);
 
-		var factoryTask = factory(ctx, CancellationToken.None);
+		Task<TValue>? factoryTask;
+		try
+		{
+			factoryTask = factory(ctx, CancellationToken.None);
+		}
+		catch (Exception exc)
+		{
+			if (_logger?.IsEnabled(_options.FactoryErrorsLogLevel) ?? false)
+				_logger.Log(_options.FactoryErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): a background factory thrown an exception", CacheName, InstanceId, operationId, key);
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message ?? ctx.ErrorMessage ?? "An error occurred while running the factory");
+			activity?.AddException(exc);
+			activity?.Dispose();
+
+			// EVENT
+			_events.OnBackgroundFactoryError(operationId, key);
+
+			if (memoryLockObj is not null)
+				memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+			if (distributedLockObj is not null)
+				distributedLockObj = await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, CancellationToken.None).ConfigureAwait(false);
+
+			return;
+		}
 
 		BackgroundCompleteFactory<TValue>(operationId, key, ctx, factoryTask, options, memoryLockObj, distributedLockObj, activity);
 	}
@@ -172,7 +198,7 @@ public partial class FusionCache
 				(distributedEntry, distributedEntryIsValid) = await _dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 
 				// TAGGING (DISTRIBUTED)
-				if (distributedEntry is not null && distributedEntryIsValid)
+				if (distributedEntry is not null /*&& distributedEntryIsValid*/)
 				{
 					(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 				}
@@ -216,7 +242,7 @@ public partial class FusionCache
 						(distributedEntry, distributedEntryIsValid) = await _dca!.TryGetEntryAsync<TValue>(operationId, key, options, memoryEntry is not null, null, token).ConfigureAwait(false);
 
 						// TAGGING (DISTRIBUTED)
-						if (distributedEntry is not null && distributedEntryIsValid)
+						if (distributedEntry is not null /*&& distributedEntryIsValid*/)
 						{
 							(distributedEntry, distributedEntryIsValid) = await CheckEntrySecondaryExpirationAsync(operationId, key, distributedEntry, false, token).ConfigureAwait(false);
 						}
@@ -346,17 +372,29 @@ public partial class FusionCache
 				}
 			}
 		}
+		catch
+		{
+			// MEMORY LOCK
+			if (memoryLockObj is not null)
+				memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
+
+			// DISTRIBUTED LOCK
+			if (distributedLockObj is not null)
+				distributedLockObj = await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
+
+			throw;
+		}
 		finally
 		{
 			// MEMORY LOCK
 			if (memoryLockObj is not null)
-				ReleaseMemoryLock(operationId, key, memoryLockObj);
+				memoryLockObj = ReleaseMemoryLock(operationId, key, memoryLockObj);
 
-			// DISTRIBUTED LOCK
 			if (hasNewValue == false)
 			{
+				// DISTRIBUTED LOCK
 				if (distributedLockObj is not null)
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
+					distributedLockObj = await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
 			}
 		}
 
@@ -368,6 +406,7 @@ public partial class FusionCache
 				if (RequiresDistributedOperations(options))
 				{
 					await DistributedSetEntryAsync<TValue>(operationId, key, entry, options, distributedLockObj, token).ConfigureAwait(false);
+					distributedLockObj = null;
 				}
 			}
 
@@ -960,10 +999,18 @@ public partial class FusionCache
 				{
 					// NOT VALID, VIA REMOVE BY TAG
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
-						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry expired via tag {Tag}", CacheName, InstanceId, operationId, key, tag);
+						_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): entry invalidated by tag {Tag}", CacheName, InstanceId, operationId, key, tag);
 
 					if (executeCascadeAction == false)
-						return (entry, false);
+					{
+						switch (_options.RemoveByTagBehavior)
+						{
+							case RemoveByTagBehavior.Remove:
+								return (null, false);
+							case RemoveByTagBehavior.Expire:
+								return (entry, false);
+						}
+					}
 
 					// EXPIRE ENTRY
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -973,13 +1020,11 @@ public partial class FusionCache
 					{
 						case RemoveByTagBehavior.Remove:
 							await RemoveInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
-							break;
+							return (null, false);
 						case RemoveByTagBehavior.Expire:
 							await ExpireInternalAsync(key, _cascadeRemoveByTagEntryOptions, token).ConfigureAwait(false);
-							break;
+							return (entry, false);
 					}
-
-					return (entry, false);
 				}
 			}
 		}
@@ -1071,10 +1116,7 @@ public partial class FusionCache
 
 		try
 		{
-			//if (_options.IncludeTagsInTraces)
-			//{
 			activity?.AddTag(Tags.Names.OperationTag, tag);
-			//}
 
 			await SetTagDataInternalAsync(tag, FusionCacheInternalUtils.GetCurrentTimestamp(), options, token).ConfigureAwait(false);
 
@@ -1211,9 +1253,7 @@ public partial class FusionCache
 
 				// DISTRIBUTED LOCKER
 				if (distributedLockObj is not null)
-				{
-					await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
-				}
+					distributedLockObj = await ReleaseDistributedLockAsync(operationId, key, distributedLockObj, options, token).ConfigureAwait(false);
 
 				var mustAwaitBackplaneCompletion = isBackground || MustAwaitBackplaneOperations(options);
 				var isBackplaneBackground = isBackground || !mustAwaitBackplaneCompletion;
