@@ -9,6 +9,7 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching/ZiggyCreatures.FusionCache.AspNetCore.OutputCaching.csproj" />
+    <Project Path="src/ZiggyCreatures.FusionCache.Backplane.AzureServiceBus/ZiggyCreatures.FusionCache.Backplane.AzureServiceBus.csproj" Id="c48413a2-1999-439c-b017-693fd79bfeec" />
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.Memory/ZiggyCreatures.FusionCache.Backplane.Memory.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis/ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis.csproj" />
     <Project Path="src/ZiggyCreatures.FusionCache.Chaos/ZiggyCreatures.FusionCache.Chaos.csproj" />
@@ -31,5 +32,12 @@
     <Project Path="tests/ZiggyCreatures.FusionCache.Playground/ZiggyCreatures.FusionCache.Playground.csproj" />
     <Project Path="tests/ZiggyCreatures.FusionCache.Simulator/ZiggyCreatures.FusionCache.Simulator.csproj" />
     <Project Path="tests/ZiggyCreatures.FusionCache.Tests/ZiggyCreatures.FusionCache.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Aspire.Playground/">
+    <Project Path="tests/Aspire.Playground/Playground.AppHost/Playground.AppHost.csproj" />
+    <Project Path="tests/Aspire.Playground/Playground.ServiceDefaults/Playground.ServiceDefaults.csproj" />
+    <Project Path="tests/Aspire.Playground/Playground.Shared/Playground.Shared.csproj" />
+    <Project Path="tests/Aspire.Playground/WebApplication1/WebApplication1.csproj" />
+    <Project Path="tests/Aspire.Playground/WebApplication2/WebApplication2.csproj" />
   </Folder>
 </Solution>
