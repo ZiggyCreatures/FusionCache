@@ -1,26 +1,29 @@
 ﻿using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+
+using NATS.Client.Core;
+
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
+using ZiggyCreatures.Caching.Fusion.Backplane.NATS;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
 
 namespace FusionCacheTests;
 
-public partial class L1BackplaneTests
-	: AbstractTests
+public abstract partial class L1BackplaneTests<T> : AbstractTests where T : IFusionCacheBackplane
 {
-	public L1BackplaneTests(ITestOutputHelper output)
-		: base(output, "MyCache:")
-	{
-		if (UseRedis)
-			InitialBackplaneDelay = TimeSpan.FromSeconds(5).PlusALittleBit();
+	protected TimeSpan InitialBackplaneDelay = TimeSpan.FromMilliseconds(300);
+	protected TimeSpan MultiNodeOperationsDelay = TimeSpan.FromMilliseconds(300);
+
+	protected L1BackplaneTests(ITestOutputHelper output) : base(output, "MyCache:")
+	{		
 	}
 
-	private FusionCacheOptions CreateFusionCacheOptions()
+	protected virtual FusionCacheOptions CreateFusionCacheOptions()
 	{
 		var res = new FusionCacheOptions
 		{
@@ -32,21 +35,9 @@ public partial class L1BackplaneTests
 		return res;
 	}
 
-	private static readonly bool UseRedis = false;
-	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
+	protected abstract T CreateBackplane(string connectionId, ILogger? logger = null);
 
-	private readonly TimeSpan InitialBackplaneDelay = TimeSpan.FromMilliseconds(300);
-	private readonly TimeSpan MultiNodeOperationsDelay = TimeSpan.FromMilliseconds(300);
-
-	private IFusionCacheBackplane CreateBackplane(string connectionId, ILogger? logger = null)
-	{
-		if (UseRedis)
-			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: (logger as ILogger<RedisBackplane>) ?? CreateXUnitLogger<RedisBackplane>());
-
-		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: (logger as ILogger<MemoryBackplane>) ?? CreateXUnitLogger<MemoryBackplane>());
-	}
-
-	private FusionCache CreateFusionCache(string? cacheName, IFusionCacheBackplane? backplane, Action<FusionCacheOptions>? setupAction = null, IMemoryCache? memoryCache = null, string? cacheInstanceId = null, ILogger<FusionCache>? logger = null)
+	protected FusionCache CreateFusionCache(string? cacheName, T? backplane, Action<FusionCacheOptions>? setupAction = null, IMemoryCache? memoryCache = null, string? cacheInstanceId = null, ILogger<FusionCache>? logger = null)
 	{
 		var options = CreateFusionCacheOptions();
 
@@ -65,5 +56,55 @@ public partial class L1BackplaneTests
 			fusionCache.SetupBackplane(backplane);
 
 		return fusionCache;
+	}
+}
+
+public class RedisL1BackplaneTests : L1BackplaneTests<RedisBackplane>
+{
+	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
+
+	public RedisL1BackplaneTests(ITestOutputHelper output) : base(output)
+	{
+		InitialBackplaneDelay = TimeSpan.FromSeconds(1).PlusALittleBit();
+	}
+
+	protected override RedisBackplane CreateBackplane(string connectionId, ILogger? logger = null)
+	{
+		return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: (logger as ILogger<RedisBackplane>) ?? CreateXUnitLogger<RedisBackplane>());
+	}
+}
+
+public class MemoryL1BackplaneTests : L1BackplaneTests<MemoryBackplane>
+{
+	public MemoryL1BackplaneTests(ITestOutputHelper output) : base(output)
+	{
+	}
+
+	protected override MemoryBackplane CreateBackplane(string connectionId, ILogger? logger = null)
+	{
+		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: (logger as ILogger<MemoryBackplane>) ?? CreateXUnitLogger<MemoryBackplane>());
+	}
+}
+
+public class NatsL1BackplaneTests : L1BackplaneTests<NatsBackplane>
+{
+	private static readonly string NatsConnection = "nats://localhost:4222";
+
+	public NatsL1BackplaneTests(ITestOutputHelper output) : base(output)
+	{
+		InitialBackplaneDelay = TimeSpan.FromSeconds(1).PlusALittleBit();
+	}
+
+	protected override FusionCacheOptions CreateFusionCacheOptions()
+	{
+		var options = base.CreateFusionCacheOptions();
+		options.InternalStrings.SetToSafeStrings();
+		return options;
+	}
+
+	protected override NatsBackplane CreateBackplane(string connectionId, ILogger? logger = null)
+	{
+		var natsConnection = new NatsConnection(new NatsOpts() { Url = NatsConnection });
+		return new NatsBackplane(natsConnection, logger: (logger as ILogger<NatsBackplane>) ?? CreateXUnitLogger<NatsBackplane>());
 	}
 }

@@ -14,7 +14,7 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
 
-public partial class L1L2BackplaneTests
+public partial class L1L2BackplaneTests<TBackplane, TDistributedCache>
 {
 	[Theory]
 	[ClassData(typeof(SerializerTypesClassData))]

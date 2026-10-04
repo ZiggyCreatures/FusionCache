@@ -14,19 +14,72 @@ jobs:
       uses: actions/setup-dotnet@v6
       with:
         global-json-file: global.json
-
     - run: dotnet --info
-    - name: Build solution and run all tests
-      run: dotnet test --verbosity normal -- --report-trx --results-directory '${{ env.TEST_RESULTS }}'
-
+    - name: Build solution and run tests (excluding Nats and Redis backplane tests)
+      run: dotnet test --verbosity normal -- --report-trx --results-directory '${{ env.TEST_RESULTS }}' --filter-query '/*/*/(!*NatsL1*)&(!*RedisL1*)'
     - name: Publish test results
       uses: EnricoMi/publish-unit-test-result-action/linux@v2
       if: ${{ success() || failure() }}
       with:
         files: '${{ env.TEST_RESULTS }}/*.trx'
-        check_name: "Test results"
+        check_name: "Core Test results"
         report_individual_runs: true
         action_fail: true
         time_unit: milliseconds
         #ignore_runs: true
         compare_to_earlier_commit: false
+    - name: Upload core test reports
+      uses: actions/upload-artifact@v7
+      if: ${{ always() }}
+      with:
+        name: core-test-reports
+        path: '${{ env.TEST_RESULTS }}/*.trx'
+        if-no-files-found: warn
+
+  test-backplanes:
+    name: ${{ matrix.name }} L1 tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Nats
+            filter: '/*/*/*NatsL1*'
+          - name: Redis
+            filter: '/*/*/*RedisL1*'
+    services:
+      nats:
+        image: nats:latest
+        ports:
+          - 4222:4222
+          - 8222:8222
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+    steps:
+    - uses: actions/checkout@master
+    - name: Set up .NET Core
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    - run: dotnet --info
+    - name: Build solution and run ${{ matrix.name }}L1 tests
+      run: dotnet test --verbosity normal -- --report-trx --results-directory '${{ env.TEST_RESULTS }}' --filter-query '${{ matrix.filter }}'
+    - name: Publish ${{ matrix.name }} test results
+      uses: EnricoMi/publish-unit-test-result-action/linux@v2
+      if: ${{ success() || failure() }}
+      with:
+        files: '${{ env.TEST_RESULTS }}/*.trx'
+        check_name: "${{ matrix.name }} Test results"
+        report_individual_runs: true
+        action_fail: true
+        time_unit: milliseconds
+        compare_to_earlier_commit: false
+    - name: Upload ${{ matrix.name }} test reports
+      uses: actions/upload-artifact@v7
+      if: ${{ always() }}
+      with:
+        name: ${{ matrix.name }}-test-reports
+        path: '${{ env.TEST_RESULTS }}/*.trx'
+        if-no-files-found: warn
