@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.Logging;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
@@ -678,6 +679,34 @@ public class HybridL1Tests
 		Assert.NotSame(foo1, foo3);
 		Assert.NotSame(foo2, foo3);
 		Assert.Equal(3, foo3.PropInt);
+	}
+
+	[Fact]
+	public async Task CanClearAsync()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var options = new FusionCacheOptions();
+		options.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
+		using var fc = new FusionCache(options, logger: logger);
+		var hc = new FusionHybridCache(fc);
+
+		logger.LogInformation("STEP 1 (SET)");
+
+		await hc.SetAsync<int>("foo", 1, cancellationToken: TestContext.Current.CancellationToken);
+		await hc.SetAsync<int>("bar", 2, cancellationToken: TestContext.Current.CancellationToken);
+
+		logger.LogInformation("STEP 2 (CLEAR)");
+
+		await hc.RemoveByTagAsync("*", TestContext.Current.CancellationToken);
+
+		logger.LogInformation("STEP 4");
+
+		var foo = await hc.GetOrDefaultAsync<int>("foo", ct: TestContext.Current.CancellationToken);
+		var bar = await hc.GetOrDefaultAsync<int>("bar", ct: TestContext.Current.CancellationToken);
+
+		Assert.Equal(0, foo);
+		Assert.Equal(0, bar);
 	}
 
 	/* -------------------------------------------------- */

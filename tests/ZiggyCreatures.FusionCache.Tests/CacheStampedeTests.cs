@@ -11,8 +11,15 @@ using ZiggyCreatures.Caching.Fusion.MicrosoftHybridCache;
 namespace FusionCacheTests;
 
 public class CacheStampedeTests
+	: AbstractTests
 {
 	private static readonly TimeSpan FactoryDuration = TimeSpan.FromMilliseconds(500);
+
+	public CacheStampedeTests(ITestOutputHelper output)
+		: base(output, null)
+	{
+
+	}
 
 	// FUSIONCACHE
 
@@ -20,7 +27,8 @@ public class CacheStampedeTests
 	[ClassData(typeof(CacheStampedeClassData))]
 	public async Task FusionAsync(SerializerType? serializerType, MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger, memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 		if (serializerType is not null)
 		{
 			cache.SetupDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), TestsUtils.GetSerializer(serializerType.Value));
@@ -54,7 +62,8 @@ public class CacheStampedeTests
 	[ClassData(typeof(CacheStampedeClassData))]
 	public void FusionSync(SerializerType? serializerType, MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger, memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 		if (serializerType is not null)
 		{
 			cache.SetupDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), TestsUtils.GetSerializer(serializerType.Value));
@@ -84,7 +93,8 @@ public class CacheStampedeTests
 	[ClassData(typeof(CacheStampedeClassData))]
 	public async Task FusionMixedAsync(SerializerType? serializerType, MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var cache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger, memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 		if (serializerType is not null)
 		{
 			cache.SetupDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), TestsUtils.GetSerializer(serializerType.Value));
@@ -136,7 +146,8 @@ public class CacheStampedeTests
 	[ClassData(typeof(CacheStampedeClassData))]
 	public async Task FusionHybridAsync(SerializerType? serializerType, MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var fusionCache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var fusionCache = new FusionCache(new FusionCacheOptions(), logger: logger, memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 		if (serializerType is not null)
 		{
 			fusionCache.SetupDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), TestsUtils.GetSerializer(serializerType.Value));
@@ -173,7 +184,8 @@ public class CacheStampedeTests
 	[ClassData(typeof(CacheStampedeClassData))]
 	public async Task FusionAndFusionHybridAsync(SerializerType? serializerType, MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var fusionCache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var fusionCache = new FusionCache(new FusionCacheOptions(), logger: logger, memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 		if (serializerType is not null)
 		{
 			fusionCache.SetupDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), TestsUtils.GetSerializer(serializerType.Value));
@@ -221,7 +233,8 @@ public class CacheStampedeTests
 	[ClassData(typeof(CacheStampedeClassData))]
 	public async Task FusionAndFusionHybridAsyncAndSync(SerializerType? serializerType, MemoryLockerType memoryLockerType, int accessorsCount)
 	{
-		using var fusionCache = new FusionCache(new FusionCacheOptions(), memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
+		var logger = CreateXUnitLogger<FusionCache>();
+		using var fusionCache = new FusionCache(new FusionCacheOptions(), logger: logger, memoryLocker: TestsUtils.GetMemoryLocker(memoryLockerType));
 		if (serializerType is not null)
 		{
 			fusionCache.SetupDistributedCache(new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions())), TestsUtils.GetSerializer(serializerType.Value));

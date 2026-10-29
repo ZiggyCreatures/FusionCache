@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
+using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed;
 using ZiggyCreatures.Caching.Fusion.Locking.Distributed.Memory;
 
@@ -29,5 +31,31 @@ public static class MemoryDistributedLockerExtensions
 		services.TryAddTransient<IFusionCacheDistributedLocker, MemoryDistributedLocker>();
 
 		return services;
+	}
+
+	/// <summary>
+	/// Adds a Redis based implementation of a backplane to the <see cref="IFusionCacheBuilder" />.
+	/// </summary>
+	/// <param name="builder">The <see cref="IFusionCacheBuilder" /> to add the backplane to.</param>
+	/// <param name="setupOptionsAction">The <see cref="Action{MemoryDistributedLockerOptions}"/> to configure the provided <see cref="MemoryDistributedLockerOptions"/>.</param>
+	/// <returns>The <see cref="IFusionCacheBuilder"/> so that additional calls can be chained.</returns>
+	public static IFusionCacheBuilder WithMemoryDistributedLocker(this IFusionCacheBuilder builder, Action<MemoryDistributedLockerOptions>? setupOptionsAction = null)
+	{
+		if (builder is null)
+			throw new ArgumentNullException(nameof(builder));
+
+		return builder
+			.WithDistributedLocker(sp =>
+			{
+				var options = sp.GetService<IOptionsMonitor<MemoryDistributedLockerOptions>>()?.Get(builder.CacheName);
+
+				if (options is null)
+					throw new InvalidOperationException($"Unable to find a valid {nameof(MemoryDistributedLockerOptions)} instance for the current cache name '{builder.CacheName}'.");
+
+				setupOptionsAction?.Invoke(options);
+
+				return new MemoryDistributedLocker(options);
+			})
+		;
 	}
 }

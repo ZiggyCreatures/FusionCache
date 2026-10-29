@@ -12,7 +12,7 @@ public class CacheStampedeClassData : IEnumerable<object?[]>
 
 	public IEnumerator<object?[]> GetEnumerator()
 	{
-		var serializerTypes = new List<SerializerType?> { null };
+		List<SerializerType?> serializerTypes = [null];
 		foreach (var serializerType in Enum.GetValues<SerializerType>())
 		{
 			serializerTypes.Add(serializerType);

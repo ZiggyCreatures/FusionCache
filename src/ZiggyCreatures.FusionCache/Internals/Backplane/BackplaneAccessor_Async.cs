@@ -130,6 +130,16 @@ internal partial class BackplaneAccessor
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] after " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
 		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] canceled " + actionDescription, _options.CacheName, _options.InstanceId, operationId, cacheKey);
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+
+			throw;
+		}
 		catch (Exception exc)
 		{
 			ProcessError(operationId, cacheKey, exc, actionDescription);

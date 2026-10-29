@@ -57,10 +57,10 @@ internal partial class DistributedLockerAccessor
 		}
 	}
 
-	public async ValueTask ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
+	public async ValueTask<object?> ReleaseDistributedLockAsync(string operationId, string key, object? lockObj, FusionCacheEntryOptions options, CancellationToken token)
 	{
 		if (lockObj is null)
-			return;
+			return null;
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] releasing DISTRIBUTED LOCK", _options.CacheName, _options.InstanceId, operationId, key);
@@ -71,6 +71,15 @@ internal partial class DistributedLockerAccessor
 
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] DISTRIBUTED LOCK released", _options.CacheName, _options.InstanceId, operationId, key);
+
+			return null;
+		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DL] canceled DISTRIBUTED LOCK release", _options.CacheName, _options.InstanceId, operationId, key);
+
+			throw;
 		}
 		catch (Exception exc)
 		{
@@ -88,6 +97,8 @@ internal partial class DistributedLockerAccessor
 					throw new FusionCacheDistributedLockerException("An error occurred while working with the distributed locker (releasing)", exc);
 				}
 			}
+
+			return lockObj;
 		}
 	}
 }
