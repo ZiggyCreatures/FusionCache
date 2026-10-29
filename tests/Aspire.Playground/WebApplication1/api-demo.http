@@ -1,0 +1,45 @@
+### FusionCache Redis Backplane Example - WebApplication1
+### This file demonstrates cache synchronization across applications
+
+@host = https://localhost:7001
+@contentType = application/json
+
+### 1. Check cache configuration
+GET {{host}}/cache/info
+
+###
+
+### 2. Get cached data (first call - cache miss)
+GET {{host}}/data
+
+###
+
+### 3. Get cached data (second call - cache hit from memory)
+GET {{host}}/data
+
+###
+
+### 4. Update cache data from App1
+POST {{host}}/data
+Content-Type: application/json
+
+"Data updated by WebApplication1"
+
+###
+
+### 5. Verify the update
+GET {{host}}/data
+
+###
+
+### CROSS-APP SYNCHRONIZATION TEST
+### Now test with WebApplication2 to see the backplane in action!
+###
+### Steps:
+### 1. Make a request to App1: GET {{host}}/data
+### 2. Make a request to App2: GET https://localhost:7002/data
+###    (You should see the SAME data in both!)
+### 3. Update from App2: POST https://localhost:7002/data with new value
+### 4. Check App1 again: GET {{host}}/data
+###    (It should have the new value from App2 - backplane invalidated the cache!)
+

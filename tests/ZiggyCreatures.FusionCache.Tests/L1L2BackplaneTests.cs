@@ -1,4 +1,5 @@
-﻿using FusionCacheTests.Stuff;
+﻿using Azure.Messaging.ServiceBus;
+using FusionCacheTests.Stuff;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
@@ -6,6 +7,8 @@ using Microsoft.Extensions.Options;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
 using ZiggyCreatures.Caching.Fusion.Backplane;
+using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus;
+using ZiggyCreatures.Caching.Fusion.Backplane.AzureServiceBus.AzureServiceBusWrapper;
 using ZiggyCreatures.Caching.Fusion.Backplane.Memory;
 using ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis;
 using ZiggyCreatures.Caching.Fusion.DangerZone;
@@ -13,12 +16,13 @@ using ZiggyCreatures.Caching.Fusion.DangerZone;
 namespace FusionCacheTests;
 
 public partial class L1L2BackplaneTests
-	: AbstractTests
+	: AbstractTests, IClassFixture<L1L2AzureServiceBusFixture>
 {
-	public L1L2BackplaneTests(ITestOutputHelper output)
+	public L1L2BackplaneTests(ITestOutputHelper output, L1L2AzureServiceBusFixture azureServiceBusFixture)
 		: base(output, "MyCache:")
 	{
-		if (UseRedis)
+		_azureServiceBusFixture = azureServiceBusFixture;
+		if (UseRedis || UseAzureServiceBus)
 			InitialBackplaneDelay = TimeSpan.FromSeconds(5).PlusALittleBit();
 	}
 
@@ -35,7 +39,10 @@ public partial class L1L2BackplaneTests
 	}
 
 	private static readonly bool UseRedis = false;
+	private static readonly bool UseAzureServiceBus = false;
 	private static readonly string RedisConnection = "127.0.0.1:6379,ssl=False,abortConnect=false,connectTimeout=1000,syncTimeout=1000";
+
+	private readonly L1L2AzureServiceBusFixture _azureServiceBusFixture;
 
 	private readonly TimeSpan InitialBackplaneDelay = TimeSpan.FromMilliseconds(300);
 	private readonly TimeSpan MultiNodeOperationsDelay = TimeSpan.FromMilliseconds(300);
@@ -44,7 +51,20 @@ public partial class L1L2BackplaneTests
 	{
 		if (UseRedis)
 			return new RedisBackplane(new RedisBackplaneOptions { Configuration = RedisConnection }, logger: CreateXUnitLogger<RedisBackplane>());
+		if (UseAzureServiceBus)
+		{
+			var emulator = _azureServiceBusFixture;
+			var subscriptionName = emulator.GetNextSubscriptionName();
+			var client = new ServiceBusClient(emulator.ConnectionString);
+			var options = new AzureServiceBusBackplaneOptions
+			{
+				IsAdmin = false,
+				SubscriptionName = subscriptionName,
+			};
+			var clientWrapper = new AzureServiceBusClientWrapper(client, emulator.TopicName, subscriptionName, CreateXUnitLogger<AzureServiceBusClientWrapper>(), options);
 
+			return new AzureServiceBusBackplane(clientWrapper, NoOpAzureServiceBusAdminWrapper.Instance, CreateXUnitLogger<AzureServiceBusBackplane>());
+		}
 		return new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = connectionId }, logger: CreateXUnitLogger<MemoryBackplane>());
 	}
 
