@@ -1018,9 +1018,9 @@ public partial class FusionCache
 			{
 				var _tmp = GetOrSet<long>(ClearRemoveTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
 
-				var _tmp2 = Interlocked.Exchange(ref ClearRemoveTimestamp, _tmp);
+				var _tmp2 = FusionCacheInternalUtils.AdvanceTimestamp(ref ClearRemoveTimestamp, _tmp);
 
-				if (_tmp2 != _tmp)
+				if (_tmp2 < _tmp)
 				{
 					// NEW CLEAR (REMOVE) TIMESTAMP
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -1095,15 +1095,15 @@ public partial class FusionCache
 				// OPTIMIZATION: IF IT'S THE FIRST CHECK AND WE CAN EXECUTE RAW CLEAR
 				// -> DIRECTLY SET IT WITHOUT CHECKING THE SPECIAL CACHE ENTRY, SINCE
 				// NOBODY ELSE CAN HAVE CHANGED IT
-				Interlocked.Exchange(ref ClearExpireTimestamp, 0L);
+				FusionCacheInternalUtils.AdvanceTimestamp(ref ClearExpireTimestamp, 0L);
 			}
 			else
 			{
 				var _tmp = GetOrSet<long>(ClearExpireTagCacheKey, FusionCacheInternalUtils.SharedTagExpirationDataFactory, 0L, _tagsDefaultEntryOptions, FusionCacheInternalUtils.NoTags, token);
 
-				var _tmp2 = Interlocked.Exchange(ref ClearExpireTimestamp, _tmp);
+				var _tmp2 = FusionCacheInternalUtils.AdvanceTimestamp(ref ClearExpireTimestamp, _tmp);
 
-				if (_tmp2 != _tmp)
+				if (_tmp2 < _tmp)
 				{
 					// NEW CLEAR (EXPIRE) TIMESTAMP
 					if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -1243,14 +1243,14 @@ public partial class FusionCache
 			if (allowFailSafe)
 			{
 				// CLEAR EXPIRE
-				Interlocked.Exchange(ref ClearExpireTimestamp, now);
+				FusionCacheInternalUtils.AdvanceTimestamp(ref ClearExpireTimestamp, now);
 
 				SetTagDataInternal(_options.InternalStrings.ClearExpireTag, now, options, token);
 			}
 			else
 			{
 				// CLEAR REMOVE
-				Interlocked.Exchange(ref ClearRemoveTimestamp, now);
+				FusionCacheInternalUtils.AdvanceTimestamp(ref ClearRemoveTimestamp, now);
 
 				if (TryExecuteRawClear(operationId) == false)
 				{

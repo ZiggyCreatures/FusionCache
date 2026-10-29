@@ -434,7 +434,7 @@ internal partial class BackplaneAccessor
 				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (REMOVE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
 			// SET THE CLEAR (REMOVE) TIMESTAMP TO THE ONE FROMTHE BACKPLANE MESSAGE
-			Interlocked.Exchange(ref _cache.ClearRemoveTimestamp, message.Timestamp);
+			FusionCacheInternalUtils.AdvanceTimestamp(ref _cache.ClearRemoveTimestamp, message.Timestamp);
 		}
 		else if (message.CacheKey == _cache.ClearExpireTagInternalCacheKey)
 		{
@@ -442,7 +442,7 @@ internal partial class BackplaneAccessor
 				_logger.Log(LogLevel.Information, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification for a CLEAR (EXPIRE) has been received from remote cache {RemoteCacheInstanceId}", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
 			// SET THE CLEAR (REMOVE) TIMESTAMP TO THE ONE FROMTHE BACKPLANE MESSAGE
-			Interlocked.Exchange(ref _cache.ClearExpireTimestamp, message.Timestamp);
+			FusionCacheInternalUtils.AdvanceTimestamp(ref _cache.ClearExpireTimestamp, message.Timestamp);
 		}
 		else
 		{
