@@ -45,7 +45,7 @@ public sealed class FusionCacheMemoryEventsHub
 	internal void OnEviction(string operationId, string key, EvictionReason reason, object? value)
 	{
 		// METRIC
-		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.MemoryEvictReason, reason.ToString()));
+		Metrics.CounterMemoryEvict.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, Tags.Tag(Tags.Names.MemoryEvictReason, reason.ToString()));
 
 		Eviction?.SafeExecute(operationId, key, _cache, new FusionCacheEntryEvictionEventArgs(key, reason, value), nameof(Eviction), _logger, _errorsLogLevel, _syncExecution);
 	}
@@ -61,7 +61,7 @@ public sealed class FusionCacheMemoryEventsHub
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
 		// METRIC
-		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
+		Metrics.CounterMemoryHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, Tags.Tag(Tags.Names.Stale, isStale));
 
 		base.OnHit(operationId, key, isStale, activity);
 	}
