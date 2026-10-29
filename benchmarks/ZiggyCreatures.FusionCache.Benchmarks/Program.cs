@@ -6,6 +6,6 @@ class Program
 {
 	public static async Task Main(string[] args)
 	{
-		BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run();
+		BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
 	}
 }

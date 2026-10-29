@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Runtime.InteropServices;
 using System.Text;
 using ServiceStack.Text;
 
@@ -10,7 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.ServiceStackJson;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses the ServiceStack JSON serializer.
 /// </summary>
 public class FusionCacheServiceStackJsonSerializer
-	: IFusionCacheSerializer
+	: IBufferFusionCacheSerializer
 {
 	static FusionCacheServiceStackJsonSerializer()
 	{
@@ -36,6 +37,13 @@ public class FusionCacheServiceStackJsonSerializer
 	}
 
 	/// <inheritdoc />
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		using var stream = new BufferWriterStream(destination);
+		JsonSerializer.SerializeToStream<T?>(obj, stream);
+	}
+
+	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
 		int numChars = Encoding.UTF8.GetCharCount(data);
@@ -48,6 +56,46 @@ public class FusionCacheServiceStackJsonSerializer
 		finally
 		{
 			ArrayPool<char>.Shared.Return(chars);
+		}
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		// SERVICESTACK NEEDS CHARS: GET AN ARRAY SEGMENT WITHOUT COPYING WHEN POSSIBLE (SINGLE-SEGMENT,
+		// ARRAY-BACKED), OTHERWISE FALL BACK TO A POOLED COPY
+		byte[]? rented = null;
+		try
+		{
+			ArraySegment<byte> segment;
+			if (data.IsSingleSegment && MemoryMarshal.TryGetArray(data.First, out segment))
+			{
+				// NO COPY NEEDED
+			}
+			else
+			{
+				var length = checked((int)data.Length);
+				rented = ArrayPool<byte>.Shared.Rent(length);
+				data.CopyTo(rented);
+				segment = new ArraySegment<byte>(rented, 0, length);
+			}
+
+			int numChars = Encoding.UTF8.GetCharCount(segment.Array!, segment.Offset, segment.Count);
+			var chars = ArrayPool<char>.Shared.Rent(numChars);
+			try
+			{
+				Encoding.UTF8.GetChars(segment.Array!, segment.Offset, segment.Count, chars, 0);
+				return JsonSerializer.DeserializeFromSpan<T?>(chars.AsSpan(0, numChars));
+			}
+			finally
+			{
+				ArrayPool<char>.Shared.Return(chars);
+			}
+		}
+		finally
+		{
+			if (rented is not null)
+				ArrayPool<byte>.Shared.Return(rented);
 		}
 	}
 

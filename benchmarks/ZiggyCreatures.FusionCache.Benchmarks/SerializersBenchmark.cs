@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Buffers;
+using System.Runtime.Serialization;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
@@ -93,9 +94,23 @@ public class SerializersBenchmark
 	}
 
 	[Benchmark]
+	public void Serialize_Buffer()
+	{
+		using var writer = new PooledBufferWriter(ArrayPool<byte>.Shared);
+		((IBufferFusionCacheSerializer)Serializer).Serialize(_Models, writer);
+	}
+
+	[Benchmark]
 	public void Deserialize()
 	{
 		Serializer.Deserialize<List<SampleModel>>(_Blob);
+	}
+
+	[Benchmark]
+	public void Deserialize_Buffer()
+	{
+		var blob = new ReadOnlySequence<byte>(_Blob);
+		((IBufferFusionCacheSerializer)Serializer).Deserialize<List<SampleModel>>(in blob);
 	}
 
 	[Benchmark]
