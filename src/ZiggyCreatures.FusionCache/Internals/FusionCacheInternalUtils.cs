@@ -81,6 +81,26 @@ internal static class FusionCacheInternalUtils
 		return DateTimeOffset.UtcNow.UtcTicks;
 	}
 
+	// RETURNS THE PREVIOUS VALUE (LIKE Interlocked.Exchange): IT ADVANCED ONLY IF THE RESULT IS < timestamp
+	public static long AdvanceTimestamp(ref long location, long timestamp)
+	{
+		// A PLAIN READ OF A long CAN BE TORN ON 32-BIT, WHILE Volatile.Read IS ATOMIC THERE TOO.
+		// Interlocked.Read WOULD ALSO BE ATOMIC, BUT IT IS A CompareExchange ON EVERY PLATFORM,
+		// WHILE Volatile.Read IS A NORMAL LOAD ON 64-BIT.
+		// SEE: https://learn.microsoft.com/en-us/dotnet/api/system.threading.volatile#remarks
+		var current = Volatile.Read(ref location);
+		while (timestamp > current)
+		{
+			var observed = Interlocked.CompareExchange(ref location, timestamp, current);
+			if (observed == current)
+				return current;
+
+			current = observed;
+		}
+
+		return current;
+	}
+
 	public static string MaybeGenerateOperationId(ILogger? logger)
 	{
 		//if (logger is null)

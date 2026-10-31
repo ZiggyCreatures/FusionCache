@@ -41,15 +41,15 @@ internal sealed class StandardMemoryLocker
 
 	private SemaphoreSlim GetSemaphore(string cacheName, string cacheInstanceId, string key, ILogger? logger)
 	{
-		object? _semaphore;
+		SemaphoreSlim? _semaphore;
 
 		if (_lockCache.TryGetValue(key, out _semaphore))
-			return (SemaphoreSlim)_semaphore!;
+			return _semaphore!;
 
 		lock (_lockPool[GetLockIndex(key)])
 		{
 			if (_lockCache.TryGetValue(key, out _semaphore))
-				return (SemaphoreSlim)_semaphore!;
+				return _semaphore!;
 
 			_semaphore = new SemaphoreSlim(1, 1);
 

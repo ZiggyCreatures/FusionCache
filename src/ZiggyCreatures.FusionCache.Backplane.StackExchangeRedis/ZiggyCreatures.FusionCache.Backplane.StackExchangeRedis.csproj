@@ -1,15 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;net8.0;net9.0</TargetFrameworks>
-		<Version>2.8.0</Version>
+		<TargetFrameworks>netstandard2.0;net8.0;net9.0;net10.0</TargetFrameworks>
+		<Version>2.9.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache.Backplane.StackExchangeRedis</PackageId>
 		<Description>FusionCache backplane for Redis based on the StackExchange.Redis library</Description>
 		<PackageTags>backplane;redis;stackexchange;caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion.Backplane.StackExchangeRedis</RootNamespace>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Add: new builder ext methods
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--<EnablePackageValidation>true</EnablePackageValidation>-->

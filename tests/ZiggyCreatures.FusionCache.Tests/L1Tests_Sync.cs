@@ -1701,16 +1701,21 @@ public partial class L1Tests
 	[Fact]
 	public void SoftTimeoutDoesNotBreakStampedeProtection()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions
-		{
-			DefaultEntryOptions = {
-				Duration = TimeSpan.FromSeconds(1),
-				IsFailSafeEnabled = true,
-				FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
-				FailSafeMaxDuration = TimeSpan.FromMinutes(1),
-				FactorySoftTimeout = TimeSpan.FromSeconds(1)
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(
+			new FusionCacheOptions
+			{
+				DefaultEntryOptions = {
+					Duration = TimeSpan.FromSeconds(1),
+					IsFailSafeEnabled = true,
+					FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
+					FailSafeMaxDuration = TimeSpan.FromMinutes(10),
+					FactorySoftTimeout = TimeSpan.FromSeconds(1)
+				}
 			}
-		});
+			, logger: logger
+		);
 
 		var factoryCallsCount = 0;
 
