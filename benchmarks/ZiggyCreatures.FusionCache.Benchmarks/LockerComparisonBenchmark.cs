@@ -25,14 +25,16 @@ public class LockerComparisonBenchmark
 	}
 
 
-	[Params(200, 1_000)]
-	public int NumberOfLocks;
+	[ParamsSource(nameof(Configurations))]
+	public (int NumberOfLocks, int Contention) Setting { get; set; }
+	public (int NumberOfLocks, int Contention)[] Configurations { get; } =
+	[
+		(200, 100),
+		(200, 10_000),
+		(10_000, 100)
+	];
 
-	[Params(100, 1_000)]
-	public int Contention;
-
-	[Params(0, 10)]
-	public int GuidReversals;
+	[Params(0, 1, 5)] public int GuidReversals { get; set; }
 
 	private StandardMemoryLocker _StandardMemoryLocker = null!;
 	private ParallelQuery<Task> _StandardMemoryLockerTasks = null!;
@@ -65,13 +67,13 @@ public class LockerComparisonBenchmark
 	[IterationSetup]
 	public void IterationSetup()
 	{
-		List<int> _shuffledIntegerList = [.. Enumerable.Range(0, Contention * NumberOfLocks)];
+		List<int> _shuffledIntegerList = [.. Enumerable.Range(0, Setting.Contention * Setting.NumberOfLocks)];
 		Shuffle(_shuffledIntegerList);
 
 		_StandardMemoryLockerTasks = _shuffledIntegerList
 			.Select(async i =>
 			{
-				var key = (i % NumberOfLocks).ToString();
+				var key = (i % Setting.NumberOfLocks).ToString();
 
 				var mylock = await _StandardMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
@@ -81,7 +83,7 @@ public class LockerComparisonBenchmark
 		_ProbabilisticMemoryLockerTasks = _shuffledIntegerList
 			.Select(async i =>
 			{
-				var key = (i % NumberOfLocks).ToString();
+				var key = (i % Setting.NumberOfLocks).ToString();
 
 				var mylock = await _ProbabilisticMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
@@ -91,7 +93,7 @@ public class LockerComparisonBenchmark
 		_ExperimentalMemoryLockerTasks = _shuffledIntegerList
 			.Select(async i =>
 			{
-				var key = (i % NumberOfLocks).ToString();
+				var key = (i % Setting.NumberOfLocks).ToString();
 
 				var mylock = await _ExperimentalMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
@@ -101,7 +103,7 @@ public class LockerComparisonBenchmark
 		_AsyncKeyedMemoryLockerTasks = _shuffledIntegerList
 			.Select(async i =>
 			{
-				var key = (i % NumberOfLocks).ToString();
+				var key = (i % Setting.NumberOfLocks).ToString();
 
 				var mylock = await _AsyncKeyedMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
@@ -111,7 +113,7 @@ public class LockerComparisonBenchmark
 		_StripedAsyncKeyedMemoryLockerTasks = _shuffledIntegerList
 			.Select(async i =>
 			{
-				var key = (i % NumberOfLocks).ToString();
+				var key = (i % Setting.NumberOfLocks).ToString();
 
 				var mylock = await _StripedAsyncKeyedMemoryLocker.AcquireLockAsync(null!, null!, null!, key, TimeSpan.FromSeconds(5), null, default).ConfigureAwait(false);
 				Operation();
@@ -121,10 +123,6 @@ public class LockerComparisonBenchmark
 
 	private async Task RunTests(ParallelQuery<Task> tasks)
 	{
-		if (NumberOfLocks == Contention)
-		{
-			throw new Exception("Thrown on purpose");
-		}
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
@@ -202,7 +200,7 @@ public class LockerComparisonBenchmark
 		await RunTests(_AsyncKeyedMemoryLockerTasks).ConfigureAwait(false);
 	}
 
-	//[Benchmark]
+	[Benchmark]
 	public async Task TestLockStripedAsyncKeyedLock()
 	{
 		await RunTests(_StripedAsyncKeyedMemoryLockerTasks).ConfigureAwait(false);
