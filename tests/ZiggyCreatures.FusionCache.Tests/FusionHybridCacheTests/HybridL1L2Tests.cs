@@ -632,9 +632,14 @@ public class HybridL1L2Tests
 		var keyFoo = CreateRandomCacheKey("foo");
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var duration = TimeSpan.FromSeconds(2);
+		var duration = TimeSpan.FromMinutes(5);
 		var syntheticDelay = TimeSpan.FromSeconds(2);
-		var eagerRefreshThreshold = 0.2f;
+		var eagerRefreshThreshold = 0.01f;
+		var eagerRefreshMark = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold);
+		var eagerRefreshDuration = eagerRefreshMark.Add(TimeSpan.FromMilliseconds(10));
+
+		logger.LogTrace("Eager Refresh Mark: {EagerRefreshMark} ms", eagerRefreshMark.TotalMilliseconds);
+		logger.LogTrace("Eager Refresh Duration: {EagerRefreshDuration} ms", eagerRefreshDuration.TotalMilliseconds);
 
 		var dc = CreateDistributedCache();
 		var chaosdc = new ChaosDistributedCache(dc, CreateXUnitLogger<ChaosDistributedCache>());
@@ -655,8 +660,8 @@ public class HybridL1L2Tests
 		var v2 = await cache.GetOrCreateAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, cancellationToken: TestContext.Current.CancellationToken);
 
 		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
-		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
-		await Task.Delay(eagerDuration, TestContext.Current.CancellationToken);
+		logger.LogTrace("Waiting for Eager Refresh Duration");
+		await Task.Delay(eagerRefreshDuration, TestContext.Current.CancellationToken);
 
 		// SET DELAY
 		chaosdc.SetAlwaysDelayExactly(syntheticDelay);
