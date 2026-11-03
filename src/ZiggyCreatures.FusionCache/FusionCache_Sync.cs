@@ -1005,7 +1005,7 @@ public partial class FusionCache
 		if (_options.DisableTagging)
 			return (entry, entry.IsLogicallyExpired() == false);
 
-		if (key.StartsWith(TagInternalCacheKeyPrefix))
+		if (key.StartsWith(TagInternalCacheKeyPrefix, StringComparison.Ordinal))
 			return (entry, entry.IsLogicallyExpired() == false);
 
 		var entryTimestamp = entry.Timestamp;

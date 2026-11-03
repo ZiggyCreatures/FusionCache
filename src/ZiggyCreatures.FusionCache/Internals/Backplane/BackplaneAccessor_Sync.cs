@@ -305,7 +305,7 @@ internal partial class BackplaneAccessor
 				if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 					_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [BP] a backplane notification has been received from remote cache {RemoteCacheInstanceId} (SET)", _cache.CacheName, _cache.InstanceId, operationId, message.CacheKey, message.SourceId);
 
-				if (message.CacheKey!.StartsWith(_cache.TagInternalCacheKeyPrefix))
+				if (message.CacheKey!.StartsWith(_cache.TagInternalCacheKeyPrefix, StringComparison.Ordinal))
 				{
 					// HANDLE A POTENTIAL UPDATE OF A TAGGING (RemoveByTag/Clear) TIMESTAMP
 					MaybeUpdateTaggingTimestamp(operationId, message);
@@ -423,7 +423,7 @@ internal partial class BackplaneAccessor
 	private void MaybeUpdateTaggingTimestamp(string operationId, BackplaneMessage message)
 	{
 		//if (message.CacheKey is null)
-		if (message.CacheKey is null || message.CacheKey.StartsWith(_cache.TagInternalCacheKeyPrefix) == false)
+		if (message.CacheKey is null || message.CacheKey.StartsWith(_cache.TagInternalCacheKeyPrefix, StringComparison.Ordinal) == false)
 		{
 			return;
 		}
