@@ -335,25 +335,29 @@ public partial class L1Tests
 	public void AdaptiveCaching()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
-		var dur = TimeSpan.FromMinutes(5);
-		cache.DefaultEntryOptions.Duration = dur;
+		var duration = TimeSpan.FromMinutes(5);
+		cache.DefaultEntryOptions.Duration = duration;
 		FusionCacheEntryOptions? innerOpt = null;
 
-		var default3 = cache.GetOrSet<int>("foo", (ctx, _) =>
+		var default3 = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) =>
 			{
 				ctx.Options.Duration = TimeSpan.FromSeconds(1);
 
 				innerOpt = ctx.Options;
 
 				return 3;
-			}, opt => opt.SetFailSafe(false)
-, token: TestContext.Current.CancellationToken);
+			},
+			opt => opt.SetFailSafe(false),
+			token: TestContext.Current.CancellationToken
+		);
 
 		Thread.Sleep(TimeSpan.FromSeconds(2));
 
 		var maybeValue = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
-		Assert.Equal(dur, TimeSpan.FromMinutes(5));
+		Assert.Equal(duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(innerOpt!.Duration, TimeSpan.FromSeconds(1));
 		Assert.False(maybeValue.HasValue);
@@ -362,9 +366,11 @@ public partial class L1Tests
 	[Fact]
 	public void AdaptiveCachingWithBackgroundFactoryCompletion()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
-		var dur = TimeSpan.FromMinutes(5);
-		cache.DefaultEntryOptions.Duration = dur;
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+		var duration = TimeSpan.FromMinutes(5);
+		cache.DefaultEntryOptions.Duration = duration;
 
 		// SET WITH 1s DURATION + FAIL-SAFE
 		cache.Set("foo", 21, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true), token: TestContext.Current.CancellationToken);
@@ -373,7 +379,9 @@ public partial class L1Tests
 		Thread.Sleep(TimeSpan.FromSeconds(2));
 
 		// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
-		var value21 = cache.GetOrSet<int>("foo", (ctx, _) =>
+		var value21 = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) =>
 			{
 				// WAIT 3s
 				Thread.Sleep(TimeSpan.FromSeconds(3));
@@ -382,8 +390,10 @@ public partial class L1Tests
 				ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 				return 42;
-			}, opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true)
-, token: TestContext.Current.CancellationToken);
+			},
+			opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true),
+			token: TestContext.Current.CancellationToken
+		);
 
 		// WAIT FOR 3s (+ EXTRA 1s) SO THE FACTORY COMPLETES IN THE BACKGROUND
 		Thread.Sleep(TimeSpan.FromSeconds(3 + 1));
@@ -397,7 +407,7 @@ public partial class L1Tests
 		// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
 		var noValue = cache.TryGet<int>("foo", options => options.SetFailSafe(true), token: TestContext.Current.CancellationToken);
 
-		Assert.Equal(dur, TimeSpan.FromMinutes(5));
+		Assert.Equal(duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(21, value21);
 		Assert.Equal(42, value42);
@@ -410,12 +420,16 @@ public partial class L1Tests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
 
-		_ = cache.GetOrSet<int>("foo", (ctx, _) =>
+		_ = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) =>
 			{
 				ctx.Options.Duration = TimeSpan.FromSeconds(20);
 				return 42;
-			}, options
-, token: TestContext.Current.CancellationToken);
+			},
+			options,
+			token: TestContext.Current.CancellationToken
+		);
 
 		Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
 	}
