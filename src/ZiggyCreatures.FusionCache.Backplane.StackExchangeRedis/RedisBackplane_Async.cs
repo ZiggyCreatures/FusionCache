@@ -104,15 +104,12 @@ public partial class RedisBackplane
 	/// <inheritdoc/>
 	public async ValueTask UnsubscribeAsync()
 	{
-		_ = Task.Run(() =>
-		{
-			_incomingMessageHandler = null;
-			_incomingMessageHandlerAsync = null;
-			_subscriber?.Unsubscribe(_channel);
-			_subscriptionOptions = null;
+		_incomingMessageHandler = null;
+		_incomingMessageHandlerAsync = null;
+		_subscriber?.Unsubscribe(_channel);
+		_subscriptionOptions = null;
 
-			Disconnect();
-		});
+		Disconnect();
 	}
 
 	/// <inheritdoc/>

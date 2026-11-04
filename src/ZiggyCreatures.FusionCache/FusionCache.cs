@@ -914,7 +914,19 @@ public sealed partial class FusionCache
 			{
 				if (_bpa is not null)
 				{
-					_bpa.Unsubscribe();
+
+					if (_options.WaitForInitialBackplaneSubscribe)
+					{
+						_bpa.Unsubscribe();
+					}
+					else
+					{
+						_ = Task.Run(async () =>
+						{
+							await _bpa.UnsubscribeAsync().ConfigureAwait(false);
+						});
+					}
+
 					_bpa = null;
 
 					if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
