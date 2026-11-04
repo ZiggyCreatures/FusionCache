@@ -20,6 +20,7 @@ public partial class RedisBackplane
 			if (_options.ConnectionMultiplexerFactory is not null)
 			{
 				_muxer = await _options.ConnectionMultiplexerFactory().ConfigureAwait(false);
+				_shouldDispose = false;
 			}
 			else
 			{
