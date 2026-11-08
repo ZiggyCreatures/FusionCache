@@ -13,6 +13,7 @@
 		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ProtoBufNet" Version="2.9.0" />
 		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.ServiceStackJson" Version="2.9.0" />
 		<PackageReference Include="ZiggyCreatures.FusionCache.Serialization.SystemTextJson" Version="2.9.0" />
+		<PackageReference Include="MessagePack" Version="3.1.12" />
 	</ItemGroup>
 
 	<ItemGroup>
