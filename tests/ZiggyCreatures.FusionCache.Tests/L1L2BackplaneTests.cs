@@ -26,6 +26,9 @@ public partial class L1L2BackplaneTests
 	{
 		var res = new FusionCacheOptions
 		{
+			DefaultEntryOptions = {
+				Duration = TimeSpan.FromMinutes(10)
+			},
 			WaitForInitialBackplaneSubscribe = true,
 			CacheKeyPrefix = TestingCacheKeyPrefix,
 			IncludeTagsInLogs = true,

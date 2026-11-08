@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Locking;
 using ZiggyCreatures.Caching.Fusion.NullObjects;
 
 namespace FusionCacheTests;
@@ -334,25 +335,29 @@ public partial class L1Tests
 	public void AdaptiveCaching()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
-		var dur = TimeSpan.FromMinutes(5);
-		cache.DefaultEntryOptions.Duration = dur;
+		var duration = TimeSpan.FromMinutes(5);
+		cache.DefaultEntryOptions.Duration = duration;
 		FusionCacheEntryOptions? innerOpt = null;
 
-		var default3 = cache.GetOrSet<int>("foo", (ctx, _) =>
+		var default3 = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) =>
 			{
 				ctx.Options.Duration = TimeSpan.FromSeconds(1);
 
 				innerOpt = ctx.Options;
 
 				return 3;
-			}, opt => opt.SetFailSafe(false)
-, token: TestContext.Current.CancellationToken);
+			},
+			opt => opt.SetFailSafe(false),
+			token: TestContext.Current.CancellationToken
+		);
 
 		Thread.Sleep(TimeSpan.FromSeconds(2));
 
 		var maybeValue = cache.TryGet<int>("foo", token: TestContext.Current.CancellationToken);
 
-		Assert.Equal(dur, TimeSpan.FromMinutes(5));
+		Assert.Equal(duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(innerOpt!.Duration, TimeSpan.FromSeconds(1));
 		Assert.False(maybeValue.HasValue);
@@ -361,9 +366,11 @@ public partial class L1Tests
 	[Fact]
 	public void AdaptiveCachingWithBackgroundFactoryCompletion()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
-		var dur = TimeSpan.FromMinutes(5);
-		cache.DefaultEntryOptions.Duration = dur;
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+		var duration = TimeSpan.FromMinutes(5);
+		cache.DefaultEntryOptions.Duration = duration;
 
 		// SET WITH 1s DURATION + FAIL-SAFE
 		cache.Set("foo", 21, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true), token: TestContext.Current.CancellationToken);
@@ -372,7 +379,9 @@ public partial class L1Tests
 		Thread.Sleep(TimeSpan.FromSeconds(2));
 
 		// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
-		var value21 = cache.GetOrSet<int>("foo", (ctx, _) =>
+		var value21 = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) =>
 			{
 				// WAIT 3s
 				Thread.Sleep(TimeSpan.FromSeconds(3));
@@ -381,8 +390,10 @@ public partial class L1Tests
 				ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 				return 42;
-			}, opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true)
-, token: TestContext.Current.CancellationToken);
+			},
+			opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true),
+			token: TestContext.Current.CancellationToken
+		);
 
 		// WAIT FOR 3s (+ EXTRA 1s) SO THE FACTORY COMPLETES IN THE BACKGROUND
 		Thread.Sleep(TimeSpan.FromSeconds(3 + 1));
@@ -396,7 +407,7 @@ public partial class L1Tests
 		// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
 		var noValue = cache.TryGet<int>("foo", options => options.SetFailSafe(true), token: TestContext.Current.CancellationToken);
 
-		Assert.Equal(dur, TimeSpan.FromMinutes(5));
+		Assert.Equal(duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(21, value21);
 		Assert.Equal(42, value42);
@@ -409,12 +420,16 @@ public partial class L1Tests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
 
-		_ = cache.GetOrSet<int>("foo", (ctx, _) =>
+		_ = cache.GetOrSet<int>(
+			"foo",
+			(ctx, _) =>
 			{
 				ctx.Options.Duration = TimeSpan.FromSeconds(20);
 				return 42;
-			}, options
-, token: TestContext.Current.CancellationToken);
+			},
+			options,
+			token: TestContext.Current.CancellationToken
+		);
 
 		Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
 	}
@@ -674,7 +689,7 @@ public partial class L1Tests
 		var v3 = cache.GetOrSet<long>("foo", _ => eagerRefreshValue, token: TestContext.Current.CancellationToken);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		Thread.Sleep(TimeSpan.FromMilliseconds(250));
+		Thread.Sleep(TimeSpan.FromSeconds(1));
 
 		// GET THE REFRESHED VALUE
 		var v4 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
@@ -792,6 +807,52 @@ public partial class L1Tests
 		Assert.True(v4 > v3);
 		Assert.True(v4 == v3EagerResult);
 		Assert.False(v4 == v4SupposedlyNot);
+	}
+
+	[Fact]
+	public void CanHandleEagerRefreshWithFailingFactory()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		var locker = new StandardMemoryLocker();
+		var duration = TimeSpan.FromSeconds(2);
+		var eagerRefreshThreshold = 0.2f;
+		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold);
+
+		var options = new FusionCacheOptions
+		{
+			DefaultEntryOptions = {
+				Duration = duration,
+				EagerRefreshThreshold = eagerRefreshThreshold
+			}
+		};
+		using var cache = new FusionCache(options, memoryLocker: locker, logger: logger);
+
+		Assert.False(locker.IsLockHeld("foo"));
+
+		// EXECUTE FACTORY
+		var v1 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+
+		Assert.False(locker.IsLockHeld("foo"));
+
+		// USE CACHED VALUE
+		var v2 = cache.GetOrSet<long>("foo", _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+
+		Assert.Equal(v1, v2);
+		Assert.False(locker.IsLockHeld("foo"));
+
+		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		Thread.Sleep(eagerDuration.PlusALittleBit());
+
+		// EAGER REFRESH KICKS IN
+		var eagerRefreshValue = DateTimeOffset.UtcNow.Ticks;
+		logger.LogInformation("EAGER REFRESH VALUE: {EagerRefreshValue}", eagerRefreshValue);
+		var v3 = cache.GetOrSet<long>("foo", _ => throw new Exception("Simulated failure"), token: TestContext.Current.CancellationToken);
+
+		Thread.Sleep(TimeSpan.FromSeconds(1));
+
+		Assert.Equal(v2, v3);
+		Assert.False(locker.IsLockHeld("foo"));
 	}
 
 	[Fact]
@@ -1293,6 +1354,55 @@ public partial class L1Tests
 	}
 
 	[Fact]
+	public void CanRemoveByTagWithBehaviorRemoveIgnoreStaleData()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var options = new FusionCacheOptions()
+		{
+			IncludeTagsInLogs = true,
+			RemoveByTagBehavior = RemoveByTagBehavior.Remove,
+			DefaultEntryOptions = {
+				IsFailSafeEnabled = true,
+			}
+		};
+		using var cache = new FusionCache(options, logger: logger);
+
+		cache.Set<int>("foo", 1, tags: ["x", "y"], token: TestContext.Current.CancellationToken);
+
+		var foo1 = cache.GetOrSet<int>(
+			"foo",
+			(ctx, ct) =>
+			{
+				if (ctx.HasStaleValue)
+					return ctx.NotModified();
+
+				return 11;
+			},
+			tags: ["x", "y"],
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(1, foo1);
+
+		cache.RemoveByTag("x", token: TestContext.Current.CancellationToken);
+
+		var foo2 = cache.GetOrSet<int>(
+			"foo",
+			(ctx, ct) =>
+			{
+				if (ctx.HasStaleValue)
+					return ctx.NotModified();
+
+				return 2;
+			},
+			tags: ["x", "y"],
+			token: TestContext.Current.CancellationToken
+		);
+
+		Assert.Equal(2, foo2);
+	}
+
+	[Fact]
 	public void CanClear()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
@@ -1605,16 +1715,21 @@ public partial class L1Tests
 	[Fact]
 	public void SoftTimeoutDoesNotBreakStampedeProtection()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions
-		{
-			DefaultEntryOptions = {
-				Duration = TimeSpan.FromSeconds(1),
-				IsFailSafeEnabled = true,
-				FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
-				FailSafeMaxDuration = TimeSpan.FromMinutes(1),
-				FactorySoftTimeout = TimeSpan.FromSeconds(1)
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(
+			new FusionCacheOptions
+			{
+				DefaultEntryOptions = {
+					Duration = TimeSpan.FromSeconds(1),
+					IsFailSafeEnabled = true,
+					FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
+					FailSafeMaxDuration = TimeSpan.FromMinutes(10),
+					FactorySoftTimeout = TimeSpan.FromSeconds(1)
+				}
 			}
-		});
+			, logger: logger
+		);
 
 		var factoryCallsCount = 0;
 

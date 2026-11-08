@@ -116,6 +116,10 @@ public class DependencyInjectionTests
 			{
 				opt.DefaultEntryOptions.DistributedCacheDuration = TimeSpan.FromSeconds(123);
 			})
+			.WithOptions((sp, opt) =>
+			{
+				opt.DefaultEntryOptions.MemoryCacheDuration = TimeSpan.FromSeconds(456);
+			})
 			.WithDefaultEntryOptions(opt =>
 			{
 				opt.Duration = TimeSpan.FromMinutes(123);
@@ -132,6 +136,7 @@ public class DependencyInjectionTests
 		Assert.Equal(FusionCacheOptions.DefaultCacheName, cache.CacheName);
 		Assert.Equal(123, options2.AutoRecoveryMaxItems);
 		Assert.Equal(TimeSpan.FromSeconds(123), cache.DefaultEntryOptions.DistributedCacheDuration!.Value);
+		Assert.Equal(TimeSpan.FromSeconds(456), cache.DefaultEntryOptions.MemoryCacheDuration!.Value);
 		Assert.Equal(TimeSpan.FromMinutes(123), cache.DefaultEntryOptions.Duration);
 	}
 

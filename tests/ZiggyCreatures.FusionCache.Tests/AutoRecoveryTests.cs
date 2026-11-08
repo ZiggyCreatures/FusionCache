@@ -31,7 +31,10 @@ public partial class AutoRecoveryTests
 	{
 		var res = new FusionCacheOptions
 		{
-			CacheKeyPrefix = TestingCacheKeyPrefix
+			CacheKeyPrefix = TestingCacheKeyPrefix,
+			DefaultEntryOptions = {
+				Duration = TimeSpan.FromMinutes(5)
+			}
 		};
 
 		return res;

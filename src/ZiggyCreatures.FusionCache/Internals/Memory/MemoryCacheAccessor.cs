@@ -86,8 +86,14 @@ internal sealed class MemoryCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// LOGGING
+			if (_logger?.IsEnabled(LogLevel.Error) ?? false)
+				_logger.Log(LogLevel.Error, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [MC] an error occurred while saving an entry in the memory cache", _options.CacheName, _options.InstanceId, operationId, key);
+
+			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 			activity?.AddException(exc);
+
 			throw;
 		}
 	}
@@ -118,6 +124,7 @@ internal sealed class MemoryCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 			activity?.AddException(exc);
 			throw;
@@ -175,6 +182,7 @@ internal sealed class MemoryCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 			activity?.AddException(exc);
 			throw;
@@ -198,8 +206,10 @@ internal sealed class MemoryCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 			activity?.AddException(exc);
+
 			throw;
 		}
 	}
@@ -251,6 +261,7 @@ internal sealed class MemoryCacheAccessor
 		}
 		catch (Exception exc)
 		{
+			// ACTIVITY
 			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
 			activity?.AddException(exc);
 			throw;

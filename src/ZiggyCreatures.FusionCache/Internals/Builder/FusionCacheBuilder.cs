@@ -54,6 +54,7 @@ internal sealed class FusionCacheBuilder
 	public bool AddCacheKeyPrefixSeparator { get; set; }
 	public string? CacheKeyPrefix { get; set; }
 	public Action<FusionCacheOptions>? SetupOptionsAction { get; set; }
+	public Action<IServiceProvider, FusionCacheOptions>? SetupOptionsActionAdvanced { get; set; }
 
 	public FusionCacheEntryOptions? DefaultEntryOptions { get; set; }
 	public Action<FusionCacheEntryOptions>? SetupDefaultEntryOptionsAction { get; set; }
@@ -143,7 +144,10 @@ internal sealed class FusionCacheBuilder
 			}
 		}
 
+		// FOR BACKWARD COMPATIBILITY
 		SetupOptionsAction?.Invoke(options);
+		// THE NEW ONE
+		SetupOptionsActionAdvanced?.Invoke(serviceProvider, options);
 
 		// CACHE KEY PREFIX
 		if (UseCacheKeyPrefix)

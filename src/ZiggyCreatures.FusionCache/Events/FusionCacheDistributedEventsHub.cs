@@ -40,7 +40,7 @@ public sealed class FusionCacheDistributedEventsHub
 	internal void OnCircuitBreakerChange(string? operationId, string? key, bool isClosed)
 	{
 		// METRIC
-		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.DistributedCircuitBreakerClosed, isClosed));
+		Metrics.CounterDistributedCircuitBreakerChange.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, Tags.Tag(Tags.Names.DistributedCircuitBreakerClosed, isClosed));
 
 		CircuitBreakerChange?.SafeExecute(operationId, key, _cache, new FusionCacheCircuitBreakerChangeEventArgs(isClosed), nameof(CircuitBreakerChange), _logger, _errorsLogLevel, _syncExecution);
 	}
@@ -64,7 +64,7 @@ public sealed class FusionCacheDistributedEventsHub
 	internal override void OnHit(string operationId, string key, bool isStale, Activity? activity)
 	{
 		// METRIC
-		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, new KeyValuePair<string, object?>(Tags.Names.Stale, isStale));
+		Metrics.CounterDistributedHit.Maybe()?.AddWithCommonTags(1, _cache.CacheName, _cache.InstanceId, Tags.Tag(Tags.Names.Stale, isStale));
 
 		base.OnHit(operationId, key, isStale, activity);
 	}

@@ -277,7 +277,7 @@ public class FusionCacheOptions
 	public string? BackplaneChannelPrefix { get; set; }
 
 	/// <summary>
-	/// When using a backplane, if set to <see langword="true"/> FusionCache will wait for the initial Subscribe operation, otherwise it will not.
+	/// When using a backplane, if set to <see langword="true"/> FusionCache will wait for the Subscribe/Unsubscribe operations, otherwise it will act in a fire-and-forget way (any error will still be logged anyway).
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>

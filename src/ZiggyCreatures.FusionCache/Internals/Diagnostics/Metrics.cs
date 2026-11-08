@@ -68,27 +68,34 @@ internal static class Metrics
 		return counter;
 	}
 
-	public static KeyValuePair<string, object?>[] GetCommonTags(string? cacheName, string? cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
+	public static KeyValuePair<string, object?> GetCommonTag(string? cacheName, string? cacheInstanceId)
 	{
-		return [
-			new KeyValuePair<string, object?>(Tags.Names.CacheName, cacheName),
-			// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS:
-			// - THIS MAY CAUSE A SO CALLED CARDINALITY EXPLOSION
-			// - PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES/ATTRIBUTES COMBINATION
+		// NOTE: NOT THE NEXT ONES SINCE, WITH METRICS:
+		// - THIS MAY CAUSE A SO CALLED CARDINALITY EXPLOSION
+		// - PEOPLE ARE USUALLY CHARGED PER UNIQUE ATTRIBUTES/ATTRIBUTES COMBINATION
 
-			//new KeyValuePair<string, object?>(Tags.Names.CacheInstanceId, cacheInstanceId),
-			//new KeyValuePair<string, object?>(Tags.Names.OperationKey, key),
-			//new KeyValuePair<string, object?>(Tags.Names.OperationId, operationId),
-			.. extraTags ?? []
-		];
+		//new KeyValuePair<string, object?>(Tags.Names.CacheInstanceId, cacheInstanceId),
+		//new KeyValuePair<string, object?>(Tags.Names.OperationKey, key),
+		//new KeyValuePair<string, object?>(Tags.Names.OperationId, operationId),
+
+		return Tags.Tag(Tags.Names.CacheName, cacheName);
 	}
 
-	public static void AddWithCommonTags<T>(this Counter<T> counter, T delta, string? cacheName, string? cacheInstanceId, params KeyValuePair<string, object?>[] extraTags)
+	public static void AddWithCommonTags<T>(this Counter<T> counter, T delta, string? cacheName, string? cacheInstanceId)
 		where T : struct
 	{
 		if (counter.Enabled == false)
 			return;
 
-		counter.Add(delta, GetCommonTags(cacheName, cacheInstanceId, extraTags));
+		counter.Add(delta, GetCommonTag(cacheName, cacheInstanceId));
+	}
+
+	public static void AddWithCommonTags<T>(this Counter<T> counter, T delta, string? cacheName, string? cacheInstanceId, KeyValuePair<string, object?> extraTag)
+		where T : struct
+	{
+		if (counter.Enabled == false)
+			return;
+
+		counter.Add(delta, GetCommonTag(cacheName, cacheInstanceId), extraTag);
 	}
 }

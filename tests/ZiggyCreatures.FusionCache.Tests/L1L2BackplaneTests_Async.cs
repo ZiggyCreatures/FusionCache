@@ -1065,4 +1065,185 @@ public partial class L1L2BackplaneTests
 		Assert.True(cache2_bar2.HasValue);
 		Assert.Equal(2, cache2_bar2.Value);
 	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task ClearRemoveDuringColdStartIsNotLostAsync(SerializerType serializerType)
+	{
+		await ClearDuringColdStartIsNotLostAsync(serializerType, false);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task ClearExpireDuringColdStartIsNotLostAsync(SerializerType serializerType)
+	{
+		await ClearDuringColdStartIsNotLostAsync(serializerType, true);
+	}
+
+	private async Task ClearDuringColdStartIsNotLostAsync(SerializerType serializerType, bool allowFailSafe)
+	{
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var clearTag = allowFailSafe ? FusionCacheInternalStrings.DefaultClearExpireTag : FusionCacheInternalStrings.DefaultClearRemoveTag;
+		var clearTagCacheKeySuffix = FusionCacheInternalStrings.DefaultTagCacheKeyPrefix + clearTag;
+
+		var distributedCache = CreateDistributedCache();
+		var gatedDistributedCache = new GatedDistributedCache(distributedCache, key => key.EndsWith(clearTagCacheKeySuffix));
+
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, gatedDistributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+
+		long GetClearTimestamp(FusionCache cache) => allowFailSafe ? cache.ClearExpireTimestamp : cache.ClearRemoveTimestamp;
+
+		await Task.Delay(InitialBackplaneDelay, TestContext.Current.CancellationToken);
+
+		await cache1.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromMinutes(10)), token: TestContext.Current.CancellationToken);
+
+		// CACHE 2 HAS NEVER LOADED THE CLEAR TIMESTAMP
+		Assert.Equal(-1, GetClearTimestamp(cache2));
+
+		// READ ON CACHE 2: THE FIRST LOAD OF THE CLEAR TIMESTAMP READS THE OLD VALUE FROM L2, THEN WAITS AT THE GATE
+		gatedDistributedCache.Enable();
+		var readTask = cache2.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken).AsTask();
+
+		try
+		{
+			await gatedDistributedCache.ReadReached.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+			// MEANWHILE, CLEAR ON CACHE 1: THE BACKPLANE NOTIFICATION UPDATES THE CLEAR TIMESTAMP ON CACHE 2
+			await cache1.ClearAsync(allowFailSafe, token: TestContext.Current.CancellationToken);
+
+			var clearTimestamp = GetClearTimestamp(cache2);
+			Assert.True(clearTimestamp > 0);
+
+			// LET THE FIRST LOAD COMPLETE
+			gatedDistributedCache.OpenGate();
+			await readTask;
+
+			// THE CLEAR MUST BE HONORED ON CACHE 2
+			var foo2 = await cache2.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken);
+			Assert.Equal(0, foo2);
+
+			// BECAUSE THE OLDER VALUE FROM THE FIRST LOAD DID NOT OVERWRITE THE NEWER ONE FROM THE BACKPLANE
+			Assert.True(GetClearTimestamp(cache2) >= clearTimestamp);
+		}
+		finally
+		{
+			gatedDistributedCache.OpenGate();
+		}
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task OutOfOrderClearRemoveNotificationsAreNotLostAsync(SerializerType serializerType)
+	{
+		await OutOfOrderClearNotificationsAreNotLostAsync(serializerType, false);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task OutOfOrderClearExpireNotificationsAreNotLostAsync(SerializerType serializerType)
+	{
+		await OutOfOrderClearNotificationsAreNotLostAsync(serializerType, true);
+	}
+
+	private async Task OutOfOrderClearNotificationsAreNotLostAsync(SerializerType serializerType, bool allowFailSafe)
+	{
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var clearTag = allowFailSafe ? FusionCacheInternalStrings.DefaultClearExpireTag : FusionCacheInternalStrings.DefaultClearRemoveTag;
+		var clearTagCacheKeySuffix = FusionCacheInternalStrings.DefaultTagCacheKeyPrefix + clearTag;
+
+		var distributedCache = CreateDistributedCache();
+		var gatedBackplane = new GatedBackplane(CreateBackplane(backplaneConnectionId), message => message.CacheKey?.EndsWith(clearTagCacheKeySuffix) == true);
+
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, gatedBackplane, cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+		using var cache3 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C3");
+
+		long GetClearTimestamp(FusionCache cache) => allowFailSafe ? cache.ClearExpireTimestamp : cache.ClearRemoveTimestamp;
+
+		await Task.Delay(InitialBackplaneDelay, TestContext.Current.CancellationToken);
+
+		// CLEAR ON CACHE 1: ITS BACKPLANE NOTIFICATION IS HELD BACK
+		gatedBackplane.Enable();
+		var clear1Task = cache1.ClearAsync(allowFailSafe, token: TestContext.Current.CancellationToken).AsTask();
+
+		try
+		{
+			await gatedBackplane.PublishReached.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+
+			// AN ENTRY CREATED AFTER THE FIRST CLEAR
+			await cache3.SetAsync<int>("foo", 1, options => options.SetDuration(TimeSpan.FromMinutes(10)), token: TestContext.Current.CancellationToken);
+
+			// A SECOND CLEAR, WHOSE NOTIFICATION REACHES CACHE 2 FIRST
+			await cache3.ClearAsync(allowFailSafe, token: TestContext.Current.CancellationToken);
+
+			var clearTimestamp = GetClearTimestamp(cache2);
+			Assert.True(clearTimestamp > 0);
+
+			// THE NOTIFICATION OF THE FIRST (OLDER) CLEAR REACHES CACHE 2 LAST
+			gatedBackplane.OpenGate();
+			await clear1Task;
+
+			// THE ENTRY MUST STILL BE INVALID ON CACHE 2, BECAUSE OF THE SECOND CLEAR
+			var foo2 = await cache2.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken);
+			Assert.Equal(0, foo2);
+
+			// BECAUSE THE OLDER NOTIFICATION DID NOT MOVE THE CLEAR TIMESTAMP BACKWARDS
+			Assert.True(GetClearTimestamp(cache2) >= clearTimestamp);
+		}
+		finally
+		{
+			gatedBackplane.OpenGate();
+		}
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task LocalClearRemoveDoesNotUndoNewerRemoteClearAsync(SerializerType serializerType)
+	{
+		await LocalClearDoesNotUndoNewerRemoteClearAsync(serializerType, false);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task LocalClearExpireDoesNotUndoNewerRemoteClearAsync(SerializerType serializerType)
+	{
+		await LocalClearDoesNotUndoNewerRemoteClearAsync(serializerType, true);
+	}
+
+	private async Task LocalClearDoesNotUndoNewerRemoteClearAsync(SerializerType serializerType, bool allowFailSafe)
+	{
+		var cacheName = Guid.NewGuid().ToString("N");
+
+		var backplaneConnectionId = Guid.NewGuid().ToString("N");
+
+		var distributedCache = CreateDistributedCache();
+
+		// THE CLOCK OF CACHE 1 IS AHEAD OF THE CLOCK OF CACHE 2
+		using var cache1 = CreateFusionCache(cacheName, serializerType, distributedCache, new ClockSkewBackplane(CreateBackplane(backplaneConnectionId), TimeSpan.FromMinutes(10)), cacheInstanceId: "C1");
+		using var cache2 = CreateFusionCache(cacheName, serializerType, distributedCache, CreateBackplane(backplaneConnectionId), cacheInstanceId: "C2");
+
+		long GetClearTimestamp(FusionCache cache) => allowFailSafe ? cache.ClearExpireTimestamp : cache.ClearRemoveTimestamp;
+
+		await Task.Delay(InitialBackplaneDelay, TestContext.Current.CancellationToken);
+
+		// CLEAR ON CACHE 1: FROM THE POINT OF VIEW OF CACHE 2, IT HAPPENS IN THE FUTURE
+		await cache1.ClearAsync(allowFailSafe, token: TestContext.Current.CancellationToken);
+
+		var remoteClearTimestamp = GetClearTimestamp(cache2);
+		Assert.True(remoteClearTimestamp > DateTimeOffset.UtcNow.UtcTicks);
+
+		// CLEAR ON CACHE 2: ITS TIMESTAMP IS OLDER THAN THE ONE OF THE CLEAR ON CACHE 1
+		await cache2.ClearAsync(allowFailSafe, token: TestContext.Current.CancellationToken);
+
+		// A LOCAL CLEAR MUST NOT UNDO A NEWER CLEAR: THE SAME HAPPENS WITHOUT CLOCK SKEW, WHEN
+		// A LOCAL CLEAR IS DELAYED AFTER TAKING ITS TIMESTAMP AND A REMOTE CLEAR ARRIVES MEANWHILE
+		Assert.Equal(remoteClearTimestamp, GetClearTimestamp(cache2));
+	}
 }

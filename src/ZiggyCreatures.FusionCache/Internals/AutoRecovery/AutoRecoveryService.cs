@@ -20,7 +20,9 @@ internal sealed class AutoRecoveryService
 	private readonly TimeSpan _delay;
 	private static readonly TimeSpan _minDelay = TimeSpan.FromMilliseconds(10);
 	private CancellationTokenSource? _cts;
-	private long _barrierTicks = 0;
+
+	private const long NoBarrierAnchor = long.MinValue;
+	private long _barrierTimestamp = NoBarrierAnchor;
 
 	public AutoRecoveryService(FusionCache cache, FusionCacheOptions options, ILogger<FusionCache>? logger)
 	{
@@ -239,8 +241,8 @@ internal sealed class AutoRecoveryService
 		if (_queue.IsEmpty)
 			return false;
 
-		var newBarrier = DateTimeOffset.UtcNow.Ticks + _delay.Ticks;
-		var oldBarrier = Interlocked.Exchange(ref _barrierTicks, newBarrier);
+		var newBarrier = Stopwatch.GetTimestamp();
+		var oldBarrier = Interlocked.Exchange(ref _barrierTimestamp, newBarrier);
 
 		if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 			_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId}): auto-recovery barrier set from {OldAutoRecoveryBarrier} to {NewAutoRecoveryBarrier}", _cache.CacheName, _cache.InstanceId, operationId, oldBarrier, newBarrier);
@@ -251,14 +253,30 @@ internal sealed class AutoRecoveryService
 		return true;
 	}
 
+	/// <summary>
+	/// Gets the time still missing to reach the barrier, if a barrier is set and has not been reached yet.
+	/// </summary>
+	private bool TryGetBarrierRemaining(out TimeSpan remaining)
+	{
+		remaining = TimeSpan.Zero;
+
+		var anchor = Interlocked.Read(ref _barrierTimestamp);
+
+		if (anchor == NoBarrierAnchor)
+			return false;
+
+		var elapsed = StopwatchPolyfill.GetElapsedTime(anchor);
+
+		if (elapsed >= _delay)
+			return false;
+
+		remaining = _delay - elapsed;
+		return true;
+	}
+
 	internal bool IsBehindBarrier()
 	{
-		var barrierTicks = Interlocked.Read(ref _barrierTicks);
-
-		if (DateTimeOffset.UtcNow.Ticks < barrierTicks)
-			return true;
-
-		return false;
+		return TryGetBarrierRemaining(out _);
 	}
 
 	internal async ValueTask<bool> TryProcessQueueAsync(string operationId, CancellationToken token)
@@ -599,13 +617,11 @@ internal sealed class AutoRecoveryService
 			{
 				var operationId = FusionCacheInternalUtils.MaybeGenerateOperationId(_logger);
 				var delay = _delay;
-				var nowTicks = DateTimeOffset.UtcNow.Ticks;
-				var barrierTicks = Interlocked.Read(ref _barrierTicks);
-				if (nowTicks < barrierTicks)
+				if (TryGetBarrierRemaining(out var barrierRemaining))
 				{
 					// SET THE NEW DELAY TO REACH THE BARRIER (+ A MICROSCOPIC EXTRA)
 					var oldDelay = delay;
-					var newDelayTicks = barrierTicks - nowTicks + 1_000;
+					var newDelayTicks = barrierRemaining.Ticks + 1_000;
 					delay = TimeSpan.FromTicks(newDelayTicks);
 
 					// CHECK IF THE NEW DELAY IS BELOW A SAFETY LIMIT
