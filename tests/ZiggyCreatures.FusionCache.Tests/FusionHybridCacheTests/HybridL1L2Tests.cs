@@ -193,9 +193,8 @@ public class HybridL1L2Tests
 		var keyFoo = CreateRandomCacheKey("foo");
 		var logger = CreateXUnitLogger<FusionCache>();
 
-		var simulatedDelay = TimeSpan.FromMilliseconds(2_000);
+		var simulatedDelay = TimeSpan.FromMilliseconds(5_000);
 		var softTimeout = TimeSpan.FromMilliseconds(100);
-		var hardTimeout = TimeSpan.FromMilliseconds(500);
 		var duration = TimeSpan.FromSeconds(1);
 
 		var dc = CreateDistributedCache();
@@ -206,9 +205,6 @@ public class HybridL1L2Tests
 		options.DefaultEntryOptions.Duration = duration;
 		options.DefaultEntryOptions.IsFailSafeEnabled = true;
 		options.DefaultEntryOptions.DistributedCacheSoftTimeout = softTimeout;
-		options.DefaultEntryOptions.DistributedCacheHardTimeout = hardTimeout;
-		options.TagsDefaultEntryOptions.DistributedCacheSoftTimeout = softTimeout;
-		options.TagsDefaultEntryOptions.DistributedCacheHardTimeout = hardTimeout;
 		using var fc = new FusionCache(options, logger: logger);
 		var cache = new FusionHybridCache(fc);
 

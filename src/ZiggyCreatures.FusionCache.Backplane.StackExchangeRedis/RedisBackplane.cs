@@ -17,6 +17,7 @@ public partial class RedisBackplane
 
 	private readonly SemaphoreSlim _muxerLock;
 	private IConnectionMultiplexer? _muxer;
+	private bool _shouldDispose = true;
 
 	private string? _channelName = null;
 	private RedisChannel _channel;
@@ -82,7 +83,8 @@ public partial class RedisBackplane
 		try
 		{
 			_muxer.ConnectionRestored -= OnReconnect;
-			_muxer.Dispose();
+			if (_shouldDispose)
+				_muxer.Dispose();
 		}
 		catch (Exception exc)
 		{

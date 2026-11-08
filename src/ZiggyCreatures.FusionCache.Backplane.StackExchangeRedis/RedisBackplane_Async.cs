@@ -20,6 +20,7 @@ public partial class RedisBackplane
 			if (_options.ConnectionMultiplexerFactory is not null)
 			{
 				_muxer = await _options.ConnectionMultiplexerFactory().ConfigureAwait(false);
+				_shouldDispose = false;
 			}
 			else
 			{
@@ -103,15 +104,12 @@ public partial class RedisBackplane
 	/// <inheritdoc/>
 	public async ValueTask UnsubscribeAsync()
 	{
-		_ = Task.Run(() =>
-		{
-			_incomingMessageHandler = null;
-			_incomingMessageHandlerAsync = null;
-			_subscriber?.Unsubscribe(_channel);
-			_subscriptionOptions = null;
+		_incomingMessageHandler = null;
+		_incomingMessageHandlerAsync = null;
+		_subscriber?.Unsubscribe(_channel);
+		_subscriptionOptions = null;
 
-			Disconnect();
-		});
+		Disconnect();
 	}
 
 	/// <inheritdoc/>

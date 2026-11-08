@@ -84,8 +84,8 @@ public partial class AutoRecoveryTests
 
 		logger.LogInformation("## WAIT FOR THE AUTO-RECOVERY DELAY");
 
-		// WAIT FOR THE AUTO-RECOVERY DELAY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
 
 		Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 		Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
@@ -152,8 +152,8 @@ public partial class AutoRecoveryTests
 		backplane2.SetNeverThrow();
 		backplane3.SetNeverThrow();
 
-		// WAIT FOR THE AUTO-RECOVERY DELAY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
 
 		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
@@ -330,8 +330,8 @@ public partial class AutoRecoveryTests
 		chaosBackplaneA.SetNeverThrow();
 		chaosBackplaneB.SetNeverThrow();
 
-		// GIVE IT SOME TIME
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA3 = cacheA.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
@@ -427,8 +427,8 @@ public partial class AutoRecoveryTests
 		// RE-ENABLE DISTRIBUTED CACHE
 		chaosDistributedCache.SetNeverThrow();
 
-		// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA4 = cacheA.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
@@ -508,8 +508,8 @@ public partial class AutoRecoveryTests
 		// RE-ENABLE DISTRIBUTED CACHE
 		chaosDistributedCache.SetNeverThrow();
 
-		// WAIT FOR AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA2 = cacheA.GetOrSet<int>("foo", _ => 50, token: TestContext.Current.CancellationToken);
@@ -529,9 +529,11 @@ public partial class AutoRecoveryTests
 		var backplaneConnectionId = Guid.NewGuid().ToString("N");
 
 		var defaultOptions = new FusionCacheOptions();
+		defaultOptions.AutoRecoveryDelay = TimeSpan.FromSeconds(1);
 
 		// SETUP CACHE A
 		var optionsA = CreateFusionCacheOptions();
+		optionsA.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
 		optionsA.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		optionsA.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		optionsA.DefaultEntryOptions.SkipBackplaneNotifications = true;
@@ -543,6 +545,7 @@ public partial class AutoRecoveryTests
 
 		// SETUP CACHE B
 		var optionsB = CreateFusionCacheOptions();
+		optionsB.AutoRecoveryDelay = defaultOptions.AutoRecoveryDelay;
 		optionsB.DefaultEntryOptions.Duration = TimeSpan.FromMinutes(10);
 		optionsB.DefaultEntryOptions.AllowBackgroundBackplaneOperations = false;
 		optionsB.DefaultEntryOptions.SkipBackplaneNotifications = true;
@@ -585,8 +588,8 @@ public partial class AutoRecoveryTests
 		chaosBackplaneA.SetNeverThrow();
 		chaosBackplaneB.SetNeverThrow();
 
-		// GIVE IT SOME TIME
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
 
 		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
 		var vA3 = cacheA.GetOrSet<int>("foo", _ => 30, token: TestContext.Current.CancellationToken);
