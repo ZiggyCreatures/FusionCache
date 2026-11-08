@@ -1,4 +1,5 @@
-﻿using AsyncKeyedLock;
+﻿using System.Runtime.CompilerServices;
+using AsyncKeyedLock;
 using Microsoft.Extensions.Logging;
 
 namespace ZiggyCreatures.Caching.Fusion.Locking.AsyncKeyed;
@@ -20,19 +21,29 @@ public sealed class StripedAsyncKeyedMemoryLocker
 	}
 
 	/// <inheritdoc/>
-	public async ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public ValueTask<object?> AcquireLockAsync(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
-		return await _locker.LockOrNullAsync(key, timeout, token).ConfigureAwait(false);
+		var acquireTask = _locker.LockOrNullAsync(key, timeout, token);
+
+		return acquireTask.IsCompletedSuccessfully ?
+			new ValueTask<object?>(acquireTask.Result) :
+			AwaitAcquireLockAsync(acquireTask);
+	}
+
+	private static async ValueTask<object?> AwaitAcquireLockAsync(ValueTask<StripedAsyncKeyedLockReleaser?> acquireTask)
+	{
+		return await acquireTask.ConfigureAwait(false);
 	}
 
 	/// <inheritdoc/>
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public object? AcquireLock(string cacheName, string cacheInstanceId, string operationId, string key, TimeSpan timeout, ILogger? logger, CancellationToken token)
 	{
 		return _locker.LockOrNull(key, timeout, token);
 	}
 
 	/// <inheritdoc/>
-	//[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public void ReleaseLock(string cacheName, string cacheInstanceId, string operationId, string key, object? lockObj, ILogger? logger)
 	{
 		if (lockObj is null)

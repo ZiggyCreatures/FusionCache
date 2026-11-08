@@ -394,25 +394,29 @@ public partial class L1Tests
 	public async Task AdaptiveCachingAsync()
 	{
 		using var cache = new FusionCache(new FusionCacheOptions());
-		var dur = TimeSpan.FromMinutes(5);
-		cache.DefaultEntryOptions.Duration = dur;
+		var duration = TimeSpan.FromMinutes(5);
+		cache.DefaultEntryOptions.Duration = duration;
 		FusionCacheEntryOptions? innerOpt = null;
 
-		var default3 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
+		var default3 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) =>
 			{
 				ctx.Options.Duration = TimeSpan.FromSeconds(1);
 
 				innerOpt = ctx.Options;
 
 				return 3;
-			}, opt => opt.SetFailSafe(false)
-, token: TestContext.Current.CancellationToken);
+			},
+			opt => opt.SetFailSafe(false),
+			token: TestContext.Current.CancellationToken
+		);
 
 		await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
 		var maybeValue = await cache.TryGetAsync<int>("foo", token: TestContext.Current.CancellationToken);
 
-		Assert.Equal(dur, TimeSpan.FromMinutes(5));
+		Assert.Equal(duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(innerOpt!.Duration, TimeSpan.FromSeconds(1));
 		Assert.False(maybeValue.HasValue);
@@ -421,9 +425,11 @@ public partial class L1Tests
 	[Fact]
 	public async Task AdaptiveCachingWithBackgroundFactoryCompletionAsync()
 	{
-		using var cache = new FusionCache(new FusionCacheOptions());
-		var dur = TimeSpan.FromMinutes(5);
-		cache.DefaultEntryOptions.Duration = dur;
+		var logger = CreateXUnitLogger<FusionCache>();
+
+		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+		var duration = TimeSpan.FromMinutes(5);
+		cache.DefaultEntryOptions.Duration = duration;
 
 		// SET WITH 1s DURATION + FAIL-SAFE
 		await cache.SetAsync("foo", 21, options => options.SetDuration(TimeSpan.FromSeconds(1)).SetFailSafe(true), token: TestContext.Current.CancellationToken);
@@ -432,7 +438,9 @@ public partial class L1Tests
 		await Task.Delay(TimeSpan.FromSeconds(2), TestContext.Current.CancellationToken);
 
 		// CALL GetOrSET WITH A 1s SOFT TIMEOUT AND A FACTORY RUNNING FOR AT LEAST 3s
-		var value21 = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
+		var value21 = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) =>
 			{
 				// WAIT 3s
 				await Task.Delay(TimeSpan.FromSeconds(3));
@@ -441,8 +449,10 @@ public partial class L1Tests
 				ctx.Options.SetDuration(TimeSpan.FromSeconds(5)).SetFailSafe(false);
 
 				return 42;
-			}, opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true)
-, token: TestContext.Current.CancellationToken);
+			},
+			opt => opt.SetFactoryTimeouts(TimeSpan.FromSeconds(1)).SetFailSafe(true),
+			token: TestContext.Current.CancellationToken
+		);
 
 		// WAIT FOR 3s (+ EXTRA 1s) SO THE FACTORY COMPLETES IN THE BACKGROUND
 		await Task.Delay(TimeSpan.FromSeconds(3 + 1), TestContext.Current.CancellationToken);
@@ -456,7 +466,7 @@ public partial class L1Tests
 		// SEE THAT FAIL-SAFE CANNOT BE ACTIVATED (BECAUSE IT WAS DISABLED IN THE FACTORY)
 		var noValue = await cache.TryGetAsync<int>("foo", options => options.SetFailSafe(true), token: TestContext.Current.CancellationToken);
 
-		Assert.Equal(dur, TimeSpan.FromMinutes(5));
+		Assert.Equal(duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(cache.DefaultEntryOptions.Duration, TimeSpan.FromMinutes(5));
 		Assert.Equal(21, value21);
 		Assert.Equal(42, value42);
@@ -469,12 +479,16 @@ public partial class L1Tests
 		using var cache = new FusionCache(new FusionCacheOptions());
 		var options = new FusionCacheEntryOptions(TimeSpan.FromSeconds(10));
 
-		_ = await cache.GetOrSetAsync<int>("foo", async (ctx, _) =>
+		_ = await cache.GetOrSetAsync<int>(
+			"foo",
+			async (ctx, _) =>
 			{
 				ctx.Options.Duration = TimeSpan.FromSeconds(20);
 				return 42;
-			}, options
-, token: TestContext.Current.CancellationToken);
+			},
+			options,
+			token: TestContext.Current.CancellationToken
+		);
 
 		Assert.Equal(options.Duration, TimeSpan.FromSeconds(10));
 	}

@@ -25,7 +25,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="DistributedLock.Redis" Version="1.1.1" />
-		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.1" />
+		<PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.14" />
 	</ItemGroup>
 
 	<ItemGroup>

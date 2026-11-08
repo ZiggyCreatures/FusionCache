@@ -15,9 +15,16 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<TrimmerRootAssembly Include="ZiggyCreatures.FusionCache" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack\ZiggyCreatures.FusionCache.Serialization.CysharpMemoryPack.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
-		<TrimmerRootAssembly Include="ZiggyCreatures.FusionCache" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.DotNet.ILCompiler" Version="10.0.14" PrivateAssets="all" />
 	</ItemGroup>
 
 </Project>
