@@ -625,6 +625,18 @@ public class FusionCacheOptions
 	}
 
 	/// <summary>
+	/// Validates the options, both individually and in combination with each other.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	internal void Validate()
+	{
+		InternalStrings.Validate();
+		DefaultEntryOptions.Validate();
+		TagsDefaultEntryOptions.Validate();
+	}
+
+	/// <summary>
 	/// Creates a new <see cref="FusionCacheOptions"/> object by duplicating all the options of the current one.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
@@ -632,6 +644,8 @@ public class FusionCacheOptions
 	/// <returns>The newly created <see cref="FusionCacheOptions"/> object.</returns>
 	public FusionCacheOptions Duplicate()
 	{
+		Validate();
+
 		var res = new FusionCacheOptions
 		{
 			CacheName = CacheName,

@@ -97,6 +97,9 @@ public sealed partial class FusionCache
 		if (_options is null)
 			throw new InvalidOperationException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
 
+		// VALIDATION
+		_options.Validate();
+
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
 

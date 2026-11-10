@@ -126,4 +126,82 @@ public partial class InternalKeyPrefixTests
 		cache.SetupBackplane(new MemoryBackplane(new MemoryBackplaneOptions() { ConnectionId = backplaneConnectionId }, logger: CreateXUnitLogger<MemoryBackplane>()));
 		return cache;
 	}
+
+	[Fact]
+	public void CannotUseIndividualInvalidInternalStrings()
+	{
+		string[] invalidStrings = [
+			"", // EMPTY STRING
+			" ", // SPACE
+			"  ", // MULTIPLE SPACES
+			"	", // TAB
+			"		" // MULTIPLE TABS
+		];
+		var options = new FusionCacheOptions();
+
+		foreach (var invalidString in invalidStrings)
+		{
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.BackplaneChannelNameSeparator = invalidString;
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.BackplaneWireFormatSeparator = invalidString;
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.CacheKeyPrefixSeparator = invalidString;
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.ClearExpireTag = invalidString;
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.ClearRemoveTag = invalidString;
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.DistributedCacheWireFormatSeparator = invalidString;
+			});
+
+			Assert.Throws<InvalidOperationException>(() =>
+			{
+				return options.InternalStrings.DistributedLockerLockNameSuffix = invalidString;
+			});
+		}
+	}
+
+	[Fact]
+	public void CannotUseInvalidInternalStringsCombinations()
+	{
+		var options = new FusionCacheOptions();
+
+		options.InternalStrings.ClearExpireTag = "foo";
+		options.InternalStrings.ClearRemoveTag = "foo";
+
+		// EXPLICIT VALIDATION
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			options.InternalStrings.Validate();
+		});
+
+		// IMPLICIT VALIDATION ON DUPLICATION
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			options.InternalStrings.Duplicate();
+		});
+
+		// IMPLICIT VALIDATION WHEN CREATING A FUSIONCACHE INSTANCE
+		Assert.Throws<InvalidOperationException>(() =>
+		{
+			var cache = new FusionCache(options);
+		});
+	}
 }
