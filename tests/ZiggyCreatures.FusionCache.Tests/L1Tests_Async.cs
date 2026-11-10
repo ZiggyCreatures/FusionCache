@@ -1793,7 +1793,7 @@ public partial class L1Tests
 				DefaultEntryOptions = {
 					Duration = TimeSpan.FromSeconds(1),
 					IsFailSafeEnabled = true,
-					FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
+					FailSafeThrottleDuration = TimeSpan.FromSeconds(10),
 					FailSafeMaxDuration = TimeSpan.FromMinutes(10),
 					FactorySoftTimeout = TimeSpan.FromSeconds(1)
 				}
