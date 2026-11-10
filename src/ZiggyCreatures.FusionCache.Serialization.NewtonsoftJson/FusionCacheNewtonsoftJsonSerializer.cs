@@ -17,7 +17,7 @@ internal class JsonArrayPool : IArrayPool<char>
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses the Newtonsoft Json.NET serializer.
 /// </summary>
 public class FusionCacheNewtonsoftJsonSerializer
-	: IFusionCacheSerializer
+	: IBufferFusionCacheSerializer
 {
 	private readonly JsonSerializer _jsonSerializer;
 	/// <summary>
@@ -68,9 +68,30 @@ public class FusionCacheNewtonsoftJsonSerializer
 	}
 
 	/// <inheritdoc />
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		using var stream = new BufferWriterStream(destination);
+		using var writer = new StreamWriter(stream);
+		using JsonTextWriter jsonWriter = new JsonTextWriter(writer);
+		jsonWriter.ArrayPool = JsonArrayPool.Shared;
+		_jsonSerializer.Serialize(jsonWriter, obj);
+		jsonWriter.Flush();
+	}
+
+	/// <inheritdoc />
 	public T? Deserialize<T>(byte[] data)
 	{
 		using var stream = new MemoryStream(data);
+		using var reader = new StreamReader(stream, _encoding);
+		using var jsonReader = new JsonTextReader(reader);
+		jsonReader.ArrayPool = JsonArrayPool.Shared;
+		return _jsonSerializer.Deserialize<T>(jsonReader);
+	}
+
+	/// <inheritdoc />
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		using var stream = new ReadOnlySequenceStream(in data);
 		using var reader = new StreamReader(stream, _encoding);
 		using var jsonReader = new JsonTextReader(reader);
 		jsonReader.ArrayPool = JsonArrayPool.Shared;

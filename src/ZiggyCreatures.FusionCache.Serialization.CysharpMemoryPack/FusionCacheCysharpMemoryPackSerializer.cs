@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using MemoryPack;
 using ZiggyCreatures.Caching.Fusion.Internals;
 using ZiggyCreatures.Caching.Fusion.Internals.Distributed;
@@ -10,7 +11,7 @@ namespace ZiggyCreatures.Caching.Fusion.Serialization.CysharpMemoryPack;
 /// An implementation of <see cref="IFusionCacheSerializer"/> which uses Cysharp's MemoryPack serializer.
 /// </summary>
 public class FusionCacheCysharpMemoryPackSerializer
-	: IFusionCacheSerializer
+	: IBufferFusionCacheSerializer
 {
 	/// <summary>
 	/// The options class for the <see cref="FusionCacheCysharpMemoryPackSerializer"/> class.
@@ -69,9 +70,23 @@ public class FusionCacheCysharpMemoryPackSerializer
 
 	/// <inheritdoc />
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public void Serialize<T>(T? obj, IBufferWriter<byte> destination)
+	{
+		MemoryPackSerializer.Serialize(destination, obj, _serializerOptions);
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public T? Deserialize<T>(byte[] data)
 	{
 		return MemoryPackSerializer.Deserialize<T?>(data, _serializerOptions);
+	}
+
+	/// <inheritdoc />
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public T? Deserialize<T>(in ReadOnlySequence<byte> data)
+	{
+		return MemoryPackSerializer.Deserialize<T?>(in data, _serializerOptions);
 	}
 
 	/// <inheritdoc />
