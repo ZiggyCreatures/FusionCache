@@ -85,7 +85,13 @@ public partial class AutoRecoveryTests
 		logger.LogInformation("## WAIT FOR THE AUTO-RECOVERY DELAY");
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
+
+		await Task.WhenAll(
+			cache1.AutoRecovery.WaitQueueProcessingAsync(),
+			cache2.AutoRecovery.WaitQueueProcessingAsync(),
+			cache3.AutoRecovery.WaitQueueProcessingAsync()
+		);
 
 		Assert.Equal(3, await cache1.GetOrSetAsync<int>(key, async _ => _value, token: TestContext.Current.CancellationToken));
 		Assert.Equal(3, await cache2.GetOrSetAsync<int>(key, async _ => _value, token: TestContext.Current.CancellationToken));
@@ -153,7 +159,13 @@ public partial class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
+
+		await Task.WhenAll(
+			cache1.AutoRecovery.WaitQueueProcessingAsync(),
+			cache2.AutoRecovery.WaitQueueProcessingAsync(),
+			cache3.AutoRecovery.WaitQueueProcessingAsync()
+		);
 
 		Assert.Equal(1, await cache1.GetOrSetAsync<int>(key, async _ => _value, token: TestContext.Current.CancellationToken));
 		Assert.Equal(2, await cache2.GetOrSetAsync<int>(key, async _ => _value, token: TestContext.Current.CancellationToken));
@@ -331,7 +343,12 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
+
+		await Task.WhenAll(
+			cacheA.AutoRecovery.WaitQueueProcessingAsync(),
+			cacheB.AutoRecovery.WaitQueueProcessingAsync()
+		);
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60, token: TestContext.Current.CancellationToken);
@@ -415,8 +432,8 @@ public partial class AutoRecoveryTests
 		chaosBackplaneA.SetNeverThrow();
 		chaosBackplaneB.SetNeverThrow();
 
-		// ALLOW AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		// ALLOW AUTO-RECOVERY TO KICK IN (AND FAIL, SINCE DISTRIBUTED CACHE IS NOT YET UP)
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
 
 		var vA3 = await cacheA.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken);
 		var vB3 = await cacheB.GetOrDefaultAsync<int>("foo", token: TestContext.Current.CancellationToken);
@@ -427,8 +444,13 @@ public partial class AutoRecoveryTests
 		// RE-ENABLE DISTRIBUTED CACHE
 		chaosDistributedCache.SetNeverThrow();
 
-		// GIVE IT SOME TIME TO RETRY AUTOMATICALLY
-		await Task.Delay(defaultOptions.AutoRecoveryDelay.PlusASecond(), TestContext.Current.CancellationToken);
+		// ALLOW AUTO-RECOVERY TO KICK IN (AND SUCCED)
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
+
+		await Task.WhenAll(
+			cacheA.AutoRecovery.WaitQueueProcessingAsync(),
+			cacheB.AutoRecovery.WaitQueueProcessingAsync()
+		);
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA4 = await cacheA.GetOrSetAsync<int>("foo", async _ => 60, token: TestContext.Current.CancellationToken);
@@ -509,7 +531,12 @@ public partial class AutoRecoveryTests
 		chaosDistributedCache.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
+
+		await Task.WhenAll(
+			cacheA.AutoRecovery.WaitQueueProcessingAsync(),
+			cacheB.AutoRecovery.WaitQueueProcessingAsync()
+		);
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA2 = await cacheA.GetOrSetAsync<int>("foo", async _ => 50, token: TestContext.Current.CancellationToken);
@@ -589,7 +616,12 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		await Task.Delay(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+		await Task.Delay(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance, TestContext.Current.CancellationToken);
+
+		await Task.WhenAll(
+			cacheA.AutoRecovery.WaitQueueProcessingAsync(),
+			cacheB.AutoRecovery.WaitQueueProcessingAsync()
+		);
 
 		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
 		var vA3 = await cacheA.GetOrSetAsync<int>("foo", async _ => 30, token: TestContext.Current.CancellationToken);

@@ -667,6 +667,28 @@ internal sealed class AutoRecoveryService
 		}
 	}
 
+	internal async Task WaitQueueProcessingAsync()
+	{
+		while (true)
+		{
+			if (_queue.IsEmpty)
+				return;
+
+			await Task.Delay(1_000).ConfigureAwait(false);
+		}
+	}
+
+	internal void WaitQueueProcessing()
+	{
+		while (true)
+		{
+			if (_queue.IsEmpty)
+				return;
+
+			Thread.Sleep(1_000);
+		}
+	}
+
 	// IDISPOSABLE
 	private bool _disposedValue;
 
