@@ -14,6 +14,9 @@
 		<Content Include="Snapshots\**">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Content>
+		<Content Include="AzureServiceBus\L1L2BackplaneTests.servicebus-emulator.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -32,6 +35,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Backplane.AzureServiceBus\ZiggyCreatures.FusionCache.Backplane.AzureServiceBus.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Locking.Distributed.Memory\ZiggyCreatures.FusionCache.Locking.Distributed.Memory.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache.Locking.Distributed.Redis\ZiggyCreatures.FusionCache.Locking.Distributed.Redis.csproj" />
 		<ProjectReference Include="..\..\src\ZiggyCreatures.FusionCache\ZiggyCreatures.FusionCache.csproj" />
