@@ -142,6 +142,10 @@ internal sealed class FusionCacheBuilder
 					CacheName = CacheName
 				};
 			}
+			else if (options.CacheName == FusionCacheOptions.DefaultCacheName)
+			{
+				options.CacheName = CacheName;
+			}
 		}
 
 		// FOR BACKWARD COMPATIBILITY
@@ -173,7 +177,7 @@ internal sealed class FusionCacheBuilder
 		// CHECK INCOHERENT CACHE NAMES
 		if (options.CacheName != CacheName)
 		{
-			throw new InvalidOperationException($"When using dependency injection and/or the builder, the cache name must be specified via the AddFusionCache(\"MyCache\") method.");
+			throw new InvalidOperationException($"The FusionCacheOptions CacheName ('{options.CacheName}') does not match the cache name ('{CacheName}') specified via AddFusionCache(\"{CacheName}\"). When using dependency injection and/or the builder, the cache name must be specified via the AddFusionCache(\"MyCache\") method.");
 		}
 
 		// ENSURE CACHE NAME
