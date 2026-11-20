@@ -558,50 +558,72 @@ public partial class L1L2Tests
 	[ClassData(typeof(SerializerTypesClassData))]
 	public async Task CanHandleEagerRefreshAsync(SerializerType serializerType)
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
 		var keyFoo = CreateRandomCacheKey("foo");
 
 		var duration = TimeSpan.FromSeconds(2);
-		var eagerRefreshThreshold = 0.2f;
-		var eagerRefreshBarrier = (duration * eagerRefreshThreshold).PlusALittleBit();
+		var eagerRefreshThreshold = 0.1f;
+		var eagerRefreshBarrier = (duration * eagerRefreshThreshold).PlusASecond();
+
+		logger.LogInformation("EAGER REFRESH BARRIER: {EagerRefreshBarrier}", eagerRefreshBarrier);
 
 		var distributedCache = CreateDistributedCache();
-		using var cache = new FusionCache(CreateFusionCacheOptions(), logger: CreateXUnitLogger<FusionCache>());
+		using var cache = new FusionCache(CreateFusionCacheOptions(), logger: logger);
 		cache.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(serializerType));
 
 		cache.DefaultEntryOptions.Duration = duration;
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
 
 		// EXECUTE FACTORY
+		logger.LogInformation("STEP 1");
 		var v1 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V1: {V1}", v1);
 
 		// USE CACHED VALUE
+		logger.LogInformation("STEP 2");
 		var v2 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V2: {V2}", v2);
+
+		Assert.Equal(v1, v2);
 
 		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
+		logger.LogInformation("DELAY");
 		await Task.Delay(eagerRefreshBarrier, TestContext.Current.CancellationToken);
 
 		// EAGER REFRESH KICKS IN
+		logger.LogInformation("STEP 3");
 		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V3: {V3}", v3);
+
+		Assert.Equal(v2, v3);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
+		logger.LogInformation("DELAY");
 		await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
 
 		// GET THE REFRESHED VALUE
+		logger.LogInformation("STEP 4");
 		var v4 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V4: {V4}", v4);
+
+		Assert.True(v4 > v3);
 
 		// WAIT FOR EXPIRATION
+		logger.LogInformation("DELAY");
 		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// EXECUTE FACTORY AGAIN
+		logger.LogInformation("STEP 5");
 		var v5 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V5: {V5}", v5);
+
+		Assert.True(v5 > v4);
 
 		// USE CACHED VALUE
+		logger.LogInformation("STEP 6");
 		var v6 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V6: {V6}", v6);
 
-		Assert.Equal(v1, v2);
-		Assert.Equal(v2, v3);
-		Assert.True(v4 > v3);
-		Assert.True(v5 > v4);
 		Assert.Equal(v5, v6);
 	}
 
