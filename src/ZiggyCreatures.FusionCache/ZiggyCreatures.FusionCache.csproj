@@ -2,22 +2,22 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;net8.0;net9.0;net10.0</TargetFrameworks>
-		<Version>2.9.0</Version>
+		<Version>2.10.0</Version>
 		<PackageId>ZiggyCreatures.FusionCache</PackageId>
 		<Description>FusionCache is an easy to use, fast and robust hybrid cache with advanced resiliency features.</Description>
 		<PackageTags>caching;cache;hybrid;hybrid-cache;hybridcache;multi-level;multilevel;fusion;fusioncache;fusion-cache;performance;async;ziggy</PackageTags>
 		<RootNamespace>ZiggyCreatures.Caching.Fusion</RootNamespace>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<PackageReleaseNotes>
-			- Change: L2 is now checked during eager refresh
-			- Fix: memory lock not released during eager refresh edge case
-			- Fix: distributed lock not released after successful factory when skipping L1
-			- Fix: better handling of Clear(false) with fail-safe
-			- Perf: allocation-free tags on metrics hot path
+			- Fix: potential double disposal of underlying Redis connection
+			- Perf: better perf for cache key checks by switching to ordinal string comparison
+			- Fix: added internal strings validations
+			- Change: switch to monotonic clocks for some checks (internal, single node)
+			- Change: switch to monotonic clock increases for Clear() operations
 			- Update: package dependencies
 		</PackageReleaseNotes>
 		<!--<EnablePackageValidation>true</EnablePackageValidation>-->
-		<PackageValidationBaselineVersion>2.5.0</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>2.9.0</PackageValidationBaselineVersion>
 		<IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net6.0'))">true</IsAotCompatible>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
