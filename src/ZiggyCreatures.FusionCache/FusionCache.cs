@@ -924,9 +924,10 @@ public sealed partial class FusionCache
 					}
 					else
 					{
+						var bpa = _bpa;
 						_ = Task.Run(async () =>
 						{
-							await _bpa.UnsubscribeAsync().ConfigureAwait(false);
+							await bpa.UnsubscribeAsync().ConfigureAwait(false);
 						});
 					}
 
