@@ -694,15 +694,24 @@ public partial class L1Tests
 		Thread.Sleep(eagerRefreshBarrier);
 
 		// EAGER REFRESH KICKS IN
+		var factoryDidRun = false;
 		logger.LogInformation("STEP 3");
-		var v3 = cache.GetOrSet<long>(keyFoo, _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		var v3 = cache.GetOrSet<long>(keyFoo, _ =>
+		{
+			factoryDidRun = true;
+			return DateTimeOffset.UtcNow.Ticks;
+		}, token: TestContext.Current.CancellationToken);
 		logger.LogInformation("V3: {V3}", v3);
 
 		Assert.Equal(v2, v3);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
 		logger.LogInformation("DELAY");
-		Thread.Sleep(TimeSpan.FromMilliseconds(500));
+		//Thread.Sleep(TimeSpan.FromMilliseconds(500));
+		while (!factoryDidRun)
+		{
+			Thread.Sleep(TimeSpan.FromMilliseconds(100));
+		}
 
 		// GET THE REFRESHED VALUE
 		logger.LogInformation("STEP 4");

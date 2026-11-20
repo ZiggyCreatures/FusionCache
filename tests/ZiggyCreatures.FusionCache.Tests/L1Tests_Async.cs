@@ -752,15 +752,24 @@ public partial class L1Tests
 		await Task.Delay(eagerRefreshBarrier, TestContext.Current.CancellationToken);
 
 		// EAGER REFRESH KICKS IN
+		var factoryDidRun = false;
 		logger.LogInformation("STEP 3");
-		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ =>
+		{
+			factoryDidRun = true;
+			return DateTimeOffset.UtcNow.Ticks;
+		}, token: TestContext.Current.CancellationToken);
 		logger.LogInformation("V3: {V3}", v3);
 
 		Assert.Equal(v2, v3);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
 		logger.LogInformation("DELAY");
-		await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+		//await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+		while (!factoryDidRun)
+		{
+			await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+		}
 
 		// GET THE REFRESHED VALUE
 		logger.LogInformation("STEP 4");
