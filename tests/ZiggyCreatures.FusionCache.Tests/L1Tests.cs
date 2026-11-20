@@ -10,4 +10,9 @@ public partial class L1Tests
 		: base(output, null)
 	{
 	}
+
+	private static string CreateRandomCacheKey(string key)
+	{
+		return key + "_" + Guid.NewGuid().ToString("N");
+	}
 }
