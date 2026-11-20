@@ -1954,33 +1954,33 @@ public partial class L1Tests
 	//}
 
 	//[Fact]
-	public async Task __FOO()
-	{
-		var logger = CreateXUnitLogger<FusionCache>();
+	//public async Task __FOO()
+	//{
+	//	var logger = CreateXUnitLogger<FusionCache>();
 
-		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
-		var factoryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-		var releaseFactory = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-		var dbValue = "old";
+	//	using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+	//	var factoryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+	//	var releaseFactory = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+	//	var dbValue = "old";
 
-		var staleRead = cache.GetOrSetAsync("key", async _ =>
-		{
-			var value = dbValue;
-			factoryStarted.SetResult();
-			await releaseFactory.Task;
-			return value;
-		}, token: TestContext.Current.CancellationToken);
-		await factoryStarted.Task;
+	//	var staleRead = cache.GetOrSetAsync("key", async _ =>
+	//	{
+	//		var value = dbValue;
+	//		factoryStarted.SetResult();
+	//		await releaseFactory.Task;
+	//		return value;
+	//	}, token: TestContext.Current.CancellationToken);
+	//	await factoryStarted.Task;
 
-		dbValue = "new";
-		await cache.ExpireAsync("key", token: TestContext.Current.CancellationToken);
-		releaseFactory.SetResult();
-		var staleReadValue = await staleRead;
+	//	dbValue = "new";
+	//	await cache.ExpireAsync("key", token: TestContext.Current.CancellationToken);
+	//	releaseFactory.SetResult();
+	//	var staleReadValue = await staleRead;
 
-		Assert.Equal("old", staleReadValue);
+	//	Assert.Equal("old", staleReadValue);
 
-		logger.LogInformation("Stale read completed, now reading again to get the new value");
+	//	logger.LogInformation("Stale read completed, now reading again to get the new value");
 
-		Assert.Equal("new", await cache.GetOrSetAsync("key", _ => Task.FromResult(dbValue), token: TestContext.Current.CancellationToken));
-	}
+	//	Assert.Equal("new", await cache.GetOrSetAsync("key", _ => Task.FromResult(dbValue), token: TestContext.Current.CancellationToken));
+	//}
 }
