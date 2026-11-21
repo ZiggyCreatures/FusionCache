@@ -1284,7 +1284,7 @@ public sealed partial class FusionCache
 			CacheName != FusionCacheOptions.DefaultCacheName
 			&& string.IsNullOrWhiteSpace(_options.CacheKeyPrefix)
 			&& (
-				_mca.IsOwned == false
+				_mca?.IsOwned == false
 				|| HasDistributedCache
 				|| HasDistributedLocker
 			)
