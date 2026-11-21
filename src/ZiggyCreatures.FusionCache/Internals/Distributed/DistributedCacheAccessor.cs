@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Buffers;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using ZiggyCreatures.Caching.Fusion.Events;
@@ -10,6 +11,10 @@ internal sealed partial class DistributedCacheAccessor
 {
 	private readonly IDistributedCache _cache;
 	private readonly IFusionCacheSerializer _serializer;
+	private readonly IBufferDistributedCache? _bufferCache;
+	private readonly IBufferFusionCacheSerializer? _bufferSerializer;
+	private readonly bool _useBuffers;
+	private readonly ArrayPool<byte> _bufferPool;
 	private readonly FusionCacheOptions _options;
 	private readonly ILogger? _logger;
 	private readonly FusionCacheDistributedEventsHub _events;
@@ -26,6 +31,12 @@ internal sealed partial class DistributedCacheAccessor
 
 		_cache = distributedCache;
 		_serializer = serializer;
+
+		// BUFFERED PATH: USED WHEN BOTH THE DISTRIBUTED CACHE AND THE SERIALIZER SUPPORT IT
+		_bufferCache = distributedCache as IBufferDistributedCache;
+		_bufferSerializer = serializer as IBufferFusionCacheSerializer;
+		_useBuffers = _bufferCache is not null && _bufferSerializer is not null;
+		_bufferPool = options.DistributedCacheBufferPool ?? ArrayPool<byte>.Shared;
 
 		_options = options;
 
