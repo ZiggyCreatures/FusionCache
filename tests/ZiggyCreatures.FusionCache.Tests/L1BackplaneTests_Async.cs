@@ -8,7 +8,7 @@ using ZiggyCreatures.Caching.Fusion.Internals;
 
 namespace FusionCacheTests;
 
-public partial class L1BackplaneTests
+public partial class L1BackplaneTests<T>
 {
 	[Fact]
 	public async Task WorksWithDifferentCachesAsync()
