@@ -1909,9 +1909,11 @@ public class DependencyInjectionTests
 	[Fact]
 	public void CanUseNamedCacheWithOptionsInstanceWithoutExplicitCacheName()
 	{
+		var logger = CreateXUnitLogger<FusionCache>();
 		var services = new ServiceCollection();
 
 		services.AddFusionCache("MyCache")
+			.WithLogger(logger)
 			.AsKeyedServiceByCacheName()
 			.WithOptions(new FusionCacheOptions { DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(30) });
 
