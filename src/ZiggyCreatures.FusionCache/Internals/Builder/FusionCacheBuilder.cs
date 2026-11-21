@@ -111,6 +111,34 @@ internal sealed class FusionCacheBuilder
 		if (_cache is not null)
 			return _cache;
 
+		// LOGGER
+		ILogger<FusionCache>? logger;
+
+		if (UseRegisteredLogger)
+		{
+			if (LoggerServiceKey is null)
+			{
+				logger = serviceProvider.GetService<ILogger<FusionCache>>();
+			}
+			else
+			{
+				logger = serviceProvider.GetKeyedService<ILogger<FusionCache>>(LoggerServiceKey);
+			}
+		}
+		else if (LoggerFactory is not null)
+		{
+			logger = LoggerFactory.Invoke(serviceProvider);
+		}
+		else
+		{
+			logger = Logger;
+		}
+
+		if (logger is null && ThrowIfMissingLogger)
+		{
+			throw new InvalidOperationException("A logger has not been specified, or found in the DI container.");
+		}
+
 		// OPTIONS
 		FusionCacheOptions? options = null;
 
@@ -142,8 +170,11 @@ internal sealed class FusionCacheBuilder
 					CacheName = CacheName
 				};
 			}
-			else if (options.CacheName == FusionCacheOptions.DefaultCacheName)
+			else if (options.CacheName != CacheName && options.CacheName == FusionCacheOptions.DefaultCacheName)
 			{
+				if (logger?.IsEnabled(LogLevel.Debug) ?? false)
+					logger.Log(LogLevel.Debug, "FUSION [N={CacheName}]: the CacheName used in the FusionCacheOptions has been normalized from {OldCacheName} to {NewCacheName}.", CacheName, options.CacheName, CacheName);
+
 				options.CacheName = CacheName;
 			}
 		}
@@ -182,34 +213,6 @@ internal sealed class FusionCacheBuilder
 
 		// ENSURE CACHE NAME
 		options.CacheName = CacheName;
-
-		// LOGGER
-		ILogger<FusionCache>? logger;
-
-		if (UseRegisteredLogger)
-		{
-			if (LoggerServiceKey is null)
-			{
-				logger = serviceProvider.GetService<ILogger<FusionCache>>();
-			}
-			else
-			{
-				logger = serviceProvider.GetKeyedService<ILogger<FusionCache>>(LoggerServiceKey);
-			}
-		}
-		else if (LoggerFactory is not null)
-		{
-			logger = LoggerFactory.Invoke(serviceProvider);
-		}
-		else
-		{
-			logger = Logger;
-		}
-
-		if (logger is null && ThrowIfMissingLogger)
-		{
-			throw new InvalidOperationException("A logger has not been specified, or found in the DI container.");
-		}
 
 		// CHECK DI REGISTRATIONS
 		var validator = serviceProvider.GetService<FusionCacheDependencyInjectionValidator>();
