@@ -97,6 +97,9 @@ public sealed partial class FusionCache
 		if (_options is null)
 			throw new InvalidOperationException($"No options have been provided via {nameof(optionsAccessor.Value)}.");
 
+		// VALIDATION
+		_options.Validate();
+
 		// DUPLICATE OPTIONS (TO AVOID EXTERNAL MODIFICATIONS)
 		_options = _options.Duplicate();
 
@@ -921,9 +924,10 @@ public sealed partial class FusionCache
 					}
 					else
 					{
+						var bpa = _bpa;
 						_ = Task.Run(async () =>
 						{
-							await _bpa.UnsubscribeAsync().ConfigureAwait(false);
+							await bpa.UnsubscribeAsync().ConfigureAwait(false);
 						});
 					}
 
@@ -1280,7 +1284,7 @@ public sealed partial class FusionCache
 			CacheName != FusionCacheOptions.DefaultCacheName
 			&& string.IsNullOrWhiteSpace(_options.CacheKeyPrefix)
 			&& (
-				_mca.IsOwned == false
+				_mca?.IsOwned == false
 				|| HasDistributedCache
 				|| HasDistributedLocker
 			)

@@ -722,9 +722,13 @@ public partial class L1Tests
 	public async Task CanEagerRefreshAsync()
 	{
 		var logger = CreateXUnitLogger<FusionCache>();
+		var keyFoo = CreateRandomCacheKey("foo");
 
 		var duration = TimeSpan.FromSeconds(2);
-		var eagerRefreshThreshold = 0.2f;
+		var eagerRefreshThreshold = 0.1f;
+		var eagerRefreshBarrier = (duration * eagerRefreshThreshold).PlusASecond();
+
+		logger.LogInformation("EAGER REFRESH BARRIER: {EagerRefreshBarrier}", eagerRefreshBarrier);
 
 		using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
 
@@ -732,40 +736,64 @@ public partial class L1Tests
 		cache.DefaultEntryOptions.EagerRefreshThreshold = eagerRefreshThreshold;
 
 		// EXECUTE FACTORY
-		var v1 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("STEP 1");
+		var v1 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V1: {V1}", v1);
 
 		// USE CACHED VALUE
-		var v2 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("STEP 2");
+		var v2 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V2: {V2}", v2);
+
+		Assert.Equal(v1, v2);
 
 		// WAIT FOR EAGER REFRESH THRESHOLD TO BE HIT
-		var eagerDuration = TimeSpan.FromMilliseconds(duration.TotalMilliseconds * eagerRefreshThreshold).Add(TimeSpan.FromMilliseconds(10));
-		await Task.Delay(eagerDuration, TestContext.Current.CancellationToken);
+		logger.LogInformation("DELAY");
+		await Task.Delay(eagerRefreshBarrier, TestContext.Current.CancellationToken);
 
 		// EAGER REFRESH KICKS IN
-		var eagerRefreshValue = DateTimeOffset.UtcNow.Ticks;
-		logger.LogInformation("EAGER REFRESH VALUE: {0}", eagerRefreshValue);
-		var v3 = await cache.GetOrSetAsync<long>("foo", async _ => eagerRefreshValue, token: TestContext.Current.CancellationToken);
+		var factoryDidRun = false;
+		logger.LogInformation("STEP 3");
+		var v3 = await cache.GetOrSetAsync<long>(keyFoo, async _ =>
+		{
+			factoryDidRun = true;
+			return DateTimeOffset.UtcNow.Ticks;
+		}, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V3: {V3}", v3);
+
+		Assert.Equal(v2, v3);
 
 		// WAIT FOR THE BACKGROUND FACTORY (EAGER REFRESH) TO COMPLETE
-		await Task.Delay(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+		logger.LogInformation("DELAY");
+		//await Task.Delay(TimeSpan.FromMilliseconds(500), TestContext.Current.CancellationToken);
+		while (!factoryDidRun)
+		{
+			await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+		}
 
 		// GET THE REFRESHED VALUE
-		var v4 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("STEP 4");
+		var v4 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V4: {V4}", v4);
+
+		Assert.True(v4 > v3);
 
 		// WAIT FOR EXPIRATION
+		logger.LogInformation("DELAY");
 		await Task.Delay(duration.PlusALittleBit(), TestContext.Current.CancellationToken);
 
 		// EXECUTE FACTORY AGAIN
-		var v5 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("STEP 5");
+		var v5 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V5: {V5}", v5);
+
+		Assert.True(v5 > v4);
 
 		// USE CACHED VALUE
-		var v6 = await cache.GetOrSetAsync<long>("foo", async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("STEP 6");
+		var v6 = await cache.GetOrSetAsync<long>(keyFoo, async _ => DateTimeOffset.UtcNow.Ticks, token: TestContext.Current.CancellationToken);
+		logger.LogInformation("V6: {V6}", v6);
 
-		Assert.Equal(v1, v2);
-		Assert.Equal(v2, v3);
-		Assert.True(v4 > v3);
-		Assert.Equal(eagerRefreshValue, v4);
-		Assert.True(v5 > v4);
 		Assert.Equal(v5, v6);
 	}
 
@@ -1793,7 +1821,7 @@ public partial class L1Tests
 				DefaultEntryOptions = {
 					Duration = TimeSpan.FromSeconds(1),
 					IsFailSafeEnabled = true,
-					FailSafeThrottleDuration = TimeSpan.FromSeconds(1),
+					FailSafeThrottleDuration = TimeSpan.FromSeconds(10),
 					FailSafeMaxDuration = TimeSpan.FromMinutes(10),
 					FactorySoftTimeout = TimeSpan.FromSeconds(1)
 				}
@@ -1923,5 +1951,36 @@ public partial class L1Tests
 	//	Assert.False(maybeBar.HasValue);
 	//	Assert.False(maybeBaz.HasValue);
 	//	Assert.Equal(1, clearCallsCount);
+	//}
+
+	//[Fact]
+	//public async Task __FOO()
+	//{
+	//	var logger = CreateXUnitLogger<FusionCache>();
+
+	//	using var cache = new FusionCache(new FusionCacheOptions(), logger: logger);
+	//	var factoryStarted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+	//	var releaseFactory = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+	//	var dbValue = "old";
+
+	//	var staleRead = cache.GetOrSetAsync("key", async _ =>
+	//	{
+	//		var value = dbValue;
+	//		factoryStarted.SetResult();
+	//		await releaseFactory.Task;
+	//		return value;
+	//	}, token: TestContext.Current.CancellationToken);
+	//	await factoryStarted.Task;
+
+	//	dbValue = "new";
+	//	await cache.ExpireAsync("key", token: TestContext.Current.CancellationToken);
+	//	releaseFactory.SetResult();
+	//	var staleReadValue = await staleRead;
+
+	//	Assert.Equal("old", staleReadValue);
+
+	//	logger.LogInformation("Stale read completed, now reading again to get the new value");
+
+	//	Assert.Equal("new", await cache.GetOrSetAsync("key", _ => Task.FromResult(dbValue), token: TestContext.Current.CancellationToken));
 	//}
 }

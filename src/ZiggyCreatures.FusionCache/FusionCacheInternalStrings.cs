@@ -72,6 +72,14 @@ public class FusionCacheInternalStrings
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
 	/// </summary>
 	public const string DefaultDistributedLockerLockNameSuffix = ":lock";
+	private string _cacheKeyPrefixSeparator;
+	private string _tagCacheKeyPrefix;
+	private string _clearRemoveTag;
+	private string _clearExpireTag;
+	private string _distributedCacheWireFormatSeparator;
+	private string _backplaneWireFormatSeparator;
+	private string _backplaneChannelNameSeparator;
+	private string _distributedLockerLockNameSuffix;
 
 	/// <summary>
 	/// Creates a new instance of a <see cref="FusionCacheInternalStrings"/> object.
@@ -80,14 +88,14 @@ public class FusionCacheInternalStrings
 	{
 		// NOTE: CAN'T CALL SetToDefaultStrings() HERE BECAUSE THE COMPILER WOULD ANYWAY KEEP
 		// COMPLAINING ABOUT THE UNINITIALIZED MEMBERS (CacheKeyPrefixSeparator, etc.)
-		CacheKeyPrefixSeparator = DefaultCacheKeyPrefixSeparator;
-		TagCacheKeyPrefix = DefaultTagCacheKeyPrefix;
-		ClearRemoveTag = DefaultClearRemoveTag;
-		ClearExpireTag = DefaultClearExpireTag;
-		DistributedCacheWireFormatSeparator = DefaultDistributedCacheWireFormatSeparator;
-		BackplaneWireFormatSeparator = DefaultBackplaneWireFormatSeparator;
-		BackplaneChannelNameSeparator = DefaultBackplaneChannelNameSeparator;
-		DistributedLockerLockNameSuffix = DefaultDistributedLockerLockNameSuffix;
+		_cacheKeyPrefixSeparator = DefaultCacheKeyPrefixSeparator;
+		_tagCacheKeyPrefix = DefaultTagCacheKeyPrefix;
+		_clearRemoveTag = DefaultClearRemoveTag;
+		_clearExpireTag = DefaultClearExpireTag;
+		_distributedCacheWireFormatSeparator = DefaultDistributedCacheWireFormatSeparator;
+		_backplaneWireFormatSeparator = DefaultBackplaneWireFormatSeparator;
+		_backplaneChannelNameSeparator = DefaultBackplaneChannelNameSeparator;
+		_distributedLockerLockNameSuffix = DefaultDistributedLockerLockNameSuffix;
 	}
 
 	/// <summary>
@@ -95,56 +103,152 @@ public class FusionCacheInternalStrings
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/NamedCaches.md"/>
 	/// </summary>
-	public string CacheKeyPrefixSeparator { get; set; }
+	public string CacheKeyPrefixSeparator
+	{
+		get
+		{
+			return _cacheKeyPrefixSeparator;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(CacheKeyPrefixSeparator));
+			_cacheKeyPrefixSeparator = value;
+		}
+	}
 
 	/// <summary>
 	/// The cache key prefix used for entries related to Tagging.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Tagging.md"/>
 	/// </summary>
-	public string TagCacheKeyPrefix { get; set; }
+	public string TagCacheKeyPrefix
+	{
+		get
+		{
+			return _tagCacheKeyPrefix;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(TagCacheKeyPrefix));
+			_tagCacheKeyPrefix = value;
+		}
+	}
 
 	/// <summary>
 	/// The special tag used to express a Clear(false), meaning "remove all".
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
-	public string ClearRemoveTag { get; set; }
+	public string ClearRemoveTag
+	{
+		get
+		{
+			return _clearRemoveTag;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(ClearRemoveTag));
+			_clearRemoveTag = value;
+		}
+	}
 
 	/// <summary>
 	/// The special tag used to express a Clear(true), meaning "expire all".
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Clear.md"/>
 	/// </summary>
-	public string ClearExpireTag { get; set; }
+	public string ClearExpireTag
+	{
+		get
+		{
+			return _clearExpireTag;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(ClearExpireTag));
+			_clearExpireTag = value;
+		}
+	}
 
 	/// <summary>
 	/// The wire format version separator for the distributed cache wire format, used in the cache key processing.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheLevels.md"/>
 	/// </summary>
-	public string DistributedCacheWireFormatSeparator { get; set; }
+	public string DistributedCacheWireFormatSeparator
+	{
+		get
+		{
+			return _distributedCacheWireFormatSeparator;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(DistributedCacheWireFormatSeparator));
+			_distributedCacheWireFormatSeparator = value;
+		}
+	}
 
 	/// <summary>
 	/// The wire format version separator for the backplane wire format, used in the channel name.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public string BackplaneWireFormatSeparator { get; set; }
+	public string BackplaneWireFormatSeparator
+	{
+		get
+		{
+			return _backplaneWireFormatSeparator;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(BackplaneWireFormatSeparator));
+			_backplaneWireFormatSeparator = value;
+		}
+	}
 
 	/// <summary>
 	/// The separator for the backplane channel name.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Backplane.md"/>
 	/// </summary>
-	public string BackplaneChannelNameSeparator { get; set; }
+	public string BackplaneChannelNameSeparator
+	{
+		get
+		{
+			return _backplaneChannelNameSeparator;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(BackplaneChannelNameSeparator));
+			_backplaneChannelNameSeparator = value;
+		}
+	}
 
 	/// <summary>
 	/// The suffix for the lock name used with the distributed locker.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/CacheStampede.md"/>
 	/// </summary>
-	public string DistributedLockerLockNameSuffix { get; set; }
+	public string DistributedLockerLockNameSuffix
+	{
+		get
+		{
+			return _distributedLockerLockNameSuffix;
+		}
+
+		set
+		{
+			ValidateInternalString(value, nameof(DistributedLockerLockNameSuffix));
+			_distributedLockerLockNameSuffix = value;
+		}
+	}
 
 	/// <summary>
 	/// Set the internal strings used by FusionCache to use only a limited subset of commonly "safe" characters:
@@ -213,6 +317,23 @@ public class FusionCacheInternalStrings
 		];
 	}
 
+	private static void ValidateInternalString(string value, string name)
+	{
+		if (string.IsNullOrWhiteSpace(value))
+			throw new InvalidOperationException($"The internal string '{name}' cannot be null, an empty string or whitespace.");
+	}
+
+	/// <summary>
+	/// Validates the internal strings, including combinations of them.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	internal void Validate()
+	{
+		if (ClearExpireTag == ClearRemoveTag)
+			throw new InvalidOperationException("The internal strings 'ClearExpireTag' and 'ClearRemoveTag' cannot be the same.");
+	}
+
 	/// <summary>
 	/// Creates a new <see cref="FusionCacheInternalStrings"/> object by duplicating all the options of the current one.
 	/// <br/><br/>
@@ -221,6 +342,8 @@ public class FusionCacheInternalStrings
 	/// <returns>The newly created <see cref="FusionCacheInternalStrings"/> object.</returns>
 	public FusionCacheInternalStrings Duplicate()
 	{
+		Validate();
+
 		return new()
 		{
 			CacheKeyPrefixSeparator = CacheKeyPrefixSeparator,

@@ -97,6 +97,16 @@ internal partial class DistributedCacheAccessor
 				data = _serializer.Serialize(distributedEntry);
 			}
 		}
+		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
+		{
+			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
+				_logger.Log(LogLevel.Debug, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] canceled serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
+
+			// ACTIVITY
+			activity?.SetStatus(ActivityStatusCode.Error, exc.Message);
+
+			throw;
+		}
 		catch (Exception exc)
 		{
 			// SERIALIZATION IS SYNCHRONOUS ON THE BUFFERED PATH, SO NOTHING ELSE CAN BE USING THE BUFFER HERE

@@ -1223,12 +1223,24 @@ public sealed class FusionCacheEntryOptions
 	}
 
 	/// <summary>
+	/// Validates the options, both individually and in combination with each other.
+	/// <br/><br/>
+	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Options.md"/>
+	/// </summary>
+	internal void Validate()
+	{
+		// EMPTY (FOR NOW)
+	}
+
+	/// <summary>
 	/// Creates a new <see cref="FusionCacheEntryOptions"/> object by duplicating all the options of the current one.
 	/// </summary>
 	/// <param name="duration">A custom <see cref="Duration"/> that, if specified, will overwrite the current one.</param>
 	/// <returns>The newly created <see cref="FusionCacheEntryOptions"/> object.</returns>
 	public FusionCacheEntryOptions Duplicate(TimeSpan? duration = null)
 	{
+		Validate();
+
 		return new FusionCacheEntryOptions()
 		{
 			IsSafeForAdaptiveCaching = IsSafeForAdaptiveCaching,

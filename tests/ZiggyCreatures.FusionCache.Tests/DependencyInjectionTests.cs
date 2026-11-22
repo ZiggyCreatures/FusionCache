@@ -1905,4 +1905,39 @@ public class DependencyInjectionTests
 		Assert.NotEqual(fooCache, barCache);
 		Assert.Equal(4, logger.Items.Count(x => x.LogLevel >= LogLevel.Warning && x.Message.StartsWith("FUSION: multiple ")));
 	}
+
+	[Fact]
+	public void CanUseNamedCacheWithOptionsInstanceWithoutExplicitCacheName()
+	{
+		var logger = CreateXUnitLogger<FusionCache>();
+		var services = new ServiceCollection();
+
+		services.AddFusionCache("MyCache")
+			.WithLogger(logger)
+			.AsKeyedServiceByCacheName()
+			.WithOptions(new FusionCacheOptions { DistributedCacheCircuitBreakerDuration = TimeSpan.FromSeconds(30) });
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var cache = serviceProvider.GetRequiredKeyedService<IFusionCache>("MyCache");
+
+		Assert.NotNull(cache);
+		Assert.Equal("MyCache", cache.CacheName);
+	}
+
+	[Fact]
+	public void ThrowsClearErrorWhenNamedCacheOptionsHasDifferentCacheName()
+	{
+		var services = new ServiceCollection();
+
+		services.AddFusionCache("MyCache")
+			.AsKeyedServiceByCacheName()
+			.WithOptions(new FusionCacheOptions { CacheName = "OtherCache" });
+
+		using var serviceProvider = services.BuildServiceProvider();
+
+		var ex = Assert.Throws<InvalidOperationException>(() => serviceProvider.GetRequiredKeyedService<IFusionCache>("MyCache"));
+		Assert.Contains("OtherCache", ex.Message);
+		Assert.Contains("MyCache", ex.Message);
+	}
 }

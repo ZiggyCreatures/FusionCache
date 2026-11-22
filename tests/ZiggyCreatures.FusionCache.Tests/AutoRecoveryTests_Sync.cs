@@ -85,7 +85,11 @@ public partial class AutoRecoveryTests
 		logger.LogInformation("## WAIT FOR THE AUTO-RECOVERY DELAY");
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
+
+		cache1.AutoRecovery.WaitQueueProcessing();
+		cache2.AutoRecovery.WaitQueueProcessing();
+		cache3.AutoRecovery.WaitQueueProcessing();
 
 		Assert.Equal(3, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 		Assert.Equal(3, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
@@ -153,7 +157,11 @@ public partial class AutoRecoveryTests
 		backplane3.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
+
+		cache1.AutoRecovery.WaitQueueProcessing();
+		cache2.AutoRecovery.WaitQueueProcessing();
+		cache3.AutoRecovery.WaitQueueProcessing();
 
 		Assert.Equal(1, cache1.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
 		Assert.Equal(2, cache2.GetOrSet<int>(key, _ => _value, token: TestContext.Current.CancellationToken));
@@ -331,7 +339,10 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
+
+		cacheA.AutoRecovery.WaitQueueProcessing();
+		cacheB.AutoRecovery.WaitQueueProcessing();
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA3 = cacheA.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
@@ -415,8 +426,8 @@ public partial class AutoRecoveryTests
 		chaosBackplaneA.SetNeverThrow();
 		chaosBackplaneB.SetNeverThrow();
 
-		// GIVE IT SOME TIME
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay.PlusASecond());
+		// ALLOW AUTO-RECOVERY TO KICK IN (AND FAIL, SINCE DISTRIBUTED CACHE IS NOT YET UP)
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
 
 		var vA3 = cacheA.GetOrDefault<int>("foo", token: TestContext.Current.CancellationToken);
 		var vB3 = cacheB.GetOrDefault<int>("foo", token: TestContext.Current.CancellationToken);
@@ -427,8 +438,11 @@ public partial class AutoRecoveryTests
 		// RE-ENABLE DISTRIBUTED CACHE
 		chaosDistributedCache.SetNeverThrow();
 
-		// ALLOW AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
+		// ALLOW AUTO-RECOVERY TO KICK IN ( AND SUCCEED)
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
+
+		cacheA.AutoRecovery.WaitQueueProcessing();
+		cacheB.AutoRecovery.WaitQueueProcessing();
 
 		// GET FROM CACHE A (UPDATE FROM DISTRIBUTED)
 		var vA4 = cacheA.GetOrSet<int>("foo", _ => 60, token: TestContext.Current.CancellationToken);
@@ -509,7 +523,10 @@ public partial class AutoRecoveryTests
 		chaosDistributedCache.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
+
+		cacheA.AutoRecovery.WaitQueueProcessing();
+		cacheB.AutoRecovery.WaitQueueProcessing();
 
 		// SET ON CACHE A AND ON DISTRIBUTED CACHE + NOTIFY ON BACKPLANE
 		var vA2 = cacheA.GetOrSet<int>("foo", _ => 50, token: TestContext.Current.CancellationToken);
@@ -589,7 +606,10 @@ public partial class AutoRecoveryTests
 		chaosBackplaneB.SetNeverThrow();
 
 		// ALLOW AUTO-RECOVERY TO KICK IN
-		Thread.Sleep(defaultOptions.AutoRecoveryDelay + TimeSpan.FromSeconds(5));
+		Thread.Sleep(defaultOptions.AutoRecoveryDelay + AutoRecoverySafeAllowance);
+
+		cacheA.AutoRecovery.WaitQueueProcessing();
+		cacheB.AutoRecovery.WaitQueueProcessing();
 
 		// GET FROM CACHE A (NOTIFICATION FROM CACHE B EXPIRED THE ENTRY, SO IT WILL BE TAKEN AGAIN VIA THE FACTORY)
 		var vA3 = cacheA.GetOrSet<int>("foo", _ => 30, token: TestContext.Current.CancellationToken);

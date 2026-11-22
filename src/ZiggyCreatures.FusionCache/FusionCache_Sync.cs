@@ -1005,7 +1005,7 @@ public partial class FusionCache
 		if (_options.DisableTagging)
 			return (entry, entry.IsLogicallyExpired() == false);
 
-		if (key.StartsWith(TagInternalCacheKeyPrefix))
+		if (key.StartsWith(TagInternalCacheKeyPrefix, StringComparison.Ordinal))
 			return (entry, entry.IsLogicallyExpired() == false);
 
 		var entryTimestamp = entry.Timestamp;
@@ -1471,6 +1471,8 @@ public partial class FusionCache
 					return (false, false, false);
 				}
 
+				// TODO: MAYBE ADD TAGS CHECK HERE?
+
 				//if (distributedEntry.Timestamp == memoryEntry.Timestamp)
 				//{
 				//	if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
@@ -1479,6 +1481,7 @@ public partial class FusionCache
 				//	return (false, true, false);
 				//}
 
+				// TODO: RE-CHECK THIS, MOSTLY ABOUT THE LOGICAL EXPIRATION TIMESTAMP
 				if (distributedEntry.Timestamp <= memoryEntry.Timestamp && distributedEntry.LogicalExpirationTimestamp <= memoryEntry.LogicalExpirationTimestamp)
 				{
 					//return;
