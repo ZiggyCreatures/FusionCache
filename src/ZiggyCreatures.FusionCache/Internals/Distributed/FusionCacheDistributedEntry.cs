@@ -106,7 +106,7 @@ public sealed class FusionCacheDistributedEntry<TValue>
 		FusionCacheEntryMetadata? metadata = null;
 		if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata))
 		{
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp, entry.Timestamp);
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, exp, entry.Timestamp);
 
 			metadata = new FusionCacheEntryMetadata(
 				isStale,
