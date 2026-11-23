@@ -1176,7 +1176,17 @@ public partial class FusionCache
 		{
 			activity?.AddTag(Tags.Names.OperationTag, tag);
 
-			SetTagDataInternal(tag, FusionCacheInternalUtils.GetCurrentTimestamp(), options, token);
+			var lockKey = GetTagInternalCacheKey(tag);
+			var lockObj = AcquireMemoryLock(operationId, lockKey, Timeout.InfiniteTimeSpan, token);
+			try
+			{
+				// Take the timestamp after acquiring the lock so queued invalidations cannot publish an older marker last.
+				SetTagDataInternal(tag, FusionCacheInternalUtils.GetCurrentTimestamp(), options, token);
+			}
+			finally
+			{
+				ReleaseMemoryLock(operationId, lockKey, lockObj);
+			}
 
 			// EVENT
 			_events.OnRemoveByTag(operationId, tag);
