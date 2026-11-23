@@ -112,7 +112,7 @@ internal sealed class FusionCacheMemoryEntry<TValue>
 		if (FusionCacheInternalUtils.RequiresMetadata(options, entry.Metadata))
 		{
 			var isStale = entry.IsStale();
-			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp);
+			var eagerExp = FusionCacheInternalUtils.GetNormalizedEagerExpirationTimestamp(isStale, options.EagerRefreshThreshold, entry.LogicalExpirationTimestamp, entry.Timestamp);
 
 			metadata = new FusionCacheEntryMetadata(
 				isStale,
