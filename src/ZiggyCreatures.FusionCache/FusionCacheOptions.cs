@@ -436,6 +436,15 @@ public class FusionCacheOptions
 	public bool PreferSyncSerialization { get; set; }
 
 	/// <summary>
+	/// The <see cref="System.Buffers.ArrayPool{T}"/> used for the pooled buffers of the buffered distributed cache path, used when both the distributed cache implements <see cref="Microsoft.Extensions.Caching.Distributed.IBufferDistributedCache"/> and the serializer implements <see cref="Serialization.IBufferFusionCacheSerializer"/>.
+	/// <br/><br/>
+	/// The default is <see cref="System.Buffers.ArrayPool{T}.Shared"/>, which supports buffers of any size and automatically releases unused ones under memory pressure.
+	/// <br/><br/>
+	/// <strong>NOTE:</strong> this is intentionally internal, and currently used only by tests (eg: to track that every rented buffer is returned): it may be made public later if there is a real need to customize it.
+	/// </summary>
+	internal System.Buffers.ArrayPool<byte>? DistributedCacheBufferPool { get; set; }
+
+	/// <summary>
 	/// Include tags when logging a cache entry: since tags may contain sensitive data, be careful about enabling this.
 	/// <br/><br/>
 	/// <strong>DOCS:</strong> <see href="https://github.com/ZiggyCreatures/FusionCache/blob/main/docs/Logging.md"/>
@@ -677,6 +686,8 @@ public class FusionCacheOptions
 			ReThrowOriginalExceptions = ReThrowOriginalExceptions,
 
 			PreferSyncSerialization = PreferSyncSerialization,
+
+			DistributedCacheBufferPool = DistributedCacheBufferPool,
 
 			IncludeTagsInLogs = IncludeTagsInLogs,
 			IncludeTagsInTraces = IncludeTagsInTraces,

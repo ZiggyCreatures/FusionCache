@@ -80,13 +80,25 @@ internal partial class DistributedCacheAccessor
 		var distributedEntry = entry.AsDistributedEntry<TValue>(options);
 
 		// SERIALIZATION
-		byte[]? data;
+		byte[]? data = null;
+		// NOTE: THE LEASE IS RELEASED WHEN THE METHOD EXITS (ON ANY PATH), BUT THE BUFFER IS RETURNED TO
+		// THE POOL ONLY WHEN THE DISTRIBUTED CACHE OPERATION (IF ANY) IS NOT USING IT ANYMORE
+		using var bufferLease = _useBuffers ? new BufferWriterLease(_bufferPool) : null;
+		ArrayPoolBufferWriter? bufferData = null;
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
-			data = _serializer.Serialize(distributedEntry);
+			if (bufferLease is not null)
+			{
+				_bufferSerializer!.Serialize(distributedEntry, bufferLease.Writer);
+				bufferData = bufferLease.Writer;
+			}
+			else
+			{
+				data = _serializer.Serialize(distributedEntry);
+			}
 		}
 		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
 		{
@@ -125,7 +137,7 @@ internal partial class DistributedCacheAccessor
 			//data = null;
 		}
 
-		if (data is null)
+		if (data is null && bufferData is null)
 		{
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] the entry {Entry} has been serialized to null, skipping", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
@@ -141,7 +153,24 @@ internal partial class DistributedCacheAccessor
 			{
 				var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 
-				_cache.Set(MaybeProcessCacheKey(key), data, distributedOptions);
+				if (bufferLease is not null)
+				{
+					if (bufferLease.TryBeginUse() == false)
+						return;
+
+					try
+					{
+						_bufferCache!.Set(MaybeProcessCacheKey(key), bufferLease.Writer.WrittenSequence, distributedOptions);
+					}
+					finally
+					{
+						bufferLease.EndUse();
+					}
+				}
+				else
+				{
+					_cache.Set(MaybeProcessCacheKey(key), data!, distributedOptions);
+				}
 
 				// EVENT
 				_events.OnSet(operationId, key);
@@ -167,16 +196,49 @@ internal partial class DistributedCacheAccessor
 		using var activity = Activities.SourceDistributedLevel.StartActivityWithCommonTags(Activities.Names.DistributedGet, _options.CacheName, _options.InstanceId!, key, operationId, CacheLevelKind.Distributed);
 
 		// GET FROM DISTRIBUTED CACHE
-		byte[]? data;
+		byte[]? data = null;
+		// NOTE: THE LEASE IS RELEASED WHEN THE METHOD EXITS (ON ANY PATH), BUT THE BUFFER IS RETURNED TO
+		// THE POOL ONLY WHEN THE DISTRIBUTED CACHE OPERATION IS NOT USING IT ANYMORE: AFTER A TIMEOUT OR
+		// A CANCELLATION THE OPERATION MAY STILL BE RUNNING AND WRITING INTO IT, SO IT WILL RELEASE IT ITSELF
+		using var bufferLease = _useBuffers ? new BufferWriterLease(_bufferPool) : null;
+		ArrayPoolBufferWriter? bufferData = null;
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(_options, hasFallbackValue);
-			data = RunUtils.RunSyncFuncWithTimeout<byte[]?>(
-				_ => _cache.Get(MaybeProcessCacheKey(key)),
-				timeout.Value,
-				true,
-				token: token
-			);
+			if (bufferLease is not null)
+			{
+				var found = RunUtils.RunSyncFuncWithTimeout<bool>(
+					_ =>
+					{
+						if (bufferLease.TryBeginUse() == false)
+							return false;
+
+						try
+						{
+							return _bufferCache!.TryGet(MaybeProcessCacheKey(key), bufferLease.Writer);
+						}
+						finally
+						{
+							bufferLease.EndUse();
+						}
+					},
+					timeout.Value,
+					true,
+					token: token
+				);
+
+				if (found)
+					bufferData = bufferLease.Writer;
+			}
+			else
+			{
+				data = RunUtils.RunSyncFuncWithTimeout<byte[]?>(
+					_ => _cache.Get(MaybeProcessCacheKey(key)),
+					timeout.Value,
+					true,
+					token: token
+				);
+			}
 		}
 		catch (OperationCanceledException exc) when (token.IsCancellationRequested)
 		{
@@ -209,9 +271,10 @@ internal partial class DistributedCacheAccessor
 			}
 
 			data = null;
+			bufferData = null;
 		}
 
-		if (data is null)
+		if (data is null && bufferData is null)
 		{
 			if (_logger?.IsEnabled(LogLevel.Debug) ?? false)
 				_logger.Log(LogLevel.Debug, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] distributed entry not found", _options.CacheName, _options.InstanceId, operationId, key);
@@ -224,7 +287,15 @@ internal partial class DistributedCacheAccessor
 		// DESERIALIZATION
 		try
 		{
-			var entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data);
+			FusionCacheDistributedEntry<TValue>? entry;
+			if (bufferData is not null)
+			{
+				entry = _bufferSerializer!.Deserialize<FusionCacheDistributedEntry<TValue>>(bufferData.WrittenSequence);
+			}
+			else
+			{
+				entry = _serializer.Deserialize<FusionCacheDistributedEntry<TValue>>(data!);
+			}
 			var isValid = false;
 			if (entry is null)
 			{
