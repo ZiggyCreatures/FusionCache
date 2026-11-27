@@ -40,6 +40,17 @@ public partial class BufferedL2Tests
 		};
 	}
 
+	private FusionCacheOptions CreateFusionCacheOptions(TrackingArrayPool pool)
+	{
+		var options = CreateFusionCacheOptions();
+		options.DistributedCacheBufferPool = pool;
+		// NO AUTO-RECOVERY, SO THAT NO RETRY CAN RENT BUFFERS WHILE THE POOL IS BEING CHECKED
+		options.EnableAutoRecovery = false;
+		return options;
+	}
+
+	private static readonly TimeSpan PoolWaitTimeout = TimeSpan.FromSeconds(5);
+
 	private static string CreateRandomCacheKey(string key)
 	{
 		return key + "_" + Guid.NewGuid().ToString("N");

@@ -1,6 +1,8 @@
 using FusionCacheTests.Stuff;
 using Xunit;
 using ZiggyCreatures.Caching.Fusion;
+using ZiggyCreatures.Caching.Fusion.Chaos;
+using ZiggyCreatures.Caching.Fusion.Serialization;
 
 namespace FusionCacheTests;
 
@@ -158,5 +160,115 @@ public partial class BufferedL2Tests
 			Assert.Equal(0, distributedCache.ClassicSetCount(k));
 			Assert.Equal(0, distributedCache.ClassicGetCount(k));
 		}
+	}
+
+	[Fact]
+	public async Task BufferedPathReturnsAllBuffersToThePoolAsync()
+	{
+		var pool = new TrackingArrayPool();
+		var distributedCache = new BufferCallTrackingDistributedCache(CreateInnerDistributedCache());
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions(pool));
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(SerializerType.SystemTextJson));
+
+		using var cache2 = new FusionCache(CreateFusionCacheOptions(pool));
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(SerializerType.SystemTextJson));
+
+		var key = CreateRandomCacheKey("pool");
+		var value = ComplexType.CreateSample();
+
+		// SET + GET (HIT)
+		await cache1.SetAsync(key, value, token: TestContext.Current.CancellationToken);
+		Assert.Equal(value, await cache2.GetOrDefaultAsync<ComplexType>(key, token: TestContext.Current.CancellationToken));
+
+		// GET (MISS)
+		Assert.Null(await cache2.GetOrDefaultAsync<ComplexType>(CreateRandomCacheKey("pool-miss"), token: TestContext.Current.CancellationToken));
+
+		Assert.Equal(1, distributedCache.BufferSetCount(key));
+		Assert.Equal(1, distributedCache.BufferGetCount(key));
+		Assert.Equal(0, pool.Outstanding);
+		Assert.Equal(0, pool.InvalidReturns);
+	}
+
+	[Fact]
+	public async Task BufferedPathReturnsBuffersToThePoolWhenDistributedCacheThrowsAsync()
+	{
+		var pool = new TrackingArrayPool();
+		var chaosDistributedCache = new ChaosBufferDistributedCache(new BufferCallTrackingDistributedCache(CreateInnerDistributedCache()));
+
+		var options = CreateFusionCacheOptions(pool);
+		options.DefaultEntryOptions.ReThrowDistributedCacheExceptions = false;
+
+		using var cache = new FusionCache(options);
+		cache.SetupDistributedCache(chaosDistributedCache, new ChaosBufferSerializer((IBufferFusionCacheSerializer)TestsUtils.GetSerializer(SerializerType.SystemTextJson)));
+
+		chaosDistributedCache.SetAlwaysThrow();
+
+		var key = CreateRandomCacheKey("pool-throw");
+
+		await cache.SetAsync(key, ComplexType.CreateSample(), token: TestContext.Current.CancellationToken);
+		await cache.GetOrDefaultAsync<ComplexType>(CreateRandomCacheKey("pool-throw-get"), token: TestContext.Current.CancellationToken);
+
+		// ONE BUFFER FOR THE SET, ONE FOR THE GET
+		Assert.Equal(2, pool.TotalRents);
+		Assert.Equal(0, pool.Outstanding);
+		Assert.Equal(0, pool.InvalidReturns);
+	}
+
+	[Fact]
+	public async Task BufferedPathReturnsBufferToThePoolOnlyAfterTimedOutGetCompletesAsync()
+	{
+		var pool = new TrackingArrayPool();
+		var key = CreateRandomCacheKey("pool-timeout");
+		var distributedCache = new GatedBufferDistributedCache(CreateInnerDistributedCache(), x => x.Contains(key, StringComparison.Ordinal));
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions(pool));
+		cache1.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(SerializerType.SystemTextJson));
+
+		var options2 = CreateFusionCacheOptions(pool);
+		options2.DefaultEntryOptions.DistributedCacheHardTimeout = TimeSpan.FromMilliseconds(100);
+		using var cache2 = new FusionCache(options2);
+		cache2.SetupDistributedCache(distributedCache, TestsUtils.GetSerializer(SerializerType.SystemTextJson));
+
+		await cache1.SetAsync(key, ComplexType.CreateSample(), token: TestContext.Current.CancellationToken);
+		Assert.Equal(0, pool.Outstanding);
+
+		// THE READ TIMES OUT, BUT THE OPERATION IS STILL IN FLIGHT AND WILL WRITE INTO THE BUFFER LATER
+		distributedCache.Enable();
+		Assert.Null(await cache2.GetOrDefaultAsync<ComplexType>(key, token: TestContext.Current.CancellationToken));
+
+		// SO THE BUFFER MUST NOT HAVE BEEN RETURNED TO THE POOL YET...
+		Assert.Equal(1, pool.Outstanding);
+
+		// ...BUT IT MUST BE ONCE THE OPERATION COMPLETES
+		distributedCache.OpenGate();
+		await distributedCache.ReadCompleted.WaitAsync(PoolWaitTimeout, TestContext.Current.CancellationToken);
+		Assert.True(await pool.WaitForNoOutstandingAsync(PoolWaitTimeout));
+		Assert.Equal(0, pool.InvalidReturns);
+	}
+
+	[Theory]
+	[ClassData(typeof(SerializerTypesClassData))]
+	public async Task ChaosWrappersPreserveTheBufferedPathAsync(SerializerType serializerType)
+	{
+		var distributedCache = new BufferCallTrackingDistributedCache(CreateInnerDistributedCache());
+		var chaosDistributedCache = new ChaosBufferDistributedCache(distributedCache);
+
+		using var cache1 = new FusionCache(CreateFusionCacheOptions());
+		cache1.SetupDistributedCache(chaosDistributedCache, new ChaosBufferSerializer((IBufferFusionCacheSerializer)TestsUtils.GetSerializer(serializerType)));
+
+		using var cache2 = new FusionCache(CreateFusionCacheOptions());
+		cache2.SetupDistributedCache(chaosDistributedCache, new ChaosBufferSerializer((IBufferFusionCacheSerializer)TestsUtils.GetSerializer(serializerType)));
+
+		var key = CreateRandomCacheKey("chaos");
+		var value = ComplexType.CreateSample();
+
+		await cache1.SetAsync(key, value, token: TestContext.Current.CancellationToken);
+		Assert.Equal(value, await cache2.GetOrDefaultAsync<ComplexType>(key, token: TestContext.Current.CancellationToken));
+
+		Assert.Equal(1, distributedCache.BufferSetCount(key));
+		Assert.Equal(1, distributedCache.BufferGetCount(key));
+		Assert.Equal(0, distributedCache.ClassicSetCount(key));
+		Assert.Equal(0, distributedCache.ClassicGetCount(key));
 	}
 }

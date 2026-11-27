@@ -81,16 +81,19 @@ internal partial class DistributedCacheAccessor
 
 		// SERIALIZATION
 		byte[]? data = null;
+		// NOTE: THE LEASE IS RELEASED WHEN THE METHOD EXITS (ON ANY PATH), BUT THE BUFFER IS RETURNED TO
+		// THE POOL ONLY WHEN THE DISTRIBUTED CACHE OPERATION (IF ANY) IS NOT USING IT ANYMORE
+		using var bufferLease = _useBuffers ? new BufferWriterLease(_bufferPool) : null;
 		ArrayPoolBufferWriter? bufferData = null;
 		try
 		{
 			if (_logger?.IsEnabled(LogLevel.Trace) ?? false)
 				_logger.Log(LogLevel.Trace, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] serializing the entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
-			if (_useBuffers)
+			if (bufferLease is not null)
 			{
-				bufferData = new ArrayPoolBufferWriter(_bufferPool);
-				_bufferSerializer!.Serialize(distributedEntry, bufferData);
+				_bufferSerializer!.Serialize(distributedEntry, bufferLease.Writer);
+				bufferData = bufferLease.Writer;
 			}
 			else
 			{
@@ -109,9 +112,6 @@ internal partial class DistributedCacheAccessor
 		}
 		catch (Exception exc)
 		{
-			// SERIALIZATION IS SYNCHRONOUS ON THE BUFFERED PATH, SO NOTHING ELSE CAN BE USING THE BUFFER HERE
-			bufferData?.Dispose();
-
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while serializing an entry {Entry}", _options.CacheName, _options.InstanceId, operationId, key, distributedEntry.ToLogString(_options.IncludeTagsInLogs));
 
@@ -153,12 +153,19 @@ internal partial class DistributedCacheAccessor
 			{
 				var distributedOptions = options.ToDistributedCacheEntryOptions(_options, _logger, operationId, key);
 
-				if (bufferData is not null)
+				if (bufferLease is not null)
 				{
-					_bufferCache!.Set(MaybeProcessCacheKey(key), bufferData.WrittenSequence, distributedOptions);
+					if (bufferLease.TryBeginUse() == false)
+						return;
 
-					// RELEASE THE BUFFER ONLY ON SUCCESS: ON FAILURE THE OPERATION MAY STILL BE USING IT
-					bufferData.Dispose();
+					try
+					{
+						_bufferCache!.Set(MaybeProcessCacheKey(key), bufferLease.Writer.WrittenSequence, distributedOptions);
+					}
+					finally
+					{
+						bufferLease.EndUse();
+					}
 				}
 				else
 				{
@@ -190,26 +197,38 @@ internal partial class DistributedCacheAccessor
 
 		// GET FROM DISTRIBUTED CACHE
 		byte[]? data = null;
+		// NOTE: THE LEASE IS RELEASED WHEN THE METHOD EXITS (ON ANY PATH), BUT THE BUFFER IS RETURNED TO
+		// THE POOL ONLY WHEN THE DISTRIBUTED CACHE OPERATION IS NOT USING IT ANYMORE: AFTER A TIMEOUT OR
+		// A CANCELLATION THE OPERATION MAY STILL BE RUNNING AND WRITING INTO IT, SO IT WILL RELEASE IT ITSELF
+		using var bufferLease = _useBuffers ? new BufferWriterLease(_bufferPool) : null;
 		ArrayPoolBufferWriter? bufferData = null;
 		try
 		{
 			timeout ??= options.GetAppropriateDistributedCacheTimeout(_options, hasFallbackValue);
-			if (_useBuffers)
+			if (bufferLease is not null)
 			{
-				bufferData = RunUtils.RunSyncFuncWithTimeout<ArrayPoolBufferWriter?>(
+				var found = RunUtils.RunSyncFuncWithTimeout<bool>(
 					_ =>
 					{
-						var writer = new ArrayPoolBufferWriter(_bufferPool);
-						if (_bufferCache!.TryGet(MaybeProcessCacheKey(key), writer))
-							return writer;
+						if (bufferLease.TryBeginUse() == false)
+							return false;
 
-						writer.Dispose();
-						return null;
+						try
+						{
+							return _bufferCache!.TryGet(MaybeProcessCacheKey(key), bufferLease.Writer);
+						}
+						finally
+						{
+							bufferLease.EndUse();
+						}
 					},
 					timeout.Value,
 					true,
 					token: token
 				);
+
+				if (found)
+					bufferData = bufferLease.Writer;
 			}
 			else
 			{
@@ -251,9 +270,6 @@ internal partial class DistributedCacheAccessor
 				}
 			}
 
-			// NOTE: ON FAILURE (INCLUDING TIMEOUT) THE POOLED BUFFER IS INTENTIONALLY NOT DISPOSED,
-			// SINCE THE UNDERLYING OPERATION MAY STILL BE RUNNING AND WRITING INTO IT: IT WILL SIMPLY
-			// BE COLLECTED, WITHOUT BEING RETURNED TO THE POOL
 			data = null;
 			bufferData = null;
 		}
@@ -275,9 +291,6 @@ internal partial class DistributedCacheAccessor
 			if (bufferData is not null)
 			{
 				entry = _bufferSerializer!.Deserialize<FusionCacheDistributedEntry<TValue>>(bufferData.WrittenSequence);
-
-				// RELEASE THE BUFFER ONLY ON SUCCESS
-				bufferData.Dispose();
 			}
 			else
 			{
@@ -329,9 +342,6 @@ internal partial class DistributedCacheAccessor
 		}
 		catch (Exception exc)
 		{
-			// DESERIALIZATION IS SYNCHRONOUS AND OWNS THE BUFFER HERE, SO IT IS SAFE TO RELEASE IT
-			bufferData?.Dispose();
-
 			if (_logger?.IsEnabled(_options.SerializationErrorsLogLevel) ?? false)
 				_logger.Log(_options.SerializationErrorsLogLevel, exc, "FUSION [N={CacheName} I={CacheInstanceId}] (O={CacheOperationId} K={CacheKey}): [DC] an error occurred while deserializing an entry", _options.CacheName, _options.InstanceId, operationId, key);
 
